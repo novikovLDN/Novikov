@@ -211,7 +211,7 @@ export default function Home() {
               Чтобы войти или зарегистрироваться
             </p>
 
-            <form onSubmit={handleEmailSubmit} className="space-y-3 sm:space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div className="relative">
                 <input
                   ref={emailRef}
@@ -225,6 +225,12 @@ export default function Home() {
                   onInput={syncEmailFromInput}
                   onAnimationStart={syncEmailFromInput}
                   onFocus={syncEmailFromInput}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleEmailSubmit();
+                    }
+                  }}
                   className={`w-full h-13 sm:h-14 px-4 rounded-2xl bg-card border text-foreground placeholder-muted focus:outline-none transition-all text-base sm:text-lg ${
                     error
                       ? "border-danger/50 focus:border-danger"
@@ -232,7 +238,7 @@ export default function Home() {
                   }`}
                   autoComplete="email"
                   inputMode="email"
-                  enterKeyHint="next"
+                  enterKeyHint="go"
                 />
               </div>
 
@@ -262,7 +268,7 @@ export default function Home() {
                   "Далее"
                 )}
               </button>
-            </form>
+            </div>
 
             <div className="relative my-5 sm:my-6">
               <div className="absolute inset-0 flex items-center">
