@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useActionState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect, useActionState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FeatureCard from "@/components/FeatureCard";
@@ -15,14 +14,12 @@ interface AuthPageProps {
 }
 
 export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
-  const router = useRouter();
   const [step, setStep] = useState(initialStep);
   const [email, setEmail] = useState(initialEmail);
   const [countdown, setCountdown] = useState(initialStep === "code" ? 60 : 0);
-  const [shakeCode, setShakeCode] = useState(false);
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
-  const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
   const emailRef = useRef<HTMLInputElement>(null);
+  const codeFormRef = useRef<HTMLFormElement>(null);
+  const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // ─── Server Actions ───────────────────────────────────────────
   const [sendState, sendAction, sendPending] = useActionState(
@@ -61,26 +58,29 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     }
   }, [step]);
 
-  // ─── Code Handlers ────────────────────────────────────────────
+  // ─── Code Input Handlers (progressive enhancement) ────────────
 
-  const handleCodeChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
+  const handleCodeInput = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    e.target.value = value.slice(-1);
 
-    const newCode = [...code];
-    newCode[index] = value.slice(-1);
-    setCode(newCode);
-
+    // Auto-advance to next input
     if (value && index < 5) {
       codeRefs.current[index + 1]?.focus();
     }
+
+    // Auto-submit when all 6 digits entered
+    if (value && index === 5) {
+      const allFilled = codeRefs.current.every((ref) => ref?.value);
+      if (allFilled && codeFormRef.current) {
+        codeFormRef.current.requestSubmit();
+      }
+    }
   };
 
-  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
+  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !e.currentTarget.value && index > 0) {
       codeRefs.current[index - 1]?.focus();
-      const newCode = [...code];
-      newCode[index - 1] = "";
-      setCode(newCode);
     }
   };
 
@@ -89,16 +89,15 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     if (!pasted.length) return;
 
-    const newCode = ["", "", "", "", "", ""];
-    for (let i = 0; i < pasted.length; i++) {
-      newCode[i] = pasted[i];
+    for (let i = 0; i < 6; i++) {
+      const ref = codeRefs.current[i];
+      if (ref) ref.value = pasted[i] || "";
     }
-    setCode(newCode);
 
-    if (pasted.length === 6) {
-      codeRefs.current[5]?.focus();
+    if (pasted.length === 6 && codeFormRef.current) {
+      codeFormRef.current.requestSubmit();
     } else {
-      codeRefs.current[pasted.length]?.focus();
+      codeRefs.current[Math.min(pasted.length, 5)]?.focus();
     }
   };
 
@@ -114,7 +113,8 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
       const data = await res.json();
       if (data.success) {
         setCountdown(60);
-        setCode(["", "", "", "", "", ""]);
+        // Clear code inputs
+        codeRefs.current.forEach((ref) => { if (ref) ref.value = ""; });
         codeRefs.current[0]?.focus();
       }
     } catch {
@@ -257,19 +257,15 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
         ) : (
           /* ═══ Code Verification Screen ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-4">
-            <button
-              type="button"
-              onClick={() => {
-                setStep("email");
-                setCode(["", "", "", "", "", ""]);
-              }}
+            <a
+              href="/"
               className="flex items-center gap-1.5 text-muted-light hover:text-foreground transition-colors mb-6 sm:mb-8 btn-press py-1"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M15 18l-6-6 6-6" />
               </svg>
               <span className="text-sm font-medium">Назад</span>
-            </button>
+            </a>
 
             <div className="text-center sm:text-left">
               <h1 className="text-2xl sm:text-3xl font-bold mb-2">Введи код</h1>
@@ -282,36 +278,32 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
               </p>
             </div>
 
-            {/* Code form — works as native form even without JS */}
-            <form action={verifyAction}>
+            {/* Code form — all inputs are uncontrolled, works without JS */}
+            <form ref={codeFormRef} action={verifyAction}>
               <input type="hidden" name="email" value={email} />
 
               <div
-                className={`flex gap-2 sm:gap-3 justify-center mb-6 ${shakeCode ? "animate-shake" : ""}`}
+                className="flex gap-2 sm:gap-3 justify-center mb-6"
                 onPaste={handleCodePaste}
               >
-                {code.map((digit, i) => (
+                {[0, 1, 2, 3, 4, 5].map((i) => (
                   <input
                     key={i}
-                    ref={(el) => {
-                      codeRefs.current[i] = el;
-                    }}
+                    ref={(el) => { codeRefs.current[i] = el; }}
                     name={`code-${i}`}
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]"
                     maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleCodeChange(i, e.target.value)}
+                    required
+                    autoComplete="one-time-code"
+                    onChange={(e) => handleCodeInput(i, e)}
                     onKeyDown={(e) => handleCodeKeyDown(i, e)}
                     aria-label={`Цифра ${i + 1}`}
-                    required
                     className={`w-11 h-13 sm:w-13 sm:h-15 text-center text-xl sm:text-2xl font-bold bg-card border rounded-xl sm:rounded-2xl focus:outline-none transition-all ${
                       codeError
                         ? "border-danger/50"
-                        : digit
-                          ? "border-primary/60"
-                          : "border-border focus:border-primary"
+                        : "border-border focus:border-primary"
                     }`}
                   />
                 ))}
@@ -330,7 +322,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
 
               <button
                 type="submit"
-                disabled={code.join("").length !== 6 || verifyPending}
+                disabled={verifyPending}
                 className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press mb-5"
               >
                 {verifyPending ? (
