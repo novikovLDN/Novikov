@@ -1,6 +1,7 @@
 export interface User {
   id: string;
   email: string;
+  passwordHash: string | null;
   createdAt: string;
   subscriptionEnd: string;
   vpnKey: string | null;

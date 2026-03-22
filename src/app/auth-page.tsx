@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useActionState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FeatureCard from "@/components/FeatureCard";
@@ -8,18 +9,56 @@ import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { sendCodeAction, verifyCodeAction } from "./actions";
 
+type AuthStep =
+  | "email"
+  | "code"
+  | "set-password"
+  | "login"
+  | "reset-email"
+  | "reset-code"
+  | "reset-password"
+  | "reset-success";
+
 interface AuthPageProps {
   initialStep: "email" | "code";
   initialEmail: string;
 }
 
 export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
-  const [step, setStep] = useState(initialStep);
+  const router = useRouter();
+  const [step, setStep] = useState<AuthStep>(initialStep);
   const [email, setEmail] = useState(initialEmail);
   const [countdown, setCountdown] = useState(initialStep === "code" ? 60 : 0);
   const emailRef = useRef<HTMLInputElement>(null);
   const codeFormRef = useRef<HTMLFormElement>(null);
   const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Login state
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+
+  // Set password state
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [setPasswordError, setSetPasswordError] = useState("");
+  const [setPasswordLoading, setSetPasswordLoading] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Reset password state
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [resetPassword1, setResetPassword1] = useState("");
+  const [resetPassword2, setResetPassword2] = useState("");
+  const [resetError, setResetError] = useState("");
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetCountdown, setResetCountdown] = useState(0);
+  const [showResetPassword1, setShowResetPassword1] = useState(false);
+  const [showResetPassword2, setShowResetPassword2] = useState(false);
+  const resetCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // ─── Server Actions ───────────────────────────────────────────
   const [sendState, sendAction, sendPending] = useActionState(
@@ -32,7 +71,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     { success: false }
   );
 
-  // When send-code succeeds via JS (progressive enhancement)
+  // When send-code succeeds
   useEffect(() => {
     if (sendState.success && sendState.email) {
       setEmail(sendState.email);
@@ -42,6 +81,14 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     }
   }, [sendState]);
 
+  // When verify-code succeeds and needs password
+  useEffect(() => {
+    if (verifyState.success && verifyState.needsPassword) {
+      setStep("set-password");
+    }
+    // If success without needsPassword, the server action redirects to /dashboard
+  }, [verifyState]);
+
   // Countdown timer
   useEffect(() => {
     if (countdown <= 0) return;
@@ -49,27 +96,30 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     return () => clearTimeout(t);
   }, [countdown]);
 
+  // Reset countdown timer
+  useEffect(() => {
+    if (resetCountdown <= 0) return;
+    const t = setTimeout(() => setResetCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resetCountdown]);
+
   // Auto-focus on mount
   useEffect(() => {
     if (step === "email") {
       emailRef.current?.focus();
-    } else {
+    } else if (step === "code") {
       codeRefs.current[0]?.focus();
     }
   }, [step]);
 
-  // ─── Code Input Handlers (progressive enhancement) ────────────
+  // ─── Code Input Handlers ────────────────────────────────────────
 
   const handleCodeInput = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "");
     e.target.value = value.slice(-1);
-
-    // Auto-advance to next input
     if (value && index < 5) {
       codeRefs.current[index + 1]?.focus();
     }
-
-    // Auto-submit when all 6 digits entered
     if (value && index === 5) {
       const allFilled = codeRefs.current.every((ref) => ref?.value);
       if (allFilled && codeFormRef.current) {
@@ -88,12 +138,10 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     e.preventDefault();
     const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     if (!pasted.length) return;
-
     for (let i = 0; i < 6; i++) {
       const ref = codeRefs.current[i];
       if (ref) ref.value = pasted[i] || "";
     }
-
     if (pasted.length === 6 && codeFormRef.current) {
       codeFormRef.current.requestSubmit();
     } else {
@@ -101,9 +149,45 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     }
   };
 
+  // Same handlers for reset code inputs
+  const handleResetCodeInput = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "");
+    e.target.value = value.slice(-1);
+    if (value && index < 5) {
+      resetCodeRefs.current[index + 1]?.focus();
+    }
+    if (value && index === 5) {
+      const allFilled = resetCodeRefs.current.every((ref) => ref?.value);
+      if (allFilled) {
+        const code = resetCodeRefs.current.map((r) => r?.value || "").join("");
+        setResetCode(code);
+      }
+    }
+  };
+
+  const handleResetCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !e.currentTarget.value && index > 0) {
+      resetCodeRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleResetCodePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted.length) return;
+    for (let i = 0; i < 6; i++) {
+      const ref = resetCodeRefs.current[i];
+      if (ref) ref.value = pasted[i] || "";
+    }
+    if (pasted.length === 6) {
+      setResetCode(pasted);
+    } else {
+      resetCodeRefs.current[Math.min(pasted.length, 5)]?.focus();
+    }
+  };
+
   const handleResendCode = async () => {
     if (countdown > 0) return;
-
     try {
       const res = await fetch("/api/auth/send-code", {
         method: "POST",
@@ -113,7 +197,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
       const data = await res.json();
       if (data.success) {
         setCountdown(60);
-        // Clear code inputs
         codeRefs.current.forEach((ref) => { if (ref) ref.value = ""; });
         codeRefs.current[0]?.focus();
       }
@@ -122,7 +205,239 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     }
   };
 
-  // ─── Render ────────────────────────────────────────────────────
+  // ─── Login Handler ────────────────────────────────────────────
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+    setLoginLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail.trim().toLowerCase(), password: loginPassword }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        router.push("/dashboard");
+      } else {
+        setLoginError(data.error || "Ошибка входа");
+      }
+    } catch {
+      setLoginError("Ошибка сервера. Попробуйте позже.");
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  // ─── Set Password Handler ─────────────────────────────────────
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSetPasswordError("");
+
+    if (newPassword.length < 6) {
+      setSetPasswordError("Пароль должен содержать минимум 6 символов");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setSetPasswordError("Пароли не совпадают");
+      return;
+    }
+
+    setSetPasswordLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/set-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: newPassword }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        router.push("/dashboard");
+      } else {
+        setSetPasswordError(data.error || "Ошибка сохранения пароля");
+      }
+    } catch {
+      setSetPasswordError("Ошибка сервера. Попробуйте позже.");
+    } finally {
+      setSetPasswordLoading(false);
+    }
+  };
+
+  // ─── Reset Password Handlers ──────────────────────────────────
+
+  const handleSendResetCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError("");
+    setResetLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail.trim().toLowerCase() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStep("reset-code");
+        setResetCountdown(60);
+        setTimeout(() => resetCodeRefs.current[0]?.focus(), 150);
+      } else {
+        setResetError(data.error || "Ошибка отправки кода");
+      }
+    } catch {
+      setResetError("Ошибка сервера. Попробуйте позже.");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleVerifyResetCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = resetCodeRefs.current.map((r) => r?.value || "").join("");
+    if (code.length !== 6) {
+      setResetError("Введите код из 6 цифр");
+      return;
+    }
+    setResetCode(code);
+    setResetError("");
+    setStep("reset-password");
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetError("");
+
+    if (resetPassword1.length < 6) {
+      setResetError("Пароль должен содержать минимум 6 символов");
+      return;
+    }
+
+    if (resetPassword1 !== resetPassword2) {
+      setResetError("Пароли не совпадают");
+      return;
+    }
+
+    setResetLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: resetEmail.trim().toLowerCase(),
+          code: resetCode,
+          password: resetPassword1,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStep("reset-success");
+      } else {
+        setResetError(data.error || "Ошибка смены пароля");
+      }
+    } catch {
+      setResetError("Ошибка сервера. Попробуйте позже.");
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleResendResetCode = async () => {
+    if (resetCountdown > 0) return;
+    try {
+      const res = await fetch("/api/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail.trim().toLowerCase() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setResetCountdown(60);
+        resetCodeRefs.current.forEach((ref) => { if (ref) ref.value = ""; });
+        resetCodeRefs.current[0]?.focus();
+      }
+    } catch {
+      // silent
+    }
+  };
+
+  // ─── Shared Components ─────────────────────────────────────────
+
+  const BackButton = ({ onClick }: { onClick: () => void }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1.5 text-muted-light hover:text-foreground transition-colors mb-6 sm:mb-8 btn-press py-1"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      <span className="text-sm font-medium">Назад</span>
+    </button>
+  );
+
+  const PasswordInput = ({
+    value,
+    onChange,
+    show,
+    onToggle,
+    placeholder,
+    autoFocus,
+  }: {
+    value: string;
+    onChange: (v: string) => void;
+    show: boolean;
+    onToggle: () => void;
+    placeholder: string;
+    autoFocus?: boolean;
+  }) => (
+    <div className="relative">
+      <input
+        type={show ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        autoFocus={autoFocus}
+        className="w-full h-13 sm:h-14 px-4 pr-12 rounded-2xl bg-card border border-border text-foreground placeholder-muted focus:outline-none focus:border-primary transition-all text-base sm:text-lg"
+        required
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors p-1"
+      >
+        {show ? (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
+            <line x1="1" y1="1" x2="23" y2="23" />
+          </svg>
+        ) : (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        )}
+      </button>
+    </div>
+  );
+
+  const ErrorMessage = ({ error }: { error: string }) => (
+    <p className="text-danger text-xs sm:text-sm flex items-center gap-1.5 animate-fade-in">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      {error}
+    </p>
+  );
+
+  // ─── Render ──────────────────────────────────────────────────────
 
   const emailError = sendState.error || null;
   const codeError = verifyState.error || null;
@@ -132,7 +447,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
       <Header transparent={step === "email"} />
 
       <PageContainer>
-        {step === "email" ? (
+        {step === "email" && (
           /* ═══ Email Screen ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-6">
             <h1 className="text-2xl sm:text-3xl font-bold mb-1">Введи почту</h1>
@@ -160,16 +475,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
                 />
               </div>
 
-              {emailError && (
-                <p className="text-danger text-xs sm:text-sm flex items-center gap-1.5 animate-fade-in">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  {emailError}
-                </p>
-              )}
+              {emailError && <ErrorMessage error={emailError} />}
 
               <button
                 type="submit"
@@ -196,11 +502,15 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
               </div>
             </div>
 
-            <button className="w-full h-13 sm:h-14 rounded-2xl border border-telegram/40 text-telegram font-semibold hover:bg-telegram/10 active:bg-telegram/15 transition-colors flex items-center justify-center gap-2.5 btn-press">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+            <button
+              onClick={() => { setStep("login"); setLoginError(""); }}
+              className="w-full h-13 sm:h-14 rounded-2xl border border-border text-foreground font-semibold hover:bg-card active:bg-card-hover transition-colors flex items-center justify-center gap-2.5 btn-press"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0110 0v4" />
               </svg>
-              Войти через Telegram
+              Войти по логину и паролю
             </button>
 
             {/* Features */}
@@ -254,18 +564,12 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
               />
             </div>
           </div>
-        ) : (
+        )}
+
+        {step === "code" && (
           /* ═══ Code Verification Screen ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-4">
-            <a
-              href="/"
-              className="flex items-center gap-1.5 text-muted-light hover:text-foreground transition-colors mb-6 sm:mb-8 btn-press py-1"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-              <span className="text-sm font-medium">Назад</span>
-            </a>
+            <BackButton onClick={() => setStep("email")} />
 
             <div className="text-center sm:text-left">
               <h1 className="text-2xl sm:text-3xl font-bold mb-2">Введи код</h1>
@@ -278,7 +582,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
               </p>
             </div>
 
-            {/* Code form — all inputs are uncontrolled, works without JS */}
             <form ref={codeFormRef} action={verifyAction}>
               <input type="hidden" name="email" value={email} />
 
@@ -355,6 +658,355 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
                 </button>
               )}
             </div>
+          </div>
+        )}
+
+        {step === "set-password" && (
+          /* ═══ Set Password Screen (after OTP for new users) ═══ */
+          <div className="animate-fade-in-up pt-2 sm:pt-4">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Создайте пароль</h1>
+              <p className="text-muted text-sm sm:text-base mb-8">
+                Придумайте пароль для входа в личный кабинет. В дальнейшем вы сможете войти по почте и паролю.
+              </p>
+            </div>
+
+            <form onSubmit={handleSetPassword} className="space-y-3 sm:space-y-4">
+              <PasswordInput
+                value={newPassword}
+                onChange={setNewPassword}
+                show={showNewPassword}
+                onToggle={() => setShowNewPassword(!showNewPassword)}
+                placeholder="Пароль (мин. 6 символов)"
+                autoFocus
+              />
+
+              <PasswordInput
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                show={showConfirmPassword}
+                onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
+                placeholder="Повторите пароль"
+              />
+
+              {setPasswordError && <ErrorMessage error={setPasswordError} />}
+
+              <button
+                type="submit"
+                disabled={setPasswordLoading}
+                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
+              >
+                {setPasswordLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <LoadingSpinner size="sm" />
+                    Сохраняем...
+                  </span>
+                ) : (
+                  "Сохранить пароль"
+                )}
+              </button>
+            </form>
+
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="w-full mt-3 text-muted text-sm font-medium hover:text-foreground transition-colors py-2"
+            >
+              Пропустить
+            </button>
+          </div>
+        )}
+
+        {step === "login" && (
+          /* ═══ Login by Email + Password ═══ */
+          <div className="animate-fade-in-up pt-2 sm:pt-4">
+            <BackButton onClick={() => setStep("email")} />
+
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Вход в аккаунт</h1>
+            <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
+              Введите почту и пароль
+            </p>
+
+            <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
+              <input
+                type="email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                placeholder="Email"
+                autoComplete="email"
+                inputMode="email"
+                autoFocus
+                className={`w-full h-13 sm:h-14 px-4 rounded-2xl bg-card border text-foreground placeholder-muted focus:outline-none transition-all text-base sm:text-lg ${
+                  loginError ? "border-danger/50 focus:border-danger" : "border-border focus:border-primary"
+                }`}
+                required
+              />
+
+              <PasswordInput
+                value={loginPassword}
+                onChange={setLoginPassword}
+                show={showLoginPassword}
+                onToggle={() => setShowLoginPassword(!showLoginPassword)}
+                placeholder="Пароль"
+              />
+
+              {loginError && <ErrorMessage error={loginError} />}
+
+              <button
+                type="submit"
+                disabled={loginLoading}
+                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
+              >
+                {loginLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <LoadingSpinner size="sm" />
+                    Входим...
+                  </span>
+                ) : (
+                  "Войти"
+                )}
+              </button>
+            </form>
+
+            <div className="text-center mt-5">
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("reset-email");
+                  setResetEmail(loginEmail);
+                  setResetError("");
+                }}
+                className="text-primary text-sm font-medium hover:text-primary-hover transition-colors"
+              >
+                Забыли пароль?
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === "reset-email" && (
+          /* ═══ Reset Password — Enter Email ═══ */
+          <div className="animate-fade-in-up pt-2 sm:pt-4">
+            <BackButton onClick={() => setStep("login")} />
+
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Восстановление пароля</h1>
+            <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
+              Введите почту, привязанную к аккаунту
+            </p>
+
+            <form onSubmit={handleSendResetCode} className="space-y-3 sm:space-y-4">
+              <input
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="Email"
+                autoComplete="email"
+                inputMode="email"
+                autoFocus
+                className={`w-full h-13 sm:h-14 px-4 rounded-2xl bg-card border text-foreground placeholder-muted focus:outline-none transition-all text-base sm:text-lg ${
+                  resetError ? "border-danger/50 focus:border-danger" : "border-border focus:border-primary"
+                }`}
+                required
+              />
+
+              {resetError && <ErrorMessage error={resetError} />}
+
+              <button
+                type="submit"
+                disabled={resetLoading}
+                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
+              >
+                {resetLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <LoadingSpinner size="sm" />
+                    Отправка...
+                  </span>
+                ) : (
+                  "Получить код"
+                )}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {step === "reset-code" && (
+          /* ═══ Reset Password — Enter Code ═══ */
+          <div className="animate-fade-in-up pt-2 sm:pt-4">
+            <BackButton onClick={() => setStep("reset-email")} />
+
+            <div className="text-center sm:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Введи код</h1>
+              <p className="text-muted text-sm sm:text-base mb-1">
+                Мы отправили код на{" "}
+                <span className="text-foreground font-medium break-all">{resetEmail}</span>
+              </p>
+              <p className="text-muted/70 text-xs sm:text-sm mb-8">
+                Проверь папку «Спам», если не видишь письмо
+              </p>
+            </div>
+
+            <form onSubmit={handleVerifyResetCode}>
+              <div
+                className="flex gap-2 sm:gap-3 justify-center mb-6"
+                onPaste={handleResetCodePaste}
+              >
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <input
+                    key={i}
+                    ref={(el) => { resetCodeRefs.current[i] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]"
+                    maxLength={1}
+                    required
+                    autoComplete="one-time-code"
+                    onChange={(e) => handleResetCodeInput(i, e)}
+                    onKeyDown={(e) => handleResetCodeKeyDown(i, e)}
+                    aria-label={`Цифра ${i + 1}`}
+                    className={`w-11 h-13 sm:w-13 sm:h-15 text-center text-xl sm:text-2xl font-bold bg-card border rounded-xl sm:rounded-2xl focus:outline-none transition-all ${
+                      resetError ? "border-danger/50" : "border-border focus:border-primary"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              {resetError && (
+                <p className="text-danger text-xs sm:text-sm text-center mb-4 flex items-center justify-center gap-1.5 animate-fade-in">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  {resetError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 transition-all btn-press mb-5"
+              >
+                Подтвердить
+              </button>
+            </form>
+
+            <div className="text-center">
+              {resetCountdown > 0 ? (
+                <p className="text-muted text-xs sm:text-sm">
+                  Отправить повторно через{" "}
+                  <span className="text-foreground font-medium tabular-nums">
+                    {String(Math.floor(resetCountdown / 60)).padStart(1, "0")}:
+                    {String(resetCountdown % 60).padStart(2, "0")}
+                  </span>
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResendResetCode}
+                  className="text-primary text-sm font-medium hover:text-primary-hover transition-colors"
+                >
+                  Отправить код повторно
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {step === "reset-password" && (
+          /* ═══ Reset Password — Set New Password ═══ */
+          <div className="animate-fade-in-up pt-2 sm:pt-4">
+            <BackButton onClick={() => setStep("reset-code")} />
+
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Новый пароль</h1>
+              <p className="text-muted text-sm sm:text-base mb-8">
+                Придумайте новый пароль для аккаунта
+              </p>
+            </div>
+
+            <form onSubmit={handleResetPassword} className="space-y-3 sm:space-y-4">
+              <PasswordInput
+                value={resetPassword1}
+                onChange={setResetPassword1}
+                show={showResetPassword1}
+                onToggle={() => setShowResetPassword1(!showResetPassword1)}
+                placeholder="Новый пароль (мин. 6 символов)"
+                autoFocus
+              />
+
+              <PasswordInput
+                value={resetPassword2}
+                onChange={setResetPassword2}
+                show={showResetPassword2}
+                onToggle={() => setShowResetPassword2(!showResetPassword2)}
+                placeholder="Повторите пароль"
+              />
+
+              {resetError && <ErrorMessage error={resetError} />}
+
+              <button
+                type="submit"
+                disabled={resetLoading}
+                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
+              >
+                {resetLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <LoadingSpinner size="sm" />
+                    Сохраняем...
+                  </span>
+                ) : (
+                  "Сохранить новый пароль"
+                )}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {step === "reset-success" && (
+          /* ═══ Reset Password — Success ═══ */
+          <div className="animate-fade-in-up pt-2 sm:pt-4">
+            <div className="flex justify-center mb-6 mt-8">
+              <div className="w-20 h-20 rounded-full bg-success/15 flex items-center justify-center animate-scale-in">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-3">Пароль изменён</h1>
+              <p className="text-muted text-sm sm:text-base mb-8">
+                Ваш пароль успешно обновлён. Теперь вы можете войти в аккаунт с новым паролем.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setStep("login");
+                setLoginEmail(resetEmail);
+                setLoginPassword("");
+                setLoginError("");
+              }}
+              className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 transition-all btn-press"
+            >
+              Войти в аккаунт
+            </button>
           </div>
         )}
       </PageContainer>

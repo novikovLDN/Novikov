@@ -25,6 +25,7 @@ export async function initDb(): Promise<void> {
       vpn_key TEXT,
       xray_uuid TEXT,
       telegram_id TEXT,
+      password_hash TEXT,
       telegram_linked BOOLEAN NOT NULL DEFAULT FALSE,
       referral_code TEXT UNIQUE NOT NULL,
       referred_by TEXT,

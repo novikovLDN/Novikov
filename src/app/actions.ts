@@ -48,10 +48,16 @@ export async function sendCodeAction(
   redirect("/?step=code");
 }
 
+export interface VerifyCodeState {
+  success: boolean;
+  error?: string;
+  needsPassword?: boolean;
+}
+
 export async function verifyCodeAction(
-  _prev: { success: boolean; error?: string },
+  _prev: VerifyCodeState,
   formData: FormData
-): Promise<{ success: boolean; error?: string }> {
+): Promise<VerifyCodeState> {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
   const codeDigits = [];
   for (let i = 0; i < 6; i++) {
@@ -63,6 +69,8 @@ export async function verifyCodeAction(
     return { success: false, error: "Введите код из 6 цифр" };
   }
 
+  let needsPassword = false;
+
   try {
     const result = verifyCode(email, code);
     if (!result.valid) {
@@ -70,6 +78,7 @@ export async function verifyCodeAction(
     }
 
     const user = await getOrCreateUser(email);
+    needsPassword = !user.passwordHash;
 
     // Fire-and-forget: don't block auth on external API call
     if (user.xrayUuid) {
@@ -81,13 +90,17 @@ export async function verifyCodeAction(
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60,
+      maxAge: 3 * 60 * 60, // 3 hours
       path: "/",
     });
     // Clean up pending_email cookie
     cookieStore.delete("pending_email");
   } catch {
     return { success: false, error: "Ошибка сервера. Попробуйте позже." };
+  }
+
+  if (needsPassword) {
+    return { success: true, needsPassword: true };
   }
 
   redirect("/dashboard");

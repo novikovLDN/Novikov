@@ -2,6 +2,7 @@
 // Verification codes remain in-memory (ephemeral, 10min TTL).
 
 import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcryptjs";
 import { pool } from "./db";
 import { generateXrayUuid, buildConnectionUri, xrayRemoveUser } from "./xray";
 
@@ -10,6 +11,7 @@ import { generateXrayUuid, buildConnectionUri, xrayRemoveUser } from "./xray";
 export interface UserRecord {
   id: string;
   email: string;
+  passwordHash: string | null;
   createdAt: string;
   subscriptionEnd: string;
   vpnKey: string | null;
@@ -36,6 +38,7 @@ function rowToUser(row: any): UserRecord {
   return {
     id: row.id,
     email: row.email,
+    passwordHash: row.password_hash,
     createdAt: new Date(row.created_at).toISOString(),
     subscriptionEnd: new Date(row.subscription_end).toISOString(),
     vpnKey: row.vpn_key,
@@ -150,6 +153,7 @@ export async function updateUser(id: string, updates: Partial<UserRecord>): Prom
   // Map UserRecord fields to DB columns
   const fieldMap: Record<string, string> = {
     email: "email",
+    passwordHash: "password_hash",
     subscriptionEnd: "subscription_end",
     vpnKey: "vpn_key",
     xrayUuid: "xray_uuid",
@@ -212,6 +216,43 @@ export async function linkTelegram(userId: string, telegramId: string): Promise<
     telegramLinked: true,
     subscriptionEnd: newEnd.toISOString(),
   });
+}
+
+// ─── Password Management ────────────────────────────────────────
+
+const BCRYPT_ROUNDS = 10;
+
+export async function setUserPassword(userId: string, password: string): Promise<boolean> {
+  const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+  const result = await pool.query(
+    "UPDATE users SET password_hash = $1 WHERE id = $2 RETURNING id",
+    [hash, userId]
+  );
+  return result.rows.length > 0;
+}
+
+export async function verifyUserPassword(email: string, password: string): Promise<UserRecord | null> {
+  const user = await getUserByEmail(email);
+  if (!user || !user.passwordHash) return null;
+  const match = await bcrypt.compare(password, user.passwordHash);
+  return match ? user : null;
+}
+
+export async function resetUserPassword(email: string, password: string): Promise<boolean> {
+  const hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+  const result = await pool.query(
+    "UPDATE users SET password_hash = $1 WHERE email = $2 RETURNING id",
+    [hash, email]
+  );
+  return result.rows.length > 0;
+}
+
+export async function userHasPassword(email: string): Promise<boolean> {
+  const result = await pool.query(
+    "SELECT password_hash FROM users WHERE email = $1",
+    [email]
+  );
+  return result.rows.length > 0 && !!result.rows[0].password_hash;
 }
 
 // ─── Expired Subscription Cleanup ───────────────────────────────
