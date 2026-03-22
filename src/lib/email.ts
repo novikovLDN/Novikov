@@ -1,13 +1,8 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-// Gmail SMTP transport
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+function getResend() {
+  return new Resend(process.env.RESEND_API_KEY || "");
+}
 
 export function generateCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -17,17 +12,16 @@ export async function sendVerificationEmail(
   email: string,
   code: string
 ): Promise<boolean> {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  if (!process.env.RESEND_API_KEY) {
     console.log(`[DEV] Verification code for ${email}: ${code}`);
     return true;
   }
 
   try {
-    await transporter.sendMail({
-      from: `"Atlas Secure" <${process.env.SMTP_USER}>`,
+    const { error } = await getResend().emails.send({
+      from: "Atlas Secure <onboarding@resend.dev>",
       to: email,
       subject: `Ваш код: ${code}`,
-      text: `Ваш код подтверждения: ${code}\n\nКод действителен 10 минут.\nЕсли вы не запрашивали код, проигнорируйте это письмо.\n\nAtlas Secure`,
       html: `
 <!DOCTYPE html>
 <html lang="ru">
@@ -73,6 +67,11 @@ export async function sendVerificationEmail(
 </html>
       `,
     });
+
+    if (error) {
+      console.error("[EMAIL] Resend error:", error);
+      return false;
+    }
     return true;
   } catch (error) {
     console.error("[EMAIL] Failed to send:", error);
