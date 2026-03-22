@@ -163,6 +163,7 @@ export async function xrayAddUser(uuid: string): Promise<boolean> {
         "x-api-key": XRAY_API_KEY,
       },
       body: JSON.stringify({ uuid }),
+      signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) {
       console.error(`[XRAY] Failed to add user (UUID: ${uuid}): ${res.status} ${res.statusText}`);
@@ -184,6 +185,7 @@ export async function xrayRemoveUser(uuid: string): Promise<boolean> {
       headers: {
         "x-api-key": XRAY_API_KEY,
       },
+      signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) {
       console.error(`[XRAY] Failed to remove user (UUID: ${uuid}): ${res.status} ${res.statusText}`);
@@ -202,6 +204,7 @@ export async function xrayHealthCheck(): Promise<boolean> {
   try {
     const res = await fetch(`${XRAY_API_URL}/health`, {
       headers: { "x-api-key": XRAY_API_KEY },
+      signal: AbortSignal.timeout(5000),
     });
     return res.ok;
   } catch {

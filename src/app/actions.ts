@@ -71,8 +71,9 @@ export async function verifyCodeAction(
 
     const user = getOrCreateUser(email);
 
+    // Fire-and-forget: don't block auth on external API call
     if (user.xrayUuid) {
-      await xrayAddUser(user.xrayUuid).catch(() => {});
+      xrayAddUser(user.xrayUuid).catch(() => {});
     }
 
     const cookieStore = await cookies();
