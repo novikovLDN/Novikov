@@ -4,6 +4,7 @@ import { generateCode, sendVerificationEmail } from "@/lib/email";
 import { saveCode, verifyCode, getOrCreateUser } from "@/lib/store";
 import { xrayAddUser } from "@/lib/xray";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export interface SendCodeState {
   success: boolean;
@@ -30,27 +31,36 @@ export async function sendCodeAction(
       return { success: false, error: "Не удалось отправить код. Попробуйте позже." };
     }
 
-    return { success: true, email };
+    // Set cookie so the code screen knows which email to verify
+    const cookieStore = await cookies();
+    cookieStore.set("pending_email", email, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 10 * 60, // 10 minutes (same as code TTL)
+      path: "/",
+    });
   } catch {
     return { success: false, error: "Ошибка сервера. Попробуйте позже." };
   }
-}
 
-export interface VerifyCodeState {
-  success: boolean;
-  error?: string;
-  userId?: string;
+  // Redirect to code step — works with and without JS
+  redirect("/?step=code");
 }
 
 export async function verifyCodeAction(
-  _prev: VerifyCodeState,
+  _prev: { success: boolean; error?: string },
   formData: FormData
-): Promise<VerifyCodeState> {
+): Promise<{ success: boolean; error?: string }> {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
-  const code = formData.get("code") as string;
+  const codeDigits = [];
+  for (let i = 0; i < 6; i++) {
+    codeDigits.push(formData.get(`code-${i}`) as string || "");
+  }
+  const code = codeDigits.join("");
 
-  if (!email || !code) {
-    return { success: false, error: "Email и код обязательны" };
+  if (!email || code.length !== 6) {
+    return { success: false, error: "Введите код из 6 цифр" };
   }
 
   try {
@@ -73,9 +83,11 @@ export async function verifyCodeAction(
       maxAge: 30 * 24 * 60 * 60,
       path: "/",
     });
-
-    return { success: true, userId: user.id };
+    // Clean up pending_email cookie
+    cookieStore.delete("pending_email");
   } catch {
     return { success: false, error: "Ошибка сервера. Попробуйте позже." };
   }
+
+  redirect("/dashboard");
 }
