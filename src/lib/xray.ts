@@ -148,71 +148,65 @@ export function buildConnectionUri(
   }
 }
 
-// ─── Xray gRPC API Client (structure for future implementation) ──
+// ─── Xray FastAPI Client ─────────────────────────────────────────
 
-export interface XrayApiClient {
-  /** Add a user to an inbound */
-  addUser(inboundTag: string, uuid: string, email: string, level?: number): Promise<boolean>;
-  /** Remove a user from an inbound */
-  removeUser(inboundTag: string, email: string): Promise<boolean>;
-  /** Get user traffic stats */
-  getUserStats(email: string): Promise<{ uplink: number; downlink: number } | null>;
-  /** Reset user traffic counter */
-  resetUserStats(email: string): Promise<boolean>;
+const XRAY_API_URL = process.env.XRAY_API_URL || "https://api.mynewllcw.com";
+const XRAY_API_KEY = process.env.XRAY_API_KEY || "";
+
+/** Add a user to the Xray server via FastAPI */
+export async function xrayAddUser(uuid: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${XRAY_API_URL}/add-user`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": XRAY_API_KEY,
+      },
+      body: JSON.stringify({ uuid }),
+    });
+    if (!res.ok) {
+      console.error(`[XRAY] Failed to add user (UUID: ${uuid}): ${res.status} ${res.statusText}`);
+      return false;
+    }
+    console.log(`[XRAY] User added: ${uuid}`);
+    return true;
+  } catch (error) {
+    console.error(`[XRAY] Error adding user (UUID: ${uuid}):`, error);
+    return false;
+  }
 }
 
-/**
- * Xray API client stub.
- *
- * TODO: Implement actual gRPC communication with Xray.
- * Options:
- * 1. Use @grpc/grpc-js with Xray proto definitions
- * 2. Use a panel API (3x-ui, Marzban) as middleware
- * 3. Direct config.json manipulation + xray api restart
- *
- * Example implementation with 3x-ui panel:
- * ```typescript
- * async addUser(inboundTag, uuid, email) {
- *   const res = await fetch(`${panelUrl}/panel/api/inbounds/addClient`, {
- *     method: 'POST',
- *     headers: { 'Cookie': `session=${token}` },
- *     body: JSON.stringify({
- *       id: inboundId,
- *       settings: JSON.stringify({
- *         clients: [{ id: uuid, email, flow: 'xtls-rprx-vision' }]
- *       })
- *     })
- *   });
- *   return res.ok;
- * }
- * ```
- */
-export function createXrayApiClient(_config: XrayConfig = defaultConfig): XrayApiClient {
-  return {
-    async addUser(_inboundTag: string, uuid: string, email: string, _level = 0): Promise<boolean> {
-      console.log(`[XRAY] Adding user: ${email} (UUID: ${uuid})`);
-      // TODO: Implement actual Xray API call
-      return true;
-    },
+/** Remove a user from the Xray server via FastAPI */
+export async function xrayRemoveUser(uuid: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${XRAY_API_URL}/remove-user/${uuid}`, {
+      method: "POST",
+      headers: {
+        "x-api-key": XRAY_API_KEY,
+      },
+    });
+    if (!res.ok) {
+      console.error(`[XRAY] Failed to remove user (UUID: ${uuid}): ${res.status} ${res.statusText}`);
+      return false;
+    }
+    console.log(`[XRAY] User removed: ${uuid}`);
+    return true;
+  } catch (error) {
+    console.error(`[XRAY] Error removing user (UUID: ${uuid}):`, error);
+    return false;
+  }
+}
 
-    async removeUser(_inboundTag: string, email: string): Promise<boolean> {
-      console.log(`[XRAY] Removing user: ${email}`);
-      // TODO: Implement actual Xray API call
-      return true;
-    },
-
-    async getUserStats(email: string): Promise<{ uplink: number; downlink: number } | null> {
-      console.log(`[XRAY] Getting stats for: ${email}`);
-      // TODO: Implement actual Xray API call
-      return { uplink: 0, downlink: 0 };
-    },
-
-    async resetUserStats(email: string): Promise<boolean> {
-      console.log(`[XRAY] Resetting stats for: ${email}`);
-      // TODO: Implement actual Xray API call
-      return true;
-    },
-  };
+/** Check Xray API server health */
+export async function xrayHealthCheck(): Promise<boolean> {
+  try {
+    const res = await fetch(`${XRAY_API_URL}/health`, {
+      headers: { "x-api-key": XRAY_API_KEY },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 // ─── Xray Config JSON Builder ────────────────────────────────────

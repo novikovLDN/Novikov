@@ -84,8 +84,8 @@ export default function Dashboard() {
 
   if (!data) return null;
 
-  const isExpiring = data.daysLeft <= 1;
-  const isExpired = data.daysLeft === 0;
+  const isExpired = data.isExpired;
+  const isExpiring = !isExpired && data.daysLeft <= 1;
 
   return (
     <div className="min-h-dvh flex flex-col">
@@ -131,37 +131,51 @@ export default function Dashboard() {
             </span>
           </div>
 
-          <div className="bg-background rounded-xl p-3 sm:p-3.5 mb-3 overflow-x-auto">
-            <p className="text-xs sm:text-sm text-muted font-mono break-all leading-relaxed select-all">
-              {data.vpnKey}
-            </p>
-          </div>
+          {isExpired ? (
+            <div className="bg-danger/10 border border-danger/20 rounded-xl p-4 text-center">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <p className="text-danger font-semibold text-sm sm:text-base mb-1">Подписка истекла</p>
+              <p className="text-muted text-xs sm:text-sm">VPN-ключ деактивирован. Продлите подписку для восстановления доступа.</p>
+            </div>
+          ) : (
+            <>
+              <div className="bg-background rounded-xl p-3 sm:p-3.5 mb-3 overflow-x-auto">
+                <p className="text-xs sm:text-sm text-muted font-mono break-all leading-relaxed select-all">
+                  {data.vpnKey}
+                </p>
+              </div>
 
-          <button
-            onClick={() => copyToClipboard(data.vpnKey, "key")}
-            className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
-              copiedKey
-                ? "bg-success/20 text-success border border-success/30"
-                : "bg-primary text-white hover:bg-primary-hover"
-            }`}
-          >
-            {copiedKey ? (
-              <>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Скопировано!
-              </>
-            ) : (
-              <>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                </svg>
-                Скопировать ключ
-              </>
-            )}
-          </button>
+              <button
+                onClick={() => data.vpnKey && copyToClipboard(data.vpnKey, "key")}
+                className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
+                  copiedKey
+                    ? "bg-success/20 text-success border border-success/30"
+                    : "bg-primary text-white hover:bg-primary-hover"
+                }`}
+              >
+                {copiedKey ? (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Скопировано!
+                  </>
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                    </svg>
+                    Скопировать ключ
+                  </>
+                )}
+              </button>
+            </>
+          )}
         </div>
 
         {/* ═══ Referral Program ═══ */}

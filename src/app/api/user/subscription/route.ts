@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById } from "@/lib/store";
+import { getUserById, updateUser } from "@/lib/store";
+import { xrayRemoveUser } from "@/lib/xray";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,14 +29,23 @@ export async function GET(request: NextRequest) {
       Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
     );
 
+    const isExpired = daysLeft === 0;
+
+    // If subscription expired, remove user from Xray and clear VPN key
+    if (isExpired && user.xrayUuid) {
+      await xrayRemoveUser(user.xrayUuid);
+      updateUser(user.id, { xrayUuid: null, vpnKey: null });
+    }
+
     return NextResponse.json({
       success: true,
       data: {
         email: user.email,
         daysLeft,
+        isExpired,
         subscriptionEnd: user.subscriptionEnd,
-        vpnKey: user.vpnKey,
-        xrayUuid: user.xrayUuid,
+        vpnKey: isExpired ? null : user.vpnKey,
+        xrayUuid: isExpired ? null : user.xrayUuid,
         telegramLinked: user.telegramLinked,
         referralCode: user.referralCode,
         referrals: user.referrals,

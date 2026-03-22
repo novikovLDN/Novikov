@@ -27,9 +27,10 @@ export interface ApiResponse<T = unknown> {
 export interface SubscriptionData {
   email: string;
   daysLeft: number;
+  isExpired: boolean;
   subscriptionEnd: string;
-  vpnKey: string;
-  xrayUuid: string;
+  vpnKey: string | null;
+  xrayUuid: string | null;
   telegramLinked: boolean;
   referralCode: string;
   referrals: number;

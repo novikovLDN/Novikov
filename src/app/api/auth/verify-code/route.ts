@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCode, getOrCreateUser } from "@/lib/store";
+import { xrayAddUser } from "@/lib/xray";
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,9 +25,13 @@ export async function POST(request: NextRequest) {
     // If referral code provided, link it
     const user = getOrCreateUser(email.toLowerCase(), referralCode || undefined);
 
-    // TODO: Add user to Xray server via xray.ts API client
-    // const xrayClient = createXrayApiClient();
-    // await xrayClient.addUser("vless-inbound", user.xrayUuid!, user.email);
+    // Add user to Xray server
+    if (user.xrayUuid) {
+      const added = await xrayAddUser(user.xrayUuid);
+      if (!added) {
+        console.error(`[AUTH] Failed to add user to Xray: ${user.email}`);
+      }
+    }
 
     const response = NextResponse.json({
       success: true,

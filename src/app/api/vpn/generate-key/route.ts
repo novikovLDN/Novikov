@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById, regenerateUserKey } from "@/lib/store";
+import { xrayAddUser, xrayRemoveUser } from "@/lib/xray";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,14 +20,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Remove old UUID from Xray server
-    // const xrayClient = createXrayApiClient();
-    // await xrayClient.removeUser("vless-inbound", user.email);
+    // Block key regeneration if subscription expired
+    const now = new Date();
+    const end = new Date(user.subscriptionEnd);
+    if (now >= end) {
+      return NextResponse.json(
+        { success: false, error: "Подписка истекла. Продлите подписку для генерации нового ключа." },
+        { status: 403 }
+      );
+    }
+
+    // Remove old UUID from Xray server
+    if (user.xrayUuid) {
+      await xrayRemoveUser(user.xrayUuid);
+    }
 
     const updated = regenerateUserKey(user.id);
 
-    // TODO: Add new UUID to Xray server
-    // await xrayClient.addUser("vless-inbound", updated.xrayUuid!, updated.email);
+    // Add new UUID to Xray server
+    if (updated?.xrayUuid) {
+      const added = await xrayAddUser(updated.xrayUuid);
+      if (!added) {
+        console.error(`[VPN] Failed to add new key to Xray: ${user.email}`);
+      }
+    }
 
     return NextResponse.json({
       success: true,
