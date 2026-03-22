@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
     // If referral code provided, link it
     const user = await getOrCreateUser(email.toLowerCase(), referralCode || undefined);
 
-    // Add user to Xray server (fire-and-forget, don't block auth)
-    if (user.xrayUuid) {
+    // Only add to Xray for newly created users (not on repeat login)
+    if (user.isNew && user.xrayUuid) {
       xrayAddUser(user.xrayUuid).catch(() => {
         console.error(`[AUTH] Failed to add user to Xray: ${user.email}`);
       });

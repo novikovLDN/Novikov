@@ -80,8 +80,8 @@ export async function verifyCodeAction(
     const user = await getOrCreateUser(email);
     needsPassword = !user.passwordHash;
 
-    // Fire-and-forget: don't block auth on external API call
-    if (user.xrayUuid) {
+    // Only add to Xray for newly created users (not on repeat login)
+    if (user.isNew && user.xrayUuid) {
       xrayAddUser(user.xrayUuid).catch(() => {});
     }
 

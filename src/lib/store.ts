@@ -104,11 +104,11 @@ export function verifyCode(email: string, code: string): { valid: boolean; error
 
 // ─── User Management (PostgreSQL) ───────────────────────────────
 
-export async function getOrCreateUser(email: string, referredByCode?: string): Promise<UserRecord> {
+export async function getOrCreateUser(email: string, referredByCode?: string): Promise<UserRecord & { isNew: boolean }> {
   // Check existing user
   const existing = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
   if (existing.rows.length > 0) {
-    return rowToUser(existing.rows[0]);
+    return { ...rowToUser(existing.rows[0]), isNew: false };
   }
 
   // Create new user
@@ -134,7 +134,7 @@ export async function getOrCreateUser(email: string, referredByCode?: string): P
     );
   }
 
-  return rowToUser(result.rows[0]);
+  return { ...rowToUser(result.rows[0]), isNew: true };
 }
 
 export async function getUserByEmail(email: string): Promise<UserRecord | null> {
