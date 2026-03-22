@@ -34,8 +34,7 @@ export default function Home() {
 
   // ─── Email Step ────────────────────────────────────────────────
 
-  const handleEmailSubmit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleEmailSubmit = async () => {
     // Read from ref to handle browser autofill that bypasses onChange
     const currentEmail = emailRef.current?.value || email;
     if (currentEmail && currentEmail !== email) {
@@ -211,7 +210,15 @@ export default function Home() {
               Чтобы войти или зарегистрироваться
             </p>
 
-            <div className="space-y-3 sm:space-y-4">
+            <form
+              action="#"
+              noValidate
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleEmailSubmit();
+              }}
+              className="space-y-3 sm:space-y-4"
+            >
               <div className="relative">
                 <input
                   ref={emailRef}
@@ -225,12 +232,6 @@ export default function Home() {
                   onInput={syncEmailFromInput}
                   onAnimationStart={syncEmailFromInput}
                   onFocus={syncEmailFromInput}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleEmailSubmit();
-                    }
-                  }}
                   className={`w-full h-13 sm:h-14 px-4 rounded-2xl bg-card border text-foreground placeholder-muted focus:outline-none transition-all text-base sm:text-lg ${
                     error
                       ? "border-danger/50 focus:border-danger"
@@ -254,8 +255,7 @@ export default function Home() {
               )}
 
               <button
-                type="button"
-                onClick={() => handleEmailSubmit()}
+                type="submit"
                 disabled={loading}
                 className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
               >
@@ -268,7 +268,7 @@ export default function Home() {
                   "Далее"
                 )}
               </button>
-            </div>
+            </form>
 
             <div className="relative my-5 sm:my-6">
               <div className="absolute inset-0 flex items-center">
