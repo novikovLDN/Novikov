@@ -69,7 +69,7 @@ export async function verifyCodeAction(
       return { success: false, error: result.error };
     }
 
-    const user = getOrCreateUser(email);
+    const user = await getOrCreateUser(email);
 
     // Fire-and-forget: don't block auth on external API call
     if (user.xrayUuid) {

@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     // Create user with trial period or return existing
     // If referral code provided, link it
-    const user = getOrCreateUser(email.toLowerCase(), referralCode || undefined);
+    const user = await getOrCreateUser(email.toLowerCase(), referralCode || undefined);
 
     // Add user to Xray server (fire-and-forget, don't block auth)
     if (user.xrayUuid) {

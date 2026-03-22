@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = getUserById(sessionId);
+    const user = await getUserById(sessionId);
     if (!user) {
       return NextResponse.json(
         { success: false, error: "Пользователь не найден" },

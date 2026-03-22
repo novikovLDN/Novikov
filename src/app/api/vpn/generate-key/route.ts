@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = getUserById(sessionId);
+    const user = await getUserById(sessionId);
     if (!user) {
       return NextResponse.json(
         { success: false, error: "Пользователь не найден" },
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       await xrayRemoveUser(user.xrayUuid);
     }
 
-    const updated = regenerateUserKey(user.id);
+    const updated = await regenerateUserKey(user.id);
 
     // Add new UUID to Xray server
     if (updated?.xrayUuid) {

@@ -49,16 +49,16 @@ const defaultConfig: XrayConfig = {
   apiHost: process.env.XRAY_API_HOST || "127.0.0.1:10085",
   panelUrl: process.env.XRAY_PANEL_URL || null,
   panelToken: process.env.XRAY_PANEL_TOKEN || null,
-  serverDomain: process.env.XRAY_SERVER_DOMAIN || "vpn.atlas-secure.com",
-  serverPort: parseInt(process.env.XRAY_SERVER_PORT || "443"),
+  serverDomain: process.env.XRAY_SERVER_DOMAIN || "159.195.20.201",
+  serverPort: parseInt(process.env.XRAY_SERVER_PORT || "4443"),
   defaultProtocol: (process.env.XRAY_PROTOCOL as "vless" | "vmess" | "trojan") || "vless",
   flow: process.env.XRAY_FLOW || "xtls-rprx-vision",
   network: process.env.XRAY_NETWORK || "tcp",
   security: process.env.XRAY_SECURITY || "reality",
-  sni: process.env.XRAY_SNI || "www.google.com",
+  sni: process.env.XRAY_SNI || "myvpncloud.net",
   fingerprint: process.env.XRAY_FINGERPRINT || "chrome",
-  publicKey: process.env.XRAY_PUBLIC_KEY || "",
-  shortId: process.env.XRAY_SHORT_ID || "",
+  publicKey: process.env.XRAY_PUBLIC_KEY || "4km41B5xZ3iJ4Z_VJ9WazIg3s_Pf2qSDmm55Yf28akg",
+  shortId: process.env.XRAY_SHORT_ID || "a1b2c3d4",
 };
 
 // ─── UUID Management ─────────────────────────────────────────────

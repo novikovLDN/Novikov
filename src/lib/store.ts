@@ -1,7 +1,8 @@
-// In-memory store for development.
-// Replace with a real database (PostgreSQL, MongoDB, Redis) in production.
+// PostgreSQL-backed store for user data.
+// Verification codes remain in-memory (ephemeral, 10min TTL).
 
 import { v4 as uuidv4 } from "uuid";
+import { pool } from "./db";
 import { generateXrayUuid, buildConnectionUri, xrayRemoveUser } from "./xray";
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -28,30 +29,25 @@ export interface CodeRecord {
   attempts: number;
 }
 
-// ─── Storage (persist across HMR in dev) ────────────────────────
+// ─── Row → UserRecord mapper ────────────────────────────────────
 
-interface StoreData {
-  users: Map<string, UserRecord>;
-  codes: Map<string, CodeRecord>;
-  emailToUserId: Map<string, string>;
-  referralToUserId: Map<string, string>;
-}
-
-const globalStore = globalThis as unknown as { __store?: StoreData };
-
-if (!globalStore.__store) {
-  globalStore.__store = {
-    users: new Map(),
-    codes: new Map(),
-    emailToUserId: new Map(),
-    referralToUserId: new Map(),
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToUser(row: any): UserRecord {
+  return {
+    id: row.id,
+    email: row.email,
+    createdAt: new Date(row.created_at).toISOString(),
+    subscriptionEnd: new Date(row.subscription_end).toISOString(),
+    vpnKey: row.vpn_key,
+    xrayUuid: row.xray_uuid,
+    telegramId: row.telegram_id,
+    telegramLinked: row.telegram_linked,
+    referralCode: row.referral_code,
+    referredBy: row.referred_by,
+    referrals: row.referrals,
+    paidReferrals: row.paid_referrals,
   };
 }
-
-const users = globalStore.__store.users;
-const codes = globalStore.__store.codes;
-const emailToUserId = globalStore.__store.emailToUserId;
-const referralToUserId = globalStore.__store.referralToUserId;
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -59,7 +55,13 @@ function generateReferralCode(): string {
   return uuidv4().slice(0, 8).toUpperCase();
 }
 
-// ─── Verification Codes ──────────────────────────────────────────
+// ─── Verification Codes (in-memory, ephemeral) ──────────────────
+
+const globalCodes = globalThis as unknown as { __codes?: Map<string, CodeRecord> };
+if (!globalCodes.__codes) {
+  globalCodes.__codes = new Map();
+}
+const codes = globalCodes.__codes;
 
 const MAX_CODE_ATTEMPTS = 5;
 
@@ -97,72 +99,94 @@ export function verifyCode(email: string, code: string): { valid: boolean; error
   return { valid: true };
 }
 
-// ─── User Management ─────────────────────────────────────────────
+// ─── User Management (PostgreSQL) ───────────────────────────────
 
-export function getOrCreateUser(email: string, referredByCode?: string): UserRecord {
-  const existingId = emailToUserId.get(email);
-  if (existingId) {
-    return users.get(existingId)!;
+export async function getOrCreateUser(email: string, referredByCode?: string): Promise<UserRecord> {
+  // Check existing user
+  const existing = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+  if (existing.rows.length > 0) {
+    return rowToUser(existing.rows[0]);
   }
 
+  // Create new user
   const now = new Date();
   const trialEnd = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days trial
   const xrayUuid = generateXrayUuid();
   const referralCode = generateReferralCode();
+  const vpnKey = buildConnectionUri(xrayUuid, email);
+  const id = uuidv4();
 
-  const user: UserRecord = {
-    id: uuidv4(),
-    email,
-    createdAt: now.toISOString(),
-    subscriptionEnd: trialEnd.toISOString(),
-    vpnKey: buildConnectionUri(xrayUuid, email),
-    xrayUuid,
-    telegramId: null,
-    telegramLinked: false,
-    referralCode,
-    referredBy: referredByCode || null,
-    referrals: 0,
-    paidReferrals: 0,
-  };
-
-  users.set(user.id, user);
-  emailToUserId.set(email, user.id);
-  referralToUserId.set(referralCode, user.id);
+  const result = await pool.query(
+    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, referral_code, referred_by)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     RETURNING *`,
+    [id, email, now, trialEnd, vpnKey, xrayUuid, referralCode, referredByCode || null]
+  );
 
   // Credit referrer
   if (referredByCode) {
-    const referrerId = referralToUserId.get(referredByCode);
-    if (referrerId) {
-      const referrer = users.get(referrerId);
-      if (referrer) {
-        referrer.referrals++;
-      }
-    }
+    await pool.query(
+      "UPDATE users SET referrals = referrals + 1 WHERE referral_code = $1",
+      [referredByCode]
+    );
   }
 
-  return user;
+  return rowToUser(result.rows[0]);
 }
 
-export function getUserByEmail(email: string): UserRecord | null {
-  const id = emailToUserId.get(email);
-  if (!id) return null;
-  return users.get(id) ?? null;
+export async function getUserByEmail(email: string): Promise<UserRecord | null> {
+  const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+  if (result.rows.length === 0) return null;
+  return rowToUser(result.rows[0]);
 }
 
-export function getUserById(id: string): UserRecord | null {
-  return users.get(id) ?? null;
+export async function getUserById(id: string): Promise<UserRecord | null> {
+  const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+  if (result.rows.length === 0) return null;
+  return rowToUser(result.rows[0]);
 }
 
-export function updateUser(id: string, updates: Partial<UserRecord>): UserRecord | null {
-  const user = users.get(id);
-  if (!user) return null;
-  const updated = { ...user, ...updates };
-  users.set(id, updated);
-  return updated;
+export async function updateUser(id: string, updates: Partial<UserRecord>): Promise<UserRecord | null> {
+  // Map UserRecord fields to DB columns
+  const fieldMap: Record<string, string> = {
+    email: "email",
+    subscriptionEnd: "subscription_end",
+    vpnKey: "vpn_key",
+    xrayUuid: "xray_uuid",
+    telegramId: "telegram_id",
+    telegramLinked: "telegram_linked",
+    referralCode: "referral_code",
+    referredBy: "referred_by",
+    referrals: "referrals",
+    paidReferrals: "paid_referrals",
+  };
+
+  const setClauses: string[] = [];
+  const values: unknown[] = [];
+  let paramIndex = 1;
+
+  for (const [key, value] of Object.entries(updates)) {
+    const column = fieldMap[key];
+    if (!column) continue;
+    setClauses.push(`${column} = $${paramIndex}`);
+    values.push(value);
+    paramIndex++;
+  }
+
+  if (setClauses.length === 0) return getUserById(id);
+
+  values.push(id);
+  const result = await pool.query(
+    `UPDATE users SET ${setClauses.join(", ")} WHERE id = $${paramIndex} RETURNING *`,
+    values
+  );
+
+  if (result.rows.length === 0) return null;
+  return rowToUser(result.rows[0]);
 }
 
-export function regenerateUserKey(userId: string): UserRecord | null {
-  const user = users.get(userId);
+export async function regenerateUserKey(userId: string): Promise<UserRecord | null> {
+  const user = await getUserById(userId);
   if (!user) return null;
 
   const newUuid = generateXrayUuid();
@@ -174,8 +198,8 @@ export function regenerateUserKey(userId: string): UserRecord | null {
   });
 }
 
-export function linkTelegram(userId: string, telegramId: string): UserRecord | null {
-  const user = users.get(userId);
+export async function linkTelegram(userId: string, telegramId: string): Promise<UserRecord | null> {
+  const user = await getUserById(userId);
   if (!user) return null;
   if (user.telegramLinked) return user;
 
@@ -192,21 +216,15 @@ export function linkTelegram(userId: string, telegramId: string): UserRecord | n
 
 // ─── Expired Subscription Cleanup ───────────────────────────────
 
-/** Find all users with expired subscriptions who still have active VPN keys */
-export function getExpiredUsersWithKeys(): UserRecord[] {
-  const now = new Date();
-  const expired: UserRecord[] = [];
-  for (const user of users.values()) {
-    if (user.xrayUuid && new Date(user.subscriptionEnd) <= now) {
-      expired.push(user);
-    }
-  }
-  return expired;
+export async function getExpiredUsersWithKeys(): Promise<UserRecord[]> {
+  const result = await pool.query(
+    "SELECT * FROM users WHERE xray_uuid IS NOT NULL AND subscription_end <= NOW()"
+  );
+  return result.rows.map(rowToUser);
 }
 
-/** Remove VPN keys from all users whose subscriptions have expired */
 export async function cleanupExpiredUsers(): Promise<{ cleaned: number; errors: number }> {
-  const expired = getExpiredUsersWithKeys();
+  const expired = await getExpiredUsersWithKeys();
   let cleaned = 0;
   let errors = 0;
 
@@ -220,7 +238,7 @@ export async function cleanupExpiredUsers(): Promise<{ cleaned: number; errors: 
           continue;
         }
       }
-      updateUser(user.id, { xrayUuid: null, vpnKey: null });
+      await updateUser(user.id, { xrayUuid: null, vpnKey: null });
       console.log(`[CLEANUP] Deactivated expired key for ${user.email}`);
       cleaned++;
     } catch (error) {
@@ -241,7 +259,6 @@ export async function cleanupExpiredUsers(): Promise<{ cleaned: number; errors: 
 const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 let cleanupTimer: ReturnType<typeof setInterval> | null = null;
 
-/** Start the background cleanup scheduler */
 export function startCleanupScheduler(): void {
   if (cleanupTimer) return;
   console.log("[CLEANUP] Scheduler started (interval: 1h)");
@@ -252,13 +269,11 @@ export function startCleanupScheduler(): void {
       console.error("[CLEANUP] Scheduler error:", error);
     }
   }, CLEANUP_INTERVAL_MS);
-  // Don't block process exit
   if (cleanupTimer && typeof cleanupTimer === "object" && "unref" in cleanupTimer) {
     cleanupTimer.unref();
   }
 }
 
-/** Stop the background cleanup scheduler */
 export function stopCleanupScheduler(): void {
   if (cleanupTimer) {
     clearInterval(cleanupTimer);

@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = getUserById(sessionId);
+    const user = await getUserById(sessionId);
     if (!user) {
       const response = NextResponse.json(
         { success: false, error: "Пользователь не найден" },
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     // If subscription expired, remove user from Xray and clear VPN key
     if (isExpired && user.xrayUuid) {
       await xrayRemoveUser(user.xrayUuid);
-      updateUser(user.id, { xrayUuid: null, vpnKey: null });
+      await updateUser(user.id, { xrayUuid: null, vpnKey: null });
     }
 
     return NextResponse.json({
