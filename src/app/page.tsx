@@ -36,10 +36,15 @@ export default function Home() {
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || loading) return;
+    // Read from ref to handle browser autofill that bypasses onChange
+    const currentEmail = emailRef.current?.value || email;
+    if (currentEmail && currentEmail !== email) {
+      setEmail(currentEmail);
+    }
+    if (!currentEmail || loading) return;
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(currentEmail)) {
       setError("Введите корректный email адрес");
       return;
     }
@@ -51,7 +56,7 @@ export default function Home() {
       const res = await fetch("/api/auth/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+        body: JSON.stringify({ email: currentEmail.trim().toLowerCase() }),
       });
       const data = await res.json();
 
@@ -66,6 +71,14 @@ export default function Home() {
       setError("Ошибка сети. Проверьте подключение и попробуйте снова.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Sync email state from autofill
+  const syncEmailFromInput = () => {
+    const val = emailRef.current?.value || "";
+    if (val && val !== email) {
+      setEmail(val);
     }
   };
 
@@ -205,6 +218,9 @@ export default function Home() {
                     setEmail(e.target.value);
                     setError(null);
                   }}
+                  onInput={syncEmailFromInput}
+                  onAnimationStart={syncEmailFromInput}
+                  onFocus={syncEmailFromInput}
                   className={`w-full h-13 sm:h-14 px-4 rounded-2xl bg-card border text-foreground placeholder-muted focus:outline-none transition-all text-base sm:text-lg ${
                     error
                       ? "border-danger/50 focus:border-danger"
