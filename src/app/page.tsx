@@ -1,24 +1,42 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useActionState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FeatureCard from "@/components/FeatureCard";
 import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { sendCodeAction, verifyCodeAction } from "./actions";
+import type { SendCodeState, VerifyCodeState } from "./actions";
 
 export default function Home() {
   const router = useRouter();
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
   const [shakeCode, setShakeCode] = useState(false);
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [codeLoading, setCodeLoading] = useState(false);
+  const [code, setCode] = useState(["", "", "", "", "", ""]);
   const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
   const emailRef = useRef<HTMLInputElement>(null);
+
+  // ─── Server Action: Send Code ─────────────────────────────────
+  const [sendState, sendAction, sendPending] = useActionState<SendCodeState, FormData>(
+    sendCodeAction,
+    { success: false }
+  );
+
+  // When send-code succeeds, switch to code step
+  useEffect(() => {
+    if (sendState.success && sendState.email) {
+      setEmail(sendState.email);
+      setStep("code");
+      setCountdown(60);
+      setTimeout(() => codeRefs.current[0]?.focus(), 150);
+    }
+  }, [sendState]);
 
   // Countdown timer
   useEffect(() => {
@@ -32,68 +50,15 @@ export default function Home() {
     emailRef.current?.focus();
   }, []);
 
-  // ─── Email Step ────────────────────────────────────────────────
-
-  const handleEmailSubmit = async () => {
-    // Read from ref to handle browser autofill that bypasses onChange
-    const currentEmail = emailRef.current?.value || email;
-    if (currentEmail && currentEmail !== email) {
-      setEmail(currentEmail);
-    }
-    if (loading) return;
-    if (!currentEmail) {
-      setError("Введите email адрес");
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(currentEmail)) {
-      setError("Введите корректный email адрес");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/auth/send-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: currentEmail.trim().toLowerCase() }),
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        setStep("code");
-        setCountdown(60);
-        setTimeout(() => codeRefs.current[0]?.focus(), 150);
-      } else {
-        setError(data.error || "Ошибка отправки кода");
-      }
-    } catch {
-      setError("Ошибка сети. Проверьте подключение и попробуйте снова.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Sync email state from autofill
-  const syncEmailFromInput = () => {
-    const val = emailRef.current?.value || "";
-    if (val && val !== email) {
-      setEmail(val);
-    }
-  };
-
   // ─── Code Step ─────────────────────────────────────────────────
 
   const handleCodeSubmit = useCallback(
     async (fullCode?: string) => {
       const codeStr = fullCode || code.join("");
-      if (codeStr.length !== 6 || loading) return;
+      if (codeStr.length !== 6 || codeLoading) return;
 
-      setLoading(true);
-      setError(null);
+      setCodeLoading(true);
+      setCodeError(null);
 
       try {
         const res = await fetch("/api/auth/verify-code", {
@@ -106,19 +71,19 @@ export default function Home() {
         if (data.success) {
           router.push("/dashboard");
         } else {
-          setError(data.error || "Неверный код");
+          setCodeError(data.error || "Неверный код");
           setShakeCode(true);
           setTimeout(() => setShakeCode(false), 500);
           setCode(["", "", "", "", "", ""]);
           setTimeout(() => codeRefs.current[0]?.focus(), 100);
         }
       } catch {
-        setError("Ошибка сети. Попробуйте позже.");
+        setCodeError("Ошибка сети. Попробуйте позже.");
       } finally {
-        setLoading(false);
+        setCodeLoading(false);
       }
     },
-    [code, email, loading, router]
+    [code, email, codeLoading, router]
   );
 
   const handleCodeChange = (index: number, value: string) => {
@@ -127,7 +92,7 @@ export default function Home() {
     const newCode = [...code];
     newCode[index] = value.slice(-1);
     setCode(newCode);
-    setError(null);
+    setCodeError(null);
 
     if (value && index < 5) {
       codeRefs.current[index + 1]?.focus();
@@ -170,9 +135,9 @@ export default function Home() {
   };
 
   const handleResendCode = async () => {
-    if (countdown > 0 || loading) return;
-    setLoading(true);
-    setError(null);
+    if (countdown > 0 || codeLoading) return;
+    setCodeLoading(true);
+    setCodeError(null);
 
     try {
       const res = await fetch("/api/auth/send-code", {
@@ -186,16 +151,18 @@ export default function Home() {
         setCode(["", "", "", "", "", ""]);
         codeRefs.current[0]?.focus();
       } else {
-        setError(data.error || "Ошибка отправки");
+        setCodeError(data.error || "Ошибка отправки");
       }
     } catch {
-      setError("Ошибка сети");
+      setCodeError("Ошибка сети");
     } finally {
-      setLoading(false);
+      setCodeLoading(false);
     }
   };
 
   // ─── Render ────────────────────────────────────────────────────
+
+  const emailError = sendState.error || null;
 
   return (
     <div className="min-h-dvh flex flex-col">
@@ -210,56 +177,43 @@ export default function Home() {
               Чтобы войти или зарегистрироваться
             </p>
 
-            <form
-              action="#"
-              noValidate
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleEmailSubmit();
-              }}
-              className="space-y-3 sm:space-y-4"
-            >
+            <form action={sendAction} className="space-y-3 sm:space-y-4">
               <div className="relative">
                 <input
                   ref={emailRef}
+                  name="email"
                   type="email"
                   placeholder="Email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setError(null);
-                  }}
-                  onInput={syncEmailFromInput}
-                  onAnimationStart={syncEmailFromInput}
-                  onFocus={syncEmailFromInput}
+                  defaultValue=""
                   className={`w-full h-13 sm:h-14 px-4 rounded-2xl bg-card border text-foreground placeholder-muted focus:outline-none transition-all text-base sm:text-lg ${
-                    error
+                    emailError
                       ? "border-danger/50 focus:border-danger"
                       : "border-border focus:border-primary"
                   }`}
                   autoComplete="email"
                   inputMode="email"
                   enterKeyHint="go"
+                  required
                 />
               </div>
 
-              {error && (
+              {emailError && (
                 <p className="text-danger text-xs sm:text-sm flex items-center gap-1.5 animate-fade-in">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
                     <circle cx="12" cy="12" r="10" />
                     <line x1="12" y1="8" x2="12" y2="12" />
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
-                  {error}
+                  {emailError}
                 </p>
               )}
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={sendPending}
                 className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
               >
-                {loading ? (
+                {sendPending ? (
                   <span className="inline-flex items-center gap-2">
                     <LoadingSpinner size="sm" />
                     Отправка...
@@ -343,7 +297,7 @@ export default function Home() {
             <button
               onClick={() => {
                 setStep("email");
-                setError(null);
+                setCodeError(null);
                 setCode(["", "", "", "", "", ""]);
               }}
               className="flex items-center gap-1.5 text-muted-light hover:text-foreground transition-colors mb-6 sm:mb-8 btn-press py-1"
@@ -384,7 +338,7 @@ export default function Home() {
                   onKeyDown={(e) => handleCodeKeyDown(i, e)}
                   aria-label={`Цифра ${i + 1}`}
                   className={`w-11 h-13 sm:w-13 sm:h-15 text-center text-xl sm:text-2xl font-bold bg-card border rounded-xl sm:rounded-2xl focus:outline-none transition-all ${
-                    error
+                    codeError
                       ? "border-danger/50"
                       : digit
                         ? "border-primary/60"
@@ -394,23 +348,23 @@ export default function Home() {
               ))}
             </div>
 
-            {error && (
+            {codeError && (
               <p className="text-danger text-xs sm:text-sm text-center mb-4 flex items-center justify-center gap-1.5 animate-fade-in">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
-                {error}
+                {codeError}
               </p>
             )}
 
             <button
               onClick={() => handleCodeSubmit()}
-              disabled={code.join("").length !== 6 || loading}
+              disabled={code.join("").length !== 6 || codeLoading}
               className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press mb-5"
             >
-              {loading ? (
+              {codeLoading ? (
                 <span className="inline-flex items-center gap-2">
                   <LoadingSpinner size="sm" />
                   Проверяем...
@@ -432,7 +386,7 @@ export default function Home() {
               ) : (
                 <button
                   onClick={handleResendCode}
-                  disabled={loading}
+                  disabled={codeLoading}
                   className="text-primary text-sm font-medium hover:text-primary-hover transition-colors"
                 >
                   Отправить код повторно
