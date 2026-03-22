@@ -2,7 +2,7 @@
 // Replace with a real database (PostgreSQL, MongoDB, Redis) in production.
 
 import { v4 as uuidv4 } from "uuid";
-import { generateXrayUuid, buildConnectionUri } from "./xray";
+import { generateXrayUuid, buildConnectionUri, xrayRemoveUser } from "./xray";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -28,12 +28,30 @@ export interface CodeRecord {
   attempts: number;
 }
 
-// ─── Storage ─────────────────────────────────────────────────────
+// ─── Storage (persist across HMR in dev) ────────────────────────
 
-const users = new Map<string, UserRecord>();
-const codes = new Map<string, CodeRecord>();
-const emailToUserId = new Map<string, string>();
-const referralToUserId = new Map<string, string>();
+interface StoreData {
+  users: Map<string, UserRecord>;
+  codes: Map<string, CodeRecord>;
+  emailToUserId: Map<string, string>;
+  referralToUserId: Map<string, string>;
+}
+
+const globalStore = globalThis as unknown as { __store?: StoreData };
+
+if (!globalStore.__store) {
+  globalStore.__store = {
+    users: new Map(),
+    codes: new Map(),
+    emailToUserId: new Map(),
+    referralToUserId: new Map(),
+  };
+}
+
+const users = globalStore.__store.users;
+const codes = globalStore.__store.codes;
+const emailToUserId = globalStore.__store.emailToUserId;
+const referralToUserId = globalStore.__store.referralToUserId;
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -170,4 +188,86 @@ export function linkTelegram(userId: string, telegramId: string): UserRecord | n
     telegramLinked: true,
     subscriptionEnd: newEnd.toISOString(),
   });
+}
+
+// ─── Expired Subscription Cleanup ───────────────────────────────
+
+/** Find all users with expired subscriptions who still have active VPN keys */
+export function getExpiredUsersWithKeys(): UserRecord[] {
+  const now = new Date();
+  const expired: UserRecord[] = [];
+  for (const user of users.values()) {
+    if (user.xrayUuid && new Date(user.subscriptionEnd) <= now) {
+      expired.push(user);
+    }
+  }
+  return expired;
+}
+
+/** Remove VPN keys from all users whose subscriptions have expired */
+export async function cleanupExpiredUsers(): Promise<{ cleaned: number; errors: number }> {
+  const expired = getExpiredUsersWithKeys();
+  let cleaned = 0;
+  let errors = 0;
+
+  for (const user of expired) {
+    try {
+      if (user.xrayUuid) {
+        const removed = await xrayRemoveUser(user.xrayUuid);
+        if (!removed) {
+          console.error(`[CLEANUP] Failed to remove Xray user: ${user.xrayUuid} (${user.email})`);
+          errors++;
+          continue;
+        }
+      }
+      updateUser(user.id, { xrayUuid: null, vpnKey: null });
+      console.log(`[CLEANUP] Deactivated expired key for ${user.email}`);
+      cleaned++;
+    } catch (error) {
+      console.error(`[CLEANUP] Error cleaning up user ${user.email}:`, error);
+      errors++;
+    }
+  }
+
+  if (cleaned > 0 || errors > 0) {
+    console.log(`[CLEANUP] Done: ${cleaned} cleaned, ${errors} errors, ${expired.length} total expired`);
+  }
+
+  return { cleaned, errors };
+}
+
+// ─── Auto-Cleanup Scheduler ─────────────────────────────────────
+
+const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+let cleanupTimer: ReturnType<typeof setInterval> | null = null;
+
+/** Start the background cleanup scheduler */
+export function startCleanupScheduler(): void {
+  if (cleanupTimer) return;
+  console.log("[CLEANUP] Scheduler started (interval: 1h)");
+  cleanupTimer = setInterval(async () => {
+    try {
+      await cleanupExpiredUsers();
+    } catch (error) {
+      console.error("[CLEANUP] Scheduler error:", error);
+    }
+  }, CLEANUP_INTERVAL_MS);
+  // Don't block process exit
+  if (cleanupTimer && typeof cleanupTimer === "object" && "unref" in cleanupTimer) {
+    cleanupTimer.unref();
+  }
+}
+
+/** Stop the background cleanup scheduler */
+export function stopCleanupScheduler(): void {
+  if (cleanupTimer) {
+    clearInterval(cleanupTimer);
+    cleanupTimer = null;
+    console.log("[CLEANUP] Scheduler stopped");
+  }
+}
+
+// Auto-start scheduler on module load (server-side only)
+if (typeof window === "undefined") {
+  startCleanupScheduler();
 }
