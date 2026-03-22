@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, updateUser } from "@/lib/store";
+import { getUserById, regenerateUserKey } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,23 +19,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate new VPN key (reset)
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    const segments = [];
-    for (let s = 0; s < 4; s++) {
-      let segment = "";
-      for (let i = 0; i < 8; i++) {
-        segment += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      segments.push(segment);
-    }
-    const newKey = `vless://${segments.join("-")}@atlas-secure.vpn`;
+    // TODO: Remove old UUID from Xray server
+    // const xrayClient = createXrayApiClient();
+    // await xrayClient.removeUser("vless-inbound", user.email);
 
-    const updated = updateUser(user.id, { vpnKey: newKey });
+    const updated = regenerateUserKey(user.id);
+
+    // TODO: Add new UUID to Xray server
+    // await xrayClient.addUser("vless-inbound", updated.xrayUuid!, updated.email);
 
     return NextResponse.json({
       success: true,
-      data: { vpnKey: updated?.vpnKey },
+      data: {
+        vpnKey: updated?.vpnKey,
+        xrayUuid: updated?.xrayUuid,
+      },
     });
   } catch {
     return NextResponse.json(

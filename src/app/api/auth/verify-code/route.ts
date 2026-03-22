@@ -3,7 +3,7 @@ import { verifyCode, getOrCreateUser } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, code } = await request.json();
+    const { email, code, referralCode } = await request.json();
 
     if (!email || !code) {
       return NextResponse.json(
@@ -12,16 +12,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isValid = verifyCode(email.toLowerCase(), code);
-    if (!isValid) {
+    const result = verifyCode(email.toLowerCase(), code);
+    if (!result.valid) {
       return NextResponse.json(
-        { success: false, error: "Неверный или просроченный код" },
+        { success: false, error: result.error },
         { status: 400 }
       );
     }
 
     // Create user with trial period or return existing
-    const user = getOrCreateUser(email.toLowerCase());
+    // If referral code provided, link it
+    const user = getOrCreateUser(email.toLowerCase(), referralCode || undefined);
+
+    // TODO: Add user to Xray server via xray.ts API client
+    // const xrayClient = createXrayApiClient();
+    // await xrayClient.addUser("vless-inbound", user.xrayUuid!, user.email);
 
     const response = NextResponse.json({
       success: true,
@@ -30,11 +35,10 @@ export async function POST(request: NextRequest) {
         email: user.email,
         subscriptionEnd: user.subscriptionEnd,
         vpnKey: user.vpnKey,
-        isNewUser: !user.vpnKey,
+        xrayUuid: user.xrayUuid,
       },
     });
 
-    // Set a simple session cookie
     response.cookies.set("session", user.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

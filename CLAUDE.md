@@ -1,100 +1,111 @@
 # Atlas Secure — VPN Service Website
 
 ## Project Overview
-Atlas Secure is a VPN service selling website built with Next.js. It provides user registration via email verification, automatic VPN key generation with a 3-day trial period, device management, referral system, and Telegram integration.
+Atlas Secure is a VPN selling website built with Next.js. Features: email-based auth with OTP codes, automatic VPN key generation via Xray UUID, 3-day free trial, multi-device support, referral program (+20 days), and Telegram integration (+7 days bonus).
 
 ## Tech Stack
 - **Framework**: Next.js 16 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS v4
-- **Runtime**: Node.js
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS v4 with custom design tokens
 - **Email**: Nodemailer (SMTP)
+- **VPN Backend**: Xray (VLESS/VMess/Trojan) with UUID-based user management
 
 ## Project Structure
 ```
 src/
-├── app/                    # Next.js App Router pages & API routes
-│   ├── layout.tsx          # Root layout (metadata, global styles)
-│   ├── page.tsx            # Login/registration page (email → code → auth)
-│   ├── globals.css         # Global styles, Tailwind config, animations
-│   ├── dashboard/
-│   │   └── page.tsx        # User dashboard (subscription, referrals, VPN key)
-│   ├── devices/
-│   │   └── page.tsx        # Device selection & key sharing
+├── app/
+│   ├── layout.tsx              # Root layout, metadata, viewport, fonts
+│   ├── page.tsx                # Auth page: email input → code verification
+│   ├── globals.css             # Design system: tokens, animations, utilities
+│   ├── dashboard/page.tsx      # User dashboard: subscription, VPN key, referrals, Telegram
+│   ├── devices/page.tsx        # Device selection + per-platform setup instructions
 │   └── api/
 │       ├── auth/
-│       │   ├── send-code/route.ts    # POST: send verification code to email
-│       │   └── verify-code/route.ts  # POST: verify code, create user, set session
+│       │   ├── send-code/      # POST: generate & send 6-digit OTP code
+│       │   └── verify-code/    # POST: verify code, create user + Xray UUID, set session
 │       ├── user/
-│       │   ├── subscription/route.ts # GET: subscription status
-│       │   ├── devices/route.ts      # GET: supported devices list
-│       │   └── referral/route.ts     # GET: referral info
+│       │   ├── subscription/   # GET: subscription status, VPN key, referral data
+│       │   ├── devices/        # GET: supported device platforms
+│       │   └── referral/       # GET: referral statistics
 │       └── vpn/
-│           └── generate-key/route.ts # POST: reset/regenerate VPN key
+│           └── generate-key/   # POST: regenerate VPN key (new Xray UUID)
 ├── components/
-│   ├── Header.tsx          # App header with logo and navigation
-│   ├── Footer.tsx          # Footer with legal links
-│   └── FeatureCard.tsx     # Reusable feature highlight card
+│   ├── Header.tsx              # Sticky glass header with responsive nav
+│   ├── Footer.tsx              # Footer with legal links
+│   ├── FeatureCard.tsx         # Feature highlight card with icon
+│   ├── LoadingSpinner.tsx      # Animated loading spinner
+│   └── PageContainer.tsx       # Responsive page wrapper (max-w-2xl)
 ├── lib/
-│   ├── store.ts            # In-memory data store (replace with DB in production)
-│   └── email.ts            # Email sending utility
+│   ├── store.ts                # In-memory data store (dev only — use DB in production)
+│   ├── email.ts                # SMTP email service
+│   └── xray.ts                 # Xray VPN integration: UUID gen, URI builders, API client stub
 └── types/
-    └── index.ts            # TypeScript type definitions
+    └── index.ts                # Shared TypeScript interfaces
 ```
 
-## Development Commands
+## Commands
 ```bash
-npm run dev       # Start development server (http://localhost:3000)
+npm run dev       # Dev server at http://localhost:3000
 npm run build     # Production build
-npm run start     # Start production server
-npm run lint      # Run ESLint
+npm run start     # Production server
+npm run lint      # ESLint
 ```
 
 ## Environment Variables
-Copy `.env.example` to `.env` and configure:
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` — email delivery
-- `SMTP_FROM` — sender address
-- `VPN_API_URL`, `VPN_API_KEY` — VPN server integration
-- `SESSION_SECRET` — session cookie signing
+See `.env.example`. Key groups:
+- **SMTP_*** — email delivery (codes logged to console without config)
+- **XRAY_*** — Xray server: domain, port, protocol, Reality keys
+- **XRAY_PANEL_*** — optional panel API (3x-ui, Marzban)
 
-In dev mode without SMTP config, verification codes are logged to console.
+## Architecture
 
-## Architecture & Conventions
+### Auth Flow
+1. `POST /api/auth/send-code` → 6-digit OTP to email (10min TTL, 5 attempts max)
+2. `POST /api/auth/verify-code` → verify code → create user with Xray UUID + VLESS key → session cookie
+3. Redirect to `/dashboard`
 
-### Authentication Flow
-1. User enters email → `POST /api/auth/send-code` → 6-digit code sent via email
-2. User enters code → `POST /api/auth/verify-code` → account auto-created with 3-day trial
-3. Session cookie set → redirect to `/dashboard`
+### Xray Integration (`src/lib/xray.ts`)
+- **UUID Generation**: Each user gets a unique Xray UUID on registration
+- **Connection URIs**: Builds VLESS/VMess/Trojan URIs with Reality/TLS params
+- **API Client Stub**: Interface ready for gRPC or panel API implementation
+- **Config Builder**: Generate Xray config.json client entries
+
+**TODO for production**: Implement `XrayApiClient` methods to actually add/remove users from the Xray server via gRPC or panel API.
 
 ### Data Store
-Currently uses in-memory Maps (`src/lib/store.ts`). **Must be replaced with a real database for production** (PostgreSQL, MongoDB, etc.).
+In-memory Maps for development. **Replace with a database for production.**
 
-### Styling
-- Dark theme by default (background: `#0a0a0a`)
-- Tailwind CSS v4 with custom theme tokens in `globals.css`
-- Mobile-first responsive design, max-width `lg` (32rem) container
-- Custom animations: `animate-fade-in`, `animate-fade-in-delay-{1-4}`
+### Design System
+- Dark theme (`#0a0a0a` background)
+- Tailwind v4 with custom tokens in `globals.css`
+- Mobile-first responsive: all screens work from 320px to 1920px+
+- Glass header with backdrop-filter blur
+- Custom animations: `animate-fade-in-up`, `animate-scale-in`, `animate-shake`, `animate-delay-{1-5}`
+- Safe area insets for mobile notches
+- `btn-press` class for tactile button feedback
+- `gradient-text` for gradient typography
 
-### Key Design Patterns
-- All pages are client components (`"use client"`) for interactivity
-- API routes use Next.js Route Handlers (`route.ts`)
-- Session management via httpOnly cookies
-- SVG icons inline (no icon library dependency)
-- Russian language UI throughout
+### UI Screens
+1. **Auth** (`/`): Email input → OTP code entry with auto-submit, countdown timer, resend
+2. **Dashboard** (`/dashboard`): Subscription days counter, VPN key copy, referral sharing, Telegram bonus
+3. **Devices** (`/devices`): Platform selection grid, per-platform setup instructions (V2rayNG, Streisand, Hiddify), key copy, key reset
 
 ### API Response Format
-All API endpoints return:
 ```json
 { "success": true, "data": { ... } }
-{ "success": false, "error": "Error message" }
+{ "success": false, "error": "Описание ошибки" }
 ```
 
-## Important Notes for AI Assistants
-- Brand name is **Atlas Secure** (not Rocket VPN)
-- All UI text is in **Russian**
-- The site is mobile-first, designed to look like a mobile app
-- VPN keys use `vless://` protocol format
-- Trial period is **3 days** for new users
-- Referral bonus is **+20 days** per paying referral
-- Telegram linking bonus is **+7 days**
-- Never commit `.env` files — use `.env.example` as reference
+## Conventions for AI Assistants
+- Brand: **Atlas Secure** (not Rocket VPN)
+- All UI text: **Russian**
+- Mobile-first, app-like feel
+- VPN protocol: VLESS with Reality (configurable)
+- Trial: **3 days** free
+- Referral: **+20 days** per paid referral
+- Telegram bonus: **+7 days**
+- Never commit `.env` — use `.env.example`
+- Inline SVG icons (no external icon library)
+- Session via httpOnly cookie (`session` = user ID)
+- All pages are `"use client"` components
+- Max container width: `max-w-2xl` (42rem)

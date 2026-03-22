@@ -13,15 +13,20 @@ export async function GET(request: NextRequest) {
 
     const user = getUserById(sessionId);
     if (!user) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { success: false, error: "Пользователь не найден" },
         { status: 404 }
       );
+      response.cookies.delete("session");
+      return response;
     }
 
     const now = new Date();
     const end = new Date(user.subscriptionEnd);
-    const daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    const daysLeft = Math.max(
+      0,
+      Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    );
 
     return NextResponse.json({
       success: true,
@@ -30,6 +35,7 @@ export async function GET(request: NextRequest) {
         daysLeft,
         subscriptionEnd: user.subscriptionEnd,
         vpnKey: user.vpnKey,
+        xrayUuid: user.xrayUuid,
         telegramLinked: user.telegramLinked,
         referralCode: user.referralCode,
         referrals: user.referrals,

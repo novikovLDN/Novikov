@@ -1,33 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-
-interface SubscriptionData {
-  email: string;
-  daysLeft: number;
-  subscriptionEnd: string;
-  vpnKey: string;
-  telegramLinked: boolean;
-  referralCode: string;
-  referrals: number;
-  paidReferrals: number;
-}
+import PageContainer from "@/components/PageContainer";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
   const router = useRouter();
   const [data, setData] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
+  const [copiedRef, setCopiedRef] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
 
-  useEffect(() => {
-    fetchSubscription();
-  }, []);
-
-  const fetchSubscription = async () => {
+  const fetchSubscription = useCallback(async () => {
     try {
       const res = await fetch("/api/user/subscription");
       const result = await res.json();
@@ -41,26 +29,36 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
-  const handleCopyReferral = async () => {
-    if (!data) return;
-    const link = `${window.location.origin}?ref=${data.referralCode}`;
-    await navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  useEffect(() => {
+    fetchSubscription();
+  }, [fetchSubscription]);
 
-  const handleCopyKey = async () => {
-    if (!data?.vpnKey) return;
-    await navigator.clipboard.writeText(data.vpnKey);
-    setCopiedKey(true);
-    setTimeout(() => setCopiedKey(false), 2000);
+  const copyToClipboard = async (text: string, type: "key" | "ref") => {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (type === "key") {
+        setCopiedKey(true);
+        setTimeout(() => setCopiedKey(false), 2500);
+      } else {
+        setCopiedRef(true);
+        setTimeout(() => setCopiedRef(false), 2500);
+      }
+    } catch {
+      // Fallback
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
   };
 
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("ru-RU", {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("ru-RU", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -69,64 +67,94 @@ export default function Dashboard() {
     });
   };
 
+  // ─── Loading State ─────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <svg className="animate-spin h-8 w-8 text-primary" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
+      <div className="min-h-dvh flex flex-col">
+        <Header showMenu />
+        <PageContainer className="flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <LoadingSpinner size="lg" className="text-primary" />
+            <p className="text-muted text-sm">Загрузка...</p>
+          </div>
+        </PageContainer>
       </div>
     );
   }
 
   if (!data) return null;
 
+  const isExpiring = data.daysLeft <= 1;
+  const isExpired = data.daysLeft === 0;
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-dvh flex flex-col">
       <Header showMenu />
 
-      <main className="flex-1 px-4 max-w-lg mx-auto w-full space-y-4 pb-6">
-        {/* Subscription card */}
-        <div className="bg-card rounded-2xl p-6 text-center animate-fade-in">
-          <p className="text-muted mb-2">Дней подписки осталось:</p>
-          <p className="text-6xl font-bold mb-2">{data.daysLeft}</p>
-          <p className="text-muted text-sm mb-6">
+      <PageContainer className="space-y-3 sm:space-y-4">
+        {/* ═══ Subscription Status ═══ */}
+        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-5 sm:p-7 text-center animate-fade-in-up">
+          <p className="text-muted text-sm sm:text-base mb-3">Дней подписки осталось:</p>
+
+          <p
+            className={`text-6xl sm:text-7xl font-extrabold mb-1 tabular-nums ${
+              isExpired ? "text-danger" : isExpiring ? "text-warning" : "gradient-text"
+            }`}
+          >
+            {data.daysLeft}
+          </p>
+
+          <p className="text-muted text-xs sm:text-sm mb-6 sm:mb-8">
             Заканчивается: {formatDate(data.subscriptionEnd)}
           </p>
 
-          <button className="w-full h-14 rounded-2xl bg-foreground text-background font-semibold text-lg hover:bg-foreground/90 transition-all mb-3">
-            Продлить подписку
-          </button>
+          <div className="space-y-2.5 sm:space-y-3">
+            <button className="w-full h-12 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-sm sm:text-lg hover:bg-foreground/90 transition-all btn-press">
+              Продлить подписку
+            </button>
 
-          <button
-            onClick={() => router.push("/devices")}
-            className="w-full h-14 rounded-2xl bg-card-hover border border-border text-foreground font-semibold hover:bg-border transition-all"
-          >
-            Подключить устройство
-          </button>
+            <button
+              onClick={() => router.push("/devices")}
+              className="w-full h-12 sm:h-14 rounded-2xl bg-card-hover border border-border text-foreground font-semibold text-sm sm:text-base hover:bg-card-active transition-all btn-press"
+            >
+              Подключить устройство
+            </button>
+          </div>
         </div>
 
-        {/* VPN Key card */}
-        <div className="bg-card rounded-2xl p-5 animate-fade-in-delay-1">
-          <h3 className="font-semibold mb-3">Ваш VPN-ключ</h3>
-          <div className="bg-background rounded-xl p-3 mb-3 break-all text-sm text-muted font-mono">
-            {data.vpnKey}
+        {/* ═══ VPN Key ═══ */}
+        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-1">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-sm sm:text-base">Ваш VPN-ключ</h3>
+            <span className="text-[10px] sm:text-xs bg-primary-light text-primary px-2 py-0.5 rounded-full font-medium">
+              VLESS
+            </span>
           </div>
+
+          <div className="bg-background rounded-xl p-3 sm:p-3.5 mb-3 overflow-x-auto">
+            <p className="text-xs sm:text-sm text-muted font-mono break-all leading-relaxed select-all">
+              {data.vpnKey}
+            </p>
+          </div>
+
           <button
-            onClick={handleCopyKey}
-            className="w-full h-12 rounded-xl bg-primary text-white font-medium hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
+            onClick={() => copyToClipboard(data.vpnKey, "key")}
+            className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
+              copiedKey
+                ? "bg-success/20 text-success border border-success/30"
+                : "bg-primary text-white hover:bg-primary-hover"
+            }`}
           >
             {copiedKey ? (
               <>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                Скопировано
+                Скопировано!
               </>
             ) : (
               <>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                   <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                 </svg>
@@ -136,30 +164,54 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Referral card */}
-        <div className="bg-card rounded-2xl p-5 animate-fade-in-delay-2">
-          <div className="flex items-start gap-3 mb-3">
-            <span className="text-3xl">🎁</span>
-            <div>
-              <h3 className="font-semibold">Получи +20 дней к подписке за приглашение друга</h3>
-              <p className="text-sm text-muted mt-1">
+        {/* ═══ Referral Program ═══ */}
+        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-2">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-warning-light flex items-center justify-center shrink-0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6" />
+                <polyline points="12 15 12 3" />
+                <path d="M4 8l4-4 4 4" />
+                <path d="M12 8l4-4 4 4" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base leading-tight">
+                Получи +20 дней к подписке за приглашение друга
+              </h3>
+              <p className="text-xs sm:text-sm text-muted mt-1 leading-snug">
                 Поделись ссылкой — после первой оплаты друга дни начислятся автоматически
               </p>
             </div>
           </div>
 
-          <div className="flex gap-2 text-sm text-muted mb-4">
-            <span>Всего рефералов: {data.referrals}</span>
-            <span className="text-border">|</span>
-            <span>Оплатили подписку: {data.paidReferrals}</span>
+          <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted mb-4 bg-background rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
+            <div className="flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted/60">
+                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+                <circle cx="8.5" cy="7" r="4" />
+                <line x1="20" y1="8" x2="20" y2="14" />
+                <line x1="23" y1="11" x2="17" y2="11" />
+              </svg>
+              <span>Всего рефералов: <b className="text-foreground">{data.referrals}</b></span>
+            </div>
+            <div className="w-px h-4 bg-border" />
+            <div className="flex items-center gap-1.5">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted/60">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Оплатили: <b className="text-foreground">{data.paidReferrals}</b></span>
+            </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 sm:gap-3">
             <button
-              onClick={handleCopyReferral}
-              className="flex-1 h-12 rounded-xl bg-foreground text-background font-medium hover:bg-foreground/90 transition-colors flex items-center justify-center gap-2"
+              onClick={() =>
+                copyToClipboard(`${window.location.origin}?ref=${data.referralCode}`, "ref")
+              }
+              className="flex-1 h-11 sm:h-12 rounded-xl bg-foreground text-background font-medium text-sm sm:text-base hover:bg-foreground/90 transition-all btn-press flex items-center justify-center gap-2"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
                 <polyline points="16 6 12 2 8 6" />
                 <line x1="12" y1="2" x2="12" y2="15" />
@@ -167,47 +219,70 @@ export default function Dashboard() {
               Поделиться
             </button>
             <button
-              onClick={handleCopyReferral}
-              className="flex-1 h-12 rounded-xl bg-card-hover border border-border font-medium hover:bg-border transition-colors flex items-center justify-center gap-2"
+              onClick={() =>
+                copyToClipboard(`${window.location.origin}?ref=${data.referralCode}`, "ref")
+              }
+              className={`flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
+                copiedRef
+                  ? "bg-success/20 text-success border border-success/30"
+                  : "bg-card-hover border border-border hover:bg-card-active"
+              }`}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-              </svg>
-              {copied ? "Скопировано!" : "Скопировать"}
+              {copiedRef ? (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  Скопировано!
+                </>
+              ) : (
+                <>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                  </svg>
+                  Скопировать
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Telegram bonus */}
-        <div className="bg-card rounded-2xl p-5 animate-fade-in-delay-3">
-          <div className="flex items-start gap-3 mb-3">
-            <span className="text-3xl">🎁</span>
-            <div>
-              <h3 className="font-semibold">Получи +7 дней за привязку Telegram</h3>
-              <p className="text-sm text-muted mt-1">
+        {/* ═══ Telegram Bonus ═══ */}
+        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-3">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-telegram/15 flex items-center justify-center shrink-0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#2AABEE">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+              </svg>
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base leading-tight">
+                Получи +7 дней за привязку Telegram
+              </h3>
+              <p className="text-xs sm:text-sm text-muted mt-1 leading-snug">
                 Это быстрый вход в Личный кабинет через Telegram
               </p>
             </div>
           </div>
 
           {data.telegramLinked ? (
-            <div className="flex items-center gap-2 text-success">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="flex items-center gap-2 bg-success-light rounded-xl px-4 py-3">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              <span className="text-sm">Telegram привязан</span>
+              <span className="text-sm text-success font-medium">Telegram привязан</span>
             </div>
           ) : (
-            <button className="w-full h-12 rounded-xl bg-primary text-white font-medium hover:bg-primary-hover transition-colors flex items-center justify-center gap-2">
+            <button className="w-full h-11 sm:h-12 rounded-xl bg-telegram text-white font-medium text-sm sm:text-base hover:bg-telegram-hover transition-all btn-press flex items-center justify-center gap-2">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
               </svg>
               Привязать Telegram
             </button>
           )}
         </div>
-      </main>
+      </PageContainer>
 
       <Footer />
     </div>

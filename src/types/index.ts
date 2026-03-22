@@ -1,9 +1,11 @@
 export interface User {
   id: string;
   email: string;
-  createdAt: Date;
-  subscriptionEnd: Date;
+  createdAt: string;
+  subscriptionEnd: string;
   vpnKey: string | null;
+  xrayUuid: string | null;
+  telegramId: string | null;
   telegramLinked: boolean;
   referralCode: string;
   referrals: number;
@@ -13,7 +15,7 @@ export interface User {
 export interface VerificationCode {
   email: string;
   code: string;
-  expiresAt: Date;
+  expiresAt: number;
 }
 
 export interface ApiResponse<T = unknown> {
@@ -22,18 +24,53 @@ export interface ApiResponse<T = unknown> {
   error?: string;
 }
 
-export interface AuthState {
-  step: "email" | "code" | "authenticated";
+export interface SubscriptionData {
   email: string;
-  loading: boolean;
-  error: string | null;
+  daysLeft: number;
+  subscriptionEnd: string;
+  vpnKey: string;
+  xrayUuid: string;
+  telegramLinked: boolean;
+  referralCode: string;
+  referrals: number;
+  paidReferrals: number;
 }
 
-export interface Device {
+export interface DeviceInfo {
   id: string;
   name: string;
-  icon: string;
   platform: "android" | "ios" | "windows" | "macos" | "tv";
+  appName: string;
   downloadUrl: string;
-  instructions: string[];
+  instructions: InstructionStep[];
+}
+
+export interface InstructionStep {
+  step: number;
+  title: string;
+  description: string;
+}
+
+export interface XrayUserConfig {
+  uuid: string;
+  email: string;
+  level: number;
+  createdAt: string;
+  expiresAt: string;
+  trafficLimit: number | null;
+  protocol: "vless" | "vmess" | "trojan";
+  flow: string;
+}
+
+export interface XrayInboundClient {
+  id: string;
+  email: string;
+  flow: string;
+  level: number;
+}
+
+export interface XrayApiRequest {
+  action: "add" | "remove" | "reset" | "list";
+  user?: XrayUserConfig;
+  uuid?: string;
 }
