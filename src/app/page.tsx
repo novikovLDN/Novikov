@@ -41,7 +41,11 @@ export default function Home() {
     if (currentEmail && currentEmail !== email) {
       setEmail(currentEmail);
     }
-    if (!currentEmail || loading) return;
+    if (loading) return;
+    if (!currentEmail) {
+      setError("Введите email адрес");
+      return;
+    }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(currentEmail)) {
@@ -245,7 +249,7 @@ export default function Home() {
 
               <button
                 type="submit"
-                disabled={!email || loading}
+                disabled={loading}
                 className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
               >
                 {loading ? (
