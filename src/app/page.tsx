@@ -34,8 +34,8 @@ export default function Home() {
 
   // ─── Email Step ────────────────────────────────────────────────
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEmailSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     // Read from ref to handle browser autofill that bypasses onChange
     const currentEmail = emailRef.current?.value || email;
     if (currentEmail && currentEmail !== email) {
@@ -248,7 +248,8 @@ export default function Home() {
               )}
 
               <button
-                type="submit"
+                type="button"
+                onClick={() => handleEmailSubmit()}
                 disabled={loading}
                 className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
               >
