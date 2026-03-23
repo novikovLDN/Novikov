@@ -283,10 +283,10 @@ export default function Dashboard() {
             </div>
             <div className="min-w-0">
               <h3 className="font-semibold text-sm sm:text-base leading-tight">
-                Получи +1 день за каждого друга
+                Получи +7 дней за каждого друга
               </h3>
               <p className="text-xs sm:text-sm text-muted mt-1 leading-snug">
-                Поделись ссылкой — после регистрации друга день начислится автоматически
+                Поделись ссылкой — когда друг оплатит подписку, тебе начислятся +7 дней
               </p>
             </div>
           </div>

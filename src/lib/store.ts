@@ -130,13 +130,10 @@ export async function getOrCreateUser(email: string, referredByCode?: string): P
     [id, email, now, trialEnd, vpnKey, xrayUuid, referralCode, referredByCode || null]
   );
 
-  // Credit referrer: +1 referral count and +1 day subscription
+  // Credit referrer: +1 referral count (bonus given when friend pays)
   if (referredByCode) {
     await pool.query(
-      `UPDATE users
-       SET referrals = referrals + 1,
-           subscription_end = GREATEST(subscription_end, NOW()) + INTERVAL '1 day'
-       WHERE referral_code = $1`,
+      `UPDATE users SET referrals = referrals + 1 WHERE referral_code = $1`,
       [referredByCode]
     );
   }
@@ -361,6 +358,21 @@ export async function extendSubscription(userId: string, days: number): Promise<
   const newEnd = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
 
   return updateUser(userId, { subscriptionEnd: newEnd.toISOString() });
+}
+
+export async function creditReferrerOnPayment(userId: string): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user || !user.referredBy) return;
+
+  // Credit referrer: +1 paid referral, +7 days subscription
+  await pool.query(
+    `UPDATE users
+     SET paid_referrals = paid_referrals + 1,
+         subscription_end = GREATEST(subscription_end, NOW()) + INTERVAL '7 days'
+     WHERE referral_code = $1`,
+    [user.referredBy]
+  );
+  console.log(`[REFERRAL] Credited referrer of ${user.email} with +7 days`);
 }
 
 export async function expirePendingPayments(): Promise<number> {

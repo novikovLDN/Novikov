@@ -170,19 +170,17 @@ export default function Devices() {
           {copiedKey ? "Ключ скопирован!" : "Поделиться ключом (подпиской)"}
         </button>
 
-        {/* Info */}
+        {/* Device Limit Info */}
         <div className="bg-card border border-border/50 rounded-2xl p-3.5 sm:p-4 mb-5 sm:mb-6 animate-fade-in-up animate-delay-3">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-warning-light flex items-center justify-center shrink-0 mt-0.5">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
+            <div className="w-8 h-8 rounded-lg bg-primary-light flex items-center justify-center shrink-0 mt-0.5">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                <line x1="12" y1="18" x2="12.01" y2="18" />
               </svg>
             </div>
             <p className="text-xs sm:text-sm text-muted leading-relaxed">
-              Количество подключаемых устройств не ограничено. Воспользуйся QR-кодом в разделе
-              «Поделиться ключом (подпиской)» для быстрого подключения дополнительных устройств
+              Тариф <b className="text-foreground">Basic</b> — до <b className="text-foreground">5 устройств</b>. Тариф <b className="text-foreground">Plus</b> — до <b className="text-foreground">7 устройств</b>. Воспользуйтесь кнопкой «Поделиться ключом» для быстрого подключения дополнительных устройств.
             </p>
           </div>
         </div>
@@ -236,11 +234,20 @@ interface InstructionCardProps {
   copiedKey: boolean;
 }
 
-const platformInstructions: Record<string, { appName: string; appDesc: string; storeLabel: string; steps: string[] }> = {
+const platformInstructions: Record<string, {
+  appName: string;
+  appDesc: string;
+  storeLabel: string;
+  downloadUrl: string;
+  downloadLabel: string;
+  steps: string[];
+}> = {
   android: {
     appName: "V2rayNG",
     appDesc: "Рекомендуемый клиент для Android",
     storeLabel: "Google Play",
+    downloadUrl: "https://play.google.com/store/apps/details?id=com.v2ray.ang",
+    downloadLabel: "Скачать на Android",
     steps: [
       "Скачайте и установите V2rayNG из Google Play",
       "Скопируйте ваш VPN-ключ, нажав кнопку ниже",
@@ -252,6 +259,8 @@ const platformInstructions: Record<string, { appName: string; appDesc: string; s
     appName: "Streisand",
     appDesc: "Рекомендуемый клиент для iPhone и iPad",
     storeLabel: "App Store",
+    downloadUrl: "https://apps.apple.com/app/streisand/id6450534064",
+    downloadLabel: "Скачать на iPhone",
     steps: [
       "Скачайте и установите Streisand из App Store",
       "Скопируйте ваш VPN-ключ, нажав кнопку ниже",
@@ -262,7 +271,9 @@ const platformInstructions: Record<string, { appName: string; appDesc: string; s
   windows: {
     appName: "Hiddify",
     appDesc: "Рекомендуемый клиент для Windows",
-    storeLabel: "Скачать с сайта",
+    storeLabel: "Скачать",
+    downloadUrl: "https://github.com/hiddify/hiddify-app/releases/latest",
+    downloadLabel: "Скачать на Windows",
     steps: [
       "Скачайте и установите Hiddify с официального сайта",
       "Скопируйте ваш VPN-ключ, нажав кнопку ниже",
@@ -273,7 +284,9 @@ const platformInstructions: Record<string, { appName: string; appDesc: string; s
   macos: {
     appName: "Hiddify",
     appDesc: "Рекомендуемый клиент для macOS",
-    storeLabel: "Скачать с сайта",
+    storeLabel: "Скачать",
+    downloadUrl: "https://github.com/hiddify/hiddify-app/releases/latest",
+    downloadLabel: "Скачать на macOS",
     steps: [
       "Скачайте и установите Hiddify с официального сайта",
       "Скопируйте ваш VPN-ключ, нажав кнопку ниже",
@@ -284,7 +297,9 @@ const platformInstructions: Record<string, { appName: string; appDesc: string; s
   tv: {
     appName: "V2rayNG",
     appDesc: "Для Android TV и Google TV",
-    storeLabel: "Google Play на TV",
+    storeLabel: "Google Play TV",
+    downloadUrl: "https://play.google.com/store/apps/details?id=com.v2ray.ang",
+    downloadLabel: "Скачать на Android TV",
     steps: [
       "Установите V2rayNG на TV из Google Play",
       "На телефоне скопируйте VPN-ключ",
@@ -325,9 +340,23 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
         ))}
       </div>
 
-      {/* Copy key button */}
-      {vpnKey && (
-        <div className="px-4 sm:px-5 pb-4 sm:pb-5">
+      {/* Download + Copy buttons */}
+      <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-2.5">
+        <a
+          href={info.downloadUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 bg-foreground text-background hover:bg-foreground/90"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          {info.downloadLabel}
+        </a>
+
+        {vpnKey && (
           <button
             onClick={onCopyKey}
             className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
@@ -353,8 +382,8 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
               </>
             )}
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

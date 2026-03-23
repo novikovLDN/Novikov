@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, getPaymentById, updatePaymentStatus, extendSubscription } from "@/lib/store";
+import { getUserById, getPaymentById, updatePaymentStatus, extendSubscription, creditReferrerOnPayment } from "@/lib/store";
 import { getTransactionStatus, PaymentStatus } from "@/lib/platega";
 
 const PERIOD_DAYS: Record<number, number> = {
@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
           await updatePaymentStatus(payment.id, "confirmed", new Date());
           const days = PERIOD_DAYS[payment.period] || 30;
           await extendSubscription(payment.userId, days);
+          await creditReferrerOnPayment(payment.userId);
 
           return NextResponse.json({
             success: true,

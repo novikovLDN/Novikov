@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPaymentByTransactionId, updatePaymentStatus, extendSubscription } from "@/lib/store";
+import { getPaymentByTransactionId, updatePaymentStatus, extendSubscription, creditReferrerOnPayment } from "@/lib/store";
 import { PaymentStatus } from "@/lib/platega";
 
 // Period in months → days
@@ -41,6 +41,9 @@ export async function POST(request: NextRequest) {
       // Extend subscription
       const days = PERIOD_DAYS[payment.period] || 30;
       await extendSubscription(payment.userId, days);
+
+      // Credit referrer if this is the user's first payment
+      await creditReferrerOnPayment(payment.userId);
 
       console.log(`[WEBHOOK] Subscription extended for user ${payment.userId}: +${days} days (${payment.plan} ${payment.period}m)`);
     } else if (status === PaymentStatus.CANCELED || status === PaymentStatus.CHARGEBACKED) {
