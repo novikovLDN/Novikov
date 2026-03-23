@@ -59,6 +59,21 @@ export async function initDb(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
   `);
 
+  // ─── Migrations: add columns that may be missing on older DBs ───
+  const migrations = [
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS key_regen_count INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS key_regen_window_start TIMESTAMPTZ",
+  ];
+
+  for (const sql of migrations) {
+    try {
+      await pool.query(sql);
+    } catch {
+      // Column may already exist — ignore
+    }
+  }
+
   console.log("[DB] Tables initialized");
 }
 
