@@ -78,6 +78,25 @@ export async function initDb(): Promise<void> {
     }
   }
 
+  // Generate telegram_link_token for existing users who don't have one
+  try {
+    const usersWithoutToken = await pool.query(
+      "SELECT id FROM users WHERE telegram_link_token IS NULL"
+    );
+    for (const row of usersWithoutToken.rows) {
+      const token = require("crypto").randomBytes(8).toString("hex");
+      await pool.query(
+        "UPDATE users SET telegram_link_token = $1 WHERE id = $2",
+        [token, row.id]
+      );
+    }
+    if (usersWithoutToken.rows.length > 0) {
+      console.log(`[DB] Generated telegram_link_token for ${usersWithoutToken.rows.length} existing users`);
+    }
+  } catch (err) {
+    console.error("[DB] Failed to generate tokens:", err);
+  }
+
   console.log("[DB] Tables initialized");
 }
 
