@@ -26,6 +26,8 @@ export async function initDb(): Promise<void> {
       xray_uuid TEXT,
       telegram_id TEXT,
       password_hash TEXT,
+      key_regen_count INTEGER NOT NULL DEFAULT 0,
+      key_regen_window_start TIMESTAMPTZ,
       telegram_linked BOOLEAN NOT NULL DEFAULT FALSE,
       referral_code TEXT UNIQUE NOT NULL,
       referred_by TEXT,

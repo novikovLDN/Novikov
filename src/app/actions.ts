@@ -59,6 +59,7 @@ export async function verifyCodeAction(
   formData: FormData
 ): Promise<VerifyCodeState> {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
+  const refCode = (formData.get("ref") as string) || undefined;
   const codeDigits = [];
   for (let i = 0; i < 6; i++) {
     codeDigits.push(formData.get(`code-${i}`) as string || "");
@@ -77,7 +78,7 @@ export async function verifyCodeAction(
       return { success: false, error: result.error };
     }
 
-    const user = await getOrCreateUser(email);
+    const user = await getOrCreateUser(email, refCode);
     needsPassword = !user.passwordHash;
 
     // Only add to Xray for newly created users (not on repeat login)

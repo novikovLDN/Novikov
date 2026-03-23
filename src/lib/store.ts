@@ -22,6 +22,8 @@ export interface UserRecord {
   referredBy: string | null;
   referrals: number;
   paidReferrals: number;
+  keyRegenCount: number;
+  keyRegenWindowStart: string | null;
 }
 
 export interface CodeRecord {
@@ -49,6 +51,8 @@ function rowToUser(row: any): UserRecord {
     referredBy: row.referred_by,
     referrals: row.referrals,
     paidReferrals: row.paid_referrals,
+    keyRegenCount: row.key_regen_count ?? 0,
+    keyRegenWindowStart: row.key_regen_window_start ? new Date(row.key_regen_window_start).toISOString() : null,
   };
 }
 
@@ -126,10 +130,13 @@ export async function getOrCreateUser(email: string, referredByCode?: string): P
     [id, email, now, trialEnd, vpnKey, xrayUuid, referralCode, referredByCode || null]
   );
 
-  // Credit referrer
+  // Credit referrer: +1 referral count and +1 day subscription
   if (referredByCode) {
     await pool.query(
-      "UPDATE users SET referrals = referrals + 1 WHERE referral_code = $1",
+      `UPDATE users
+       SET referrals = referrals + 1,
+           subscription_end = GREATEST(subscription_end, NOW()) + INTERVAL '1 day'
+       WHERE referral_code = $1`,
       [referredByCode]
     );
   }
@@ -163,6 +170,8 @@ export async function updateUser(id: string, updates: Partial<UserRecord>): Prom
     referredBy: "referred_by",
     referrals: "referrals",
     paidReferrals: "paid_referrals",
+    keyRegenCount: "key_regen_count",
+    keyRegenWindowStart: "key_regen_window_start",
   };
 
   const setClauses: string[] = [];
@@ -189,17 +198,60 @@ export async function updateUser(id: string, updates: Partial<UserRecord>): Prom
   return rowToUser(result.rows[0]);
 }
 
-export async function regenerateUserKey(userId: string): Promise<UserRecord | null> {
+const MAX_REGEN_PER_WINDOW = 2;
+const REGEN_WINDOW_MS = 48 * 60 * 60 * 1000; // 48 hours
+
+export async function checkRegenLimit(userId: string): Promise<{ allowed: boolean; remaining: number; resetAt: string | null }> {
   const user = await getUserById(userId);
-  if (!user) return null;
+  if (!user) return { allowed: false, remaining: 0, resetAt: null };
+
+  const now = Date.now();
+  const windowStart = user.keyRegenWindowStart ? new Date(user.keyRegenWindowStart).getTime() : 0;
+  const windowExpired = !user.keyRegenWindowStart || (now - windowStart) >= REGEN_WINDOW_MS;
+
+  if (windowExpired) {
+    return { allowed: true, remaining: MAX_REGEN_PER_WINDOW, resetAt: null };
+  }
+
+  const remaining = MAX_REGEN_PER_WINDOW - user.keyRegenCount;
+  const resetAt = new Date(windowStart + REGEN_WINDOW_MS).toISOString();
+  return { allowed: remaining > 0, remaining: Math.max(0, remaining), resetAt };
+}
+
+export async function regenerateUserKey(userId: string): Promise<{ user: UserRecord | null; limitExceeded?: boolean; resetAt?: string }> {
+  const user = await getUserById(userId);
+  if (!user) return { user: null };
+
+  const now = Date.now();
+  const windowStart = user.keyRegenWindowStart ? new Date(user.keyRegenWindowStart).getTime() : 0;
+  const windowExpired = !user.keyRegenWindowStart || (now - windowStart) >= REGEN_WINDOW_MS;
+
+  let newCount: number;
+  let newWindowStart: string;
+
+  if (windowExpired) {
+    newCount = 1;
+    newWindowStart = new Date(now).toISOString();
+  } else {
+    if (user.keyRegenCount >= MAX_REGEN_PER_WINDOW) {
+      const resetAt = new Date(windowStart + REGEN_WINDOW_MS).toISOString();
+      return { user: null, limitExceeded: true, resetAt };
+    }
+    newCount = user.keyRegenCount + 1;
+    newWindowStart = user.keyRegenWindowStart!;
+  }
 
   const newUuid = generateXrayUuid();
   const newKey = buildConnectionUri(newUuid, user.email);
 
-  return updateUser(userId, {
+  const updated = await updateUser(userId, {
     xrayUuid: newUuid,
     vpnKey: newKey,
+    keyRegenCount: newCount,
+    keyRegenWindowStart: newWindowStart,
   });
+
+  return { user: updated };
 }
 
 export async function linkTelegram(userId: string, telegramId: string): Promise<UserRecord | null> {

@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [copiedKey, setCopiedKey] = useState(false);
   const [showRegenConfirm, setShowRegenConfirm] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [regenError, setRegenError] = useState("");
 
   const fetchSubscription = useCallback(async () => {
     try {
@@ -60,17 +61,20 @@ export default function Dashboard() {
 
   const handleRegenerateKey = async () => {
     setRegenerating(true);
+    setRegenError("");
     try {
       const res = await fetch("/api/vpn/generate-key", { method: "POST" });
       const result = await res.json();
       if (result.success) {
         setData((prev) => prev ? { ...prev, vpnKey: result.data.vpnKey, xrayUuid: result.data.xrayUuid } : prev);
+        setShowRegenConfirm(false);
+      } else {
+        setRegenError(result.error || "Не удалось обновить ключ");
       }
     } catch {
-      // silent
+      setRegenError("Ошибка сервера. Попробуйте позже.");
     } finally {
       setRegenerating(false);
-      setShowRegenConfirm(false);
     }
   };
 
@@ -209,7 +213,7 @@ export default function Dashboard() {
 
         {/* ═══ Regen Confirm Modal ═══ */}
         {showRegenConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => !regenerating && setShowRegenConfirm(false)}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => { if (!regenerating) { setShowRegenConfirm(false); setRegenError(""); } }}>
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
             <div
               className="relative bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-sm animate-scale-in"
@@ -230,9 +234,15 @@ export default function Dashboard() {
                 Это приведёт к деактивации текущего ключа и созданию нового. Вам нужно будет заново настроить VPN на всех устройствах.
               </p>
 
+              {regenError && (
+                <div className="bg-danger/10 border border-danger/20 rounded-xl p-3 mb-4">
+                  <p className="text-danger text-xs sm:text-sm text-center">{regenError}</p>
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <button
-                  onClick={() => setShowRegenConfirm(false)}
+                  onClick={() => { setShowRegenConfirm(false); setRegenError(""); }}
                   disabled={regenerating}
                   className="flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base bg-card-hover border border-border text-foreground hover:bg-card-active transition-all btn-press disabled:opacity-40"
                 >
@@ -270,10 +280,10 @@ export default function Dashboard() {
             </div>
             <div className="min-w-0">
               <h3 className="font-semibold text-sm sm:text-base leading-tight">
-                Получи +20 дней к подписке за приглашение друга
+                Получи +1 день за каждого друга
               </h3>
               <p className="text-xs sm:text-sm text-muted mt-1 leading-snug">
-                Поделись ссылкой — после первой оплаты друга дни начислятся автоматически
+                Поделись ссылкой — после регистрации друга день начислится автоматически
               </p>
             </div>
           </div>

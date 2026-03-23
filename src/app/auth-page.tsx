@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import FeatureCard from "@/components/FeatureCard";
 import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import PasswordInput from "@/components/PasswordInput";
 import { sendCodeAction, verifyCodeAction } from "./actions";
 
 type AuthStep =
@@ -22,9 +23,38 @@ type AuthStep =
 interface AuthPageProps {
   initialStep: "email" | "code";
   initialEmail: string;
+  referralCode?: string;
 }
 
-export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
+function BackButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1.5 text-muted-light hover:text-foreground transition-colors mb-6 sm:mb-8 btn-press py-1"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M15 18l-6-6 6-6" />
+      </svg>
+      <span className="text-sm font-medium">Назад</span>
+    </button>
+  );
+}
+
+function ErrorMessage({ error }: { error: string }) {
+  return (
+    <p className="text-danger text-xs sm:text-sm flex items-center gap-1.5 animate-fade-in">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" y1="8" x2="12" y2="12" />
+        <line x1="12" y1="16" x2="12.01" y2="16" />
+      </svg>
+      {error}
+    </p>
+  );
+}
+
+export default function AuthPage({ initialStep, initialEmail, referralCode }: AuthPageProps) {
   const router = useRouter();
   const [step, setStep] = useState<AuthStep>(initialStep);
   const [email, setEmail] = useState(initialEmail);
@@ -86,7 +116,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     if (verifyState.success && verifyState.needsPassword) {
       setStep("set-password");
     }
-    // If success without needsPassword, the server action redirects to /dashboard
   }, [verifyState]);
 
   // Countdown timer
@@ -156,13 +185,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     if (value && index < 5) {
       resetCodeRefs.current[index + 1]?.focus();
     }
-    if (value && index === 5) {
-      const allFilled = resetCodeRefs.current.every((ref) => ref?.value);
-      if (allFilled) {
-        const code = resetCodeRefs.current.map((r) => r?.value || "").join("");
-        setResetCode(code);
-      }
-    }
   };
 
   const handleResetCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -180,7 +202,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
       if (ref) ref.value = pasted[i] || "";
     }
     if (pasted.length === 6) {
-      setResetCode(pasted);
+      resetCodeRefs.current[5]?.focus();
     } else {
       resetCodeRefs.current[Math.min(pasted.length, 5)]?.focus();
     }
@@ -366,77 +388,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
     }
   };
 
-  // ─── Shared Components ─────────────────────────────────────────
-
-  const BackButton = ({ onClick }: { onClick: () => void }) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex items-center gap-1.5 text-muted-light hover:text-foreground transition-colors mb-6 sm:mb-8 btn-press py-1"
-    >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-      <span className="text-sm font-medium">Назад</span>
-    </button>
-  );
-
-  const PasswordInput = ({
-    value,
-    onChange,
-    show,
-    onToggle,
-    placeholder,
-    autoFocus,
-  }: {
-    value: string;
-    onChange: (v: string) => void;
-    show: boolean;
-    onToggle: () => void;
-    placeholder: string;
-    autoFocus?: boolean;
-  }) => (
-    <div className="relative">
-      <input
-        type={show ? "text" : "password"}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        autoFocus={autoFocus}
-        className="w-full h-13 sm:h-14 px-4 pr-12 rounded-2xl bg-card border border-border text-foreground placeholder-muted focus:outline-none focus:border-primary transition-all text-base sm:text-lg"
-        required
-      />
-      <button
-        type="button"
-        onClick={onToggle}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors p-1"
-      >
-        {show ? (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" />
-            <line x1="1" y1="1" x2="23" y2="23" />
-          </svg>
-        ) : (
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
-        )}
-      </button>
-    </div>
-  );
-
-  const ErrorMessage = ({ error }: { error: string }) => (
-    <p className="text-danger text-xs sm:text-sm flex items-center gap-1.5 animate-fade-in">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="8" x2="12" y2="12" />
-        <line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
-      {error}
-    </p>
-  );
-
   // ─── Render ──────────────────────────────────────────────────────
 
   const emailError = sendState.error || null;
@@ -448,7 +399,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
 
       <PageContainer>
         {step === "email" && (
-          /* ═══ Email Screen ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-6">
             <h1 className="text-2xl sm:text-3xl font-bold mb-1">Введи почту</h1>
             <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
@@ -456,6 +406,9 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
             </p>
 
             <form action={sendAction} className="space-y-3 sm:space-y-4">
+              {/* Pass referral code through the form */}
+              {referralCode && <input type="hidden" name="ref" value={referralCode} />}
+
               <div className="relative">
                 <input
                   ref={emailRef}
@@ -516,47 +469,28 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
             {/* Features */}
             <div className="mt-8 sm:mt-10 space-y-2.5 sm:space-y-3">
               <FeatureCard
-                icon={
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <path d="M3 9h18M9 21V9" />
-                  </svg>
-                }
+                icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg>}
                 iconBg="bg-success-light"
                 title="Бесплатный тестовый период 3 дня"
                 description="Оцени стабильность и скорость"
                 className="animate-fade-in-up animate-delay-1"
               />
               <FeatureCard
-                icon={
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                    <line x1="12" y1="18" x2="12.01" y2="18" />
-                  </svg>
-                }
+                icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12.01" y2="18" /></svg>}
                 iconBg="bg-accent-light"
                 title="Безлимитное количество устройств"
                 description="Подключай телефон, ПК, TV и планшет"
                 className="animate-fade-in-up animate-delay-2"
               />
               <FeatureCard
-                icon={
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                  </svg>
-                }
+                icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>}
                 iconBg="bg-warning-light"
                 title="Подписка от 138 ₽ в месяц"
                 description="Без ограничений по трафику и скорости"
                 className="animate-fade-in-up animate-delay-3"
               />
               <FeatureCard
-                icon={
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                }
+                icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>}
                 iconBg="bg-primary-light"
                 title="Простое подключение за 1 минуту"
                 description="Никаких сложных настроек"
@@ -567,7 +501,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
         )}
 
         {step === "code" && (
-          /* ═══ Code Verification Screen ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <BackButton onClick={() => setStep("email")} />
 
@@ -584,11 +517,9 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
 
             <form ref={codeFormRef} action={verifyAction}>
               <input type="hidden" name="email" value={email} />
+              {referralCode && <input type="hidden" name="ref" value={referralCode} />}
 
-              <div
-                className="flex gap-2 sm:gap-3 justify-center mb-6"
-                onPaste={handleCodePaste}
-              >
+              <div className="flex gap-2 sm:gap-3 justify-center mb-6" onPaste={handleCodePaste}>
                 {[0, 1, 2, 3, 4, 5].map((i) => (
                   <input
                     key={i}
@@ -604,9 +535,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
                     onKeyDown={(e) => handleCodeKeyDown(i, e)}
                     aria-label={`Цифра ${i + 1}`}
                     className={`w-11 h-13 sm:w-13 sm:h-15 text-center text-xl sm:text-2xl font-bold bg-card border rounded-xl sm:rounded-2xl focus:outline-none transition-all ${
-                      codeError
-                        ? "border-danger/50"
-                        : "border-border focus:border-primary"
+                      codeError ? "border-danger/50" : "border-border focus:border-primary"
                     }`}
                   />
                 ))}
@@ -649,11 +578,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
                   </span>
                 </p>
               ) : (
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  className="text-primary text-sm font-medium hover:text-primary-hover transition-colors"
-                >
+                <button type="button" onClick={handleResendCode} className="text-primary text-sm font-medium hover:text-primary-hover transition-colors">
                   Отправить код повторно
                 </button>
               )}
@@ -662,7 +587,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
         )}
 
         {step === "set-password" && (
-          /* ═══ Set Password Screen (after OTP for new users) ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center">
@@ -688,6 +612,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
                 onToggle={() => setShowNewPassword(!showNewPassword)}
                 placeholder="Пароль (мин. 6 символов)"
                 autoFocus
+                hasError={!!setPasswordError}
               />
 
               <PasswordInput
@@ -696,6 +621,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
                 show={showConfirmPassword}
                 onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
                 placeholder="Повторите пароль"
+                hasError={!!setPasswordError}
               />
 
               {setPasswordError && <ErrorMessage error={setPasswordError} />}
@@ -726,7 +652,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
         )}
 
         {step === "login" && (
-          /* ═══ Login by Email + Password ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <BackButton onClick={() => setStep("email")} />
 
@@ -756,9 +681,25 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
                 show={showLoginPassword}
                 onToggle={() => setShowLoginPassword(!showLoginPassword)}
                 placeholder="Пароль"
+                hasError={!!loginError}
               />
 
-              {loginError && <ErrorMessage error={loginError} />}
+              {loginError && (
+                <>
+                  <ErrorMessage error={loginError} />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep("reset-email");
+                      setResetEmail(loginEmail);
+                      setResetError("");
+                    }}
+                    className="text-primary text-sm font-medium hover:text-primary-hover transition-colors"
+                  >
+                    Сбросить пароль
+                  </button>
+                </>
+              )}
 
               <button
                 type="submit"
@@ -793,7 +734,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
         )}
 
         {step === "reset-email" && (
-          /* ═══ Reset Password — Enter Email ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <BackButton onClick={() => setStep("login")} />
 
@@ -838,7 +778,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
         )}
 
         {step === "reset-code" && (
-          /* ═══ Reset Password — Enter Code ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <BackButton onClick={() => setStep("reset-email")} />
 
@@ -854,10 +793,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
             </div>
 
             <form onSubmit={handleVerifyResetCode}>
-              <div
-                className="flex gap-2 sm:gap-3 justify-center mb-6"
-                onPaste={handleResetCodePaste}
-              >
+              <div className="flex gap-2 sm:gap-3 justify-center mb-6" onPaste={handleResetCodePaste}>
                 {[0, 1, 2, 3, 4, 5].map((i) => (
                   <input
                     key={i}
@@ -907,11 +843,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
                   </span>
                 </p>
               ) : (
-                <button
-                  type="button"
-                  onClick={handleResendResetCode}
-                  className="text-primary text-sm font-medium hover:text-primary-hover transition-colors"
-                >
+                <button type="button" onClick={handleResendResetCode} className="text-primary text-sm font-medium hover:text-primary-hover transition-colors">
                   Отправить код повторно
                 </button>
               )}
@@ -920,7 +852,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
         )}
 
         {step === "reset-password" && (
-          /* ═══ Reset Password — Set New Password ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <BackButton onClick={() => setStep("reset-code")} />
 
@@ -948,6 +879,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
                 onToggle={() => setShowResetPassword1(!showResetPassword1)}
                 placeholder="Новый пароль (мин. 6 символов)"
                 autoFocus
+                hasError={!!resetError}
               />
 
               <PasswordInput
@@ -956,6 +888,7 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
                 show={showResetPassword2}
                 onToggle={() => setShowResetPassword2(!showResetPassword2)}
                 placeholder="Повторите пароль"
+                hasError={!!resetError}
               />
 
               {resetError && <ErrorMessage error={resetError} />}
@@ -979,7 +912,6 @@ export default function AuthPage({ initialStep, initialEmail }: AuthPageProps) {
         )}
 
         {step === "reset-success" && (
-          /* ═══ Reset Password — Success ═══ */
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <div className="flex justify-center mb-6 mt-8">
               <div className="w-20 h-20 rounded-full bg-success/15 flex items-center justify-center animate-scale-in">

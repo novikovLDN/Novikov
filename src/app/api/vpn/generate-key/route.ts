@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, regenerateUserKey } from "@/lib/store";
+import { getUserById, regenerateUserKey, checkRegenLimit } from "@/lib/store";
 import { xrayAddUser, xrayRemoveUser } from "@/lib/xray";
 
 export async function POST(request: NextRequest) {
@@ -30,16 +30,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check regeneration limit
+    const limit = await checkRegenLimit(user.id);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Вы исчерпали лимит обновлений ключа (2 за 48 часов).",
+          resetAt: limit.resetAt,
+        },
+        { status: 429 }
+      );
+    }
+
     // Remove old UUID from Xray server
     if (user.xrayUuid) {
       await xrayRemoveUser(user.xrayUuid);
     }
 
-    const updated = await regenerateUserKey(user.id);
+    const result = await regenerateUserKey(user.id);
+
+    if (result.limitExceeded) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Вы исчерпали лимит обновлений ключа (2 за 48 часов).",
+          resetAt: result.resetAt,
+        },
+        { status: 429 }
+      );
+    }
 
     // Add new UUID to Xray server
-    if (updated?.xrayUuid) {
-      const added = await xrayAddUser(updated.xrayUuid);
+    if (result.user?.xrayUuid) {
+      const added = await xrayAddUser(result.user.xrayUuid);
       if (!added) {
         console.error(`[VPN] Failed to add new key to Xray: ${user.email}`);
       }
@@ -48,8 +72,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        vpnKey: updated?.vpnKey,
-        xrayUuid: updated?.xrayUuid,
+        vpnKey: result.user?.vpnKey,
+        xrayUuid: result.user?.xrayUuid,
       },
     });
   } catch {
