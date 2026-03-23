@@ -24,6 +24,7 @@ export interface UserRecord {
   paidReferrals: number;
   keyRegenCount: number;
   keyRegenWindowStart: string | null;
+  telegramLinkToken: string | null;
 }
 
 export interface CodeRecord {
@@ -53,6 +54,7 @@ function rowToUser(row: any): UserRecord {
     paidReferrals: row.paid_referrals,
     keyRegenCount: row.key_regen_count ?? 0,
     keyRegenWindowStart: row.key_regen_window_start ? new Date(row.key_regen_window_start).toISOString() : null,
+    telegramLinkToken: row.telegram_link_token,
   };
 }
 
@@ -120,14 +122,15 @@ export async function getOrCreateUser(email: string, referredByCode?: string): P
   const trialEnd = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days trial
   const xrayUuid = generateXrayUuid();
   const referralCode = generateReferralCode();
+  const telegramLinkToken = uuidv4().replace(/-/g, "").slice(0, 16);
   const vpnKey = buildConnectionUri(xrayUuid, email);
   const id = uuidv4();
 
   const result = await pool.query(
-    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, referral_code, referred_by)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, referral_code, referred_by, telegram_link_token)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
-    [id, email, now, trialEnd, vpnKey, xrayUuid, referralCode, referredByCode || null]
+    [id, email, now, trialEnd, vpnKey, xrayUuid, referralCode, referredByCode || null, telegramLinkToken]
   );
 
   // Credit referrer: +1 referral count (bonus given when friend pays)
@@ -169,6 +172,7 @@ export async function updateUser(id: string, updates: Partial<UserRecord>): Prom
     paidReferrals: "paid_referrals",
     keyRegenCount: "key_regen_count",
     keyRegenWindowStart: "key_regen_window_start",
+    telegramLinkToken: "telegram_link_token",
   };
 
   const setClauses: string[] = [];
@@ -265,6 +269,63 @@ export async function linkTelegram(userId: string, telegramId: string): Promise<
     telegramLinked: true,
     subscriptionEnd: newEnd.toISOString(),
   });
+}
+
+// ─── Telegram Bot Sync ──────────────────────────────────────────
+
+export async function getUserByTelegramLinkToken(token: string): Promise<UserRecord | null> {
+  const result = await pool.query("SELECT * FROM users WHERE telegram_link_token = $1", [token]);
+  if (result.rows.length === 0) return null;
+  return rowToUser(result.rows[0]);
+}
+
+export async function getUserByTelegramId(telegramId: string): Promise<UserRecord | null> {
+  const result = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
+  if (result.rows.length === 0) return null;
+  return rowToUser(result.rows[0]);
+}
+
+export async function linkTelegramByToken(token: string, telegramId: string): Promise<UserRecord | null> {
+  // Check if this telegram_id is already linked to another account
+  const existingByTg = await getUserByTelegramId(telegramId);
+  if (existingByTg) return existingByTg; // Already linked
+
+  const user = await getUserByTelegramLinkToken(token);
+  if (!user) return null;
+  if (user.telegramLinked) return user; // Already linked
+
+  return updateUser(user.id, {
+    telegramId,
+    telegramLinked: true,
+  });
+}
+
+export async function botExtendSubscription(
+  telegramId: string,
+  days: number,
+  plan?: string
+): Promise<UserRecord | null> {
+  const user = await getUserByTelegramId(telegramId);
+  if (!user) return null;
+
+  const currentEnd = new Date(user.subscriptionEnd);
+  const now = new Date();
+  const base = currentEnd > now ? currentEnd : now;
+  const newEnd = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+
+  // If user has no VPN key (expired and cleaned up), regenerate
+  if (!user.xrayUuid) {
+    const { generateXrayUuid: genUuid, buildConnectionUri: buildUri } = await import("./xray");
+    const newUuid = genUuid();
+    const newKey = buildUri(newUuid, user.email);
+    return updateUser(user.id, {
+      subscriptionEnd: newEnd.toISOString(),
+      xrayUuid: newUuid,
+      vpnKey: newKey,
+    });
+  }
+
+  return updateUser(user.id, { subscriptionEnd: newEnd.toISOString() });
 }
 
 // ─── Payment Management ─────────────────────────────────────────

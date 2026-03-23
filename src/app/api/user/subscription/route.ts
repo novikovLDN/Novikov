@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
         vpnKey: isExpired ? null : user.vpnKey,
         xrayUuid: isExpired ? null : user.xrayUuid,
         telegramLinked: user.telegramLinked,
+        telegramLinkToken: user.telegramLinkToken,
         referralCode: user.referralCode,
         referrals: user.referrals,
         paidReferrals: user.paidReferrals,

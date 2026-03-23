@@ -33,6 +33,7 @@ export interface SubscriptionData {
   vpnKey: string | null;
   xrayUuid: string | null;
   telegramLinked: boolean;
+  telegramLinkToken: string | null;
   referralCode: string;
   referrals: number;
   paidReferrals: number;
