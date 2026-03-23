@@ -30,6 +30,7 @@ export async function initDb(): Promise<void> {
       key_regen_window_start TIMESTAMPTZ,
       telegram_linked BOOLEAN NOT NULL DEFAULT FALSE,
       telegram_link_token TEXT UNIQUE,
+      registration_ip TEXT,
       referral_code TEXT UNIQUE NOT NULL,
       referred_by TEXT,
       referrals INTEGER NOT NULL DEFAULT 0,
@@ -66,6 +67,7 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS key_regen_count INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS key_regen_window_start TIMESTAMPTZ",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_link_token TEXT UNIQUE",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS registration_ip TEXT",
   ];
 
   for (const sql of migrations) {

@@ -25,6 +25,7 @@ export interface UserRecord {
   keyRegenCount: number;
   keyRegenWindowStart: string | null;
   telegramLinkToken: string | null;
+  registrationIp: string | null;
 }
 
 export interface CodeRecord {
@@ -55,6 +56,7 @@ function rowToUser(row: any): UserRecord {
     keyRegenCount: row.key_regen_count ?? 0,
     keyRegenWindowStart: row.key_regen_window_start ? new Date(row.key_regen_window_start).toISOString() : null,
     telegramLinkToken: row.telegram_link_token,
+    registrationIp: row.registration_ip,
   };
 }
 
@@ -110,27 +112,46 @@ export function verifyCode(email: string, code: string): { valid: boolean; error
 
 // ─── User Management (PostgreSQL) ───────────────────────────────
 
-export async function getOrCreateUser(email: string, referredByCode?: string): Promise<UserRecord & { isNew: boolean }> {
+const MAX_TRIALS_PER_IP = 2;
+const TRIAL_IP_WINDOW_HOURS = 24;
+
+export async function checkTrialAbuse(ip: string): Promise<boolean> {
+  if (!ip) return false;
+  const result = await pool.query(
+    `SELECT COUNT(*) as cnt FROM users
+     WHERE registration_ip = $1
+     AND created_at > NOW() - INTERVAL '${TRIAL_IP_WINDOW_HOURS} hours'`,
+    [ip]
+  );
+  return parseInt(result.rows[0].cnt, 10) >= MAX_TRIALS_PER_IP;
+}
+
+export async function getOrCreateUser(email: string, referredByCode?: string, ip?: string): Promise<UserRecord & { isNew: boolean; trialBlocked?: boolean }> {
   // Check existing user
   const existing = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
   if (existing.rows.length > 0) {
     return { ...rowToUser(existing.rows[0]), isNew: false };
   }
 
+  // Check IP abuse — too many trials from this IP
+  const trialBlocked = ip ? await checkTrialAbuse(ip) : false;
+
   // Create new user
   const now = new Date();
-  const trialEnd = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days trial
-  const xrayUuid = generateXrayUuid();
+  // If trial blocked: 0 days trial (must buy subscription immediately)
+  const trialDays = trialBlocked ? 0 : 3;
+  const trialEnd = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
+  const xrayUuid = trialBlocked ? null : generateXrayUuid();
   const referralCode = generateReferralCode();
   const telegramLinkToken = uuidv4().replace(/-/g, "").slice(0, 16);
-  const vpnKey = buildConnectionUri(xrayUuid, email);
+  const vpnKey = xrayUuid ? buildConnectionUri(xrayUuid, email) : null;
   const id = uuidv4();
 
   const result = await pool.query(
-    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, referral_code, referred_by, telegram_link_token)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, referral_code, referred_by, telegram_link_token, registration_ip)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING *`,
-    [id, email, now, trialEnd, vpnKey, xrayUuid, referralCode, referredByCode || null, telegramLinkToken]
+    [id, email, now, trialEnd, vpnKey, xrayUuid, referralCode, referredByCode || null, telegramLinkToken, ip || null]
   );
 
   // Credit referrer: +1 referral count (bonus given when friend pays)
@@ -141,7 +162,7 @@ export async function getOrCreateUser(email: string, referredByCode?: string): P
     );
   }
 
-  return { ...rowToUser(result.rows[0]), isNew: true };
+  return { ...rowToUser(result.rows[0]), isNew: true, trialBlocked };
 }
 
 export async function getUserByEmail(email: string): Promise<UserRecord | null> {
@@ -173,6 +194,7 @@ export async function updateUser(id: string, updates: Partial<UserRecord>): Prom
     keyRegenCount: "key_regen_count",
     keyRegenWindowStart: "key_regen_window_start",
     telegramLinkToken: "telegram_link_token",
+    registrationIp: "registration_ip",
   };
 
   const setClauses: string[] = [];

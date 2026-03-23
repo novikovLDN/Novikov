@@ -3,7 +3,7 @@
 import { generateCode, sendVerificationEmail } from "@/lib/email";
 import { saveCode, verifyCode, getOrCreateUser } from "@/lib/store";
 import { xrayAddUser } from "@/lib/xray";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 export interface SendCodeState {
@@ -78,7 +78,13 @@ export async function verifyCodeAction(
       return { success: false, error: result.error };
     }
 
-    const user = await getOrCreateUser(email, refCode);
+    // Get client IP for trial abuse prevention
+    const hdrs = await headers();
+    const clientIp = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim()
+      || hdrs.get("x-real-ip")
+      || "unknown";
+
+    const user = await getOrCreateUser(email, refCode, clientIp);
     needsPassword = !user.passwordHash;
 
     // Only add to Xray for newly created users (not on repeat login)

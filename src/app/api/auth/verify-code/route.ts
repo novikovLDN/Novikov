@@ -21,9 +21,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get client IP for trial abuse prevention
+    const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      || request.headers.get("x-real-ip")
+      || "unknown";
+
     // Create user with trial period or return existing
-    // If referral code provided, link it
-    const user = await getOrCreateUser(email.toLowerCase(), referralCode || undefined);
+    const user = await getOrCreateUser(email.toLowerCase(), referralCode || undefined, clientIp);
 
     // Only add to Xray for newly created users (not on repeat login)
     if (user.isNew && user.xrayUuid) {
