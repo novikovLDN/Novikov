@@ -38,6 +38,25 @@ export async function initDb(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code);
     CREATE INDEX IF NOT EXISTS idx_users_subscription_end ON users(subscription_end);
+
+    CREATE TABLE IF NOT EXISTS payments (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id),
+      transaction_id TEXT,
+      plan TEXT NOT NULL,
+      period INTEGER NOT NULL,
+      amount NUMERIC(10,2) NOT NULL,
+      currency TEXT NOT NULL DEFAULT 'RUB',
+      status TEXT NOT NULL DEFAULT 'pending',
+      redirect_url TEXT,
+      expires_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      paid_at TIMESTAMPTZ
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
+    CREATE INDEX IF NOT EXISTS idx_payments_transaction_id ON payments(transaction_id);
+    CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
   `);
 
   console.log("[DB] Tables initialized");

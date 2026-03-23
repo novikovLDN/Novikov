@@ -270,6 +270,108 @@ export async function linkTelegram(userId: string, telegramId: string): Promise<
   });
 }
 
+// ─── Payment Management ─────────────────────────────────────────
+
+export interface PaymentRecord {
+  id: string;
+  userId: string;
+  transactionId: string | null;
+  plan: string;
+  period: number;
+  amount: number;
+  currency: string;
+  status: string;
+  redirectUrl: string | null;
+  expiresAt: string;
+  createdAt: string;
+  paidAt: string | null;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToPayment(row: any): PaymentRecord {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    transactionId: row.transaction_id,
+    plan: row.plan,
+    period: row.period,
+    amount: parseFloat(row.amount),
+    currency: row.currency,
+    status: row.status,
+    redirectUrl: row.redirect_url,
+    expiresAt: new Date(row.expires_at).toISOString(),
+    createdAt: new Date(row.created_at).toISOString(),
+    paidAt: row.paid_at ? new Date(row.paid_at).toISOString() : null,
+  };
+}
+
+export async function createPaymentRecord(
+  id: string,
+  userId: string,
+  plan: string,
+  period: number,
+  amount: number,
+  transactionId: string | null,
+  redirectUrl: string | null,
+  expiresAt: Date
+): Promise<PaymentRecord> {
+  const result = await pool.query(
+    `INSERT INTO payments (id, user_id, plan, period, amount, transaction_id, redirect_url, expires_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     RETURNING *`,
+    [id, userId, plan, period, amount, transactionId, redirectUrl, expiresAt]
+  );
+  return rowToPayment(result.rows[0]);
+}
+
+export async function getPaymentById(id: string): Promise<PaymentRecord | null> {
+  const result = await pool.query("SELECT * FROM payments WHERE id = $1", [id]);
+  if (result.rows.length === 0) return null;
+  return rowToPayment(result.rows[0]);
+}
+
+export async function getPaymentByTransactionId(transactionId: string): Promise<PaymentRecord | null> {
+  const result = await pool.query("SELECT * FROM payments WHERE transaction_id = $1", [transactionId]);
+  if (result.rows.length === 0) return null;
+  return rowToPayment(result.rows[0]);
+}
+
+export async function updatePaymentStatus(id: string, status: string, paidAt?: Date): Promise<PaymentRecord | null> {
+  const result = paidAt
+    ? await pool.query(
+        "UPDATE payments SET status = $1, paid_at = $2 WHERE id = $3 RETURNING *",
+        [status, paidAt, id]
+      )
+    : await pool.query(
+        "UPDATE payments SET status = $1 WHERE id = $2 RETURNING *",
+        [status, id]
+      );
+  if (result.rows.length === 0) return null;
+  return rowToPayment(result.rows[0]);
+}
+
+export async function extendSubscription(userId: string, days: number): Promise<UserRecord | null> {
+  const user = await getUserById(userId);
+  if (!user) return null;
+
+  const currentEnd = new Date(user.subscriptionEnd);
+  const now = new Date();
+  // If subscription already expired, extend from now; otherwise extend from current end
+  const base = currentEnd > now ? currentEnd : now;
+  const newEnd = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+
+  return updateUser(userId, { subscriptionEnd: newEnd.toISOString() });
+}
+
+export async function expirePendingPayments(): Promise<number> {
+  const result = await pool.query(
+    `UPDATE payments SET status = 'expired'
+     WHERE status = 'pending' AND expires_at <= NOW()
+     RETURNING id`
+  );
+  return result.rows.length;
+}
+
 // ─── Password Management ────────────────────────────────────────
 
 const BCRYPT_ROUNDS = 10;

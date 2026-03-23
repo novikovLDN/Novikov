@@ -1,0 +1,101 @@
+import { NextRequest, NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
+import { getUserById, createPaymentRecord } from "@/lib/store";
+import { createPayment } from "@/lib/platega";
+
+// Plan pricing configuration
+const PLANS: Record<string, Record<number, number>> = {
+  basic: { 1: 149, 3: 399, 6: 749, 12: 1399 },
+  plus: { 1: 299, 3: 699, 6: 1199, 12: 2299 },
+};
+
+const PAYMENT_LIFETIME_MS = 15 * 60 * 1000; // 15 minutes
+
+export async function POST(request: NextRequest) {
+  try {
+    const sessionId = request.cookies.get("session")?.value;
+    if (!sessionId) {
+      return NextResponse.json(
+        { success: false, error: "Не авторизован" },
+        { status: 401 }
+      );
+    }
+
+    const user = await getUserById(sessionId);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: "Пользователь не найден" },
+        { status: 404 }
+      );
+    }
+
+    const { plan, period } = await request.json();
+
+    if (!plan || !period || !PLANS[plan] || !PLANS[plan][period]) {
+      return NextResponse.json(
+        { success: false, error: "Неверный тариф или срок" },
+        { status: 400 }
+      );
+    }
+
+    const amount = PLANS[plan][period];
+    const paymentId = uuidv4();
+    const expiresAt = new Date(Date.now() + PAYMENT_LIFETIME_MS);
+
+    // Build URLs
+    const origin = request.headers.get("origin") || request.headers.get("referer")?.replace(/\/[^/]*$/, "") || "";
+    const returnUrl = `${origin}/pricing?payment=${paymentId}&status=success`;
+    const failedUrl = `${origin}/pricing?payment=${paymentId}&status=failed`;
+
+    const planLabel = plan === "plus" ? "Plus" : "Basic";
+    const description = `Atlas Secure ${planLabel} — ${period} мес.`;
+
+    let transactionId: string | null = null;
+    let redirectUrl: string | null = null;
+
+    try {
+      const result = await createPayment({
+        amount,
+        description,
+        returnUrl,
+        failedUrl,
+        payload: { paymentId, userId: user.id, plan, period },
+      });
+      transactionId = result.transactionId;
+      redirectUrl = result.redirect;
+    } catch (err) {
+      console.error("[PAYMENTS] Platega create error:", err);
+      return NextResponse.json(
+        { success: false, error: "Не удалось создать платёж. Попробуйте позже." },
+        { status: 502 }
+      );
+    }
+
+    // Save payment record
+    await createPaymentRecord(
+      paymentId,
+      user.id,
+      plan,
+      period,
+      amount,
+      transactionId,
+      redirectUrl,
+      expiresAt
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        paymentId,
+        redirectUrl,
+        amount,
+        expiresAt: expiresAt.toISOString(),
+      },
+    });
+  } catch {
+    return NextResponse.json(
+      { success: false, error: "Внутренняя ошибка сервера" },
+      { status: 500 }
+    );
+  }
+}
