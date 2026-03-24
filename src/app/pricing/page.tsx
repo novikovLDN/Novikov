@@ -24,7 +24,7 @@ const PLANS: Record<Plan, { name: string; features: { icon: string; text: string
       { icon: "⚡", text: "Стабильная скорость" },
       { icon: "🔒", text: "Надёжное шифрование" },
       { icon: "📱", text: "Безлимит устройств" },
-      { icon: "🌐", text: "Доступ к заблокированным сайтам" },
+      { icon: "🌐", text: "Всегда доступен сайт" },
     ],
   },
   plus: {
@@ -32,7 +32,7 @@ const PLANS: Record<Plan, { name: string; features: { icon: string; text: string
     badge: "Популярный",
     features: [
       { icon: "⚡", text: "Приоритетная скорость для стримов и игр" },
-      { icon: "🛡", text: "Обход любых блокировок включая белые списки" },
+      { icon: "🛡", text: "Всегда доступен" },
       { icon: "🌍", text: "Выделенные серверы в нескольких странах" },
       { icon: "🔄", text: "Резервные каналы — доступ работает всегда" },
     ],
