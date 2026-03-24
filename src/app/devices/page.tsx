@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
-import LoadingSpinner from "@/components/LoadingSpinner";
 import HelpModal from "@/components/HelpModal";
 import NotificationsModal from "@/components/NotificationsModal";
 
@@ -66,8 +65,6 @@ function DeviceIcon({ id, size = 20 }: { id: string; size?: number }) {
 export default function Devices() {
   const router = useRouter();
   const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
-  const [resetting, setResetting] = useState(false);
-  const [resetDone, setResetDone] = useState(false);
   const [vpnKey, setVpnKey] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -89,25 +86,6 @@ export default function Devices() {
   useEffect(() => {
     fetchKey();
   }, [fetchKey]);
-
-  const handleResetKey = async () => {
-    if (resetting) return;
-
-    setResetting(true);
-    try {
-      const res = await fetch("/api/vpn/generate-key", { method: "POST" });
-      const result = await res.json();
-      if (result.success) {
-        setVpnKey(result.data.vpnKey);
-        setResetDone(true);
-        setTimeout(() => setResetDone(false), 3000);
-      }
-    } catch {
-      // silent
-    } finally {
-      setResetting(false);
-    }
-  };
 
   const handleCopyKey = async () => {
     if (!vpnKey) return;
@@ -190,39 +168,20 @@ export default function Devices() {
           </div>
         </div>
 
-        {/* Reset Key */}
-        <button
-          onClick={handleResetKey}
-          disabled={resetting}
-          className={`w-full h-13 sm:h-14 rounded-2xl font-semibold text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2.5 animate-fade-in-up animate-delay-4 border ${
-            resetDone
-              ? "border-success/40 text-success bg-success-light"
-              : "border-danger/40 text-danger hover:bg-danger-light"
-          }`}
+        {/* Support */}
+        <a
+          href="https://t.me/Atlas_SupportSecurity"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full h-13 sm:h-14 rounded-2xl font-semibold text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2.5 animate-fade-in-up animate-delay-4 border border-border bg-card hover:bg-card-hover"
         >
-          {resetting ? (
-            <>
-              <LoadingSpinner size="sm" className="text-danger" />
-              Сброс...
-            </>
-          ) : resetDone ? (
-            <>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Подписка сброшена!
-            </>
-          ) : (
-            <>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              Сбросить подписку
-            </>
-          )}
-        </button>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          Нужна помощь?
+        </a>
       </PageContainer>
 
       <Footer />
