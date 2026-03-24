@@ -1,7 +1,7 @@
 "use server";
 
 import { generateCode, sendVerificationEmail } from "@/lib/email";
-import { saveCode, verifyCode, getOrCreateUser } from "@/lib/store";
+import { saveCode, verifyCode, getOrCreateUser, userHasPassword } from "@/lib/store";
 import { xrayAddUser } from "@/lib/xray";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -10,6 +10,7 @@ export interface SendCodeState {
   success: boolean;
   error?: string;
   email?: string;
+  hasPassword?: boolean;
 }
 
 export async function sendCodeAction(
@@ -23,6 +24,12 @@ export async function sendCodeAction(
   }
 
   try {
+    // If user already has a password, redirect to login instead of sending code
+    const hasPassword = await userHasPassword(email);
+    if (hasPassword) {
+      return { success: false, hasPassword: true, email };
+    }
+
     const code = generateCode();
     saveCode(email, code);
 

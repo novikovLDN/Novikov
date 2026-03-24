@@ -137,13 +137,18 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
     { success: false }
   );
 
-  // When send-code succeeds
+  // When send-code succeeds or user has password
   useEffect(() => {
     if (sendState.success && sendState.email) {
       setEmail(sendState.email);
       setStep("code");
       setCountdown(60);
       setTimeout(() => codeRefs.current[0]?.focus(), 150);
+    } else if (sendState.hasPassword && sendState.email) {
+      setLoginEmail(sendState.email);
+      setLoginPassword("");
+      setLoginError("");
+      setStep("login");
     }
   }, [sendState]);
 
