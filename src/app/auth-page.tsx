@@ -54,10 +54,39 @@ function ErrorMessage({ error }: { error: string }) {
   );
 }
 
+function generateDeviceFingerprint(): string {
+  const parts: string[] = [];
+  parts.push(navigator.userAgent);
+  parts.push(navigator.language);
+  parts.push(String(screen.width) + "x" + String(screen.height));
+  parts.push(String(screen.colorDepth));
+  parts.push(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  parts.push(String(navigator.hardwareConcurrency || 0));
+  parts.push(String((navigator as unknown as { deviceMemory?: number }).deviceMemory || 0));
+  try {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.textBaseline = "top";
+      ctx.font = "14px Arial";
+      ctx.fillText("Atlas", 2, 2);
+      parts.push(canvas.toDataURL().slice(-50));
+    }
+  } catch { /* ignore */ }
+  // Simple hash
+  const str = parts.join("|");
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
 export default function AuthPage({ initialStep, initialEmail, referralCode }: AuthPageProps) {
   const router = useRouter();
   const [step, setStep] = useState<AuthStep>(initialStep);
   const [email, setEmail] = useState(initialEmail);
+  const [deviceFingerprint, setDeviceFingerprint] = useState("");
   const [countdown, setCountdown] = useState(initialStep === "code" ? 60 : 0);
   const emailRef = useRef<HTMLInputElement>(null);
   const codeFormRef = useRef<HTMLFormElement>(null);
@@ -89,6 +118,10 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   const [showResetPassword1, setShowResetPassword1] = useState(false);
   const [showResetPassword2, setShowResetPassword2] = useState(false);
   const resetCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    setDeviceFingerprint(generateDeviceFingerprint());
+  }, []);
 
   // ─── Server Actions ───────────────────────────────────────────
   const [sendState, sendAction, sendPending] = useActionState(
@@ -485,7 +518,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <FeatureCard
                 icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>}
                 iconBg="bg-warning-light"
-                title="Подписка от 138 ₽ в месяц"
+                title="Подписка от 149 ₽ в месяц"
                 description="Без ограничений по трафику и скорости"
                 className="animate-fade-in-up animate-delay-3"
               />
@@ -517,6 +550,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <form ref={codeFormRef} action={verifyAction}>
               <input type="hidden" name="email" value={email} />
+              <input type="hidden" name="fingerprint" value={deviceFingerprint} />
               {referralCode && <input type="hidden" name="ref" value={referralCode} />}
 
               <div className="flex gap-2 sm:gap-3 justify-center mb-6" onPaste={handleCodePaste}>

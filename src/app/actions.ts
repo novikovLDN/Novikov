@@ -60,6 +60,7 @@ export async function verifyCodeAction(
 ): Promise<VerifyCodeState> {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
   const refCode = (formData.get("ref") as string) || undefined;
+  const fingerprint = (formData.get("fingerprint") as string) || undefined;
   const codeDigits = [];
   for (let i = 0; i < 6; i++) {
     codeDigits.push(formData.get(`code-${i}`) as string || "");
@@ -84,7 +85,7 @@ export async function verifyCodeAction(
       || hdrs.get("x-real-ip")
       || "unknown";
 
-    const user = await getOrCreateUser(email, refCode, clientIp);
+    const user = await getOrCreateUser(email, refCode, clientIp, fingerprint);
     needsPassword = !user.passwordHash;
 
     // Only add to Xray for newly created users (not on repeat login)

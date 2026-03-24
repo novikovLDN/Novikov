@@ -4,7 +4,7 @@ import { xrayAddUser } from "@/lib/xray";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, code, referralCode } = await request.json();
+    const { email, code, referralCode, fingerprint } = await request.json();
 
     if (!email || !code) {
       return NextResponse.json(
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       || "unknown";
 
     // Create user with trial period or return existing
-    const user = await getOrCreateUser(email.toLowerCase(), referralCode || undefined, clientIp);
+    const user = await getOrCreateUser(email.toLowerCase(), referralCode || undefined, clientIp, fingerprint || undefined);
 
     // Only add to Xray for newly created users (not on repeat login)
     if (user.isNew && user.xrayUuid) {

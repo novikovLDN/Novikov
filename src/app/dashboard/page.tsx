@@ -17,6 +17,8 @@ export default function Dashboard() {
   const [showRegenConfirm, setShowRegenConfirm] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [regenError, setRegenError] = useState("");
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const fetchSubscription = useCallback(async () => {
     try {
@@ -76,6 +78,16 @@ export default function Dashboard() {
     } finally {
       setRegenerating(false);
     }
+  };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // ignore
+    }
+    router.push("/");
   };
 
   const formatDate = (dateStr: string) => {
@@ -393,6 +405,69 @@ export default function Dashboard() {
             </a>
           )}
         </div>
+
+        {/* ═══ Logout ═══ */}
+        <button
+          onClick={() => setShowLogoutConfirm(true)}
+          className="w-full h-11 sm:h-12 rounded-2xl bg-card border border-border/50 text-muted font-medium text-sm sm:text-base hover:bg-card-hover hover:text-danger transition-all btn-press flex items-center justify-center gap-2 animate-fade-in-up animate-delay-4"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+          Выйти из аккаунта
+        </button>
+
+        {/* ═══ Logout Confirm Modal ═══ */}
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => !loggingOut && setShowLogoutConfirm(false)}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div
+              className="relative bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-sm animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-danger/15 flex items-center justify-center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </div>
+              </div>
+
+              <h3 className="text-base sm:text-lg font-bold text-center mb-2">Выйти из аккаунта?</h3>
+              <p className="text-muted text-xs sm:text-sm text-center mb-6 leading-relaxed">
+                Вы уверены, что хотите выйти из аккаунта? Для повторного входа потребуется подтверждение по email.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  disabled={loggingOut}
+                  className="flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base bg-card-hover border border-border text-foreground hover:bg-card-active transition-all btn-press disabled:opacity-40"
+                >
+                  Нет
+                </button>
+                <button
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  className="flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base bg-danger text-white hover:bg-danger-hover transition-all btn-press disabled:opacity-40 flex items-center justify-center gap-2"
+                >
+                  {loggingOut ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      Выход...
+                    </>
+                  ) : (
+                    "Выйти"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </PageContainer>
 
       <Footer />

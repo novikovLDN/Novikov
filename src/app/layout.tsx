@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import CookieConsent from "@/components/CookieConsent";
 
 export const metadata: Metadata = {
   title: "Atlas Secure — Безопасный доступ в интернет",
@@ -46,6 +47,7 @@ export default function RootLayout({
         <div className="relative min-h-dvh flex flex-col">
           {children}
         </div>
+        <CookieConsent />
       </body>
     </html>
   );

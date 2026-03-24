@@ -68,6 +68,7 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS key_regen_window_start TIMESTAMPTZ",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_link_token TEXT UNIQUE",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS registration_ip TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS device_fingerprint TEXT",
   ];
 
   for (const sql of migrations) {
