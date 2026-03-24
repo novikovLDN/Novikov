@@ -569,6 +569,20 @@ export function stopCleanupScheduler(): void {
   }
 }
 
+// ─── Notifications ────────────────────────────────────────────
+
+export async function createNotificationForUser(userId: string, title: string, message: string): Promise<void> {
+  try {
+    const id = uuidv4();
+    await pool.query(
+      "INSERT INTO notifications (id, title, message, target) VALUES ($1, $2, $3, $4)",
+      [id, title, message, userId]
+    );
+  } catch (err) {
+    console.error("[STORE] Failed to create notification:", err);
+  }
+}
+
 // Auto-start scheduler on module load (server-side only)
 if (typeof window === "undefined") {
   startCleanupScheduler();

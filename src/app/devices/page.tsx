@@ -242,25 +242,28 @@ interface InstructionCardProps {
   copiedKey: boolean;
 }
 
-const platformInstructions: Record<string, {
+interface PlatformInstruction {
   appName: string;
   appDesc: string;
   storeLabel: string;
   downloadUrl: string;
   downloadLabel: string;
-  steps: string[];
-}> = {
+  steps: { text: string; copyKey?: boolean }[];
+}
+
+const platformInstructions: Record<string, PlatformInstruction> = {
   android: {
     appName: "V2rayNG",
     appDesc: "Рекомендуемый клиент для Android",
     storeLabel: "Google Play",
     downloadUrl: "https://play.google.com/store/apps/details?id=com.v2ray.ang",
-    downloadLabel: "Скачать на Android",
+    downloadLabel: "Скачать V2rayNG",
     steps: [
-      "Скачайте и установите V2rayNG из Google Play",
-      "Скопируйте ссылку подписки, нажав кнопку ниже",
-      "Откройте V2rayNG → нажмите «+» → «Импорт из буфера»",
-      "Нажмите кнопку подключения (▶) в нижней части экрана",
+      { text: "Откройте Google Play на вашем Android-устройстве и найдите приложение «V2rayNG». Нажмите «Установить» и дождитесь завершения загрузки." },
+      { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+      { text: "Откройте V2rayNG. На главном экране нажмите «+» в правом верхнем углу, затем выберите «Импорт конфигурации из буфера обмена». Подписка будет добавлена автоматически." },
+      { text: "На главном экране V2rayNG появится ваш сервер. Нажмите большую кнопку «▶» (Play) внизу экрана для подключения. Когда значок станет зелёным — VPN активен." },
+      { text: "Если Android запросит разрешение на VPN-подключение — нажмите «ОК». Готово! Теперь весь ваш трафик защищён." },
     ],
   },
   ios: {
@@ -268,12 +271,13 @@ const platformInstructions: Record<string, {
     appDesc: "Рекомендуемый клиент для iPhone и iPad",
     storeLabel: "App Store",
     downloadUrl: "https://apps.apple.com/app/streisand/id6450534064",
-    downloadLabel: "Скачать на iPhone",
+    downloadLabel: "Скачать Streisand",
     steps: [
-      "Скачайте и установите Streisand из App Store",
-      "Скопируйте ссылку подписки, нажав кнопку ниже",
-      "Откройте Streisand → нажмите «+» → «Добавить из буфера»",
-      "Включите подключение переключателем",
+      { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Streisand» и нажмите «Загрузить». Дождитесь установки." },
+      { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+      { text: "Откройте Streisand. На главном экране нажмите «+» в правом верхнем углу, затем выберите «Добавить из буфера обмена». Конфигурация импортируется автоматически." },
+      { text: "Вернитесь на главный экран Streisand. Включите переключатель напротив добавленного сервера. При первом подключении iOS попросит разрешить VPN-конфигурацию — нажмите «Разрешить»." },
+      { text: "Когда в верхней части экрана появится значок VPN — подключение активно. Весь трафик теперь защищён." },
     ],
   },
   windows: {
@@ -281,12 +285,13 @@ const platformInstructions: Record<string, {
     appDesc: "Рекомендуемый клиент для Windows",
     storeLabel: "Скачать",
     downloadUrl: "https://github.com/hiddify/hiddify-app/releases/latest",
-    downloadLabel: "Скачать на Windows",
+    downloadLabel: "Скачать Hiddify",
     steps: [
-      "Скачайте и установите Hiddify с официального сайта",
-      "Скопируйте ссылку подписки, нажав кнопку ниже",
-      "Откройте Hiddify → «Новый профиль» → «Добавить из буфера»",
-      "Нажмите кнопку подключения",
+      { text: "Перейдите на страницу загрузки и скачайте установочный файл Hiddify для Windows (.exe). Запустите установщик и следуйте инструкциям на экране." },
+      { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+      { text: "Откройте Hiddify. На главном экране нажмите «Новый профиль», затем выберите «Добавить профиль из буфера обмена». Приложение автоматически распознает конфигурацию." },
+      { text: "На главном экране Hiddify нажмите большую кнопку подключения по центру. Дождитесь, пока статус изменится на «Подключено»." },
+      { text: "Если Windows Firewall запросит разрешение — нажмите «Разрешить доступ». Готово! VPN-соединение установлено." },
     ],
   },
   macos: {
@@ -294,12 +299,13 @@ const platformInstructions: Record<string, {
     appDesc: "Рекомендуемый клиент для macOS",
     storeLabel: "Скачать",
     downloadUrl: "https://github.com/hiddify/hiddify-app/releases/latest",
-    downloadLabel: "Скачать на macOS",
+    downloadLabel: "Скачать Hiddify",
     steps: [
-      "Скачайте и установите Hiddify с официального сайта",
-      "Скопируйте ссылку подписки, нажав кнопку ниже",
-      "Откройте Hiddify → «Новый профиль» → «Добавить из буфера»",
-      "Нажмите кнопку подключения",
+      { text: "Перейдите на страницу загрузки и скачайте Hiddify для macOS (.dmg). Откройте файл и перетащите Hiddify в папку «Программы»." },
+      { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+      { text: "Откройте Hiddify из «Программ». На главном экране нажмите «Новый профиль» → «Добавить профиль из буфера обмена». Конфигурация будет импортирована." },
+      { text: "Нажмите кнопку подключения на главном экране Hiddify. При первом запуске macOS попросит разрешить VPN-конфигурацию — введите пароль и нажмите «Разрешить»." },
+      { text: "Когда в строке меню появится значок VPN — подключение активно. Весь трафик теперь защищён." },
     ],
   },
   tv: {
@@ -307,12 +313,13 @@ const platformInstructions: Record<string, {
     appDesc: "Для Android TV и Google TV",
     storeLabel: "Google Play TV",
     downloadUrl: "https://play.google.com/store/apps/details?id=com.v2ray.ang",
-    downloadLabel: "Скачать на Android TV",
+    downloadLabel: "Скачать V2rayNG",
     steps: [
-      "Установите V2rayNG на TV из Google Play",
-      "На телефоне скопируйте ссылку подписки",
-      "Откройте V2rayNG на TV → добавьте подключение вручную или через QR-код",
-      "Запустите подключение на TV",
+      { text: "На вашем Android TV или Google TV откройте Google Play Store. Найдите и установите приложение «V2rayNG»." },
+      { text: "На телефоне или компьютере скопируйте вашу ссылку подписки.", copyKey: true },
+      { text: "Откройте V2rayNG на TV. Добавьте подключение вручную, введя данные конфигурации, или используйте QR-код: на телефоне откройте ссылку подписки и покажите QR-код экрану TV." },
+      { text: "Выберите добавленный сервер и нажмите кнопку подключения. Разрешите VPN-подключение, если система запросит." },
+      { text: "Когда статус изменится на «Подключено» — VPN активен на вашем телевизоре." },
     ],
   },
 };
@@ -336,20 +343,14 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
         </div>
       </div>
 
-      {/* Steps */}
-      <div className="px-4 sm:px-5 py-3 sm:py-4 space-y-3 sm:space-y-4">
-        {info.steps.map((step, i) => (
-          <div key={i} className="flex gap-3 items-start">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
-              <span className="text-xs sm:text-sm font-bold text-primary">{i + 1}</span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-light leading-relaxed pt-0.5">{step}</p>
+      {/* Step 1: Download */}
+      <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3">
+        <div className="flex gap-3 items-start mb-3">
+          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+            <span className="text-xs sm:text-sm font-bold text-primary">1</span>
           </div>
-        ))}
-      </div>
-
-      {/* Download + Copy buttons */}
-      <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-2.5">
+          <p className="text-xs sm:text-sm text-muted-light leading-relaxed pt-0.5">{info.steps[0].text}</p>
+        </div>
         <a
           href={info.downloadUrl}
           target="_blank"
@@ -363,34 +364,47 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
           </svg>
           {info.downloadLabel}
         </a>
+      </div>
 
-        {vpnKey && (
-          <button
-            onClick={onCopyKey}
-            className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
-              copiedKey
-                ? "bg-success/20 text-success border border-success/30"
-                : "bg-primary text-white hover:bg-primary-hover"
-            }`}
-          >
-            {copiedKey ? (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Ссылка скопирована!
-              </>
-            ) : (
-              <>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                </svg>
-                Скопировать подписку
-              </>
+      {/* Remaining steps */}
+      <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3 sm:space-y-4">
+        {info.steps.slice(1).map((step, i) => (
+          <div key={i + 1}>
+            <div className="flex gap-3 items-start">
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+                <span className="text-xs sm:text-sm font-bold text-primary">{i + 2}</span>
+              </div>
+              <p className="text-xs sm:text-sm text-muted-light leading-relaxed pt-0.5">{step.text}</p>
+            </div>
+            {step.copyKey && vpnKey && (
+              <button
+                onClick={onCopyKey}
+                className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 mt-2.5 ${
+                  copiedKey
+                    ? "bg-success/20 text-success border border-success/30"
+                    : "bg-primary text-white hover:bg-primary-hover"
+                }`}
+              >
+                {copiedKey ? (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Скопировано!
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                    </svg>
+                    Скопировать мой ключ
+                  </>
+                )}
+              </button>
             )}
-          </button>
-        )}
+          </div>
+        ))}
       </div>
     </div>
   );

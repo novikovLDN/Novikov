@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyCode, getOrCreateUser } from "@/lib/store";
+import { verifyCode, getOrCreateUser, createNotificationForUser } from "@/lib/store";
 import { xrayAddUser } from "@/lib/xray";
 
 export async function POST(request: NextRequest) {
@@ -34,6 +34,13 @@ export async function POST(request: NextRequest) {
       xrayAddUser(user.xrayUuid).catch(() => {
         console.error(`[AUTH] Failed to add user to Xray: ${user.email}`);
       });
+
+      // Send welcome notification about 24h trial
+      createNotificationForUser(
+        user.id,
+        "Добро пожаловать в Atlas Secure!",
+        "Ваш ключ выдан на 24 часа для тестирования. Для приобретения полноценной подписки перейдите в Telegram-бот Atlas Secure."
+      ).catch(() => {});
     }
 
     const response = NextResponse.json({

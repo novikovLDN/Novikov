@@ -8,6 +8,7 @@ import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import HelpModal from "@/components/HelpModal";
 import NotificationsModal from "@/components/NotificationsModal";
+import WelcomeToast from "@/components/WelcomeToast";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -151,60 +152,6 @@ function DashboardContent() {
       <Header showMenu onHelp={() => setShowHelp(true)} onNotifications={() => setShowNotifications(true)} unreadCount={unreadCount} />
 
       <PageContainer className="space-y-3 sm:space-y-4">
-        {/* ═══ Welcome Banner (new users) ═══ */}
-        {showWelcome && (
-          <div className="relative bg-primary/10 border border-primary/30 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up">
-            <button
-              onClick={() => setShowWelcome(false)}
-              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-card-hover flex items-center justify-center text-muted hover:text-foreground transition-colors"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-            <div className="flex items-start gap-3 pr-6">
-              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                  <polyline points="22 4 12 14.01 9 11.01" />
-                </svg>
-              </div>
-              <div className="min-w-0">
-                <h3 className="font-bold text-sm sm:text-base text-foreground mb-1">
-                  Ключ выдан на 24 часа для теста
-                </h3>
-                <p className="text-xs sm:text-sm text-muted leading-relaxed mb-3">
-                  Для получения полноценной подписки перейдите в Telegram-бот Atlas Secure.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <a
-                    href={`https://t.me/atlassecure_bot${data?.telegramLinkToken ? `?start=${data.telegramLinkToken}` : ""}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="h-10 sm:h-11 px-5 rounded-xl bg-telegram text-white font-medium text-sm hover:bg-telegram-hover transition-all btn-press flex items-center justify-center gap-2"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
-                    </svg>
-                    Перейти в Telegram
-                  </a>
-                  <button
-                    onClick={() => { setShowWelcome(false); router.push("/devices"); }}
-                    className="h-10 sm:h-11 px-5 rounded-xl bg-foreground text-background font-medium text-sm hover:bg-foreground/90 transition-all btn-press flex items-center justify-center gap-2"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                      <line x1="12" y1="18" x2="12.01" y2="18" />
-                    </svg>
-                    Подключить устройство
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* ═══ Subscription Status ═══ */}
         <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-5 sm:p-7 text-center animate-fade-in-up">
           <p className="text-muted text-sm sm:text-base mb-3">Подписка осталось:</p>
@@ -591,6 +538,7 @@ function DashboardContent() {
 
       <HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
       <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
+      <WelcomeToast open={showWelcome} onClose={() => setShowWelcome(false)} telegramLinkToken={data?.telegramLinkToken} />
     </div>
   );
 }
