@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 export interface Notification {
   id: string;
@@ -19,6 +19,8 @@ interface NotificationsModalProps {
 export default function NotificationsModal({ open, onClose, onUnreadCountChange }: NotificationsModalProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -40,6 +42,15 @@ export default function NotificationsModal({ open, onClose, onUnreadCountChange 
     fetchNotifications();
   }, [fetchNotifications]);
 
+  // Animate in/out
+  useEffect(() => {
+    if (open) {
+      requestAnimationFrame(() => setVisible(true));
+    } else {
+      setVisible(false);
+    }
+  }, [open]);
+
   // Mark as read on open
   useEffect(() => {
     if (!open) return;
@@ -58,7 +69,33 @@ export default function NotificationsModal({ open, onClose, onUnreadCountChange 
     markRead();
   }, [open, notifications, onUnreadCountChange]);
 
-  if (!open) return null;
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    // Delay to avoid closing on the same click that opens
+    const timer = setTimeout(() => document.addEventListener("mousedown", handler), 10);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handler);
+    };
+  }, [open, onClose]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open, onClose]);
+
+  if (!open && !visible) return null;
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -75,62 +112,67 @@ export default function NotificationsModal({ open, onClose, onUnreadCountChange 
     return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
   };
 
+  const hasNotifications = notifications.length > 0;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div
-        className="relative bg-card border border-border/50 rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[85dvh] overflow-hidden animate-scale-in flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div
+      ref={panelRef}
+      className={`fixed top-14 sm:top-16 right-2 sm:right-4 z-50 w-[calc(100vw-1rem)] sm:w-80 md:w-96 transition-all duration-200 ease-out origin-top-right ${
+        visible && open
+          ? "opacity-100 scale-100 translate-y-0"
+          : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+      }`}
+    >
+      <div className="bg-card border border-border/50 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 border-b border-border/50 shrink-0">
-          <h2 className="font-bold text-base sm:text-lg">Уведомления</h2>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-card-hover transition-colors"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
+          <h3 className="font-bold text-sm">Уведомления</h3>
+          {hasNotifications && (
+            <span className="text-[10px] text-muted bg-background px-2 py-0.5 rounded-full">
+              {notifications.length}
+            </span>
+          )}
         </div>
 
-        {/* Content */}
-        <div className="overflow-y-auto flex-1 p-4 sm:p-5">
+        {/* Content — scrollable, max 60vh */}
+        <div
+          className="overflow-y-auto overscroll-contain"
+          style={{ maxHeight: "min(60vh, 60dvh)" }}
+        >
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
-          ) : notifications.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="w-12 h-12 rounded-full bg-card-hover flex items-center justify-center mx-auto mb-3">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+          ) : !hasNotifications ? (
+            <div className="text-center py-8 px-4">
+              <div className="w-10 h-10 rounded-full bg-card-hover flex items-center justify-center mx-auto mb-2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                   <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
               </div>
-              <p className="text-muted text-sm">Нет уведомлений</p>
+              <p className="text-muted text-xs">Нет уведомлений</p>
             </div>
           ) : (
-            <div className="space-y-2.5">
-              {notifications.map((n) => (
+            <div className="p-2.5 space-y-1.5">
+              {notifications.map((n, i) => (
                 <div
                   key={n.id}
-                  className={`p-3.5 rounded-xl border transition-colors ${
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                  className={`p-3 rounded-xl border transition-colors animate-fade-in-up opacity-0 ${
                     n.read
-                      ? "bg-background border-border/30"
-                      : "bg-primary/5 border-primary/20"
+                      ? "bg-background/50 border-border/20"
+                      : "bg-primary/5 border-primary/15"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="font-semibold text-sm">{n.title}</h3>
+                  <div className="flex items-start justify-between gap-2 mb-0.5">
+                    <h4 className="font-semibold text-xs leading-snug">{n.title}</h4>
                     {!n.read && (
-                      <span className="w-2 h-2 bg-primary rounded-full shrink-0 mt-1.5" />
+                      <span className="w-1.5 h-1.5 bg-primary rounded-full shrink-0 mt-1" />
                     )}
                   </div>
-                  <p className="text-xs sm:text-sm text-muted leading-relaxed">{n.message}</p>
-                  <p className="text-[10px] text-muted/60 mt-2">{formatTime(n.createdAt)}</p>
+                  <p className="text-[11px] sm:text-xs text-muted leading-relaxed">{n.message}</p>
+                  <p className="text-[10px] text-muted/50 mt-1.5">{formatTime(n.createdAt)}</p>
                 </div>
               ))}
             </div>
