@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
         referralCode: user.referralCode,
         referrals: user.referrals,
         paidReferrals: user.paidReferrals,
+        isAdmin: user.email === "novikov.ldnwq@gmail.com",
       },
     });
   } catch {

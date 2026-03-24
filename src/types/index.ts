@@ -37,6 +37,7 @@ export interface SubscriptionData {
   referralCode: string;
   referrals: number;
   paidReferrals: number;
+  isAdmin?: boolean;
 }
 
 export interface DeviceInfo {
