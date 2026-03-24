@@ -30,6 +30,7 @@ export interface ApiResponse<T = unknown> {
 export interface SubscriptionData {
   email: string;
   daysLeft: number;
+  hoursLeft: number;
   isExpired: boolean;
   subscriptionEnd: string;
   vpnKey: string | null;

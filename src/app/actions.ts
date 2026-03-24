@@ -79,6 +79,7 @@ export async function verifyCodeAction(
   }
 
   let needsPassword = false;
+  let isNewUser = false;
 
   try {
     const result = verifyCode(email, code);
@@ -94,6 +95,7 @@ export async function verifyCodeAction(
 
     const user = await getOrCreateUser(email, refCode, clientIp, fingerprint);
     needsPassword = !user.passwordHash;
+    isNewUser = user.isNew;
 
     // Only add to Xray for newly created users (not on repeat login)
     if (user.isNew && user.xrayUuid) {
@@ -118,5 +120,5 @@ export async function verifyCodeAction(
     return { success: true, needsPassword: true };
   }
 
-  redirect("/dashboard");
+  redirect(isNewUser ? "/dashboard?welcome=1" : "/dashboard");
 }

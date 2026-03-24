@@ -515,8 +515,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <FeatureCard
                 icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" /></svg>}
                 iconBg="bg-success-light"
-                title="Бесплатный тестовый период 3 дня"
-                description="Оцени стабильность и скорость"
+                title="Бесплатный тестовый период 24 часа"
+                description="На сайте 24ч, в Telegram-боте — 3 дня"
                 className="animate-fade-in-up animate-delay-1"
               />
               <FeatureCard

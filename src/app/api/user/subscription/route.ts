@@ -24,12 +24,11 @@ export async function GET(request: NextRequest) {
 
     const now = new Date();
     const end = new Date(user.subscriptionEnd);
-    const daysLeft = Math.max(
-      0,
-      Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-    );
+    const msLeft = Math.max(0, end.getTime() - now.getTime());
+    const daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
+    const hoursLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60)));
 
-    const isExpired = daysLeft === 0;
+    const isExpired = msLeft === 0;
 
     // If subscription expired, remove user from Xray and clear VPN key
     if (isExpired && user.xrayUuid) {
@@ -42,6 +41,7 @@ export async function GET(request: NextRequest) {
       data: {
         email: user.email,
         daysLeft,
+        hoursLeft,
         isExpired,
         subscriptionEnd: user.subscriptionEnd,
         vpnKey: isExpired ? null : user.vpnKey,

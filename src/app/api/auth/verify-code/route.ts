@@ -44,6 +44,7 @@ export async function POST(request: NextRequest) {
         subscriptionEnd: user.subscriptionEnd,
         vpnKey: user.vpnKey,
         xrayUuid: user.xrayUuid,
+        isNew: user.isNew,
       },
     });
 

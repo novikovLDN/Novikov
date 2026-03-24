@@ -5,7 +5,7 @@ import CookieConsent from "@/components/CookieConsent";
 export const metadata: Metadata = {
   title: "Atlas Secure — Безопасный доступ в интернет",
   description:
-    "Быстрый и надежный сервис защиты интернет-соединения. Безлимитный трафик, все устройства, простое подключение за 1 минуту. Тестовый период 3 дня бесплатно.",
+    "Быстрый и надежный сервис защиты интернет-соединения. Безлимитный трафик, все устройства, простое подключение за 1 минуту. Тестовый период 24 часа бесплатно.",
   keywords: ["Atlas Secure", "безопасный интернет", "защита соединения", "приватность"],
   icons: {
     icon: "/favicon.ico",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   openGraph: {
     title: "Atlas Secure — Безопасный доступ в интернет",
-    description: "Быстрый и надежный сервис. 3 дня бесплатно.",
+    description: "Быстрый и надежный сервис. 24 часа бесплатно.",
     type: "website",
   },
 };

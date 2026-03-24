@@ -125,8 +125,8 @@ export async function getOrCreateUser(email: string, referredByCode?: string, ip
 
   // Create new user
   const now = new Date();
-  const trialDays = 3;
-  const trialEnd = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
+  const trialHours = 24;
+  const trialEnd = new Date(now.getTime() + trialHours * 60 * 60 * 1000);
   const xrayUuid = generateXrayUuid();
   const referralCode = generateReferralCode();
   const telegramLinkToken = uuidv4().replace(/-/g, "").slice(0, 16);
