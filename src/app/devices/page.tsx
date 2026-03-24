@@ -103,6 +103,13 @@ export default function Devices() {
           Выбор устройств
         </h1>
 
+        {/* Device hint */}
+        {!selectedDevice && (
+          <p className="text-xs text-muted mb-3 animate-fade-in">
+            Нажмите на кнопку с нужным устройством, чтобы продолжить настройку
+          </p>
+        )}
+
         {/* Device Grid */}
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mb-2.5 sm:mb-3 animate-fade-in-up animate-delay-1">
           {devices.slice(0, 4).map((d) => (
@@ -421,7 +428,7 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
     <div className="space-y-3">
       {/* App Selector Bar */}
       <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 animate-fade-in-up">
-        <p className="text-xs text-muted mb-3 font-medium">Выберите приложение для подключения:</p>
+        <p className="text-xs text-muted mb-3 font-medium">Нажмите на кнопку с нужным приложением-клиентом для инструкции:</p>
         <div className="flex gap-2 flex-wrap">
           {apps.map((app, i) => (
             <button
