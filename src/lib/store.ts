@@ -112,33 +112,6 @@ export function verifyCode(email: string, code: string): { valid: boolean; error
 
 // ─── User Management (PostgreSQL) ───────────────────────────────
 
-const MAX_TRIALS_PER_IP = 5;
-const MAX_TRIALS_PER_FINGERPRINT = 1;
-const TRIAL_WINDOW_HOURS = 24;
-
-export async function checkTrialAbuse(ip: string, fingerprint?: string): Promise<boolean> {
-  // Check device fingerprint first — most reliable signal
-  if (fingerprint) {
-    const fpResult = await pool.query(
-      `SELECT COUNT(*) as cnt FROM users
-       WHERE device_fingerprint = $1
-       AND created_at > NOW() - INTERVAL '${TRIAL_WINDOW_HOURS} hours'`,
-      [fingerprint]
-    );
-    if (parseInt(fpResult.rows[0].cnt, 10) >= MAX_TRIALS_PER_FINGERPRINT) return true;
-  }
-
-  // Then check IP — higher limit to allow shared WiFi
-  if (!ip) return false;
-  const result = await pool.query(
-    `SELECT COUNT(*) as cnt FROM users
-     WHERE registration_ip = $1
-     AND created_at > NOW() - INTERVAL '${TRIAL_WINDOW_HOURS} hours'`,
-    [ip]
-  );
-  return parseInt(result.rows[0].cnt, 10) >= MAX_TRIALS_PER_IP;
-}
-
 export async function getOrCreateUser(email: string, referredByCode?: string, ip?: string, fingerprint?: string): Promise<UserRecord & { isNew: boolean; trialBlocked?: boolean }> {
   // Check existing user
   const existing = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -146,15 +119,11 @@ export async function getOrCreateUser(email: string, referredByCode?: string, ip
     return { ...rowToUser(existing.rows[0]), isNew: false };
   }
 
-  // Check abuse — device fingerprint (strict) + IP (lenient for shared WiFi)
-  const trialBlocked = await checkTrialAbuse(ip || "", fingerprint);
-
   // Create new user
   const now = new Date();
-  // If trial blocked: 0 days trial (must buy subscription immediately)
-  const trialDays = trialBlocked ? 0 : 3;
+  const trialDays = 3;
   const trialEnd = new Date(now.getTime() + trialDays * 24 * 60 * 60 * 1000);
-  const xrayUuid = trialBlocked ? null : generateXrayUuid();
+  const xrayUuid = generateXrayUuid();
   const referralCode = generateReferralCode();
   const telegramLinkToken = uuidv4().replace(/-/g, "").slice(0, 16);
   const vpnKey = xrayUuid ? buildConnectionUri(xrayUuid, email) : null;
@@ -175,7 +144,7 @@ export async function getOrCreateUser(email: string, referredByCode?: string, ip
     );
   }
 
-  return { ...rowToUser(result.rows[0]), isNew: true, trialBlocked };
+  return { ...rowToUser(result.rows[0]), isNew: true };
 }
 
 export async function getUserByEmail(email: string): Promise<UserRecord | null> {
