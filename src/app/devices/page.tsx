@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import NotificationsModal from "@/components/NotificationsModal";
+import { QRCodeSVG } from "qrcode.react";
 
 interface DeviceEntry {
   id: string;
@@ -213,6 +214,7 @@ interface AppInstruction {
   downloadUrl: string;
   downloadLabel: string;
   recommended?: boolean;
+  supportsQr?: boolean;
   steps: { text: string; copyKey?: boolean }[];
 }
 
@@ -226,6 +228,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       downloadUrl: "https://play.google.com/store/apps/details?id=app.hiddify.com",
       downloadLabel: "Скачать Hiddify",
       recommended: true,
+      supportsQr: true,
       steps: [
         { text: "Откройте Google Play на вашем Android-устройстве и найдите приложение «Hiddify». Нажмите «Установить» и дождитесь завершения загрузки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -241,6 +244,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       storeLabel: "Google Play",
       downloadUrl: "https://play.google.com/store/apps/details?id=com.v2raytun.android",
       downloadLabel: "Скачать V2RayTun",
+      supportsQr: true,
       steps: [
         { text: "Откройте Google Play на вашем Android-устройстве и найдите приложение «V2RayTun». Нажмите «Установить» и дождитесь завершения загрузки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -259,6 +263,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       downloadUrl: "https://apps.apple.com/app/streisand/id6450534064",
       downloadLabel: "Скачать Streisand",
       recommended: true,
+      supportsQr: true,
       steps: [
         { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Streisand» и нажмите «Загрузить». Дождитесь установки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -274,6 +279,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       storeLabel: "App Store",
       downloadUrl: "https://apps.apple.com/app/hiddify-proxy-vpn/id6596777532",
       downloadLabel: "Скачать Hiddify",
+      supportsQr: true,
       steps: [
         { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Hiddify» и нажмите «Загрузить». Дождитесь установки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -289,6 +295,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       storeLabel: "App Store",
       downloadUrl: "https://apps.apple.com/app/v2raytun/id6476628951",
       downloadLabel: "Скачать V2RayTun",
+      supportsQr: true,
       steps: [
         { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «V2RayTun» и нажмите «Загрузить». Дождитесь установки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -304,6 +311,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       storeLabel: "App Store",
       downloadUrl: "https://apps.apple.com/app/shadowrocket/id932747118",
       downloadLabel: "Скачать Shadowrocket",
+      supportsQr: true,
       steps: [
         { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Shadowrocket» (платное, ~$2.99) и нажмите «Купить» → «Загрузить». Дождитесь установки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -419,6 +427,7 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
   if (!apps || apps.length === 0) return null;
 
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
   const info = selectedAppId ? apps.find((a) => a.appId === selectedAppId) : null;
 
   return (
@@ -528,6 +537,57 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
               </div>
             ))}
           </div>
+
+          {/* QR Code Section */}
+          {info.supportsQr && vpnKey && (
+            <div className="px-4 sm:px-5 pb-4 sm:pb-5">
+              <button
+                onClick={() => setShowQr(!showQr)}
+                className="w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 btn-press flex items-center justify-center gap-2.5 border border-border hover:bg-card-hover"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7" rx="1" />
+                  <rect x="14" y="3" width="7" height="7" rx="1" />
+                  <rect x="3" y="14" width="7" height="7" rx="1" />
+                  <rect x="14" y="14" width="3" height="3" />
+                  <line x1="21" y1="14" x2="21" y2="14.01" />
+                  <line x1="21" y1="21" x2="21" y2="21.01" />
+                  <line x1="17" y1="18" x2="17" y2="18.01" />
+                </svg>
+                {showQr ? "Скрыть QR-код" : "Добавить другое устройство по QR"}
+                <svg
+                  width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                  className={`transition-transform duration-300 ${showQr ? "rotate-180" : ""}`}
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-out ${
+                  showQr ? "max-h-[500px] opacity-100 mt-3" : "max-h-0 opacity-0 mt-0"
+                }`}
+              >
+                <div className="bg-background border border-border/50 rounded-2xl p-5 sm:p-6 flex flex-col items-center gap-4">
+                  <p className="text-xs sm:text-sm text-muted text-center leading-relaxed">
+                    Отсканируйте этот QR-код камерой или из приложения на другом устройстве, чтобы импортировать подписку
+                  </p>
+                  <div className="bg-white p-3 sm:p-4 rounded-2xl">
+                    <QRCodeSVG
+                      value={vpnKey}
+                      size={180}
+                      level="M"
+                      bgColor="#ffffff"
+                      fgColor="#000000"
+                    />
+                  </div>
+                  <p className="text-[10px] sm:text-[11px] text-muted/50 text-center">
+                    В приложении: «+» → «Сканировать QR-код» или «Импорт из QR»
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
