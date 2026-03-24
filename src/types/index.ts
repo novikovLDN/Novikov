@@ -39,6 +39,7 @@ export interface SubscriptionData {
   telegramLinked: boolean;
   telegramLinkToken: string | null;
   referralCode: string;
+  subscriptionPlan?: string;
   referrals: number;
   paidReferrals: number;
   isAdmin?: boolean;
