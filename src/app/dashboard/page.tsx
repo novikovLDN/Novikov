@@ -199,17 +199,37 @@ export default function Dashboard() {
 
         {/* ═══ Subscription Status ═══ */}
         <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-5 sm:p-7 text-center animate-fade-in-up">
-          <p className="text-muted text-sm sm:text-base mb-3">
-            {data.daysLeft <= 1 && !isExpired ? "Часов подписки осталось:" : "Дней подписки осталось:"}
-          </p>
+          <p className="text-muted text-sm sm:text-base mb-3">Подписка осталось:</p>
 
-          <p
-            className={`text-6xl sm:text-7xl font-extrabold mb-1 tabular-nums ${
-              isExpired ? "text-danger" : isExpiring ? "text-warning" : "gradient-text"
-            }`}
-          >
-            {data.daysLeft <= 1 && !isExpired ? data.hoursLeft : data.daysLeft}
-          </p>
+          {isExpired ? (
+            <p className="text-6xl sm:text-7xl font-extrabold mb-1 tabular-nums text-danger">0</p>
+          ) : data.daysLeft >= 1 ? (
+            <div className="flex items-baseline justify-center gap-2 mb-1">
+              <p className={`text-6xl sm:text-7xl font-extrabold tabular-nums ${isExpiring ? "text-warning" : "gradient-text"}`}>
+                {data.daysLeft}
+              </p>
+              <span className={`text-lg sm:text-xl font-semibold ${isExpiring ? "text-warning/70" : "text-muted"}`}>
+                дн
+              </span>
+              <p className={`text-4xl sm:text-5xl font-extrabold tabular-nums ${isExpiring ? "text-warning" : "gradient-text"}`}>
+                {data.hoursLeft}
+              </p>
+              <span className={`text-lg sm:text-xl font-semibold ${isExpiring ? "text-warning/70" : "text-muted"}`}>
+                ч
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-baseline justify-center gap-2 mb-1">
+              <p className="text-6xl sm:text-7xl font-extrabold tabular-nums text-warning">
+                {data.hoursLeft}
+              </p>
+              <span className="text-lg sm:text-xl font-semibold text-warning/70">ч</span>
+              <p className="text-4xl sm:text-5xl font-extrabold tabular-nums text-warning">
+                {data.minutesLeft}
+              </p>
+              <span className="text-lg sm:text-xl font-semibold text-warning/70">мин</span>
+            </div>
+          )}
 
           <p className="text-muted text-xs sm:text-sm mb-6 sm:mb-8">
             Заканчивается: {formatDate(data.subscriptionEnd)}

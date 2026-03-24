@@ -25,8 +25,11 @@ export async function GET(request: NextRequest) {
     const now = new Date();
     const end = new Date(user.subscriptionEnd);
     const msLeft = Math.max(0, end.getTime() - now.getTime());
-    const daysLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
-    const hoursLeft = Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60)));
+    const totalMinutes = Math.floor(msLeft / (1000 * 60));
+    const totalHours = Math.floor(totalMinutes / 60);
+    const daysLeft = Math.floor(totalHours / 24);
+    const hoursLeft = totalHours % 24;
+    const minutesLeft = totalMinutes % 60;
 
     const isExpired = msLeft === 0;
 
@@ -42,6 +45,7 @@ export async function GET(request: NextRequest) {
         email: user.email,
         daysLeft,
         hoursLeft,
+        minutesLeft,
         isExpired,
         subscriptionEnd: user.subscriptionEnd,
         vpnKey: isExpired ? null : user.vpnKey,
