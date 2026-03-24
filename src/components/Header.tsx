@@ -39,10 +39,46 @@ export default function Header({ showBack, showMenu, onBack, transparent, onNoti
               onClick={() => router.push("/dashboard")}
               className="flex items-center gap-3 btn-press"
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-foreground rounded-xl flex items-center justify-center shadow-lg shadow-white/5">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-background sm:w-6 sm:h-6">
-                  <path d="M12 2L4 7V17L12 22L20 17V7L12 2Z" fill="currentColor" />
-                  <path d="M12 8L8 10.5V15.5L12 18L16 15.5V10.5L12 8Z" fill="#0a0a0a" />
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center">
+                <svg width="36" height="36" viewBox="0 0 100 60" fill="none" className="sm:w-10 sm:h-10">
+                  <defs>
+                    <linearGradient id="inf-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#c084fc" />
+                      <stop offset="50%" stopColor="#a78bfa" />
+                      <stop offset="100%" stopColor="#93c5fd" />
+                    </linearGradient>
+                    <linearGradient id="inf-shine" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#e9d5ff" stopOpacity="0.8" />
+                      <stop offset="50%" stopColor="#ffffff" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#bfdbfe" stopOpacity="0.6" />
+                    </linearGradient>
+                    <filter id="inf-glow">
+                      <feGaussianBlur stdDeviation="2" result="blur" />
+                      <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  {/* Main infinity path */}
+                  <path
+                    d="M50 30 C50 15, 30 5, 18 15 C6 25, 6 40, 18 45 C30 50, 50 40, 50 30 C50 20, 70 10, 82 15 C94 20, 94 40, 82 45 C70 50, 50 45, 50 30Z"
+                    stroke="url(#inf-grad)"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                    filter="url(#inf-glow)"
+                  />
+                  {/* Shine overlay */}
+                  <path
+                    d="M50 30 C50 15, 30 5, 18 15 C6 25, 6 40, 18 45 C30 50, 50 40, 50 30 C50 20, 70 10, 82 15 C94 20, 94 40, 82 45 C70 50, 50 45, 50 30Z"
+                    stroke="url(#inf-shine)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
                 </svg>
               </div>
               <span className="text-base sm:text-lg font-bold tracking-tight">Atlas Secure</span>
