@@ -439,7 +439,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
       <PageContainer>
         {step === "email" && (
           <div className="animate-fade-in-up pt-2 sm:pt-6">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Введи почту</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Введите почту</h1>
             <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
               Чтобы войти или зарегистрироваться
             </p>
