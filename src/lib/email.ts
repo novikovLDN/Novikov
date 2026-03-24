@@ -19,7 +19,7 @@ export async function sendVerificationEmail(
 
   try {
     const { error } = await getResend().emails.send({
-      from: "Atlas Secure <onboarding@resend.dev>",
+      from: "Atlas Secure <noreply@qodev.dev>",
       to: email,
       subject: `Ваш код: ${code}`,
       html: `
