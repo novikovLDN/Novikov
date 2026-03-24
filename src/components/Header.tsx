@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 interface HeaderProps {
   showBack?: boolean;
@@ -14,12 +15,30 @@ interface HeaderProps {
 
 export default function Header({ showBack, showMenu, onBack, transparent, onNotifications, onHelp, unreadCount = 0 }: HeaderProps) {
   const router = useRouter();
+  const [visible, setVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y < 10) {
+        setVisible(true);
+      } else if (y > lastScrollY.current) {
+        setVisible(false);
+      } else {
+        setVisible(true);
+      }
+      lastScrollY.current = y;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full safe-top ${
-        transparent ? "" : "glass border-b border-border/50"
-      }`}
+      className={`sticky top-0 z-50 w-full safe-top transition-all duration-300 ${
+        visible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+      } ${transparent ? "" : "glass border-b border-border/50"}`}
     >
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 max-w-2xl mx-auto w-full">
         {/* Left side */}
