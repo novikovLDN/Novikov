@@ -61,6 +61,112 @@ const defaultConfig: XrayConfig = {
   shortId: process.env.XRAY_SHORT_ID || "a1b2c3d4",
 };
 
+// ─── Server Pool (all available servers) ─────────────────────────
+
+export interface ServerEntry {
+  name: string;
+  ip: string;
+  port: number;
+  sni: string;
+  fingerprint: string;
+  publicKey: string;
+  shortId: string;
+  flow: string;
+  network: string;
+  security: string;
+}
+
+export const SERVER_POOL: ServerEntry[] = [
+  {
+    name: "🇳🇱 Atlas Fast #1",
+    ip: "159.195.20.201",
+    port: 4443,
+    sni: "myvpncloud.net",
+    fingerprint: "chrome",
+    publicKey: "4km41B5xZ3iJ4Z_VJ9WazIg3s_Pf2qSDmm55Yf28akg",
+    shortId: "a1b2c3d4",
+    flow: "xtls-rprx-vision",
+    network: "tcp",
+    security: "reality",
+  },
+  {
+    name: "🇩🇪 Atlas Fast #2 ⚡️",
+    ip: "45.144.55.159",
+    port: 4443,
+    sni: "flowgrocery.com",
+    fingerprint: "chrome",
+    publicKey: "5b38RSRtlEw-HMYj1PmvS0QL8mZco2Bj_58sw2wikjA",
+    shortId: "a1b2c3d4",
+    flow: "xtls-rprx-vision",
+    network: "tcp",
+    security: "reality",
+  },
+  {
+    name: "🇷🇺 LTE-5G ОБХОД | Все операторы ⚡️",
+    ip: "185.241.193.94",
+    port: 443,
+    sni: "eh.vk.com",
+    fingerprint: "chrome",
+    publicKey: "AD3iu5zxfDZWeMEHSWTH5JuiokSv3ohQEg1Y_aUxzgA",
+    shortId: "a1b2c3d4",
+    flow: "xtls-rprx-vision",
+    network: "tcp",
+    security: "reality",
+  },
+  {
+    name: "🇷🇺 LTE-5G ОБХОД | Все + Мегафон ⚡️",
+    ip: "185.241.193.94",
+    port: 443,
+    sni: "max.ru",
+    fingerprint: "firefox",
+    publicKey: "CrQHeDnhvv7Cqdbrx19mmbmTLN02uqIrmVzyufVUz0s",
+    shortId: "1a2b3c4d",
+    flow: "xtls-rprx-vision",
+    network: "tcp",
+    security: "reality",
+  },
+  {
+    name: "🇪🇺 LTE-5G ОБХОД + ВПН ⚡️",
+    ip: "185.241.193.94",
+    port: 8444,
+    sni: "eh.vk.com",
+    fingerprint: "chrome",
+    publicKey: "AD3iu5zxfDZWeMEHSWTH5JuiokSv3ohQEg1Y_aUxzgA",
+    shortId: "a1b2c3d4",
+    flow: "xtls-rprx-vision",
+    network: "tcp",
+    security: "reality",
+  },
+  {
+    name: "🇪🇺 LTE-5G ОБХОД + ВПН Мегафон ⚡️",
+    ip: "185.241.193.94",
+    port: 8443,
+    sni: "max.ru",
+    fingerprint: "firefox",
+    publicKey: "7uELniOcmygn2k9ywnZsJ0QzCsli_1e0bFGpqHcF4RY",
+    shortId: "1a2b3c4d",
+    flow: "xtls-rprx-vision",
+    network: "tcp",
+    security: "reality",
+  },
+];
+
+/** Build VLESS URIs for all servers in the pool */
+export function buildAllServerUris(uuid: string): string[] {
+  return SERVER_POOL.map((server) => {
+    const params = new URLSearchParams({
+      type: server.network,
+      security: server.security,
+      flow: server.flow,
+      fp: server.fingerprint,
+      sni: server.sni,
+      pbk: server.publicKey,
+      sid: server.shortId,
+    });
+    return `vless://${uuid}@${server.ip}:${server.port}?${params.toString()}#${encodeURIComponent(server.name)}`;
+  });
+}
+
 // ─── Subscription URL ────────────────────────────────────────────
 
 const SUB_BASE_URL = process.env.SUB_BASE_URL || "https://atlassecure.uk/api/sub";

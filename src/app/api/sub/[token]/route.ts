@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-import { buildConnectionUri } from "@/lib/xray";
+import { buildAllServerUris } from "@/lib/xray";
 
 export async function GET(
   request: NextRequest,
@@ -43,12 +43,11 @@ export async function GET(
       return new NextResponse("No active configuration", { status: 404 });
     }
 
-    // Build connection URI(s)
-    const vlessUri = buildConnectionUri(user.xray_uuid, user.email);
+    // Build VLESS URIs for all servers
+    const uris = buildAllServerUris(user.xray_uuid);
 
-    // VPN clients expect plain text with one URI per line
-    // base64-encode for compatibility with subscription format
-    const body = Buffer.from(vlessUri).toString("base64");
+    // VPN clients expect base64-encoded text with one URI per line
+    const body = Buffer.from(uris.join("\n")).toString("base64");
 
     return new NextResponse(body, {
       status: 200,
@@ -71,6 +70,5 @@ export async function GET(
 function buildUserinfo(user: { subscription_end: string }): string {
   const end = new Date(user.subscription_end);
   const expireTimestamp = Math.floor(end.getTime() / 1000);
-  // upload/download/total are placeholders — replace with real stats if available
   return `upload=0; download=0; total=0; expire=${expireTimestamp}`;
 }
