@@ -61,6 +61,31 @@ const defaultConfig: XrayConfig = {
   shortId: process.env.XRAY_SHORT_ID || "a1b2c3d4",
 };
 
+// ─── Subscription URL ────────────────────────────────────────────
+
+const SUB_BASE_URL = process.env.SUB_BASE_URL || "https://atlassecure.uk/api/sub";
+
+/** Build subscription URL for a user */
+export function buildSubscriptionUrl(subToken: string, subId: string): string {
+  return `${SUB_BASE_URL}/${subToken}?id=${subId}`;
+}
+
+/** Generate a random subscription token (32-char base64url) */
+export function generateSubToken(): string {
+  const crypto = require("crypto");
+  return crypto.randomBytes(24).toString("base64url");
+}
+
+/** Generate a stable numeric sub ID from email */
+export function generateSubId(email: string): string {
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) {
+    const char = email.charCodeAt(i);
+    hash = ((hash << 5) - hash + char) | 0;
+  }
+  return String(Math.abs(hash)).slice(0, 10).padEnd(10, "0");
+}
+
 // ─── UUID Management ─────────────────────────────────────────────
 
 /** Generate a new UUID for an Xray user */

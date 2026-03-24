@@ -76,7 +76,7 @@ export default function Dashboard() {
         setData((prev) => prev ? { ...prev, vpnKey: result.data.vpnKey, xrayUuid: result.data.xrayUuid } : prev);
         setShowRegenConfirm(false);
       } else {
-        setRegenError(result.error || "Не удалось обновить ключ");
+        setRegenError(result.error || "Не удалось обновить подписку");
       }
     } catch {
       setRegenError("Ошибка сервера. Попробуйте позже.");
@@ -169,9 +169,9 @@ export default function Dashboard() {
         {/* ═══ Key ═══ */}
         <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-1">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm sm:text-base">Ваш ключ доступа</h3>
+            <h3 className="font-semibold text-sm sm:text-base">Ваша подписка</h3>
             <span className="text-[10px] sm:text-xs bg-primary-light text-primary px-2 py-0.5 rounded-full font-medium">
-              VLESS
+              Подписка
             </span>
           </div>
 
@@ -183,7 +183,7 @@ export default function Dashboard() {
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <p className="text-danger font-semibold text-sm sm:text-base mb-1">Подписка истекла</p>
-              <p className="text-muted text-xs sm:text-sm">Ключ деактивирован. Продлите подписку для восстановления доступа.</p>
+              <p className="text-muted text-xs sm:text-sm">Ссылка деактивирована. Продлите подписку для восстановления доступа.</p>
             </div>
           ) : (
             <>
@@ -216,7 +216,7 @@ export default function Dashboard() {
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                       <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                     </svg>
-                    Скопировать ключ
+                    Скопировать подписку
                   </>
                 )}
               </button>
@@ -229,7 +229,7 @@ export default function Dashboard() {
                   <polyline points="23 4 23 10 17 10" />
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                 </svg>
-                Обновить ключ
+                Обновить подписку
               </button>
             </>
           )}
@@ -253,9 +253,9 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <h3 className="text-base sm:text-lg font-bold text-center mb-2">Обновить ключ?</h3>
+              <h3 className="text-base sm:text-lg font-bold text-center mb-2">Обновить подписку?</h3>
               <p className="text-muted text-xs sm:text-sm text-center mb-6 leading-relaxed">
-                Это приведёт к деактивации текущего ключа и созданию нового. Вам нужно будет заново настроить подключение на всех устройствах.
+                Это приведёт к деактивации текущей ссылки и созданию новой. Вам нужно будет заново настроить подключение на всех устройствах.
               </p>
 
               {regenError && (

@@ -1,5 +1,15 @@
 import { Pool } from "pg";
 
+/** Simple string hash to generate stable numeric ID from email */
+function hashCode(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash + char) | 0;
+  }
+  return Math.abs(hash);
+}
+
 const globalPool = globalThis as unknown as { __pgPool?: Pool };
 
 if (!globalPool.__pgPool) {
@@ -24,6 +34,8 @@ export async function initDb(): Promise<void> {
       subscription_end TIMESTAMPTZ NOT NULL,
       vpn_key TEXT,
       xray_uuid TEXT,
+      sub_token TEXT UNIQUE,
+      sub_id TEXT UNIQUE,
       telegram_id TEXT,
       password_hash TEXT,
       key_regen_count INTEGER NOT NULL DEFAULT 0,
@@ -86,6 +98,8 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_link_token TEXT UNIQUE",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS registration_ip TEXT",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS device_fingerprint TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS sub_token TEXT UNIQUE",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS sub_id TEXT UNIQUE",
   ];
 
   for (const sql of migrations) {
@@ -113,6 +127,27 @@ export async function initDb(): Promise<void> {
     }
   } catch (err) {
     console.error("[DB] Failed to generate tokens:", err);
+  }
+
+  // Generate sub_token and sub_id for existing users who don't have them
+  try {
+    const usersWithoutSub = await pool.query(
+      "SELECT id, email FROM users WHERE sub_token IS NULL"
+    );
+    const crypto = require("crypto");
+    for (const row of usersWithoutSub.rows) {
+      const subToken = crypto.randomBytes(24).toString("base64url");
+      const subId = String(Math.abs(hashCode(row.email))).slice(0, 10).padEnd(10, "0");
+      await pool.query(
+        "UPDATE users SET sub_token = $1, sub_id = $2 WHERE id = $3",
+        [subToken, subId, row.id]
+      );
+    }
+    if (usersWithoutSub.rows.length > 0) {
+      console.log(`[DB] Generated sub_token/sub_id for ${usersWithoutSub.rows.length} existing users`);
+    }
+  } catch (err) {
+    console.error("[DB] Failed to generate sub tokens:", err);
   }
 
   console.log("[DB] Tables initialized");

@@ -172,7 +172,7 @@ export default function Devices() {
             <polyline points="16 6 12 2 8 6" />
             <line x1="12" y1="2" x2="12" y2="15" />
           </svg>
-          {copiedKey ? "Ключ скопирован!" : "Поделиться ключом (подпиской)"}
+          {copiedKey ? "Ссылка скопирована!" : "Поделиться подпиской"}
         </button>
 
         {/* Device Limit Info */}
@@ -210,7 +210,7 @@ export default function Devices() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              Ключ сброшен!
+              Подписка сброшена!
             </>
           ) : (
             <>
@@ -219,7 +219,7 @@ export default function Devices() {
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
-              Сбросить ключ (подписку)
+              Сбросить подписку
             </>
           )}
         </button>
@@ -258,7 +258,7 @@ const platformInstructions: Record<string, {
     downloadLabel: "Скачать на Android",
     steps: [
       "Скачайте и установите V2rayNG из Google Play",
-      "Скопируйте ваш ключ, нажав кнопку ниже",
+      "Скопируйте ссылку подписки, нажав кнопку ниже",
       "Откройте V2rayNG → нажмите «+» → «Импорт из буфера»",
       "Нажмите кнопку подключения (▶) в нижней части экрана",
     ],
@@ -271,7 +271,7 @@ const platformInstructions: Record<string, {
     downloadLabel: "Скачать на iPhone",
     steps: [
       "Скачайте и установите Streisand из App Store",
-      "Скопируйте ваш ключ, нажав кнопку ниже",
+      "Скопируйте ссылку подписки, нажав кнопку ниже",
       "Откройте Streisand → нажмите «+» → «Добавить из буфера»",
       "Включите подключение переключателем",
     ],
@@ -284,7 +284,7 @@ const platformInstructions: Record<string, {
     downloadLabel: "Скачать на Windows",
     steps: [
       "Скачайте и установите Hiddify с официального сайта",
-      "Скопируйте ваш ключ, нажав кнопку ниже",
+      "Скопируйте ссылку подписки, нажав кнопку ниже",
       "Откройте Hiddify → «Новый профиль» → «Добавить из буфера»",
       "Нажмите кнопку подключения",
     ],
@@ -297,7 +297,7 @@ const platformInstructions: Record<string, {
     downloadLabel: "Скачать на macOS",
     steps: [
       "Скачайте и установите Hiddify с официального сайта",
-      "Скопируйте ваш ключ, нажав кнопку ниже",
+      "Скопируйте ссылку подписки, нажав кнопку ниже",
       "Откройте Hiddify → «Новый профиль» → «Добавить из буфера»",
       "Нажмите кнопку подключения",
     ],
@@ -310,7 +310,7 @@ const platformInstructions: Record<string, {
     downloadLabel: "Скачать на Android TV",
     steps: [
       "Установите V2rayNG на TV из Google Play",
-      "На телефоне скопируйте ключ",
+      "На телефоне скопируйте ссылку подписки",
       "Откройте V2rayNG на TV → добавьте подключение вручную или через QR-код",
       "Запустите подключение на TV",
     ],
@@ -378,7 +378,7 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                Ключ скопирован!
+                Ссылка скопирована!
               </>
             ) : (
               <>
@@ -386,7 +386,7 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                   <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                 </svg>
-                Скопировать ключ
+                Скопировать подписку
               </>
             )}
           </button>

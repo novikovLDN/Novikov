@@ -6,6 +6,8 @@ export interface User {
   subscriptionEnd: string;
   vpnKey: string | null;
   xrayUuid: string | null;
+  subToken: string | null;
+  subId: string | null;
   telegramId: string | null;
   telegramLinked: boolean;
   referralCode: string;

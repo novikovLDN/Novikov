@@ -4,7 +4,7 @@
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 import { pool } from "./db";
-import { generateXrayUuid, buildConnectionUri, xrayRemoveUser } from "./xray";
+import { generateXrayUuid, buildConnectionUri, xrayRemoveUser, generateSubToken, generateSubId, buildSubscriptionUrl } from "./xray";
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -22,6 +22,8 @@ export interface UserRecord {
   referredBy: string | null;
   referrals: number;
   paidReferrals: number;
+  subToken: string | null;
+  subId: string | null;
   keyRegenCount: number;
   keyRegenWindowStart: string | null;
   telegramLinkToken: string | null;
@@ -53,6 +55,8 @@ function rowToUser(row: any): UserRecord {
     referredBy: row.referred_by,
     referrals: row.referrals,
     paidReferrals: row.paid_referrals,
+    subToken: row.sub_token,
+    subId: row.sub_id,
     keyRegenCount: row.key_regen_count ?? 0,
     keyRegenWindowStart: row.key_regen_window_start ? new Date(row.key_regen_window_start).toISOString() : null,
     telegramLinkToken: row.telegram_link_token,
@@ -126,14 +130,16 @@ export async function getOrCreateUser(email: string, referredByCode?: string, ip
   const xrayUuid = generateXrayUuid();
   const referralCode = generateReferralCode();
   const telegramLinkToken = uuidv4().replace(/-/g, "").slice(0, 16);
-  const vpnKey = xrayUuid ? buildConnectionUri(xrayUuid, email) : null;
+  const subToken = generateSubToken();
+  const subId = generateSubId(email);
+  const vpnKey = buildSubscriptionUrl(subToken, subId);
   const id = uuidv4();
 
   const result = await pool.query(
-    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, referral_code, referred_by, telegram_link_token, registration_ip, device_fingerprint)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, sub_token, sub_id, referral_code, referred_by, telegram_link_token, registration_ip, device_fingerprint)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      RETURNING *`,
-    [id, email, now, trialEnd, vpnKey, xrayUuid, referralCode, referredByCode || null, telegramLinkToken, ip || null, fingerprint || null]
+    [id, email, now, trialEnd, vpnKey, xrayUuid, subToken, subId, referralCode, referredByCode || null, telegramLinkToken, ip || null, fingerprint || null]
   );
 
   // Credit referrer: +1 referral count (bonus given when friend pays)
@@ -167,6 +173,8 @@ export async function updateUser(id: string, updates: Partial<UserRecord>): Prom
     subscriptionEnd: "subscription_end",
     vpnKey: "vpn_key",
     xrayUuid: "xray_uuid",
+    subToken: "sub_token",
+    subId: "sub_id",
     telegramId: "telegram_id",
     telegramLinked: "telegram_linked",
     referralCode: "referral_code",
@@ -247,11 +255,14 @@ export async function regenerateUserKey(userId: string): Promise<{ user: UserRec
   }
 
   const newUuid = generateXrayUuid();
-  const newKey = buildConnectionUri(newUuid, user.email);
+  const newSubToken = generateSubToken();
+  const subId = user.subId || generateSubId(user.email);
+  const newKey = buildSubscriptionUrl(newSubToken, subId);
 
   const updated = await updateUser(userId, {
     xrayUuid: newUuid,
     vpnKey: newKey,
+    subToken: newSubToken,
     keyRegenCount: newCount,
     keyRegenWindowStart: newWindowStart,
   });
@@ -319,13 +330,17 @@ export async function botExtendSubscription(
 
   // If user has no VPN key (expired and cleaned up), regenerate
   if (!user.xrayUuid) {
-    const { generateXrayUuid: genUuid, buildConnectionUri: buildUri } = await import("./xray");
+    const { generateXrayUuid: genUuid, generateSubToken: genSubToken, generateSubId: genSubId, buildSubscriptionUrl: buildSubUrl } = await import("./xray");
     const newUuid = genUuid();
-    const newKey = buildUri(newUuid, user.email);
+    const newSubToken = genSubToken();
+    const subId = user.subId || genSubId(user.email);
+    const newKey = buildSubUrl(newSubToken, subId);
     return updateUser(user.id, {
       subscriptionEnd: newEnd.toISOString(),
       xrayUuid: newUuid,
       vpnKey: newKey,
+      subToken: newSubToken,
+      subId: subId,
     });
   }
 
