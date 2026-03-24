@@ -92,6 +92,9 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   const codeFormRef = useRef<HTMLFormElement>(null);
   const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
 
+  // Resend loading state
+  const [resendLoading, setResendLoading] = useState(false);
+
   // Login state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -242,7 +245,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   };
 
   const handleResendCode = async () => {
-    if (countdown > 0) return;
+    if (countdown > 0 || resendLoading) return;
+    setResendLoading(true);
     try {
       const res = await fetch("/api/auth/send-code", {
         method: "POST",
@@ -257,6 +261,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
       }
     } catch {
       // silent
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -553,7 +559,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <input type="hidden" name="fingerprint" value={deviceFingerprint} />
               {referralCode && <input type="hidden" name="ref" value={referralCode} />}
 
-              <div className="flex gap-2 sm:gap-3 justify-center mb-6" onPaste={handleCodePaste}>
+              <div className="flex gap-1.5 xs:gap-2 sm:gap-3 justify-center mb-6 w-full max-w-xs mx-auto" onPaste={handleCodePaste}>
                 {[0, 1, 2, 3, 4, 5].map((i) => (
                   <input
                     key={i}
@@ -567,10 +573,12 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                     autoComplete="one-time-code"
                     onChange={(e) => handleCodeInput(i, e)}
                     onKeyDown={(e) => handleCodeKeyDown(i, e)}
+                    onFocus={(e) => e.target.select()}
                     aria-label={`Цифра ${i + 1}`}
-                    className={`w-11 h-13 sm:w-13 sm:h-15 text-center text-xl sm:text-2xl font-bold bg-card border rounded-xl sm:rounded-2xl focus:outline-none transition-all ${
+                    className={`flex-1 min-w-0 aspect-square max-w-13 text-center text-[16px] sm:text-2xl font-bold bg-card border rounded-xl sm:rounded-2xl focus:outline-none transition-all appearance-none ${
                       codeError ? "border-danger/50" : "border-border focus:border-primary"
                     }`}
+                    style={{ fontSize: "max(16px, 1.25rem)" }}
                   />
                 ))}
               </div>
@@ -607,13 +615,17 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                 <p className="text-muted text-xs sm:text-sm">
                   Отправить повторно через{" "}
                   <span className="text-foreground font-medium tabular-nums">
-                    {String(Math.floor(countdown / 60)).padStart(1, "0")}:
-                    {String(countdown % 60).padStart(2, "0")}
+                    {countdown} сек
                   </span>
                 </p>
               ) : (
-                <button type="button" onClick={handleResendCode} className="text-primary text-sm font-medium hover:text-primary-hover transition-colors">
-                  Отправить код повторно
+                <button
+                  type="button"
+                  onClick={handleResendCode}
+                  disabled={resendLoading}
+                  className="text-primary text-sm font-medium hover:text-primary-hover transition-colors disabled:opacity-50 py-2 px-4"
+                >
+                  {resendLoading ? "Отправляем..." : "Отправить код повторно"}
                 </button>
               )}
             </div>
