@@ -315,7 +315,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       appName: "Hiddify",
       appDesc: "Рекомендуемый клиент для Windows",
       storeLabel: "Скачать",
-      downloadUrl: "https://github.com/hiddify/hiddify-app/releases/latest",
+      downloadUrl: "https://github.com/hiddify/hiddify-app/releases",
       downloadLabel: "Скачать Hiddify",
       recommended: true,
       steps: [
@@ -333,7 +333,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       appName: "Hiddify",
       appDesc: "Рекомендуемый клиент для macOS",
       storeLabel: "Скачать",
-      downloadUrl: "https://github.com/hiddify/hiddify-app/releases/latest",
+      downloadUrl: "https://github.com/hiddify/hiddify-app/releases",
       downloadLabel: "Скачать Hiddify",
       recommended: true,
       steps: [
@@ -414,110 +414,118 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
   const apps = platformApps[platform];
   if (!apps || apps.length === 0) return null;
 
-  const [selectedAppId, setSelectedAppId] = useState(apps[0].appId);
-  const info = apps.find((a) => a.appId === selectedAppId) || apps[0];
+  const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+  const info = selectedAppId ? apps.find((a) => a.appId === selectedAppId) : null;
 
   return (
-    <div className="bg-card border border-primary/20 rounded-2xl overflow-hidden">
-      {/* App Selector */}
-      <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3">
-        <p className="text-xs text-muted mb-2.5 font-medium">Выберите приложение:</p>
+    <div className="space-y-3">
+      {/* App Selector Bar */}
+      <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 animate-fade-in-up">
+        <p className="text-xs text-muted mb-3 font-medium">Выберите приложение для подключения:</p>
         <div className="flex gap-2 flex-wrap">
-          {apps.map((app) => (
+          {apps.map((app, i) => (
             <button
               key={app.appId}
-              onClick={() => setSelectedAppId(app.appId)}
-              className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-xl text-xs sm:text-sm font-medium transition-all btn-press border ${
+              onClick={() => setSelectedAppId(selectedAppId === app.appId ? null : app.appId)}
+              style={{ animationDelay: `${i * 0.07}s` }}
+              className={`h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 btn-press border animate-fade-in-up ${
                 selectedAppId === app.appId
-                  ? "bg-primary/15 border-primary/40 text-primary"
-                  : "bg-background border-border hover:bg-card-hover"
+                  ? "bg-primary/15 border-primary/40 text-primary shadow-sm shadow-primary/10"
+                  : "bg-background border-border hover:bg-card-hover hover:border-border/80"
               }`}
             >
               {app.appName}
-              {app.recommended && selectedAppId !== app.appId && (
-                <span className="ml-1.5 text-[10px] text-muted opacity-60">*</span>
+              {app.recommended && (
+                <span className={`ml-1.5 text-[10px] transition-colors duration-300 ${selectedAppId === app.appId ? "text-primary/60" : "text-muted/50"}`}>
+                  {selectedAppId === app.appId ? "" : "*"}
+                </span>
               )}
             </button>
           ))}
         </div>
       </div>
 
-      {/* App Header */}
-      <div className="bg-primary/10 mx-4 sm:mx-5 rounded-xl px-4 py-3 mb-3 border border-primary/20">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-sm sm:text-base">{info.appName}</h3>
-            <p className="text-xs sm:text-sm text-muted">{info.appDesc}</p>
-          </div>
-          <span className="text-[10px] sm:text-xs bg-primary/20 text-primary px-2.5 py-1 rounded-full font-medium shrink-0 ml-2">
-            {info.storeLabel}
-          </span>
-        </div>
-      </div>
-
-      {/* Step 1: Download */}
-      <div className="px-4 sm:px-5 pb-3">
-        <div className="flex gap-3 items-start mb-3">
-          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
-            <span className="text-xs sm:text-sm font-bold text-primary">1</span>
-          </div>
-          <p className="text-xs sm:text-sm text-muted-light leading-relaxed pt-0.5">{info.steps[0].text}</p>
-        </div>
-        <a
-          href={info.downloadUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 bg-foreground text-background hover:bg-foreground/90"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          {info.downloadLabel}
-        </a>
-      </div>
-
-      {/* Remaining steps */}
-      <div className="px-4 sm:px-5 pb-4 sm:pb-5 space-y-3 sm:space-y-4">
-        {info.steps.slice(1).map((step, i) => (
-          <div key={i + 1}>
-            <div className="flex gap-3 items-start">
-              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
-                <span className="text-xs sm:text-sm font-bold text-primary">{i + 2}</span>
+      {/* Instruction Panel — shown only after app selected */}
+      {info && (
+        <div key={info.appId} className="bg-card border border-primary/20 rounded-2xl overflow-hidden animate-fade-in-up">
+          {/* App Header */}
+          <div className="bg-primary/10 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-primary/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-sm sm:text-base">{info.appName}</h3>
+                <p className="text-xs sm:text-sm text-muted">{info.appDesc}</p>
               </div>
-              <p className="text-xs sm:text-sm text-muted-light leading-relaxed pt-0.5">{step.text}</p>
+              <span className="text-[10px] sm:text-xs bg-primary/20 text-primary px-2.5 py-1 rounded-full font-medium shrink-0 ml-2">
+                {info.storeLabel}
+              </span>
             </div>
-            {step.copyKey && vpnKey && (
-              <button
-                onClick={onCopyKey}
-                className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 mt-2.5 ${
-                  copiedKey
-                    ? "bg-success/20 text-success border border-success/30"
-                    : "bg-primary text-white hover:bg-primary-hover"
-                }`}
-              >
-                {copiedKey ? (
-                  <>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Скопировано!
-                  </>
-                ) : (
-                  <>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                    </svg>
-                    Скопировать мой ключ
-                  </>
-                )}
-              </button>
-            )}
           </div>
-        ))}
-      </div>
+
+          {/* Steps */}
+          <div className="px-4 sm:px-5 py-4 sm:py-5 space-y-4">
+            {info.steps.map((step, i) => (
+              <div
+                key={i}
+                style={{ animationDelay: `${i * 0.08}s` }}
+                className="animate-fade-in-up opacity-0"
+              >
+                <div className="flex gap-3 items-start">
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-xs sm:text-sm font-bold text-primary">{i + 1}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-light leading-relaxed pt-0.5">{step.text}</p>
+                </div>
+
+                {/* Download button after step 1 */}
+                {i === 0 && (
+                  <a
+                    href={info.downloadUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 btn-press flex items-center justify-center gap-2 bg-foreground text-background hover:bg-foreground/90 mt-3"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    {info.downloadLabel}
+                  </a>
+                )}
+
+                {/* Copy key button */}
+                {step.copyKey && vpnKey && (
+                  <button
+                    onClick={onCopyKey}
+                    className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 btn-press flex items-center justify-center gap-2 mt-3 ${
+                      copiedKey
+                        ? "bg-success/20 text-success border border-success/30"
+                        : "bg-primary text-white hover:bg-primary-hover"
+                    }`}
+                  >
+                    {copiedKey ? (
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Скопировано!
+                      </>
+                    ) : (
+                      <>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                        </svg>
+                        Скопировать мой ключ
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
