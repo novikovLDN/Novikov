@@ -59,6 +59,23 @@ export async function initDb(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_payments_user_id ON payments(user_id);
     CREATE INDEX IF NOT EXISTS idx_payments_transaction_id ON payments(transaction_id);
     CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
+
+    CREATE TABLE IF NOT EXISTS notifications (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      target TEXT NOT NULL DEFAULT 'all',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS notification_reads (
+      user_id TEXT NOT NULL REFERENCES users(id),
+      notification_id TEXT NOT NULL REFERENCES notifications(id),
+      read_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, notification_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
   `);
 
   // ─── Migrations: add columns that may be missing on older DBs ───
