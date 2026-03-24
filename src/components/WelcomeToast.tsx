@@ -8,11 +8,29 @@ const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 interface WelcomeToastProps {
   telegramLinkToken?: string | null;
+  subscriptionEnd?: string | null;
 }
 
-export default function WelcomeToast({ telegramLinkToken }: WelcomeToastProps) {
+function formatTimeLeft(subscriptionEnd: string): string {
+  const end = new Date(subscriptionEnd).getTime();
+  const now = Date.now();
+  const diff = end - now;
+
+  if (diff <= 0) return "0 ч";
+
+  const totalHours = Math.floor(diff / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+
+  if (totalHours >= 1) {
+    return `${totalHours} ч ${minutes} мин`;
+  }
+  return `${minutes} мин`;
+}
+
+export default function WelcomeToast({ telegramLinkToken, subscriptionEnd }: WelcomeToastProps) {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
+  const [timeLeft, setTimeLeft] = useState("");
 
   useEffect(() => {
     try {
@@ -26,6 +44,15 @@ export default function WelcomeToast({ telegramLinkToken }: WelcomeToastProps) {
       setVisible(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!visible || !subscriptionEnd) return;
+    setTimeLeft(formatTimeLeft(subscriptionEnd));
+    const interval = setInterval(() => {
+      setTimeLeft(formatTimeLeft(subscriptionEnd));
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [visible, subscriptionEnd]);
 
   const handleClose = () => {
     setVisible(false);
@@ -51,10 +78,10 @@ export default function WelcomeToast({ telegramLinkToken }: WelcomeToastProps) {
           </div>
           <div className="flex-1 min-w-0 pr-6">
             <h3 className="font-bold text-sm sm:text-base text-foreground leading-tight">
-              Ключ выдан на 24 часа
+              Осталось: {timeLeft || "..."}
             </h3>
             <p className="text-xs sm:text-sm text-muted leading-relaxed mt-1.5">
-              Ваш тестовый ключ активен 24 часа. Для приобретения полноценной подписки перейдите в Telegram-бот.
+              Ваш тестовый ключ активен ещё <b className="text-foreground">{timeLeft || "..."}</b>. Для приобретения полноценной подписки перейдите в Telegram-бот.
             </p>
           </div>
           <button

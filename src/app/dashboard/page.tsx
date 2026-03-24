@@ -520,7 +520,7 @@ export default function Dashboard() {
 
       <HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
       <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
-      <WelcomeToast telegramLinkToken={data?.telegramLinkToken} />
+      <WelcomeToast telegramLinkToken={data?.telegramLinkToken} subscriptionEnd={data?.subscriptionEnd} />
     </div>
   );
 }
