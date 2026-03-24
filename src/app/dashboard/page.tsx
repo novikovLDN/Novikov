@@ -6,7 +6,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import HelpModal from "@/components/HelpModal";
 import NotificationsModal from "@/components/NotificationsModal";
 import WelcomeToast from "@/components/WelcomeToast";
 import type { SubscriptionData } from "@/types";
@@ -22,7 +21,6 @@ export default function Dashboard() {
   const [regenError, setRegenError] = useState("");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -111,14 +109,13 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-dvh flex flex-col">
-        <Header showMenu onHelp={() => setShowHelp(true)} onNotifications={() => setShowNotifications(true)} unreadCount={unreadCount} />
+        <Header showMenu onNotifications={() => setShowNotifications(true)} unreadCount={unreadCount} />
         <PageContainer className="flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <LoadingSpinner size="lg" className="text-primary" />
             <p className="text-muted text-sm">Загрузка...</p>
           </div>
         </PageContainer>
-        <HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
         <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
       </div>
     );
@@ -131,7 +128,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-dvh flex flex-col">
-      <Header showMenu onHelp={() => setShowHelp(true)} onNotifications={() => setShowNotifications(true)} unreadCount={unreadCount} />
+      <Header showMenu onNotifications={() => setShowNotifications(true)} unreadCount={unreadCount} />
 
       <PageContainer className="space-y-3 sm:space-y-4">
         {/* ═══ Subscription Status ═══ */}
@@ -518,7 +515,6 @@ export default function Dashboard() {
 
       <Footer />
 
-      <HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
       <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
       <WelcomeToast telegramLinkToken={data?.telegramLinkToken} subscriptionEnd={data?.subscriptionEnd} />
     </div>

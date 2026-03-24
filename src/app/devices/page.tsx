@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
-import HelpModal from "@/components/HelpModal";
 import NotificationsModal from "@/components/NotificationsModal";
 
 interface DeviceEntry {
@@ -67,7 +66,6 @@ export default function Devices() {
   const [selectedDevice, setSelectedDevice] = useState<string | null>(null);
   const [vpnKey, setVpnKey] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -96,7 +94,7 @@ export default function Devices() {
 
   return (
     <div className="min-h-dvh flex flex-col">
-      <Header showBack showMenu onBack={() => router.push("/dashboard")} onHelp={() => setShowHelp(true)} onNotifications={() => setShowNotifications(true)} unreadCount={unreadCount} />
+      <Header showBack showMenu onBack={() => router.push("/dashboard")} onNotifications={() => setShowNotifications(true)} unreadCount={unreadCount} />
 
       <PageContainer>
         <h1 className="text-2xl sm:text-3xl font-bold mt-1 sm:mt-2 mb-5 sm:mb-6 animate-fade-in-up">
@@ -193,7 +191,6 @@ export default function Devices() {
 
       <Footer />
 
-      <HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
       <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
     </div>
   );
