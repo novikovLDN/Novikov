@@ -388,7 +388,7 @@ export default function Dashboard() {
                 Telegram-бот Atlas Secure
               </h3>
               <p className="text-xs sm:text-sm text-muted mt-1 leading-snug">
-                Перейдите в Телеграм бот для основной подписки, чтобы получить обход и лучшую скорость
+                Перейдите в Телеграм бот для основной подписки.
               </p>
             </div>
           </div>
