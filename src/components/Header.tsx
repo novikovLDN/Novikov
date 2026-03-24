@@ -59,41 +59,28 @@ export default function Header({ showBack, showMenu, onBack, transparent, onNoti
               className="flex items-center gap-3 btn-press"
             >
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center">
-                <svg width="36" height="36" viewBox="0 0 100 60" fill="none" className="sm:w-10 sm:h-10">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="sm:w-9 sm:h-9">
                   <defs>
-                    <linearGradient id="inf-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient id="shield-grad" x1="16" y1="2" x2="16" y2="30" gradientUnits="userSpaceOnUse">
                       <stop offset="0%" stopColor="#c084fc" />
-                      <stop offset="50%" stopColor="#a78bfa" />
-                      <stop offset="100%" stopColor="#93c5fd" />
+                      <stop offset="100%" stopColor="#7c3aed" />
                     </linearGradient>
-                    <linearGradient id="inf-shine" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#e9d5ff" stopOpacity="0.8" />
-                      <stop offset="50%" stopColor="#ffffff" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#bfdbfe" stopOpacity="0.6" />
+                    <linearGradient id="check-grad" x1="10" y1="14" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#e9d5ff" />
+                      <stop offset="100%" stopColor="#ffffff" />
                     </linearGradient>
-                    <filter id="inf-glow">
-                      <feGaussianBlur stdDeviation="2" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
                   </defs>
-                  {/* Main infinity path */}
+                  {/* Shield */}
                   <path
-                    d="M50 30 C50 15, 30 5, 18 15 C6 25, 6 40, 18 45 C30 50, 50 40, 50 30 C50 20, 70 10, 82 15 C94 20, 94 40, 82 45 C70 50, 50 45, 50 30Z"
-                    stroke="url(#inf-grad)"
-                    strokeWidth="6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                    filter="url(#inf-glow)"
+                    d="M16 3L4 8v7c0 7.73 5.12 14.12 12 16 6.88-1.88 12-8.27 12-16V8L16 3z"
+                    fill="url(#shield-grad)"
+                    opacity="0.9"
                   />
-                  {/* Shine overlay */}
+                  {/* Checkmark */}
                   <path
-                    d="M50 30 C50 15, 30 5, 18 15 C6 25, 6 40, 18 45 C30 50, 50 40, 50 30 C50 20, 70 10, 82 15 C94 20, 94 40, 82 45 C70 50, 50 45, 50 30Z"
-                    stroke="url(#inf-shine)"
-                    strokeWidth="3"
+                    d="M10.5 16l3.5 3.5 7-7"
+                    stroke="url(#check-grad)"
+                    strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     fill="none"
