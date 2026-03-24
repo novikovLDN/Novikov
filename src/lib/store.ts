@@ -22,6 +22,7 @@ export interface UserRecord {
   referredBy: string | null;
   referrals: number;
   paidReferrals: number;
+  subscriptionPlan: string;
   subToken: string | null;
   subId: string | null;
   keyRegenCount: number;
@@ -55,6 +56,7 @@ function rowToUser(row: any): UserRecord {
     referredBy: row.referred_by,
     referrals: row.referrals,
     paidReferrals: row.paid_referrals,
+    subscriptionPlan: row.subscription_plan || "trial",
     subToken: row.sub_token,
     subId: row.sub_id,
     keyRegenCount: row.key_regen_count ?? 0,
@@ -181,6 +183,7 @@ export async function updateUser(id: string, updates: Partial<UserRecord>): Prom
     referredBy: "referred_by",
     referrals: "referrals",
     paidReferrals: "paid_referrals",
+    subscriptionPlan: "subscription_plan",
     keyRegenCount: "key_regen_count",
     keyRegenWindowStart: "key_regen_window_start",
     telegramLinkToken: "telegram_link_token",

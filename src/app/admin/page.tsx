@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import PageContainer from "@/components/PageContainer";
@@ -11,6 +11,7 @@ interface UserInfo {
   email: string;
   createdAt: string;
   subscriptionEnd: string;
+  subscriptionPlan: string;
   telegramLinked: boolean;
   referrals: number;
   paidReferrals: number;
@@ -32,6 +33,34 @@ interface NotificationItem {
   createdAt: string;
 }
 
+const PLAN_LABELS: Record<string, string> = {
+  trial: "Пробный",
+  basic: "Basic",
+  plus: "Plus",
+  expired: "Истёк",
+};
+
+const PLAN_COLORS: Record<string, string> = {
+  trial: "bg-muted/20 text-muted",
+  basic: "bg-primary/15 text-primary",
+  plus: "bg-purple-500/15 text-purple-400",
+  expired: "bg-danger/15 text-danger",
+};
+
+const DURATION_OPTIONS = [
+  { key: "30m", label: "30 мин" },
+  { key: "1h", label: "1 час" },
+  { key: "12h", label: "12 ч" },
+  { key: "24h", label: "24 ч" },
+  { key: "3d", label: "3 дн" },
+  { key: "7d", label: "7 дн" },
+  { key: "14d", label: "14 дн" },
+  { key: "30d", label: "30 дн" },
+  { key: "60d", label: "60 дн" },
+  { key: "180d", label: "180 дн" },
+  { key: "365d", label: "365 дн" },
+];
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -41,7 +70,7 @@ export default function AdminDashboard() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [tab, setTab] = useState<"analytics" | "users" | "notifications">("analytics");
 
-  // Notification form
+  // Notification form (global)
   const [nTitle, setNTitle] = useState("");
   const [nMessage, setNMessage] = useState("");
   const [nTarget, setNTarget] = useState("all");
@@ -50,6 +79,9 @@ export default function AdminDashboard() {
 
   // Search
   const [search, setSearch] = useState("");
+
+  // Selected user
+  const [selectedUser, setSelectedUser] = useState<UserInfo | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -79,6 +111,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Update selectedUser when users list refreshes
+  useEffect(() => {
+    if (selectedUser) {
+      const updated = users.find((u) => u.id === selectedUser.id);
+      if (updated) setSelectedUser(updated);
+    }
+  }, [users]);
 
   const handleSendNotification = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,6 +161,16 @@ export default function AdminDashboard() {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
+    });
+  };
+
+  const formatDateTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -172,7 +222,7 @@ export default function AdminDashboard() {
           {(["analytics", "users", "notifications"] as const).map((t) => (
             <button
               key={t}
-              onClick={() => setTab(t)}
+              onClick={() => { setTab(t); if (t !== "users") setSelectedUser(null); }}
               className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 tab === t ? "bg-foreground text-background" : "text-muted hover:text-foreground"
               }`}
@@ -209,6 +259,7 @@ export default function AdminDashboard() {
         {/* Users Tab */}
         {tab === "users" && (
           <div className="space-y-3 animate-fade-in-up">
+            {/* Search */}
             <input
               type="text"
               placeholder="Поиск по email..."
@@ -219,30 +270,44 @@ export default function AdminDashboard() {
 
             <p className="text-xs text-muted">Найдено: {filteredUsers.length}</p>
 
+            {/* User Detail Panel */}
+            {selectedUser && (
+              <UserDetailPanel
+                user={selectedUser}
+                onClose={() => setSelectedUser(null)}
+                onRefresh={fetchData}
+                formatDateTime={formatDateTime}
+              />
+            )}
+
+            {/* User List */}
             <div className="space-y-2 max-h-[60vh] overflow-y-auto">
-              {filteredUsers.map((u) => (
-                <div key={u.id} className="bg-card border border-border/50 rounded-xl p-3.5">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-sm font-medium truncate mr-2">{u.email}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                      u.isActive ? "bg-success-light text-success" : "bg-danger/15 text-danger"
-                    }`}>
-                      {u.isActive ? "Активен" : "Истёк"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted">
-                    <span>До: {formatDate(u.subscriptionEnd)}</span>
-                    <span>Реф: {u.referrals}</span>
-                    {u.telegramLinked && <span className="text-telegram">TG</span>}
-                  </div>
+              {filteredUsers.map((u) => {
+                const planKey = u.isActive ? u.subscriptionPlan : "expired";
+                return (
                   <button
-                    onClick={() => { setTab("notifications"); setNTarget(u.id); }}
-                    className="mt-2 text-xs text-primary hover:text-primary-hover transition-colors"
+                    key={u.id}
+                    onClick={() => setSelectedUser(selectedUser?.id === u.id ? null : u)}
+                    className={`w-full text-left bg-card border rounded-xl p-3.5 transition-all ${
+                      selectedUser?.id === u.id
+                        ? "border-primary/40 bg-primary/5"
+                        : "border-border/50 hover:border-border/80"
+                    }`}
                   >
-                    Отправить уведомление
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-sm font-medium truncate mr-2">{u.email}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${PLAN_COLORS[planKey] || PLAN_COLORS.trial}`}>
+                        {PLAN_LABELS[planKey] || planKey}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted">
+                      <span>До: {formatDate(u.subscriptionEnd)}</span>
+                      <span>Реф: {u.referrals}</span>
+                      {u.telegramLinked && <span className="text-telegram">TG</span>}
+                    </div>
                   </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -348,6 +413,278 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
+// ─── User Detail Panel ─────────────────────────────────────────
+
+interface UserDetailPanelProps {
+  user: UserInfo;
+  onClose: () => void;
+  onRefresh: () => void;
+  formatDateTime: (d: string) => string;
+}
+
+function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetailPanelProps) {
+  const [grantPlan, setGrantPlan] = useState<"basic" | "plus">("basic");
+  const [grantDuration, setGrantDuration] = useState("30d");
+  const [granting, setGranting] = useState(false);
+  const [grantSuccess, setGrantSuccess] = useState(false);
+
+  const [notifTitle, setNotifTitle] = useState("");
+  const [notifMessage, setNotifMessage] = useState("");
+  const [notifSending, setNotifSending] = useState(false);
+  const [notifSuccess, setNotifSuccess] = useState(false);
+
+  // Live timer
+  const [timeLeft, setTimeLeft] = useState("");
+  const timerRef = useRef<ReturnType<typeof setInterval>>(null);
+
+  const calcTimeLeft = useCallback(() => {
+    const now = new Date();
+    const end = new Date(user.subscriptionEnd);
+    const ms = Math.max(0, end.getTime() - now.getTime());
+
+    if (ms === 0) return "Истёк";
+
+    const totalMin = Math.floor(ms / 60000);
+    const totalHr = Math.floor(totalMin / 60);
+    const d = Math.floor(totalHr / 24);
+    const h = totalHr % 24;
+    const m = totalMin % 60;
+
+    if (d > 0) return `${d} дн ${h} ч ${m} мин`;
+    if (h > 0) return `${h} ч ${m} мин`;
+    return `${m} мин`;
+  }, [user.subscriptionEnd]);
+
+  useEffect(() => {
+    setTimeLeft(calcTimeLeft());
+    timerRef.current = setInterval(() => setTimeLeft(calcTimeLeft()), 10000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [calcTimeLeft]);
+
+  const handleGrant = async () => {
+    setGranting(true);
+    try {
+      const res = await fetch("/api/admin/users/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "grant-subscription", userId: user.id, plan: grantPlan, duration: grantDuration }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setGrantSuccess(true);
+        setTimeout(() => setGrantSuccess(false), 3000);
+        onRefresh();
+      }
+    } catch {
+      // silent
+    } finally {
+      setGranting(false);
+    }
+  };
+
+  const handleSendNotif = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!notifTitle.trim() || !notifMessage.trim()) return;
+    setNotifSending(true);
+    try {
+      const res = await fetch("/api/admin/users/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "send-notification", userId: user.id, title: notifTitle, message: notifMessage }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNotifTitle("");
+        setNotifMessage("");
+        setNotifSuccess(true);
+        setTimeout(() => setNotifSuccess(false), 3000);
+      }
+    } catch {
+      // silent
+    } finally {
+      setNotifSending(false);
+    }
+  };
+
+  const planKey = user.isActive ? user.subscriptionPlan : "expired";
+  const isExpired = !user.isActive;
+
+  return (
+    <div className="bg-card border border-primary/30 rounded-2xl overflow-hidden animate-fade-in-up">
+      {/* Header */}
+      <div className="bg-primary/8 px-4 sm:px-5 py-3.5 border-b border-primary/20 flex items-center justify-between">
+        <div className="min-w-0">
+          <h3 className="font-bold text-sm sm:text-base truncate">{user.email}</h3>
+          <p className="text-xs text-muted mt-0.5">Регистрация: {formatDateTime(user.createdAt)}</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-card-hover transition-colors shrink-0 ml-2"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="px-4 sm:px-5 py-4 space-y-4">
+        {/* Subscription Timer */}
+        <div className="bg-background border border-border/50 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-muted font-medium">Текущий тариф</span>
+            <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-semibold ${PLAN_COLORS[planKey] || PLAN_COLORS.trial}`}>
+              {PLAN_LABELS[planKey] || planKey}
+            </span>
+          </div>
+
+          <div className="flex items-baseline gap-2">
+            <div className={`text-xl sm:text-2xl font-bold tabular-nums ${isExpired ? "text-danger" : "text-foreground"}`}>
+              {timeLeft}
+            </div>
+          </div>
+
+          <p className="text-[11px] text-muted mt-1.5">
+            {isExpired ? "Подписка истекла" : `До: ${formatDateTime(user.subscriptionEnd)}`}
+          </p>
+
+          <div className="flex items-center gap-3 mt-2 text-xs text-muted">
+            <span>Рефералы: {user.referrals}</span>
+            <span>Оплат: {user.paidReferrals}</span>
+            {user.telegramLinked && (
+              <span className="text-telegram flex items-center gap-1">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.13l-1.97 9.28c-.15.67-.55.83-1.12.52l-3.08-2.27-1.49 1.43c-.16.16-.3.3-.62.3l.22-3.15 5.72-5.17c.25-.22-.05-.34-.39-.13L8.44 13.7l-3.02-.94c-.66-.21-.67-.66.14-.97l11.8-4.55c.55-.2 1.03.13.85.97l-.27-.08z"/></svg>
+                Привязан
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Grant Subscription */}
+        <div className="bg-background border border-border/50 rounded-xl p-4">
+          <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+            </svg>
+            Выдать подписку
+          </h4>
+
+          {/* Plan selector */}
+          <div className="flex gap-2 mb-3">
+            {(["basic", "plus"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setGrantPlan(p)}
+                className={`flex-1 h-10 rounded-xl text-sm font-medium transition-all border ${
+                  grantPlan === p
+                    ? p === "plus"
+                      ? "bg-purple-500/15 border-purple-500/40 text-purple-400"
+                      : "bg-primary/15 border-primary/40 text-primary"
+                    : "bg-card border-border hover:bg-card-hover"
+                }`}
+              >
+                {p === "plus" ? "Plus" : "Basic"}
+              </button>
+            ))}
+          </div>
+
+          {/* Duration selector */}
+          <div className="flex gap-1.5 flex-wrap mb-3">
+            {DURATION_OPTIONS.map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => setGrantDuration(opt.key)}
+                className={`h-8 px-2.5 rounded-lg text-xs font-medium transition-all border ${
+                  grantDuration === opt.key
+                    ? "bg-foreground text-background border-foreground"
+                    : "bg-card border-border hover:bg-card-hover"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={handleGrant}
+            disabled={granting}
+            className="w-full h-11 rounded-xl font-semibold text-sm transition-all btn-press flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-hover disabled:opacity-40"
+          >
+            {granting ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Выдаю...
+              </>
+            ) : grantSuccess ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Подписка выдана!
+              </>
+            ) : (
+              `Выдать ${grantPlan === "plus" ? "Plus" : "Basic"} на ${DURATION_OPTIONS.find((o) => o.key === grantDuration)?.label}`
+            )}
+          </button>
+        </div>
+
+        {/* Personal Notification */}
+        <form onSubmit={handleSendNotif} className="bg-background border border-border/50 rounded-xl p-4 space-y-3">
+          <h4 className="text-sm font-semibold flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 01-3.46 0" />
+            </svg>
+            Персональное уведомление
+          </h4>
+
+          <input
+            type="text"
+            placeholder="Заголовок"
+            value={notifTitle}
+            onChange={(e) => setNotifTitle(e.target.value)}
+            className="w-full h-10 px-3 rounded-lg bg-card border border-border text-foreground placeholder-muted focus:outline-none focus:border-primary transition-colors text-sm"
+            required
+          />
+
+          <textarea
+            placeholder="Сообщение"
+            value={notifMessage}
+            onChange={(e) => setNotifMessage(e.target.value)}
+            rows={2}
+            className="w-full px-3 py-2.5 rounded-lg bg-card border border-border text-foreground placeholder-muted focus:outline-none focus:border-primary transition-colors text-sm resize-none"
+            required
+          />
+
+          <button
+            type="submit"
+            disabled={notifSending}
+            className="w-full h-10 rounded-xl font-semibold text-sm transition-all btn-press flex items-center justify-center gap-2 border border-border hover:bg-card-hover disabled:opacity-40"
+          >
+            {notifSending ? (
+              <>
+                <LoadingSpinner size="sm" />
+                Отправка...
+              </>
+            ) : notifSuccess ? (
+              <>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Отправлено!
+              </>
+            ) : (
+              "Отправить уведомление"
+            )}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// ─── Stat Card ─────────────────────────────────────────────────
 
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   const colorMap: Record<string, string> = {

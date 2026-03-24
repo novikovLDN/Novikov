@@ -9,7 +9,7 @@ export async function GET() {
   }
 
   const result = await pool.query(
-    `SELECT id, email, created_at, subscription_end, telegram_linked, referrals, paid_referrals
+    `SELECT id, email, created_at, subscription_end, subscription_plan, telegram_linked, referrals, paid_referrals
      FROM users ORDER BY created_at DESC`
   );
 
@@ -18,6 +18,7 @@ export async function GET() {
     email: row.email,
     createdAt: new Date(row.created_at).toISOString(),
     subscriptionEnd: new Date(row.subscription_end).toISOString(),
+    subscriptionPlan: row.subscription_plan || "trial",
     telegramLinked: row.telegram_linked,
     referrals: row.referrals,
     paidReferrals: row.paid_referrals,

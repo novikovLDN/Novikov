@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPaymentByTransactionId, updatePaymentStatus, extendSubscription, creditReferrerOnPayment } from "@/lib/store";
+import { getPaymentByTransactionId, updatePaymentStatus, extendSubscription, creditReferrerOnPayment, updateUser } from "@/lib/store";
 import { PaymentStatus } from "@/lib/platega";
 
 // Period in months → days
@@ -38,9 +38,10 @@ export async function POST(request: NextRequest) {
       // Mark payment as confirmed
       await updatePaymentStatus(payment.id, "confirmed", new Date());
 
-      // Extend subscription
+      // Extend subscription and set plan
       const days = PERIOD_DAYS[payment.period] || 30;
       await extendSubscription(payment.userId, days);
+      await updateUser(payment.userId, { subscriptionPlan: payment.plan });
 
       // Credit referrer if this is the user's first payment
       await creditReferrerOnPayment(payment.userId);

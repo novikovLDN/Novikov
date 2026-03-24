@@ -46,7 +46,8 @@ export async function initDb(): Promise<void> {
       referral_code TEXT UNIQUE NOT NULL,
       referred_by TEXT,
       referrals INTEGER NOT NULL DEFAULT 0,
-      paid_referrals INTEGER NOT NULL DEFAULT 0
+      paid_referrals INTEGER NOT NULL DEFAULT 0,
+      subscription_plan TEXT NOT NULL DEFAULT 'trial'
     );
 
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -100,6 +101,7 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS device_fingerprint TEXT",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS sub_token TEXT UNIQUE",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS sub_id TEXT UNIQUE",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_plan TEXT NOT NULL DEFAULT 'trial'",
   ];
 
   for (const sql of migrations) {
