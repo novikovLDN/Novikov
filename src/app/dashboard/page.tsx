@@ -147,10 +147,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ═══ VPN Key ═══ */}
+        {/* ═══ Key ═══ */}
         <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-1">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm sm:text-base">Ваш VPN-ключ</h3>
+            <h3 className="font-semibold text-sm sm:text-base">Ваш ключ доступа</h3>
             <span className="text-[10px] sm:text-xs bg-primary-light text-primary px-2 py-0.5 rounded-full font-medium">
               VLESS
             </span>
@@ -164,7 +164,7 @@ export default function Dashboard() {
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <p className="text-danger font-semibold text-sm sm:text-base mb-1">Подписка истекла</p>
-              <p className="text-muted text-xs sm:text-sm">VPN-ключ деактивирован. Продлите подписку для восстановления доступа.</p>
+              <p className="text-muted text-xs sm:text-sm">Ключ деактивирован. Продлите подписку для восстановления доступа.</p>
             </div>
           ) : (
             <>
@@ -234,7 +234,7 @@ export default function Dashboard() {
 
               <h3 className="text-base sm:text-lg font-bold text-center mb-2">Обновить ключ?</h3>
               <p className="text-muted text-xs sm:text-sm text-center mb-6 leading-relaxed">
-                Это приведёт к деактивации текущего ключа и созданию нового. Вам нужно будет заново настроить VPN на всех устройствах.
+                Это приведёт к деактивации текущего ключа и созданию нового. Вам нужно будет заново настроить подключение на всех устройствах.
               </p>
 
               {regenError && (

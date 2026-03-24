@@ -250,7 +250,7 @@ const platformInstructions: Record<string, {
     downloadLabel: "Скачать на Android",
     steps: [
       "Скачайте и установите V2rayNG из Google Play",
-      "Скопируйте ваш VPN-ключ, нажав кнопку ниже",
+      "Скопируйте ваш ключ, нажав кнопку ниже",
       "Откройте V2rayNG → нажмите «+» → «Импорт из буфера»",
       "Нажмите кнопку подключения (▶) в нижней части экрана",
     ],
@@ -263,9 +263,9 @@ const platformInstructions: Record<string, {
     downloadLabel: "Скачать на iPhone",
     steps: [
       "Скачайте и установите Streisand из App Store",
-      "Скопируйте ваш VPN-ключ, нажав кнопку ниже",
+      "Скопируйте ваш ключ, нажав кнопку ниже",
       "Откройте Streisand → нажмите «+» → «Добавить из буфера»",
-      "Включите VPN-подключение переключателем",
+      "Включите подключение переключателем",
     ],
   },
   windows: {
@@ -276,7 +276,7 @@ const platformInstructions: Record<string, {
     downloadLabel: "Скачать на Windows",
     steps: [
       "Скачайте и установите Hiddify с официального сайта",
-      "Скопируйте ваш VPN-ключ, нажав кнопку ниже",
+      "Скопируйте ваш ключ, нажав кнопку ниже",
       "Откройте Hiddify → «Новый профиль» → «Добавить из буфера»",
       "Нажмите кнопку подключения",
     ],
@@ -289,7 +289,7 @@ const platformInstructions: Record<string, {
     downloadLabel: "Скачать на macOS",
     steps: [
       "Скачайте и установите Hiddify с официального сайта",
-      "Скопируйте ваш VPN-ключ, нажав кнопку ниже",
+      "Скопируйте ваш ключ, нажав кнопку ниже",
       "Откройте Hiddify → «Новый профиль» → «Добавить из буфера»",
       "Нажмите кнопку подключения",
     ],
@@ -302,7 +302,7 @@ const platformInstructions: Record<string, {
     downloadLabel: "Скачать на Android TV",
     steps: [
       "Установите V2rayNG на TV из Google Play",
-      "На телефоне скопируйте VPN-ключ",
+      "На телефоне скопируйте ключ",
       "Откройте V2rayNG на TV → добавьте подключение вручную или через QR-код",
       "Запустите подключение на TV",
     ],
@@ -378,7 +378,7 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
                   <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                 </svg>
-                Скопировать VPN-ключ
+                Скопировать ключ
               </>
             )}
           </button>

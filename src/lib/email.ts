@@ -56,7 +56,7 @@ export async function sendVerificationEmail(
           </tr>
           <tr>
             <td style="text-align:center;border-top:1px solid #eeeeee;padding-top:16px;color:#aaaaaa;font-size:12px;">
-              Atlas Secure VPN
+              Atlas Secure
             </td>
           </tr>
         </table>

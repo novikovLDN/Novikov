@@ -15,7 +15,7 @@ export default function Footer() {
         Политика конфиденциальности
       </Link>
       <p className="text-[11px] sm:text-xs text-muted/50 mt-4">
-        Atlas Secure VPN Service
+        Atlas Secure Service
       </p>
     </footer>
   );

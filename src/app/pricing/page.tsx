@@ -34,7 +34,7 @@ const PLANS: Record<Plan, { name: string; features: { icon: string; text: string
       { icon: "⚡", text: "Приоритетная скорость для стримов и игр" },
       { icon: "🛡", text: "Обход любых блокировок включая белые списки" },
       { icon: "🌍", text: "Выделенные серверы в нескольких странах" },
-      { icon: "🔄", text: "Резервные каналы — VPN работает всегда" },
+      { icon: "🔄", text: "Резервные каналы — доступ работает всегда" },
     ],
   },
 };
@@ -187,7 +187,7 @@ function PricingContent() {
                 </div>
 
                 <p className="text-muted text-xs sm:text-sm mb-4 leading-relaxed">
-                  Всегда на связи — даже когда другие VPN не работают
+                  Всегда на связи — даже когда другие сервисы не работают
                 </p>
 
                 <div className="space-y-2">
@@ -388,7 +388,7 @@ function PricingContent() {
 
               <h1 className="text-2xl sm:text-3xl font-bold mb-3">Оплата прошла!</h1>
               <p className="text-muted text-sm sm:text-base max-w-xs leading-relaxed mb-8">
-                Подписка успешно продлена. Ваш VPN-ключ активен и готов к использованию.
+                Подписка успешно продлена. Ваш ключ активен и готов к использованию.
               </p>
 
               <button

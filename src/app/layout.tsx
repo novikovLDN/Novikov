@@ -2,18 +2,18 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Atlas Secure — Безопасный VPN",
+  title: "Atlas Secure — Безопасный доступ в интернет",
   description:
-    "Быстрый и надежный VPN-сервис. Безлимитный трафик, все устройства, простое подключение за 1 минуту. Тестовый период 3 дня бесплатно.",
-  keywords: ["VPN", "Atlas Secure", "безопасный VPN", "быстрый VPN", "VPN Россия"],
+    "Быстрый и надежный сервис защиты интернет-соединения. Безлимитный трафик, все устройства, простое подключение за 1 минуту. Тестовый период 3 дня бесплатно.",
+  keywords: ["Atlas Secure", "безопасный интернет", "защита соединения", "приватность"],
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
   openGraph: {
-    title: "Atlas Secure — Безопасный VPN",
-    description: "Быстрый и надежный VPN. 3 дня бесплатно.",
+    title: "Atlas Secure — Безопасный доступ в интернет",
+    description: "Быстрый и надежный сервис. 3 дня бесплатно.",
     type: "website",
   },
 };
