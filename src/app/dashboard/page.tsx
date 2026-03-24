@@ -187,9 +187,11 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              <div className="bg-background rounded-xl p-3 sm:p-3.5 mb-3 overflow-x-auto">
-                <p className="text-xs sm:text-sm text-muted font-mono break-all leading-relaxed select-all">
-                  {data.vpnKey}
+              <div className="bg-background rounded-xl p-3 sm:p-3.5 mb-3 overflow-x-auto select-none">
+                <p className="text-xs sm:text-sm text-muted font-mono break-all leading-relaxed">
+                  {data.vpnKey && data.vpnKey.length > 8
+                    ? `${data.vpnKey.slice(0, 4)}${"•".repeat(Math.min(data.vpnKey.length - 8, 20))}${data.vpnKey.slice(-4)}`
+                    : "••••••••"}
                 </p>
               </div>
 
