@@ -15,7 +15,7 @@ export default function FeatureCard({
 }: FeatureCardProps) {
   return (
     <div
-      className={`bg-card border border-border/50 rounded-2xl p-3.5 sm:p-4 flex items-center gap-3.5 sm:gap-4 transition-colors hover:bg-card-hover ${className}`}
+      className={`bg-card border border-border/50 rounded-2xl p-3.5 sm:p-4 flex items-center gap-3.5 sm:gap-4 transition-all duration-300 ease-out hover:bg-card-hover hover:scale-[1.02] hover:border-purple-500/30 hover:shadow-[0_0_20px_rgba(168,85,247,0.08)] ${className}`}
     >
       <div
         className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${iconBg} flex items-center justify-center shrink-0`}

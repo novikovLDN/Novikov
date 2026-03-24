@@ -56,37 +56,8 @@ export default function Header({ showBack, showMenu, onBack, transparent, onNoti
           ) : (
             <button
               onClick={() => router.push("/dashboard")}
-              className="flex items-center gap-3 btn-press"
+              className="btn-press"
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" className="sm:w-9 sm:h-9">
-                  <defs>
-                    <linearGradient id="shield-grad" x1="16" y1="2" x2="16" y2="30" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stopColor="#c084fc" />
-                      <stop offset="100%" stopColor="#7c3aed" />
-                    </linearGradient>
-                    <linearGradient id="check-grad" x1="10" y1="14" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stopColor="#e9d5ff" />
-                      <stop offset="100%" stopColor="#ffffff" />
-                    </linearGradient>
-                  </defs>
-                  {/* Shield */}
-                  <path
-                    d="M16 3L4 8v7c0 7.73 5.12 14.12 12 16 6.88-1.88 12-8.27 12-16V8L16 3z"
-                    fill="url(#shield-grad)"
-                    opacity="0.9"
-                  />
-                  {/* Checkmark */}
-                  <path
-                    d="M10.5 16l3.5 3.5 7-7"
-                    stroke="url(#check-grad)"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    fill="none"
-                  />
-                </svg>
-              </div>
               <span className="text-base sm:text-lg font-bold tracking-tight">Atlas Secure</span>
             </button>
           )}
