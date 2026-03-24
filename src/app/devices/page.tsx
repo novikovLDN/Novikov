@@ -233,7 +233,7 @@ export default function Devices() {
   );
 }
 
-// ─── Instruction Card ────────────────────────────────────────────
+// ─── Instruction Card with App Selection ─────────────────────────
 
 interface InstructionCardProps {
   platform: string;
@@ -242,109 +242,292 @@ interface InstructionCardProps {
   copiedKey: boolean;
 }
 
-interface PlatformInstruction {
+interface AppInstruction {
+  appId: string;
   appName: string;
   appDesc: string;
   storeLabel: string;
   downloadUrl: string;
   downloadLabel: string;
+  recommended?: boolean;
   steps: { text: string; copyKey?: boolean }[];
 }
 
-const platformInstructions: Record<string, PlatformInstruction> = {
-  android: {
-    appName: "V2rayNG",
-    appDesc: "Рекомендуемый клиент для Android",
-    storeLabel: "Google Play",
-    downloadUrl: "https://play.google.com/store/apps/details?id=com.v2ray.ang",
-    downloadLabel: "Скачать V2rayNG",
-    steps: [
-      { text: "Откройте Google Play на вашем Android-устройстве и найдите приложение «V2rayNG». Нажмите «Установить» и дождитесь завершения загрузки." },
-      { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
-      { text: "Откройте V2rayNG. На главном экране нажмите «+» в правом верхнем углу, затем выберите «Импорт конфигурации из буфера обмена». Подписка будет добавлена автоматически." },
-      { text: "На главном экране V2rayNG появится ваш сервер. Нажмите большую кнопку «▶» (Play) внизу экрана для подключения. Когда значок станет зелёным — VPN активен." },
-      { text: "Если Android запросит разрешение на VPN-подключение — нажмите «ОК». Готово! Теперь весь ваш трафик защищён." },
-    ],
-  },
-  ios: {
-    appName: "Streisand",
-    appDesc: "Рекомендуемый клиент для iPhone и iPad",
-    storeLabel: "App Store",
-    downloadUrl: "https://apps.apple.com/app/streisand/id6450534064",
-    downloadLabel: "Скачать Streisand",
-    steps: [
-      { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Streisand» и нажмите «Загрузить». Дождитесь установки." },
-      { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
-      { text: "Откройте Streisand. На главном экране нажмите «+» в правом верхнем углу, затем выберите «Добавить из буфера обмена». Конфигурация импортируется автоматически." },
-      { text: "Вернитесь на главный экран Streisand. Включите переключатель напротив добавленного сервера. При первом подключении iOS попросит разрешить VPN-конфигурацию — нажмите «Разрешить»." },
-      { text: "Когда в верхней части экрана появится значок VPN — подключение активно. Весь трафик теперь защищён." },
-    ],
-  },
-  windows: {
-    appName: "Hiddify",
-    appDesc: "Рекомендуемый клиент для Windows",
-    storeLabel: "Скачать",
-    downloadUrl: "https://github.com/hiddify/hiddify-app/releases/latest",
-    downloadLabel: "Скачать Hiddify",
-    steps: [
-      { text: "Перейдите на страницу загрузки и скачайте установочный файл Hiddify для Windows (.exe). Запустите установщик и следуйте инструкциям на экране." },
-      { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
-      { text: "Откройте Hiddify. На главном экране нажмите «Новый профиль», затем выберите «Добавить профиль из буфера обмена». Приложение автоматически распознает конфигурацию." },
-      { text: "На главном экране Hiddify нажмите большую кнопку подключения по центру. Дождитесь, пока статус изменится на «Подключено»." },
-      { text: "Если Windows Firewall запросит разрешение — нажмите «Разрешить доступ». Готово! VPN-соединение установлено." },
-    ],
-  },
-  macos: {
-    appName: "Hiddify",
-    appDesc: "Рекомендуемый клиент для macOS",
-    storeLabel: "Скачать",
-    downloadUrl: "https://github.com/hiddify/hiddify-app/releases/latest",
-    downloadLabel: "Скачать Hiddify",
-    steps: [
-      { text: "Перейдите на страницу загрузки и скачайте Hiddify для macOS (.dmg). Откройте файл и перетащите Hiddify в папку «Программы»." },
-      { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
-      { text: "Откройте Hiddify из «Программ». На главном экране нажмите «Новый профиль» → «Добавить профиль из буфера обмена». Конфигурация будет импортирована." },
-      { text: "Нажмите кнопку подключения на главном экране Hiddify. При первом запуске macOS попросит разрешить VPN-конфигурацию — введите пароль и нажмите «Разрешить»." },
-      { text: "Когда в строке меню появится значок VPN — подключение активно. Весь трафик теперь защищён." },
-    ],
-  },
-  tv: {
-    appName: "V2rayNG",
-    appDesc: "Для Android TV и Google TV",
-    storeLabel: "Google Play TV",
-    downloadUrl: "https://play.google.com/store/apps/details?id=com.v2ray.ang",
-    downloadLabel: "Скачать V2rayNG",
-    steps: [
-      { text: "На вашем Android TV или Google TV откройте Google Play Store. Найдите и установите приложение «V2rayNG»." },
-      { text: "На телефоне или компьютере скопируйте вашу ссылку подписки.", copyKey: true },
-      { text: "Откройте V2rayNG на TV. Добавьте подключение вручную, введя данные конфигурации, или используйте QR-код: на телефоне откройте ссылку подписки и покажите QR-код экрану TV." },
-      { text: "Выберите добавленный сервер и нажмите кнопку подключения. Разрешите VPN-подключение, если система запросит." },
-      { text: "Когда статус изменится на «Подключено» — VPN активен на вашем телевизоре." },
-    ],
-  },
+const platformApps: Record<string, AppInstruction[]> = {
+  android: [
+    {
+      appId: "hiddify",
+      appName: "Hiddify",
+      appDesc: "Универсальный клиент для Android",
+      storeLabel: "Google Play",
+      downloadUrl: "https://play.google.com/store/apps/details?id=app.hiddify.com",
+      downloadLabel: "Скачать Hiddify",
+      recommended: true,
+      steps: [
+        { text: "Откройте Google Play на вашем Android-устройстве и найдите приложение «Hiddify». Нажмите «Установить» и дождитесь завершения загрузки." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Hiddify. На главном экране нажмите «Новый профиль», затем выберите «Добавить профиль из буфера обмена». Приложение автоматически распознает конфигурацию и добавит сервер." },
+        { text: "На главном экране Hiddify нажмите большую круглую кнопку подключения по центру. Дождитесь, пока статус изменится на «Подключено», а кнопка станет зелёной." },
+        { text: "Если Android запросит разрешение на VPN-подключение — нажмите «ОК». Готово! Теперь весь ваш трафик защищён." },
+      ],
+    },
+    {
+      appId: "v2rayng",
+      appName: "V2rayNG",
+      appDesc: "Лёгкий клиент для Android",
+      storeLabel: "Google Play",
+      downloadUrl: "https://play.google.com/store/apps/details?id=com.v2ray.ang",
+      downloadLabel: "Скачать V2rayNG",
+      steps: [
+        { text: "Откройте Google Play на вашем Android-устройстве и найдите приложение «V2rayNG». Нажмите «Установить» и дождитесь завершения загрузки." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте V2rayNG. На главном экране нажмите «+» в правом верхнем углу, затем выберите «Импорт конфигурации из буфера обмена». Подписка будет добавлена автоматически." },
+        { text: "На главном экране V2rayNG появится ваш сервер. Нажмите большую кнопку «▶» (Play) внизу экрана для подключения. Когда значок станет зелёным — VPN активен." },
+        { text: "Если Android запросит разрешение на VPN-подключение — нажмите «ОК». Готово! Теперь весь ваш трафик защищён." },
+      ],
+    },
+    {
+      appId: "v2raytun",
+      appName: "V2RayTun",
+      appDesc: "Простой клиент для Android",
+      storeLabel: "Google Play",
+      downloadUrl: "https://play.google.com/store/apps/details?id=com.v2raytun.android",
+      downloadLabel: "Скачать V2RayTun",
+      steps: [
+        { text: "Откройте Google Play на вашем Android-устройстве и найдите приложение «V2RayTun». Нажмите «Установить» и дождитесь завершения загрузки." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте V2RayTun. На главном экране нажмите значок «+» или «Импорт» в верхней панели, затем выберите «Импорт из буфера обмена». Конфигурация сервера будет добавлена автоматически." },
+        { text: "Выберите добавленный сервер из списка, нажав на него. Затем нажмите кнопку подключения внизу экрана. Дождитесь статуса «Подключено»." },
+        { text: "Если Android запросит разрешение на VPN-подключение — нажмите «ОК». Готово! VPN-соединение установлено." },
+      ],
+    },
+  ],
+  ios: [
+    {
+      appId: "streisand",
+      appName: "Streisand",
+      appDesc: "Рекомендуемый клиент для iPhone и iPad",
+      storeLabel: "App Store",
+      downloadUrl: "https://apps.apple.com/app/streisand/id6450534064",
+      downloadLabel: "Скачать Streisand",
+      recommended: true,
+      steps: [
+        { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Streisand» и нажмите «Загрузить». Дождитесь установки." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Streisand. На главном экране нажмите «+» в правом верхнем углу, затем выберите «Добавить из буфера обмена». Конфигурация импортируется автоматически." },
+        { text: "Вернитесь на главный экран Streisand. Включите переключатель напротив добавленного сервера. При первом подключении iOS попросит разрешить VPN-конфигурацию — нажмите «Разрешить»." },
+        { text: "Когда в верхней части экрана появится значок VPN — подключение активно. Весь трафик теперь защищён." },
+      ],
+    },
+    {
+      appId: "hiddify",
+      appName: "Hiddify",
+      appDesc: "Универсальный клиент для iOS",
+      storeLabel: "App Store",
+      downloadUrl: "https://apps.apple.com/app/hiddify-proxy-vpn/id6596777532",
+      downloadLabel: "Скачать Hiddify",
+      steps: [
+        { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Hiddify» и нажмите «Загрузить». Дождитесь установки." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Hiddify. На главном экране нажмите «Новый профиль», затем выберите «Добавить профиль из буфера обмена». Приложение автоматически распознает конфигурацию." },
+        { text: "На главном экране Hiddify нажмите большую кнопку подключения по центру. При первом подключении iOS попросит разрешить VPN-конфигурацию — нажмите «Разрешить»." },
+        { text: "Когда кнопка станет зелёной и в верхней части экрана появится значок VPN — подключение активно. Весь трафик защищён." },
+      ],
+    },
+    {
+      appId: "v2raytun",
+      appName: "V2RayTun",
+      appDesc: "Простой клиент для iOS",
+      storeLabel: "App Store",
+      downloadUrl: "https://apps.apple.com/app/v2raytun/id6476628951",
+      downloadLabel: "Скачать V2RayTun",
+      steps: [
+        { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «V2RayTun» и нажмите «Загрузить». Дождитесь установки." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте V2RayTun. На главном экране нажмите «+» или «Импорт», затем выберите «Импорт из буфера обмена». Конфигурация сервера будет добавлена автоматически." },
+        { text: "Выберите добавленный сервер в списке и нажмите кнопку подключения. При первом подключении iOS попросит разрешить VPN-конфигурацию — нажмите «Разрешить»." },
+        { text: "Когда в верхней части экрана появится значок VPN — подключение активно. Весь трафик теперь защищён." },
+      ],
+    },
+  ],
+  windows: [
+    {
+      appId: "hiddify",
+      appName: "Hiddify",
+      appDesc: "Рекомендуемый клиент для Windows",
+      storeLabel: "Скачать",
+      downloadUrl: "https://github.com/hiddify/hiddify-app/releases/latest",
+      downloadLabel: "Скачать Hiddify",
+      recommended: true,
+      steps: [
+        { text: "Перейдите на страницу загрузки и скачайте установочный файл Hiddify для Windows (файл с расширением .exe или Setup). Запустите установщик и следуйте инструкциям на экране." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Hiddify. На главном экране нажмите «Новый профиль», затем выберите «Добавить профиль из буфера обмена». Приложение автоматически распознает конфигурацию и добавит сервер." },
+        { text: "На главном экране Hiddify нажмите большую кнопку подключения по центру. Дождитесь, пока статус изменится на «Подключено»." },
+        { text: "Если Windows Firewall запросит разрешение — нажмите «Разрешить доступ». Готово! VPN-соединение установлено." },
+      ],
+    },
+    {
+      appId: "v2rayn",
+      appName: "V2rayN",
+      appDesc: "Продвинутый клиент для Windows",
+      storeLabel: "GitHub",
+      downloadUrl: "https://github.com/2dust/v2rayN/releases/latest",
+      downloadLabel: "Скачать V2rayN",
+      steps: [
+        { text: "Перейдите на страницу загрузки и скачайте архив V2rayN для Windows (файл v2rayN-windows-64.zip). Распакуйте архив в удобную папку, например C:\\V2rayN." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Запустите v2rayN.exe из распакованной папки. Программа появится в системном трее (область уведомлений). Кликните правой кнопкой мыши по иконке в трее → «Импорт из буфера обмена». Сервер будет добавлен автоматически." },
+        { text: "Дважды кликните по иконке V2rayN в трее, чтобы открыть главное окно. Выберите добавленный сервер, кликнув по нему. Затем нажмите «Enter» или кнопку подключения. Иконка в трее изменит цвет — VPN активен." },
+        { text: "Если Windows Firewall запросит разрешение — нажмите «Разрешить доступ». При необходимости включите режим «System Proxy» через правый клик по иконке в трее." },
+      ],
+    },
+    {
+      appId: "streisand",
+      appName: "Streisand",
+      appDesc: "Кроссплатформенный клиент",
+      storeLabel: "Скачать",
+      downloadUrl: "https://github.com/nickspaargaren/streisand/releases/latest",
+      downloadLabel: "Скачать Streisand",
+      steps: [
+        { text: "Перейдите на страницу загрузки и скачайте установочный файл Streisand для Windows. Запустите установщик и следуйте инструкциям на экране." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Streisand. На главном экране нажмите «+» в правом верхнем углу, затем выберите «Добавить из буфера обмена». Конфигурация сервера будет импортирована автоматически." },
+        { text: "Выберите добавленный сервер и нажмите кнопку подключения. Дождитесь, пока статус изменится на «Подключено»." },
+        { text: "Если Windows Firewall запросит разрешение — нажмите «Разрешить доступ». Готово! VPN-соединение установлено." },
+      ],
+    },
+  ],
+  macos: [
+    {
+      appId: "hiddify",
+      appName: "Hiddify",
+      appDesc: "Рекомендуемый клиент для macOS",
+      storeLabel: "Скачать",
+      downloadUrl: "https://github.com/hiddify/hiddify-app/releases/latest",
+      downloadLabel: "Скачать Hiddify",
+      recommended: true,
+      steps: [
+        { text: "Перейдите на страницу загрузки и скачайте Hiddify для macOS (файл .dmg). Откройте скачанный файл и перетащите Hiddify в папку «Программы» (Applications)." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Hiddify из «Программ» (Finder → Программы → Hiddify). При первом запуске macOS может потребовать подтверждение — нажмите «Открыть». На главном экране нажмите «Новый профиль» → «Добавить профиль из буфера обмена»." },
+        { text: "Нажмите кнопку подключения на главном экране Hiddify. При первом запуске macOS попросит разрешить VPN-конфигурацию — введите пароль от Mac и нажмите «Разрешить»." },
+        { text: "Когда в строке меню (вверху экрана) появится значок VPN — подключение активно. Весь трафик теперь защищён." },
+      ],
+    },
+    {
+      appId: "v2rayn",
+      appName: "V2rayN",
+      appDesc: "Продвинутый клиент для macOS",
+      storeLabel: "GitHub",
+      downloadUrl: "https://github.com/2dust/v2rayN/releases/latest",
+      downloadLabel: "Скачать V2rayN",
+      steps: [
+        { text: "Перейдите на страницу загрузки и скачайте V2rayN для macOS (файл .dmg). Откройте скачанный файл и перетащите V2rayN в папку «Программы»." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте V2rayN из «Программ». При первом запуске macOS может потребовать подтверждение — нажмите «Открыть». Кликните по иконке V2rayN в строке меню → «Импорт из буфера обмена». Сервер добавится автоматически." },
+        { text: "Кликните по иконке V2rayN в строке меню, выберите добавленный сервер и нажмите «Подключиться». При первом подключении macOS попросит разрешить VPN — введите пароль от Mac." },
+        { text: "Когда иконка в строке меню изменит цвет — VPN активен. Весь трафик теперь защищён." },
+      ],
+    },
+    {
+      appId: "streisand",
+      appName: "Streisand",
+      appDesc: "Кроссплатформенный клиент",
+      storeLabel: "App Store",
+      downloadUrl: "https://apps.apple.com/app/streisand/id6450534064",
+      downloadLabel: "Скачать Streisand",
+      steps: [
+        { text: "Откройте App Store на вашем Mac. Найдите приложение «Streisand» и нажмите «Загрузить». Дождитесь установки." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Streisand. На главном экране нажмите «+» в правом верхнем углу, затем выберите «Добавить из буфера обмена». Конфигурация сервера будет импортирована автоматически." },
+        { text: "Выберите добавленный сервер и включите переключатель подключения. При первом подключении macOS попросит разрешить VPN — введите пароль от Mac и нажмите «Разрешить»." },
+        { text: "Когда в строке меню появится значок VPN — подключение активно. Весь трафик теперь защищён." },
+      ],
+    },
+  ],
+  tv: [
+    {
+      appId: "hiddify",
+      appName: "Hiddify",
+      appDesc: "Рекомендуемый клиент для TV",
+      storeLabel: "Google Play TV",
+      downloadUrl: "https://play.google.com/store/apps/details?id=app.hiddify.com",
+      downloadLabel: "Скачать Hiddify",
+      recommended: true,
+      steps: [
+        { text: "На вашем Android TV или Google TV откройте Google Play Store. Найдите и установите приложение «Hiddify»." },
+        { text: "На телефоне или компьютере скопируйте вашу ссылку подписки.", copyKey: true },
+        { text: "Откройте Hiddify на TV. Выберите «Новый профиль» → «Добавить профиль вручную». Введите ссылку подписки с помощью экранной клавиатуры или используйте QR-код: на телефоне сформируйте QR-код из ссылки и покажите его экрану TV." },
+        { text: "Выберите добавленный сервер и нажмите кнопку подключения пультом. Разрешите VPN-подключение, если система запросит." },
+        { text: "Когда статус изменится на «Подключено» — VPN активен на вашем телевизоре." },
+      ],
+    },
+    {
+      appId: "v2rayng",
+      appName: "V2rayNG",
+      appDesc: "Лёгкий клиент для TV",
+      storeLabel: "Google Play TV",
+      downloadUrl: "https://play.google.com/store/apps/details?id=com.v2ray.ang",
+      downloadLabel: "Скачать V2rayNG",
+      steps: [
+        { text: "На вашем Android TV или Google TV откройте Google Play Store. Найдите и установите приложение «V2rayNG»." },
+        { text: "На телефоне или компьютере скопируйте вашу ссылку подписки.", copyKey: true },
+        { text: "Откройте V2rayNG на TV. Добавьте подключение вручную через «+» → введите данные конфигурации с помощью пульта, или используйте QR-код: на телефоне сформируйте QR-код из ссылки и покажите его экрану TV." },
+        { text: "Выберите добавленный сервер и нажмите кнопку подключения «▶». Разрешите VPN-подключение, если система запросит." },
+        { text: "Когда значок станет зелёным — VPN активен на вашем телевизоре." },
+      ],
+    },
+  ],
 };
 
 function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: InstructionCardProps) {
-  const info = platformInstructions[platform];
-  if (!info) return null;
+  const apps = platformApps[platform];
+  if (!apps || apps.length === 0) return null;
+
+  const [selectedAppId, setSelectedAppId] = useState(apps[0].appId);
+  const info = apps.find((a) => a.appId === selectedAppId) || apps[0];
 
   return (
     <div className="bg-card border border-primary/20 rounded-2xl overflow-hidden">
-      {/* Header */}
-      <div className="bg-primary/10 px-4 sm:px-5 py-3 sm:py-4 border-b border-primary/20">
+      {/* App Selector */}
+      <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3">
+        <p className="text-xs text-muted mb-2.5 font-medium">Выберите приложение:</p>
+        <div className="flex gap-2 flex-wrap">
+          {apps.map((app) => (
+            <button
+              key={app.appId}
+              onClick={() => setSelectedAppId(app.appId)}
+              className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-xl text-xs sm:text-sm font-medium transition-all btn-press border ${
+                selectedAppId === app.appId
+                  ? "bg-primary/15 border-primary/40 text-primary"
+                  : "bg-background border-border hover:bg-card-hover"
+              }`}
+            >
+              {app.appName}
+              {app.recommended && selectedAppId !== app.appId && (
+                <span className="ml-1.5 text-[10px] text-muted opacity-60">*</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* App Header */}
+      <div className="bg-primary/10 mx-4 sm:mx-5 rounded-xl px-4 py-3 mb-3 border border-primary/20">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-bold text-sm sm:text-base">{info.appName}</h3>
             <p className="text-xs sm:text-sm text-muted">{info.appDesc}</p>
           </div>
-          <span className="text-[10px] sm:text-xs bg-primary/20 text-primary px-2.5 py-1 rounded-full font-medium">
+          <span className="text-[10px] sm:text-xs bg-primary/20 text-primary px-2.5 py-1 rounded-full font-medium shrink-0 ml-2">
             {info.storeLabel}
           </span>
         </div>
       </div>
 
       {/* Step 1: Download */}
-      <div className="px-4 sm:px-5 pt-4 sm:pt-5 pb-3">
+      <div className="px-4 sm:px-5 pb-3">
         <div className="flex gap-3 items-start mb-3">
           <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/15 flex items-center justify-center shrink-0 mt-0.5">
             <span className="text-xs sm:text-sm font-bold text-primary">1</span>
