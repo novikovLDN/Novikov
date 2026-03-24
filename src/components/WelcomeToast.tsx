@@ -1,17 +1,42 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+const STORAGE_KEY = "atlas_welcome_dismissed";
+const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 interface WelcomeToastProps {
-  open: boolean;
-  onClose: () => void;
   telegramLinkToken?: string | null;
 }
 
-export default function WelcomeToast({ open, onClose, telegramLinkToken }: WelcomeToastProps) {
+export default function WelcomeToast({ telegramLinkToken }: WelcomeToastProps) {
   const router = useRouter();
+  const [visible, setVisible] = useState(false);
 
-  if (!open) return null;
+  useEffect(() => {
+    try {
+      const dismissed = localStorage.getItem(STORAGE_KEY);
+      if (dismissed) {
+        const elapsed = Date.now() - parseInt(dismissed, 10);
+        if (elapsed < COOLDOWN_MS) return;
+      }
+      setVisible(true);
+    } catch {
+      setVisible(true);
+    }
+  }, []);
+
+  const handleClose = () => {
+    setVisible(false);
+    try {
+      localStorage.setItem(STORAGE_KEY, Date.now().toString());
+    } catch {
+      // silent
+    }
+  };
+
+  if (!visible) return null;
 
   return (
     <div className="fixed top-16 right-3 sm:right-6 z-50 w-[calc(100%-1.5rem)] sm:w-auto sm:max-w-sm animate-fade-in-up">
@@ -33,7 +58,7 @@ export default function WelcomeToast({ open, onClose, telegramLinkToken }: Welco
             </p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="absolute top-3 right-3 w-7 h-7 rounded-full bg-card-hover flex items-center justify-center text-muted hover:text-foreground transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -57,7 +82,7 @@ export default function WelcomeToast({ open, onClose, telegramLinkToken }: Welco
             Открыть Telegram-бот
           </a>
           <button
-            onClick={() => { onClose(); router.push("/devices"); }}
+            onClick={() => { handleClose(); router.push("/devices"); }}
             className="h-10 sm:h-11 rounded-xl bg-foreground text-background font-medium text-sm hover:bg-foreground/90 transition-all btn-press flex items-center justify-center gap-2"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

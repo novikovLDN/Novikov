@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, useState, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PageContainer from "@/components/PageContainer";
@@ -12,16 +12,7 @@ import WelcomeToast from "@/components/WelcomeToast";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
-  return (
-    <Suspense>
-      <DashboardContent />
-    </Suspense>
-  );
-}
-
-function DashboardContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [data, setData] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedRef, setCopiedRef] = useState(false);
@@ -34,15 +25,6 @@ function DashboardContent() {
   const [showHelp, setShowHelp] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [showWelcome, setShowWelcome] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get("welcome") === "1") {
-      setShowWelcome(true);
-      // Clean up URL without reload
-      window.history.replaceState({}, "", "/dashboard");
-    }
-  }, [searchParams]);
 
   const fetchSubscription = useCallback(async () => {
     try {
@@ -538,7 +520,7 @@ function DashboardContent() {
 
       <HelpModal open={showHelp} onClose={() => setShowHelp(false)} />
       <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
-      <WelcomeToast open={showWelcome} onClose={() => setShowWelcome(false)} telegramLinkToken={data?.telegramLinkToken} />
+      <WelcomeToast telegramLinkToken={data?.telegramLinkToken} />
     </div>
   );
 }
