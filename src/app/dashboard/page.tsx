@@ -16,6 +16,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [copiedRef, setCopiedRef] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
+  const [copiedDirect, setCopiedDirect] = useState(false);
+  const [loadingDirect, setLoadingDirect] = useState(false);
   const [showRegenConfirm, setShowRegenConfirm] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [regenError, setRegenError] = useState("");
@@ -62,6 +64,24 @@ export default function Dashboard() {
       ta.select();
       document.execCommand("copy");
       document.body.removeChild(ta);
+    }
+  };
+
+  const handleCopyDirectLinks = async () => {
+    setLoadingDirect(true);
+    try {
+      const res = await fetch("/api/vpn/direct-links");
+      const result = await res.json();
+      if (result.success && result.data.uris?.length) {
+        const text = result.data.uris.join("\n");
+        await navigator.clipboard.writeText(text);
+        setCopiedDirect(true);
+        setTimeout(() => setCopiedDirect(false), 2500);
+      }
+    } catch {
+      // fallback
+    } finally {
+      setLoadingDirect(false);
     }
   };
 
@@ -240,6 +260,38 @@ export default function Dashboard() {
                       <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                     </svg>
                     Скопировать подписку
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={handleCopyDirectLinks}
+                disabled={loadingDirect}
+                className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 mt-2.5 ${
+                  copiedDirect
+                    ? "bg-success/20 text-success border border-success/30"
+                    : "border border-primary/30 text-primary hover:bg-primary/10"
+                }`}
+              >
+                {copiedDirect ? (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Скопировано!
+                  </>
+                ) : loadingDirect ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    Загрузка...
+                  </>
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+                      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+                    </svg>
+                    Скопировать прямые ссылки
                   </>
                 )}
               </button>
