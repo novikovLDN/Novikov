@@ -47,19 +47,22 @@ export async function GET(
     const uris = buildAllServerUris(user.xray_uuid);
 
     // VPN clients expect base64-encoded text with one URI per line
+    // Use \n line endings — some clients choke on \r\n
     const body = Buffer.from(uris.join("\n")).toString("base64");
 
-    return new NextResponse(body, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Content-Disposition": "inline",
-        "Subscription-Userinfo": buildUserinfo(user),
-        "Profile-Title": "Atlas Secure",
-        "Profile-Update-Interval": "12",
-      },
-    });
+    const headers: Record<string, string> = {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      "Content-Disposition": "inline",
+      "Subscription-Userinfo": buildUserinfo(user),
+      "Profile-Title": "base64:" + Buffer.from("Atlas Secure").toString("base64"),
+      "Profile-Update-Interval": "12",
+    };
+
+    // Support-URL for clients that show a support link
+    headers["Support-Url"] = "https://t.me/Atlas_SupportSecurity";
+
+    return new NextResponse(body, { status: 200, headers });
   } catch (error) {
     console.error("[SUB] Error:", error);
     return new NextResponse("Internal server error", { status: 500 });
@@ -70,5 +73,7 @@ export async function GET(
 function buildUserinfo(user: { subscription_end: string }): string {
   const end = new Date(user.subscription_end);
   const expireTimestamp = Math.floor(end.getTime() / 1000);
-  return `upload=0; download=0; total=0; expire=${expireTimestamp}`;
+  // total must be non-zero — V2Ray/Hiddify treat total=0 as "no quota" (blocked/401)
+  const totalBytes = 107374182400; // 100 GB placeholder
+  return `upload=0; download=0; total=${totalBytes}; expire=${expireTimestamp}`;
 }
