@@ -169,7 +169,7 @@ export function buildAllServerUris(uuid: string): string[] {
 
 // ─── Subscription URL ────────────────────────────────────────────
 
-const SUB_BASE_URL = process.env.SUB_BASE_URL || "https://atlassecure.uk/api/sub";
+const SUB_BASE_URL = process.env.SUB_BASE_URL || "https://qodev.dev/api/sub";
 
 /** Build subscription URL for a user */
 export function buildSubscriptionUrl(subToken: string, subId: string): string {
