@@ -304,13 +304,22 @@ export async function getUserByTelegramId(telegramId: string): Promise<UserRecor
 }
 
 export async function linkTelegramByToken(token: string, telegramId: string): Promise<UserRecord | null> {
-  // Check if this telegram_id is already linked to another account
-  const existingByTg = await getUserByTelegramId(telegramId);
-  if (existingByTg) return existingByTg; // Already linked
-
   const user = await getUserByTelegramLinkToken(token);
   if (!user) return null;
-  if (user.telegramLinked) return user; // Already linked
+  if (user.telegramLinked && user.telegramId === telegramId) return user; // Already linked to this account
+
+  // Check if this telegram_id is already linked to another account
+  const existingByTg = await getUserByTelegramId(telegramId);
+  if (existingByTg && existingByTg.id !== user.id) {
+    // If linked to a placeholder bot account (telegram_*@tg.*), unlink it first
+    if (existingByTg.email.startsWith("telegram_") && existingByTg.email.includes("@tg.")) {
+      await updateUser(existingByTg.id, { telegramId: null, telegramLinked: false });
+      console.log(`[LINK] Unlinked TG:${telegramId} from placeholder ${existingByTg.email} → linking to ${user.email}`);
+    } else {
+      // Already linked to a real account — don't override
+      return existingByTg;
+    }
+  }
 
   return updateUser(user.id, {
     telegramId,
