@@ -9,9 +9,16 @@ export async function GET() {
   }
 
   const result = await pool.query(
-    `SELECT id, email, created_at, subscription_end, subscription_plan, telegram_linked, referrals, paid_referrals
+    `SELECT id, email, created_at, subscription_end, subscription_plan, telegram_linked, referrals, paid_referrals, registration_ip
      FROM users ORDER BY created_at DESC`
   );
+
+  // Count accounts per IP
+  const ipCounts: Record<string, number> = {};
+  for (const row of result.rows) {
+    const ip = row.registration_ip || "unknown";
+    ipCounts[ip] = (ipCounts[ip] || 0) + 1;
+  }
 
   const users = result.rows.map((row) => ({
     id: row.id,
@@ -23,6 +30,8 @@ export async function GET() {
     referrals: row.referrals,
     paidReferrals: row.paid_referrals,
     isActive: new Date(row.subscription_end) > new Date(),
+    registrationIp: row.registration_ip || null,
+    accountsOnIp: ipCounts[row.registration_ip || "unknown"] || 1,
   }));
 
   const stats = {

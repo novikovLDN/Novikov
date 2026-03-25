@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById, updateUser, createNotificationForUser } from "@/lib/store";
-import { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl } from "@/lib/xray";
+import { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl, xrayRemoveUser } from "@/lib/xray";
 import { verifyAdmin } from "../../middleware";
 
 // Duration presets in minutes
@@ -84,6 +84,34 @@ export async function POST(request: NextRequest) {
       );
 
       return NextResponse.json({ success: true, data: { newEnd: newEnd.toISOString(), plan } });
+    }
+
+    if (action === "revoke-subscription") {
+      // Remove from Xray server
+      if (user.xrayUuid) {
+        try {
+          await xrayRemoveUser(user.xrayUuid);
+        } catch (err) {
+          console.error(`[ADMIN] Failed to remove user from Xray: ${user.xrayUuid}`, err);
+        }
+      }
+
+      // Set subscription to now (expired), clear VPN key, reset plan
+      await updateUser(userId, {
+        subscriptionEnd: new Date().toISOString(),
+        subscriptionPlan: "trial",
+        xrayUuid: null,
+        vpnKey: null,
+      });
+
+      await createNotificationForUser(
+        userId,
+        "Подписка деактивирована",
+        "Ваша подписка была деактивирована администратором. VPN-ключ удалён."
+      );
+
+      console.log(`[ADMIN] Revoked subscription for ${user.email}`);
+      return NextResponse.json({ success: true });
     }
 
     if (action === "send-notification") {

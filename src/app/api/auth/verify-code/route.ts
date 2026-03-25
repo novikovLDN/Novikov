@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCode, getOrCreateUser, createNotificationForUser } from "@/lib/store";
 import { xrayAddUser } from "@/lib/xray";
+import { isDisposableEmail } from "@/lib/disposable-emails";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +10,13 @@ export async function POST(request: NextRequest) {
     if (!email || !code) {
       return NextResponse.json(
         { success: false, error: "Email и код обязательны" },
+        { status: 400 }
+      );
+    }
+
+    if (isDisposableEmail(email)) {
+      return NextResponse.json(
+        { success: false, error: "Одноразовые email не поддерживаются." },
         { status: 400 }
       );
     }

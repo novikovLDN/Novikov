@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateCode, sendVerificationEmail } from "@/lib/email";
 import { saveCode } from "@/lib/store";
+import { isDisposableEmail } from "@/lib/disposable-emails";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +10,13 @@ export async function POST(request: NextRequest) {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
         { success: false, error: "Введите корректный email" },
+        { status: 400 }
+      );
+    }
+
+    if (isDisposableEmail(email)) {
+      return NextResponse.json(
+        { success: false, error: "Одноразовые email не поддерживаются. Используйте постоянный почтовый ящик." },
         { status: 400 }
       );
     }

@@ -13,6 +13,8 @@ interface UserInfo {
   subscriptionEnd: string;
   subscriptionPlan: string;
   telegramLinked: boolean;
+  registrationIp: string | null;
+  accountsOnIp: number;
   referrals: number;
   paidReferrals: number;
   isActive: boolean;
@@ -300,10 +302,16 @@ export default function AdminDashboard() {
                         {PLAN_LABELS[planKey] || planKey}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-muted">
+                    <div className="flex items-center gap-2 flex-wrap text-xs text-muted">
                       <span>До: {formatDate(u.subscriptionEnd)}</span>
                       <span>Реф: {u.referrals}</span>
                       {u.telegramLinked && <span className="text-telegram">TG</span>}
+                      {u.registrationIp && (
+                        <span className={u.accountsOnIp > 1 ? "text-warning" : ""}>
+                          IP: {u.registrationIp.length > 15 ? u.registrationIp.slice(0, 15) + "…" : u.registrationIp}
+                          {u.accountsOnIp > 1 && <b> ({u.accountsOnIp})</b>}
+                        </span>
+                      )}
                     </div>
                   </button>
                 );
@@ -429,6 +437,10 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
   const [granting, setGranting] = useState(false);
   const [grantSuccess, setGrantSuccess] = useState(false);
 
+  const [revoking, setRevoking] = useState(false);
+  const [revokeConfirm, setRevokeConfirm] = useState(false);
+  const [revokeSuccess, setRevokeSuccess] = useState(false);
+
   const [notifTitle, setNotifTitle] = useState("");
   const [notifMessage, setNotifMessage] = useState("");
   const [notifSending, setNotifSending] = useState(false);
@@ -480,6 +492,28 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
       // silent
     } finally {
       setGranting(false);
+    }
+  };
+
+  const handleRevoke = async () => {
+    setRevoking(true);
+    try {
+      const res = await fetch("/api/admin/users/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "revoke-subscription", userId: user.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRevokeSuccess(true);
+        setRevokeConfirm(false);
+        setTimeout(() => setRevokeSuccess(false), 3000);
+        onRefresh();
+      }
+    } catch {
+      // silent
+    } finally {
+      setRevoking(false);
     }
   };
 
@@ -549,7 +583,7 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
             {isExpired ? "Подписка истекла" : `До: ${formatDateTime(user.subscriptionEnd)}`}
           </p>
 
-          <div className="flex items-center gap-3 mt-2 text-xs text-muted">
+          <div className="flex items-center gap-2 flex-wrap mt-2 text-xs text-muted">
             <span>Рефералы: {user.referrals}</span>
             <span>Оплат: {user.paidReferrals}</span>
             {user.telegramLinked && (
@@ -559,6 +593,24 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
               </span>
             )}
           </div>
+
+          {/* IP Info */}
+          {user.registrationIp && (
+            <div className={`flex items-center gap-2 mt-2 text-xs px-2.5 py-1.5 rounded-lg ${
+              user.accountsOnIp > 2 ? "bg-danger/10 text-danger" : user.accountsOnIp > 1 ? "bg-warning/10 text-warning" : "bg-background text-muted"
+            }`}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+                <line x1="6" y1="6" x2="6.01" y2="6" />
+                <line x1="6" y1="18" x2="6.01" y2="18" />
+              </svg>
+              <span className="font-mono">{user.registrationIp}</span>
+              <span className="font-semibold">
+                {user.accountsOnIp > 1 ? `${user.accountsOnIp} акк.` : "1 акк."}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Grant Subscription */}
@@ -628,6 +680,55 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
             )}
           </button>
         </div>
+
+        {/* Revoke Subscription */}
+        {user.isActive && (
+          <div className="bg-background border border-danger/20 rounded-xl p-4">
+            <h4 className="text-sm font-semibold flex items-center gap-2 text-danger mb-3">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="15" y1="9" x2="9" y2="15" />
+                <line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
+              Отозвать подписку
+            </h4>
+
+            {!revokeConfirm ? (
+              <button
+                onClick={() => setRevokeConfirm(true)}
+                className="w-full h-10 rounded-xl font-medium text-sm transition-all btn-press flex items-center justify-center gap-2 border border-danger/30 text-danger hover:bg-danger/10"
+              >
+                Отозвать подписку и удалить ключ
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-muted">Подписка будет деактивирована, VPN-ключ удалён с сервера и у пользователя.</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setRevokeConfirm(false)}
+                    disabled={revoking}
+                    className="flex-1 h-10 rounded-xl font-medium text-sm border border-border hover:bg-card-hover transition-all btn-press disabled:opacity-40"
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    onClick={handleRevoke}
+                    disabled={revoking}
+                    className="flex-1 h-10 rounded-xl font-medium text-sm bg-danger text-white hover:bg-danger/90 transition-all btn-press disabled:opacity-40 flex items-center justify-center gap-2"
+                  >
+                    {revoking ? (
+                      <><LoadingSpinner size="sm" /> Удаляю...</>
+                    ) : revokeSuccess ? (
+                      "Подписка отозвана"
+                    ) : (
+                      "Подтвердить"
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Personal Notification */}
         <form onSubmit={handleSendNotif} className="bg-background border border-border/50 rounded-xl p-4 space-y-3">
