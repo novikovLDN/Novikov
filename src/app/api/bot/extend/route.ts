@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { botExtendSubscription, getUserByTelegramId, creditReferrerOnPayment } from "@/lib/store";
+import { botExtendSubscription, getUserByTelegramId, creditReferrerOnPayment, updateUser, createNotificationForUser } from "@/lib/store";
 import { xrayAddUser } from "@/lib/xray";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
 
@@ -35,8 +35,21 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Sync subscription plan
+    if (plan && ["basic", "plus"].includes(plan)) {
+      await updateUser(user.id, { subscriptionPlan: plan });
+    }
+
     // Credit referrer
     await creditReferrerOnPayment(user.id);
+
+    // Notify user on site about subscription change
+    const planLabel = plan === "plus" ? "Plus" : plan === "basic" ? "Basic" : "";
+    await createNotificationForUser(
+      user.id,
+      "Подписка обновлена",
+      `Подписка${planLabel ? ` ${planLabel}` : ""} продлена на ${days} дн. через Telegram.`
+    ).catch(() => {});
 
     const now = new Date();
     const end = new Date(user.subscriptionEnd);
@@ -52,6 +65,7 @@ export async function POST(request: NextRequest) {
         daysLeft,
         subscriptionEnd: user.subscriptionEnd,
         vpnKey: user.vpnKey,
+        subscriptionPlan: plan || user.subscriptionPlan,
       },
     });
   } catch {

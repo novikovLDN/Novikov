@@ -23,6 +23,8 @@ export default function Dashboard() {
   const [regenError, setRegenError] = useState("");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
+  const [unlinking, setUnlinking] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -101,6 +103,22 @@ export default function Dashboard() {
       setRegenError("Ошибка сервера. Попробуйте позже.");
     } finally {
       setRegenerating(false);
+    }
+  };
+
+  const handleUnlinkTelegram = async () => {
+    setUnlinking(true);
+    try {
+      const res = await fetch("/api/user/telegram-unlink", { method: "POST" });
+      const result = await res.json();
+      if (result.success) {
+        setData((prev) => prev ? { ...prev, telegramLinked: false, telegramLinkToken: result.data.telegramLinkToken } : prev);
+        setShowUnlinkConfirm(false);
+      }
+    } catch {
+      // silent
+    } finally {
+      setUnlinking(false);
     }
   };
 
@@ -483,11 +501,22 @@ export default function Dashboard() {
           </div>
 
           {data.telegramLinked ? (
-            <div className="flex items-center gap-2 bg-success-light rounded-xl px-4 py-3">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              <span className="text-sm text-success font-medium">Telegram привязан</span>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2 bg-success-light rounded-xl px-4 py-3">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span className="text-sm text-success font-medium">Telegram привязан</span>
+              </div>
+              <button
+                onClick={() => setShowUnlinkConfirm(true)}
+                className="w-full h-9 rounded-lg text-xs text-muted hover:text-danger hover:bg-danger/10 transition-all flex items-center justify-center gap-1.5"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+                Отвязать Telegram
+              </button>
             </div>
           ) : (
             <a
@@ -530,6 +559,54 @@ export default function Dashboard() {
           </svg>
           Выйти из аккаунта
         </button>
+
+        {/* ═══ Unlink Telegram Confirm Modal ═══ */}
+        {showUnlinkConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => !unlinking && setShowUnlinkConfirm(false)}>
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+            <div
+              className="relative bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-sm animate-scale-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-warning/15 flex items-center justify-center">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="#2AABEE">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+                  </svg>
+                </div>
+              </div>
+
+              <h3 className="text-base sm:text-lg font-bold text-center mb-2">Отвязать Telegram?</h3>
+              <p className="text-muted text-xs sm:text-sm text-center mb-6 leading-relaxed">
+                Telegram-аккаунт будет отвязан от вашего профиля. Синхронизация подписки с ботом прекратится. Вы сможете привязать его заново.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowUnlinkConfirm(false)}
+                  disabled={unlinking}
+                  className="flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base bg-card-hover border border-border text-foreground hover:bg-card-active transition-all btn-press disabled:opacity-40"
+                >
+                  Отмена
+                </button>
+                <button
+                  onClick={handleUnlinkTelegram}
+                  disabled={unlinking}
+                  className="flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base bg-warning text-black hover:bg-warning/90 transition-all btn-press disabled:opacity-40 flex items-center justify-center gap-2"
+                >
+                  {unlinking ? (
+                    <>
+                      <LoadingSpinner size="sm" />
+                      Отвязка...
+                    </>
+                  ) : (
+                    "Отвязать"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ═══ Logout Confirm Modal ═══ */}
         {showLogoutConfirm && (
