@@ -230,47 +230,13 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              <div className="bg-background rounded-xl p-3 sm:p-3.5 mb-3 overflow-x-auto select-none">
-                <p className="text-xs sm:text-sm text-muted font-mono break-all leading-relaxed">
-                  {data.vpnKey && data.vpnKey.length > 8
-                    ? `${data.vpnKey.slice(0, 4)}${"•".repeat(Math.min(data.vpnKey.length - 8, 20))}${data.vpnKey.slice(-4)}`
-                    : "••••••••"}
-                </p>
-              </div>
-
-              <button
-                onClick={() => data.vpnKey && copyToClipboard(data.vpnKey, "key")}
-                className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
-                  copiedKey
-                    ? "bg-success/20 text-success border border-success/30"
-                    : "bg-primary text-white hover:bg-primary-hover"
-                }`}
-              >
-                {copiedKey ? (
-                  <>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Скопировано!
-                  </>
-                ) : (
-                  <>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                    </svg>
-                    Скопировать подписку
-                  </>
-                )}
-              </button>
-
               <button
                 onClick={handleCopyDirectLinks}
                 disabled={loadingDirect}
-                className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 mt-2.5 ${
+                className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
                   copiedDirect
                     ? "bg-success/20 text-success border border-success/30"
-                    : "border border-primary/30 text-primary hover:bg-primary/10"
+                    : "bg-primary text-white hover:bg-primary-hover"
                 }`}
               >
                 {copiedDirect ? (
@@ -288,10 +254,10 @@ export default function Dashboard() {
                 ) : (
                   <>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-                      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                     </svg>
-                    Скопировать прямые ссылки
+                    Скопировать ключ
                   </>
                 )}
               </button>

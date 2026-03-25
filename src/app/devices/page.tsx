@@ -72,10 +72,11 @@ export default function Devices() {
 
   const fetchKey = useCallback(async () => {
     try {
-      const res = await fetch("/api/user/subscription");
+      // Fetch direct VLESS links (not subscription URL)
+      const res = await fetch("/api/vpn/direct-links");
       const result = await res.json();
-      if (result.success) {
-        setVpnKey(result.data.vpnKey);
+      if (result.success && result.data.uris?.length) {
+        setVpnKey(result.data.uris.join("\n"));
       }
     } catch {
       // silent
