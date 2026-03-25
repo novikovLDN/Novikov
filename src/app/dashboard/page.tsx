@@ -109,7 +109,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="min-h-dvh flex flex-col">
-        <Header showMenu onNotifications={() => setShowNotifications(true)} unreadCount={unreadCount} />
+        <Header showMenu onNotifications={() => setShowNotifications((prev) => !prev)} unreadCount={unreadCount} />
         <PageContainer className="flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <LoadingSpinner size="lg" className="text-primary" />
@@ -128,7 +128,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-dvh flex flex-col">
-      <Header showMenu onNotifications={() => setShowNotifications(true)} unreadCount={unreadCount} />
+      <Header showMenu onNotifications={() => setShowNotifications((prev) => !prev)} unreadCount={unreadCount} />
 
       <PageContainer className="space-y-3 sm:space-y-4">
         {/* ═══ Subscription Status ═══ */}
