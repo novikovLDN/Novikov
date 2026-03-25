@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
           subscriptionEnd: existing.subscriptionEnd,
           vpnKey: daysLeft > 0 ? existing.vpnKey : null,
           referralCode: existing.referralCode,
+          subscriptionPlan: daysLeft > 0 ? (existing.subscriptionPlan || "trial") : "expired",
         },
       });
     }
@@ -81,6 +82,7 @@ export async function POST(request: NextRequest) {
         vpnKey: user.vpnKey,
         referralCode: user.referralCode,
         telegramLinkToken: user.telegramLinkToken,
+        subscriptionPlan: user.subscriptionPlan || "trial",
       },
     });
   } catch (err) {
