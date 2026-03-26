@@ -18,6 +18,7 @@ export default function Dashboard() {
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedDirect, setCopiedDirect] = useState(false);
   const [loadingDirect, setLoadingDirect] = useState(false);
+  const [primaryKey, setPrimaryKey] = useState<string | null>(null);
   const [showRegenConfirm, setShowRegenConfirm] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const [regenError, setRegenError] = useState("");
@@ -32,6 +33,12 @@ export default function Dashboard() {
       const result = await res.json();
       if (result.success) {
         setData(result.data);
+        // Fetch primary VLESS key
+        if (!result.data.isExpired) {
+          fetch("/api/vpn/direct-links").then(r => r.json()).then(r => {
+            if (r.success && r.data?.key) setPrimaryKey(r.data.key);
+          }).catch(() => {});
+        }
       } else {
         router.push("/");
       }
@@ -67,20 +74,21 @@ export default function Dashboard() {
     }
   };
 
-  const handleCopyDirectLinks = async () => {
-    setLoadingDirect(true);
+  const handleCopyKey = async () => {
+    if (!primaryKey) return;
     try {
-      const res = await fetch("/api/vpn/direct-links");
-      const result = await res.json();
-      if (result.success && result.data.key) {
-        await navigator.clipboard.writeText(result.data.key);
-        setCopiedDirect(true);
-        setTimeout(() => setCopiedDirect(false), 2500);
-      }
+      await navigator.clipboard.writeText(primaryKey);
+      setCopiedDirect(true);
+      setTimeout(() => setCopiedDirect(false), 2500);
     } catch {
-      // fallback
-    } finally {
-      setLoadingDirect(false);
+      const ta = document.createElement("textarea");
+      ta.value = primaryKey;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopiedDirect(true);
+      setTimeout(() => setCopiedDirect(false), 2500);
     }
   };
 
@@ -229,9 +237,17 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
+              {primaryKey && (
+                <div className="bg-background rounded-xl p-3 sm:p-3.5 mb-3 overflow-x-auto select-none">
+                  <p className="text-xs sm:text-sm text-muted font-mono break-all leading-relaxed">
+                    {primaryKey.slice(0, 12)}{"•".repeat(20)}{primaryKey.slice(-8)}
+                  </p>
+                </div>
+              )}
+
               <button
-                onClick={handleCopyDirectLinks}
-                disabled={loadingDirect}
+                onClick={handleCopyKey}
+                disabled={!primaryKey}
                 className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
                   copiedDirect
                     ? "bg-success/20 text-success border border-success/30"
