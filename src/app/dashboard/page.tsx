@@ -72,9 +72,8 @@ export default function Dashboard() {
     try {
       const res = await fetch("/api/vpn/direct-links");
       const result = await res.json();
-      if (result.success && result.data.uris?.length) {
-        const text = result.data.uris.join("\n");
-        await navigator.clipboard.writeText(text);
+      if (result.success && result.data.key) {
+        await navigator.clipboard.writeText(result.data.key);
         setCopiedDirect(true);
         setTimeout(() => setCopiedDirect(false), 2500);
       }

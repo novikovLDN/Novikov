@@ -72,11 +72,11 @@ export default function Devices() {
 
   const fetchKey = useCallback(async () => {
     try {
-      // Fetch direct VLESS links (not subscription URL)
+      // Fetch primary VLESS key (Atlas Fast #2)
       const res = await fetch("/api/vpn/direct-links");
       const result = await res.json();
-      if (result.success && result.data.uris?.length) {
-        setVpnKey(result.data.uris.join("\n"));
+      if (result.success && result.data.key) {
+        setVpnKey(result.data.key);
       }
     } catch {
       // silent

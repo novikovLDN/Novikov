@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById } from "@/lib/store";
-import { buildAllServerUris } from "@/lib/xray";
+import { buildAllServerUris, SERVER_POOL } from "@/lib/xray";
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,11 +24,25 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Подписка истекла" }, { status: 403 });
     }
 
-    const uris = buildAllServerUris(user.xrayUuid);
+    // Build URI for the primary server (Atlas Fast #2)
+    const primaryServer = SERVER_POOL.find((s) => s.name.includes("Atlas Fast #2")) || SERVER_POOL[1] || SERVER_POOL[0];
+    const params = new URLSearchParams({
+      type: primaryServer.network,
+      security: primaryServer.security,
+      flow: primaryServer.flow,
+      fp: primaryServer.fingerprint,
+      sni: primaryServer.sni,
+      pbk: primaryServer.publicKey,
+      sid: primaryServer.shortId,
+    });
+    const primaryUri = `vless://${user.xrayUuid}@${primaryServer.ip}:${primaryServer.port}?${params.toString()}#${encodeURIComponent(primaryServer.name)}`;
+
+    // Also build all URIs for devices page
+    const allUris = buildAllServerUris(user.xrayUuid);
 
     return NextResponse.json({
       success: true,
-      data: { uris },
+      data: { key: primaryUri, uris: allUris },
     });
   } catch {
     return NextResponse.json({ success: false, error: "Ошибка сервера" }, { status: 500 });
