@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById, updateUser, createNotificationForUser } from "@/lib/store";
-import { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl, xrayRemoveUser } from "@/lib/xray";
+import { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl, xrayRemoveUser, xrayAddUser } from "@/lib/xray";
 import { verifyAdmin } from "../../middleware";
 
 // Duration presets in minutes
@@ -71,6 +71,12 @@ export async function POST(request: NextRequest) {
         updates.vpnKey = newKey;
         updates.subToken = newSubToken;
         updates.subId = subId;
+
+        // Add UUID to Xray server
+        const added = await xrayAddUser(newUuid);
+        if (!added) {
+          console.error(`[ADMIN] Failed to add UUID to Xray: ${newUuid} for ${user.email}`);
+        }
       }
 
       await updateUser(userId, updates);
