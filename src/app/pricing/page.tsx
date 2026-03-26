@@ -54,7 +54,7 @@ const PRICES: Record<Plan, PeriodOption[]> = {
   ],
 };
 
-type PageStep = "plans" | "periods" | "payment-stub" | "processing" | "success" | "failed" | "expired";
+type PageStep = "plans" | "periods" | "payment-methods" | "processing" | "success" | "failed" | "expired";
 
 export default function PricingPage() {
   return (
@@ -73,22 +73,18 @@ function PricingContent() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState<PageStep>("plans");
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [paymentId, setPaymentId] = useState<string | null>(null);
 
-  // Check for payment return from Platega
+  // Check for payment return from YooKassa
   useEffect(() => {
     const payment = searchParams.get("payment");
-    const status = searchParams.get("status");
-    if (payment && status) {
+    if (payment) {
       setPaymentId(payment);
-      if (status === "success") {
-        setStep("processing");
-        checkPaymentStatus(payment);
-      } else {
-        setStep("failed");
-      }
+      setStep("processing");
+      checkPaymentStatus(payment);
     }
   }, [searchParams]);
 
@@ -140,14 +136,42 @@ function PricingContent() {
     setError("");
   };
 
-  const handleSelectPeriod = async () => {
-    setStep("payment-stub");
+  const handleSelectPeriod = (opt: PeriodOption) => {
+    setSelectedPeriod(opt);
+    setStep("payment-methods");
+    setError("");
+  };
+
+  const handlePayYooKassa = async () => {
+    if (!selectedPlan || !selectedPeriod) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/payments/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: selectedPlan, period: selectedPeriod.months }),
+      });
+      const data = await res.json();
+      if (data.success && data.data.redirectUrl) {
+        setPaymentId(data.data.paymentId);
+        window.location.href = data.data.redirectUrl;
+      } else {
+        setError(data.error || "Не удалось создать платёж");
+      }
+    } catch {
+      setError("Ошибка соединения. Попробуйте позже.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-dvh flex flex-col">
       <Header showBack onBack={() => {
-        if (step === "periods") {
+        if (step === "payment-methods") {
+          setStep("periods");
+        } else if (step === "periods") {
           setStep("plans");
           setSelectedPlan(null);
         } else {
@@ -264,7 +288,7 @@ function PricingContent() {
               {PRICES[selectedPlan].map((opt, index) => (
                 <button
                   key={opt.months}
-                  onClick={() => handleSelectPeriod()}
+                  onClick={() => handleSelectPeriod(opt)}
                   disabled={loading}
                   className={`w-full text-left bg-card border rounded-2xl p-4 sm:p-5 transition-all hover:border-primary/50 active:scale-[0.98] btn-press disabled:opacity-50 disabled:cursor-not-allowed animate-fade-in-up ${
                     opt.months === 12
@@ -322,42 +346,85 @@ function PricingContent() {
           </div>
         )}
 
-        {/* ═══ Processing ═══ */}
-        {step === "payment-stub" && (
-          <div className="animate-fade-in-up pt-8 sm:pt-12">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 rounded-full bg-warning/15 flex items-center justify-center mb-6 animate-scale-in">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl font-bold mb-3">Платежи на доработке</h1>
-              <p className="text-muted text-sm sm:text-base max-w-xs leading-relaxed mb-8">
-                Пожалуйста, для оплаты подписки перейдите в наш Telegram-бот
+        {/* ═══ Payment Methods ═══ */}
+        {step === "payment-methods" && selectedPlan && selectedPeriod && (
+          <div className="animate-fade-in-up pt-2 sm:pt-4">
+            <div className="text-center mb-6 sm:mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Способ оплаты</h1>
+              <p className="text-muted text-sm sm:text-base">
+                Выберите удобный способ
               </p>
+            </div>
 
-              <div className="w-full max-w-xs space-y-3">
-                <a
-                  href="https://t.me/atlassecure_bot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full h-13 sm:h-14 rounded-2xl bg-telegram text-white font-semibold text-base sm:text-lg hover:bg-telegram-hover transition-all btn-press flex items-center justify-center gap-2.5"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
-                  </svg>
-                  Перейти в бот
-                </a>
-                <button
-                  onClick={() => router.push("/dashboard")}
-                  className="w-full h-13 sm:h-14 rounded-2xl bg-card border border-border text-foreground font-semibold text-sm sm:text-base hover:bg-card-hover transition-all btn-press"
-                >
-                  Вернуться в кабинет
-                </button>
+            {/* Order Summary */}
+            <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 mb-5 animate-fade-in-up">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
+                    selectedPlan === "plus" ? "bg-primary/15" : "bg-foreground/10"
+                  }`}>
+                    {selectedPlan === "plus" ? "👑" : "🔒"}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm sm:text-base">{PLANS[selectedPlan].name} — {selectedPeriod.label}</p>
+                    <p className="text-muted text-xs">{selectedPeriod.perMonth} ₽/мес</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-lg sm:text-xl">{selectedPeriod.price} ₽</p>
+                  {selectedPeriod.discount && (
+                    <span className="text-[10px] bg-success/15 text-success px-2 py-0.5 rounded-full font-semibold">
+                      {selectedPeriod.discount}
+                    </span>
+                  )}
+                </div>
               </div>
+            </div>
+
+            {/* Payment Methods */}
+            <div className="space-y-3">
+              {/* YooKassa — Card / SBP */}
+              <button
+                onClick={handlePayYooKassa}
+                disabled={loading}
+                className="w-full text-left bg-card border border-border/50 rounded-2xl p-4 sm:p-5 transition-all hover:border-primary/50 active:scale-[0.98] btn-press disabled:opacity-50 animate-fade-in-up"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-blue-500/15 to-green-500/15 flex items-center justify-center shrink-0">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-foreground">
+                      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                      <line x1="1" y1="10" x2="23" y2="10" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="font-semibold text-sm sm:text-base">Оплатить по карте или СБП</p>
+                    </div>
+                    <p className="text-muted text-xs sm:text-sm">Visa, Mastercard, МИР, СБП</p>
+                  </div>
+                  {loading ? (
+                    <LoadingSpinner size="sm" className="text-primary shrink-0" />
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted shrink-0">
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            </div>
+
+            {error && (
+              <div className="mt-4 bg-danger/10 border border-danger/20 rounded-xl p-3 animate-fade-in-up">
+                <p className="text-danger text-xs sm:text-sm text-center">{error}</p>
+              </div>
+            )}
+
+            <div className="mt-6 flex items-center gap-2 justify-center text-muted/50">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0110 0v4" />
+              </svg>
+              <p className="text-[10px] sm:text-xs">Безопасная оплата через защищённый платёжный шлюз</p>
             </div>
           </div>
         )}
