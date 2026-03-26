@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { getUserById, createPaymentRecord } from "@/lib/store";
-import { createPayment } from "@/lib/platega";
+import { createPayment } from "@/lib/yookassa";
 
-// Plan pricing configuration
+// Plan pricing configuration (RUB)
 const PLANS: Record<string, Record<number, number>> = {
   basic: { 1: 149, 3: 399, 6: 749, 12: 1399 },
   plus: { 1: 299, 3: 699, 6: 1199, 12: 2299 },
@@ -42,10 +42,9 @@ export async function POST(request: NextRequest) {
     const paymentId = uuidv4();
     const expiresAt = new Date(Date.now() + PAYMENT_LIFETIME_MS);
 
-    // Build URLs
+    // Build return URL — user comes back here after payment
     const origin = request.headers.get("origin") || request.headers.get("referer")?.replace(/\/[^/]*$/, "") || "";
-    const returnUrl = `${origin}/pricing?payment=${paymentId}&status=success`;
-    const failedUrl = `${origin}/pricing?payment=${paymentId}&status=failed`;
+    const returnUrl = `${origin}/pricing?payment=${paymentId}`;
 
     const planLabel = plan === "plus" ? "Plus" : "Basic";
     const description = `Atlas Secure ${planLabel} — ${period} мес.`;
@@ -58,13 +57,17 @@ export async function POST(request: NextRequest) {
         amount,
         description,
         returnUrl,
-        failedUrl,
-        payload: { paymentId, userId: user.id, plan, period },
+        metadata: {
+          paymentId,
+          userId: user.id,
+          plan,
+          period: String(period),
+        },
       });
       transactionId = result.transactionId;
       redirectUrl = result.redirect;
     } catch (err) {
-      console.error("[PAYMENTS] Platega create error:", err);
+      console.error("[PAYMENTS] YooKassa create error:", err);
       return NextResponse.json(
         { success: false, error: "Не удалось создать платёж. Попробуйте позже." },
         { status: 502 }

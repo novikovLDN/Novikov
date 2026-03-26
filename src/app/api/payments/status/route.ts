@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, getPaymentById, updatePaymentStatus, extendSubscription, creditReferrerOnPayment } from "@/lib/store";
-import { getTransactionStatus, PaymentStatus } from "@/lib/platega";
+import { getUserById, getPaymentById, updatePaymentStatus, extendSubscription, creditReferrerOnPayment, updateUser } from "@/lib/store";
+import { getPaymentStatus, PaymentStatus } from "@/lib/yookassa";
+import { xrayAddUser } from "@/lib/xray";
 
 const PERIOD_DAYS: Record<number, number> = {
   1: 30,
@@ -31,9 +32,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Платёж не найден" }, { status: 404 });
     }
 
-    // If still pending and has a transaction ID, check with Platega
+    // If still pending and has a transaction ID, check with YooKassa
     if (payment.status === "pending" && payment.transactionId) {
-      // Check if expired locally first
+      // Check if expired locally
       if (new Date() > new Date(payment.expiresAt)) {
         await updatePaymentStatus(payment.id, "expired");
         return NextResponse.json({
@@ -43,12 +44,25 @@ export async function GET(request: NextRequest) {
       }
 
       try {
-        const txStatus = await getTransactionStatus(payment.transactionId);
+        const ykPayment = await getPaymentStatus(payment.transactionId);
 
-        if (txStatus.status === PaymentStatus.CONFIRMED) {
+        if (ykPayment.status === PaymentStatus.SUCCEEDED) {
           await updatePaymentStatus(payment.id, "confirmed", new Date());
           const days = PERIOD_DAYS[payment.period] || 30;
           await extendSubscription(payment.userId, days);
+          await updateUser(payment.userId, { subscriptionPlan: payment.plan });
+
+          // Regenerate key if needed
+          if (!user.xrayUuid) {
+            const { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl } = await import("@/lib/xray");
+            const newUuid = generateXrayUuid();
+            const newSubToken = generateSubToken();
+            const subId = user.subId || generateSubId(user.email);
+            const newKey = buildSubscriptionUrl(newSubToken, subId);
+            await updateUser(user.id, { xrayUuid: newUuid, vpnKey: newKey, subToken: newSubToken, subId });
+            await xrayAddUser(newUuid);
+          }
+
           await creditReferrerOnPayment(payment.userId);
 
           return NextResponse.json({
@@ -57,7 +71,7 @@ export async function GET(request: NextRequest) {
           });
         }
 
-        if (txStatus.status === PaymentStatus.CANCELED) {
+        if (ykPayment.status === PaymentStatus.CANCELED) {
           await updatePaymentStatus(payment.id, "canceled");
           return NextResponse.json({
             success: true,
@@ -65,7 +79,7 @@ export async function GET(request: NextRequest) {
           });
         }
       } catch {
-        // Platega API error — return current local status
+        // YooKassa API error — return current local status
       }
     }
 
