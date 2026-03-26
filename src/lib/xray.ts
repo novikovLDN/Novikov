@@ -281,7 +281,7 @@ export function buildConnectionUri(
 
 // ─── Xray FastAPI Client ─────────────────────────────────────────
 
-const XRAY_API_URL = process.env.XRAY_API_URL || "https://api.mynewllcw.com";
+const XRAY_API_URL = process.env.XRAY_API_URL || "https://api.flowgrocery.com";
 const XRAY_API_KEY = process.env.XRAY_API_KEY || "";
 
 /** Add a user to the Xray server via FastAPI */
