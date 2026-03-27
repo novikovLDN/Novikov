@@ -37,7 +37,7 @@ export default function Header({ showBack, showMenu, onBack, transparent, onNoti
     <header
       className={`sticky top-0 z-50 w-full safe-top transition-all duration-300 ${
         visible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
-      } ${transparent ? "" : "glass border-b border-border/50"}`}
+      } ${transparent ? "" : "glass"}`}
     >
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 max-w-2xl mx-auto w-full">
         {/* Left side */}
