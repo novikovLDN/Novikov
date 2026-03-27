@@ -337,9 +337,3 @@ input:-webkit-autofill:focus {
   border-color: rgba(59, 130, 246, 0.6);
   background: rgba(59, 130, 246, 0.08);
 }
-
-.custom-cursor-circle.cursor-click {
-  transform: scale(0.6) !important;
-  border-color: rgba(255, 255, 255, 0.8);
-  transition: transform 0.12s cubic-bezier(0.25, 0.1, 0.25, 1), border-color 0.12s;
-}
