@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
         subscriptionEnd: user.subscriptionEnd,
         vpnKey: isExpired ? null : user.vpnKey,
         xrayUuid: isExpired ? null : user.xrayUuid,
+        subToken: isExpired ? null : user.subToken,
         telegramLinked: user.telegramLinked,
         telegramLinkToken: user.telegramLinkToken,
         referralCode: user.referralCode,
