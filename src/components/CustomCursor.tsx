@@ -41,7 +41,7 @@ export default function CustomCursor() {
     };
 
     const onMouseDown = () => {
-      ring.style.transform = `translate(${circle.current.x - 20}px, ${circle.current.y - 20}px) scale(0.75)`;
+      ring.style.transform = `translate(${circle.current.x - 20}px, ${circle.current.y - 20}px) scale(0.5)`;
     };
 
     const onMouseUp = () => {

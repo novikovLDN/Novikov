@@ -548,16 +548,17 @@ function PlanBadge({ plan, isExpired }: { plan?: string; isExpired: boolean }) {
   };
 
   const { label, icon } = config[key] || config.trial;
-  const badgeClass = `plan-badge-${key}`;
 
   return (
     <div className="flex justify-center mb-4">
-      <button
-        className={`${badgeClass} h-9 sm:h-10 px-5 sm:px-6 rounded-full text-white font-semibold text-xs sm:text-sm shadow-lg flex items-center gap-2 transition-transform btn-press`}
-      >
-        {icon}
-        {label}
-      </button>
+      <div className={`plan-badge-wrap plan-badge-${key}-wrap`}>
+        <div
+          className={`plan-badge-${key} h-9 sm:h-10 px-5 sm:px-6 rounded-full text-white font-semibold text-xs sm:text-sm shadow-lg flex items-center gap-2 transition-transform btn-press relative z-[1]`}
+        >
+          {icon}
+          {label}
+        </div>
+      </div>
     </div>
   );
 }

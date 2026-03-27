@@ -184,29 +184,110 @@ input:-webkit-autofill:focus {
   background-clip: text;
 }
 
-/* Plan badge animated gradients */
+/* ─── Plan Badge System ─── */
+
+@keyframes badgeGradient {
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 100% 0%; }
+  50%  { background-position: 100% 100%; }
+  75%  { background-position: 0% 100%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes orbitDot {
+  0%   { offset-distance: 0%; opacity: 1; }
+  100% { offset-distance: 100%; opacity: 1; }
+}
+
+/* Badge wrapper — contains the badge + orbiting dot */
+.plan-badge-wrap {
+  position: relative;
+  display: inline-flex;
+  border-radius: 9999px;
+}
+
+/* Orbiting glowing dot */
+.plan-badge-wrap::before {
+  content: "";
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  z-index: 10;
+  offset-path: path("M 0,18 a 1,1 0 0,0 200,0 a 1,1 0 0,0 -200,0");
+  animation: orbitDot 3s linear infinite;
+  filter: blur(0.5px);
+}
+
+/* Trail glow behind the dot */
+.plan-badge-wrap::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  z-index: 9;
+  offset-path: path("M 0,18 a 1,1 0 0,0 200,0 a 1,1 0 0,0 -200,0");
+  animation: orbitDot 3s linear infinite;
+  animation-delay: -0.08s;
+  filter: blur(8px);
+  opacity: 0.5;
+}
+
+/* ─── Trial ─── */
 .plan-badge-trial {
-  background: linear-gradient(135deg, #6b7280, #9ca3af, #6b7280);
-  background-size: 200% 200%;
-  animation: gradientShift 4s ease infinite;
+  background: linear-gradient(135deg, #64748b, #94a3b8, #475569, #64748b, #94a3b8);
+  background-size: 400% 400%;
+  animation: badgeGradient 6s ease infinite;
+}
+.plan-badge-trial-wrap::before {
+  background: #cbd5e1;
+  box-shadow: 0 0 6px 2px rgba(203, 213, 225, 0.7);
+}
+.plan-badge-trial-wrap::after {
+  background: rgba(203, 213, 225, 0.4);
 }
 
+/* ─── Basic ─── */
 .plan-badge-basic {
-  background: linear-gradient(135deg, #3b82f6, #60a5fa, #2563eb, #3b82f6);
-  background-size: 300% 300%;
-  animation: gradientShift 3s ease infinite;
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6, #6366f1, #0ea5e9, #38bdf8);
+  background-size: 400% 400%;
+  animation: badgeGradient 4s ease infinite;
+}
+.plan-badge-basic-wrap::before {
+  background: #7dd3fc;
+  box-shadow: 0 0 8px 3px rgba(56, 189, 248, 0.8);
+}
+.plan-badge-basic-wrap::after {
+  background: rgba(56, 189, 248, 0.5);
 }
 
+/* ─── Plus ─── */
 .plan-badge-plus {
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa, #7c3aed, #c084fc, #8b5cf6);
-  background-size: 300% 300%;
-  animation: gradientShift 3s ease infinite;
+  background: linear-gradient(135deg, #a855f7, #ec4899, #8b5cf6, #f472b6, #7c3aed, #a855f7);
+  background-size: 400% 400%;
+  animation: badgeGradient 3.5s ease infinite;
+}
+.plan-badge-plus-wrap::before {
+  background: #f0abfc;
+  box-shadow: 0 0 8px 3px rgba(236, 72, 153, 0.8);
+}
+.plan-badge-plus-wrap::after {
+  background: rgba(236, 72, 153, 0.5);
 }
 
+/* ─── Expired ─── */
 .plan-badge-expired {
-  background: linear-gradient(135deg, #ef4444, #f87171, #dc2626);
-  background-size: 200% 200%;
-  animation: gradientShift 4s ease infinite;
+  background: linear-gradient(135deg, #ef4444, #f97316, #ef4444, #dc2626, #f97316);
+  background-size: 400% 400%;
+  animation: badgeGradient 5s ease infinite;
+}
+.plan-badge-expired-wrap::before {
+  background: #fca5a5;
+  box-shadow: 0 0 6px 2px rgba(252, 165, 165, 0.7);
+}
+.plan-badge-expired-wrap::after {
+  background: rgba(252, 165, 165, 0.4);
 }
 
 /* Button press effect */
