@@ -194,44 +194,35 @@ input:-webkit-autofill:focus {
   100% { background-position: 0% 50%; }
 }
 
-@keyframes orbitDot {
-  0%   { offset-distance: 0%; opacity: 1; }
-  100% { offset-distance: 100%; opacity: 1; }
+@keyframes rotateBorder {
+  0%   { --badge-angle: 0deg; }
+  100% { --badge-angle: 360deg; }
 }
 
-/* Badge wrapper — contains the badge + orbiting dot */
+@property --badge-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* Badge wrapper — orbiting glow via conic-gradient border */
 .plan-badge-wrap {
   position: relative;
   display: inline-flex;
   border-radius: 9999px;
+  padding: 2px;
+  animation: rotateBorder 3s linear infinite;
 }
 
-/* Orbiting glowing dot */
 .plan-badge-wrap::before {
   content: "";
   position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  z-index: 10;
-  offset-path: path("M 0,18 a 1,1 0 0,0 200,0 a 1,1 0 0,0 -200,0");
-  animation: orbitDot 3s linear infinite;
-  filter: blur(0.5px);
-}
-
-/* Trail glow behind the dot */
-.plan-badge-wrap::after {
-  content: "";
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  z-index: 9;
-  offset-path: path("M 0,18 a 1,1 0 0,0 200,0 a 1,1 0 0,0 -200,0");
-  animation: orbitDot 3s linear infinite;
-  animation-delay: -0.08s;
-  filter: blur(8px);
-  opacity: 0.5;
+  inset: -1px;
+  border-radius: 9999px;
+  z-index: 0;
+  filter: blur(6px);
+  opacity: 0.6;
+  animation: rotateBorder 3s linear infinite;
 }
 
 /* ─── Trial ─── */
@@ -240,12 +231,11 @@ input:-webkit-autofill:focus {
   background-size: 400% 400%;
   animation: badgeGradient 6s ease infinite;
 }
-.plan-badge-trial-wrap::before {
-  background: #cbd5e1;
-  box-shadow: 0 0 6px 2px rgba(203, 213, 225, 0.7);
+.plan-badge-trial-wrap {
+  background: conic-gradient(from var(--badge-angle), transparent 60%, #cbd5e1 78%, #ffffff 80%, #cbd5e1 82%, transparent 100%);
 }
-.plan-badge-trial-wrap::after {
-  background: rgba(203, 213, 225, 0.4);
+.plan-badge-trial-wrap::before {
+  background: conic-gradient(from var(--badge-angle), transparent 60%, rgba(203, 213, 225, 0.6) 78%, rgba(255, 255, 255, 0.6) 80%, rgba(203, 213, 225, 0.6) 82%, transparent 100%);
 }
 
 /* ─── Basic ─── */
@@ -254,12 +244,11 @@ input:-webkit-autofill:focus {
   background-size: 400% 400%;
   animation: badgeGradient 4s ease infinite;
 }
-.plan-badge-basic-wrap::before {
-  background: #7dd3fc;
-  box-shadow: 0 0 8px 3px rgba(56, 189, 248, 0.8);
+.plan-badge-basic-wrap {
+  background: conic-gradient(from var(--badge-angle), transparent 55%, #38bdf8 75%, #ffffff 80%, #38bdf8 85%, transparent 100%);
 }
-.plan-badge-basic-wrap::after {
-  background: rgba(56, 189, 248, 0.5);
+.plan-badge-basic-wrap::before {
+  background: conic-gradient(from var(--badge-angle), transparent 55%, rgba(56, 189, 248, 0.7) 75%, rgba(255, 255, 255, 0.5) 80%, rgba(56, 189, 248, 0.7) 85%, transparent 100%);
 }
 
 /* ─── Plus ─── */
@@ -268,12 +257,11 @@ input:-webkit-autofill:focus {
   background-size: 400% 400%;
   animation: badgeGradient 3.5s ease infinite;
 }
-.plan-badge-plus-wrap::before {
-  background: #f0abfc;
-  box-shadow: 0 0 8px 3px rgba(236, 72, 153, 0.8);
+.plan-badge-plus-wrap {
+  background: conic-gradient(from var(--badge-angle), transparent 55%, #ec4899 72%, #ffffff 80%, #a855f7 88%, transparent 100%);
 }
-.plan-badge-plus-wrap::after {
-  background: rgba(236, 72, 153, 0.5);
+.plan-badge-plus-wrap::before {
+  background: conic-gradient(from var(--badge-angle), transparent 55%, rgba(236, 72, 153, 0.7) 72%, rgba(255, 255, 255, 0.5) 80%, rgba(168, 85, 247, 0.7) 88%, transparent 100%);
 }
 
 /* ─── Expired ─── */
@@ -282,12 +270,11 @@ input:-webkit-autofill:focus {
   background-size: 400% 400%;
   animation: badgeGradient 5s ease infinite;
 }
-.plan-badge-expired-wrap::before {
-  background: #fca5a5;
-  box-shadow: 0 0 6px 2px rgba(252, 165, 165, 0.7);
+.plan-badge-expired-wrap {
+  background: conic-gradient(from var(--badge-angle), transparent 60%, #f87171 78%, #ffffff 80%, #f87171 82%, transparent 100%);
 }
-.plan-badge-expired-wrap::after {
-  background: rgba(252, 165, 165, 0.4);
+.plan-badge-expired-wrap::before {
+  background: conic-gradient(from var(--badge-angle), transparent 60%, rgba(248, 113, 113, 0.6) 78%, rgba(255, 255, 255, 0.4) 80%, rgba(248, 113, 113, 0.6) 82%, transparent 100%);
 }
 
 /* Button press effect */
@@ -349,4 +336,10 @@ input:-webkit-autofill:focus {
 .custom-cursor-circle.cursor-hover {
   border-color: rgba(59, 130, 246, 0.6);
   background: rgba(59, 130, 246, 0.08);
+}
+
+.custom-cursor-circle.cursor-click {
+  transform: scale(0.6) !important;
+  border-color: rgba(255, 255, 255, 0.8);
+  transition: transform 0.12s cubic-bezier(0.25, 0.1, 0.25, 1), border-color 0.12s;
 }

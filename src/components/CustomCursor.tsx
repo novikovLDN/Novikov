@@ -41,11 +41,11 @@ export default function CustomCursor() {
     };
 
     const onMouseDown = () => {
-      ring.style.transform = `translate(${circle.current.x - 20}px, ${circle.current.y - 20}px) scale(0.5)`;
+      ring.classList.add("cursor-click");
     };
 
     const onMouseUp = () => {
-      ring.style.transform = `translate(${circle.current.x - 20}px, ${circle.current.y - 20}px) scale(1)`;
+      ring.classList.remove("cursor-click");
     };
 
     // Detect hover on interactive elements
@@ -65,22 +65,33 @@ export default function CustomCursor() {
       }
     };
 
+    let clicking = false;
+
+    const origDown = onMouseDown;
+    const origUp = onMouseUp;
+    const wrappedDown = () => { clicking = true; origDown(); };
+    const wrappedUp = () => { clicking = false; origUp(); };
+
     // Animate circle with lerp (smooth follow)
     const animate = () => {
       const speed = 0.15;
       circle.current.x += (mouse.current.x - circle.current.x) * speed;
       circle.current.y += (mouse.current.y - circle.current.y) * speed;
 
-      const scale = hovering.current ? 1.5 : 1;
-      ring.style.transform = `translate(${circle.current.x - 20}px, ${circle.current.y - 20}px) scale(${scale})`;
+      if (!clicking) {
+        const scale = hovering.current ? 1.5 : 1;
+        ring.style.transform = `translate(${circle.current.x - 20}px, ${circle.current.y - 20}px) scale(${scale})`;
+      } else {
+        ring.style.transform = `translate(${circle.current.x - 20}px, ${circle.current.y - 20}px) scale(0.6)`;
+      }
 
       raf.current = requestAnimationFrame(animate);
     };
 
     document.addEventListener("mousemove", onMouseMove);
     document.addEventListener("mouseleave", onMouseLeave);
-    document.addEventListener("mousedown", onMouseDown);
-    document.addEventListener("mouseup", onMouseUp);
+    document.addEventListener("mousedown", wrappedDown);
+    document.addEventListener("mouseup", wrappedUp);
     document.addEventListener("mouseover", onMouseOver);
     document.addEventListener("mouseout", onMouseOut);
 
@@ -89,8 +100,8 @@ export default function CustomCursor() {
     return () => {
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseleave", onMouseLeave);
-      document.removeEventListener("mousedown", onMouseDown);
-      document.removeEventListener("mouseup", onMouseUp);
+      document.removeEventListener("mousedown", wrappedDown);
+      document.removeEventListener("mouseup", wrappedUp);
       document.removeEventListener("mouseover", onMouseOver);
       document.removeEventListener("mouseout", onMouseOut);
       cancelAnimationFrame(raf.current);
