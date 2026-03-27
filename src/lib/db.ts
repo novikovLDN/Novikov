@@ -19,7 +19,7 @@ if (!globalPool.__pgPool) {
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
     ssl: process.env.DATABASE_URL?.includes("sslmode=require") || process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== "false" }
+      ? { rejectUnauthorized: false }
       : undefined,
   });
 }
