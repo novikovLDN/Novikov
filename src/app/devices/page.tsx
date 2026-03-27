@@ -72,11 +72,11 @@ export default function Devices() {
 
   const fetchKey = useCallback(async () => {
     try {
-      // Fetch primary VLESS key (Atlas Fast #2)
-      const res = await fetch("/api/vpn/direct-links");
+      // Fetch subscription URL for this user
+      const res = await fetch("/api/user/subscription");
       const result = await res.json();
-      if (result.success && result.data.key) {
-        setVpnKey(result.data.key);
+      if (result.success && result.data.subToken) {
+        setVpnKey(`https://qodev.dev/api/sub/${result.data.subToken}`);
       }
     } catch {
       // silent
