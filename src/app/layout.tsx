@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import CookieConsent from "@/components/CookieConsent";
+import CustomCursor from "@/components/CustomCursor";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atlassecure.uk"),
@@ -45,6 +46,7 @@ export default function RootLayout({
           {children}
         </div>
         <CookieConsent />
+        <CustomCursor />
       </body>
     </html>
   );
