@@ -90,7 +90,7 @@ export const SERVER_POOL: ServerEntry[] = [
     security: "reality",
   },
   {
-    name: "🇩🇪 Atlas Fast #3 ⚡️",
+    name: "🇩🇪 Atlas Fast #1 ⚡️",
     ip: "89.169.55.75",
     port: 4443,
     sni: "google.com",
