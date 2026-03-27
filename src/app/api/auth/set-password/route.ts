@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
 
     const { password } = await request.json();
 
-    if (!password || typeof password !== "string" || password.length < 6) {
+    if (!password || typeof password !== "string" || password.length < 8) {
       return NextResponse.json(
-        { success: false, error: "Пароль должен содержать минимум 6 символов" },
+        { success: false, error: "Пароль должен содержать минимум 8 символов" },
         { status: 400 }
       );
     }
@@ -31,6 +31,23 @@ export async function POST(request: NextRequest) {
     if (password.length > 128) {
       return NextResponse.json(
         { success: false, error: "Пароль слишком длинный" },
+        { status: 400 }
+      );
+    }
+
+    // Check complexity: at least one letter and one digit
+    if (!/[a-zA-Zа-яА-Я]/.test(password) || !/[0-9]/.test(password)) {
+      return NextResponse.json(
+        { success: false, error: "Пароль должен содержать буквы и цифры" },
+        { status: 400 }
+      );
+    }
+
+    // Block common weak passwords
+    const weak = ["12345678", "password", "qwerty12", "00000000", "11111111", "123456789", "qwertyui"];
+    if (weak.includes(password.toLowerCase())) {
+      return NextResponse.json(
+        { success: false, error: "Слишком простой пароль. Придумайте другой." },
         { status: 400 }
       );
     }

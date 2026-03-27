@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyUserPassword } from "@/lib/store";
+import { rateLimitLogin } from "@/lib/rate-limit";
 
 const SESSION_MAX_AGE = 3 * 60 * 60; // 3 hours
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit: 10 login attempts per 15 minutes per IP
+    const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+      || request.headers.get("x-real-ip") || "unknown";
+    const limit = rateLimitLogin(clientIp);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { success: false, error: `Слишком много попыток. Повторите через ${limit.retryAfterSeconds} сек.` },
+        { status: 429 }
+      );
+    }
+
     const { email, password } = await request.json();
 
     if (!email || !password) {
@@ -26,16 +38,13 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({
       success: true,
-      data: {
-        userId: user.id,
-        email: user.email,
-      },
+      data: { userId: user.id, email: user.email },
     });
 
     response.cookies.set("session", user.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "strict",
       maxAge: SESSION_MAX_AGE,
       path: "/",
     });

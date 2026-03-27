@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
         subscriptionPlan: isExpired ? "expired" : user.subscriptionPlan,
         referrals: user.referrals,
         paidReferrals: user.paidReferrals,
-        isAdmin: user.email === "novikov.ldnwq@gmail.com",
+        isAdmin: !!(process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL),
       },
     });
   } catch {

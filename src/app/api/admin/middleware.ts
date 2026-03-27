@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { getUserById } from "@/lib/store";
 
-const ADMIN_EMAIL = "novikov.ldnwq@gmail.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "";
 
 export async function verifyAdmin(): Promise<{ authorized: boolean; error?: string }> {
   const cookieStore = await cookies();
