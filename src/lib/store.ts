@@ -595,6 +595,50 @@ export async function createNotificationForUser(userId: string, title: string, m
   }
 }
 
+// ─── Audit Logs ──────────────────────────────────────────────
+
+export async function createAuditLog(
+  action: string,
+  details?: string,
+  userId?: string,
+  userEmail?: string,
+  ip?: string
+): Promise<void> {
+  try {
+    const id = uuidv4();
+    await pool.query(
+      "INSERT INTO audit_logs (id, user_id, user_email, action, details, ip) VALUES ($1, $2, $3, $4, $5, $6)",
+      [id, userId || null, userEmail || null, action, details || null, ip || null]
+    );
+  } catch (err) {
+    console.error("[AUDIT] Failed to create log:", err);
+  }
+}
+
+export async function getAuditLogs(limit = 100, offset = 0): Promise<Array<{
+  id: string;
+  userId: string | null;
+  userEmail: string | null;
+  action: string;
+  details: string | null;
+  ip: string | null;
+  createdAt: string;
+}>> {
+  const result = await pool.query(
+    "SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT $1 OFFSET $2",
+    [limit, offset]
+  );
+  return result.rows.map((r) => ({
+    id: r.id,
+    userId: r.user_id,
+    userEmail: r.user_email,
+    action: r.action,
+    details: r.details,
+    ip: r.ip,
+    createdAt: new Date(r.created_at).toISOString(),
+  }));
+}
+
 // Auto-start scheduler on module load (server-side only)
 if (typeof window === "undefined") {
   startCleanupScheduler();

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPaymentByTransactionId, updatePaymentStatus, extendSubscription, creditReferrerOnPayment, updateUser, getUserById, createNotificationForUser } from "@/lib/store";
+import { getPaymentByTransactionId, updatePaymentStatus, extendSubscription, creditReferrerOnPayment, updateUser, getUserById, createNotificationForUser, createAuditLog } from "@/lib/store";
 import { xrayAddUser, generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl } from "@/lib/xray";
 import { getPaymentStatus as ykGetPayment } from "@/lib/yookassa";
 import type { YooKassaNotification } from "@/lib/yookassa";
@@ -120,10 +120,12 @@ export async function POST(request: NextRequest) {
       ).catch(() => {});
 
       console.log(`[WEBHOOK] Subscription extended: ${paymentRecord.userId} +${days}d (${paymentRecord.plan} ${paymentRecord.period}m)`);
+      await createAuditLog("payment.success", `${paymentRecord.plan} ${paymentRecord.period}мес, ${paymentRecord.amount}₽`, paymentRecord.userId);
 
     } else if (verifiedStatus === "canceled") {
       await updatePaymentStatus(paymentRecord.id, "canceled");
       console.log(`[WEBHOOK] Payment canceled: ${payment.id}`);
+      await createAuditLog("payment.canceled", `YooKassa ID: ${payment.id}`, paymentRecord.userId);
     }
 
     return NextResponse.json({ ok: true });

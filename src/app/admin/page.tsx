@@ -35,6 +35,26 @@ interface NotificationItem {
   createdAt: string;
 }
 
+interface AuditLogItem {
+  id: string;
+  userId: string | null;
+  userEmail: string | null;
+  action: string;
+  details: string | null;
+  ip: string | null;
+  createdAt: string;
+}
+
+const ACTION_LABELS: Record<string, { label: string; color: string }> = {
+  "user.register": { label: "Регистрация", color: "bg-success/15 text-success" },
+  "user.login": { label: "Вход", color: "bg-primary/15 text-primary" },
+  "payment.success": { label: "Оплата", color: "bg-success/15 text-success" },
+  "payment.canceled": { label: "Оплата отменена", color: "bg-danger/15 text-danger" },
+  "admin.grant": { label: "Выдача подписки", color: "bg-primary/15 text-primary" },
+  "admin.revoke": { label: "Отзыв подписки", color: "bg-danger/15 text-danger" },
+  "admin.regen": { label: "Обновление ключа", color: "bg-warning/15 text-warning" },
+};
+
 const PLAN_LABELS: Record<string, string> = {
   trial: "Пробный",
   basic: "Basic",
@@ -70,7 +90,8 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [tab, setTab] = useState<"analytics" | "users" | "notifications">("analytics");
+  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([]);
+  const [tab, setTab] = useState<"analytics" | "users" | "notifications" | "logs">("analytics");
 
   // Notification form (global)
   const [nTitle, setNTitle] = useState("");
@@ -87,13 +108,15 @@ export default function AdminDashboard() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [usersRes, notifRes] = await Promise.all([
+      const [usersRes, notifRes, logsRes] = await Promise.all([
         fetch("/api/admin/users"),
         fetch("/api/admin/notifications"),
+        fetch("/api/admin/logs"),
       ]);
 
       const usersData = await usersRes.json();
       const notifData = await notifRes.json();
+      const logsData = await logsRes.json();
 
       if (!usersData.success) {
         setError(usersData.error || "Доступ запрещён");
@@ -102,6 +125,7 @@ export default function AdminDashboard() {
 
       setUsers(usersData.data.users);
       setStats(usersData.data.stats);
+      setAuditLogs(logsData.success ? logsData.data : []);
       setNotifications(notifData.success ? notifData.data : []);
     } catch {
       setError("Ошибка загрузки данных");
@@ -220,16 +244,16 @@ export default function AdminDashboard() {
         <h1 className="text-2xl font-bold animate-fade-in-up">Админ-панель</h1>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-card border border-border/50 rounded-xl p-1 animate-fade-in-up">
-          {(["analytics", "users", "notifications"] as const).map((t) => (
+        <div className="flex gap-1 bg-card border border-border/50 rounded-xl p-1 animate-fade-in-up overflow-x-auto">
+          {(["analytics", "users", "logs", "notifications"] as const).map((t) => (
             <button
               key={t}
               onClick={() => { setTab(t); if (t !== "users") setSelectedUser(null); }}
-              className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap px-2 ${
                 tab === t ? "bg-foreground text-background" : "text-muted hover:text-foreground"
               }`}
             >
-              {t === "analytics" ? "Аналитика" : t === "users" ? "Пользователи" : "Уведомления"}
+              {t === "analytics" ? "Аналитика" : t === "users" ? "Юзеры" : t === "logs" ? "Логи" : "Уведом."}
             </button>
           ))}
         </div>
@@ -314,6 +338,35 @@ export default function AdminDashboard() {
                       )}
                     </div>
                   </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Logs Tab */}
+        {tab === "logs" && (
+          <div className="space-y-2 animate-fade-in-up">
+            <p className="text-xs text-muted">Последние {auditLogs.length} событий</p>
+            <div className="space-y-1.5 max-h-[70vh] overflow-y-auto">
+              {auditLogs.length === 0 ? (
+                <p className="text-muted text-sm text-center py-8">Нет событий</p>
+              ) : auditLogs.map((log) => {
+                const meta = ACTION_LABELS[log.action] || { label: log.action, color: "bg-card-hover text-muted" };
+                return (
+                  <div key={log.id} className="bg-card border border-border/50 rounded-xl p-3">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${meta.color}`}>
+                        {meta.label}
+                      </span>
+                      <span className="text-[10px] text-muted/50 shrink-0">
+                        {new Date(log.createdAt).toLocaleString("ru-RU", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-light truncate">{log.userEmail || "—"}</p>
+                    {log.details && <p className="text-[11px] text-muted mt-0.5">{log.details}</p>}
+                    {log.ip && <p className="text-[10px] text-muted/40 font-mono mt-0.5">{log.ip}</p>}
+                  </div>
                 );
               })}
             </div>
@@ -441,6 +494,9 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
   const [revokeConfirm, setRevokeConfirm] = useState(false);
   const [revokeSuccess, setRevokeSuccess] = useState(false);
 
+  const [regenLoading, setRegenLoading] = useState(false);
+  const [regenSuccess, setRegenSuccess] = useState(false);
+
   const [notifTitle, setNotifTitle] = useState("");
   const [notifMessage, setNotifMessage] = useState("");
   const [notifSending, setNotifSending] = useState(false);
@@ -514,6 +570,27 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
       // silent
     } finally {
       setRevoking(false);
+    }
+  };
+
+  const handleRegen = async () => {
+    setRegenLoading(true);
+    try {
+      const res = await fetch("/api/admin/users/manage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "regen-key", userId: user.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRegenSuccess(true);
+        setTimeout(() => setRegenSuccess(false), 3000);
+        onRefresh();
+      }
+    } catch {
+      // silent
+    } finally {
+      setRegenLoading(false);
     }
   };
 
@@ -680,6 +757,38 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
             )}
           </button>
         </div>
+
+        {/* Regen Key */}
+        {user.isActive && (
+          <button
+            onClick={handleRegen}
+            disabled={regenLoading}
+            className={`w-full h-10 rounded-xl font-medium text-sm transition-all btn-press flex items-center justify-center gap-2 ${
+              regenSuccess
+                ? "bg-success/20 text-success border border-success/30"
+                : "border border-border hover:bg-card-hover disabled:opacity-40"
+            }`}
+          >
+            {regenSuccess ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Ключ обновлён!
+              </>
+            ) : regenLoading ? (
+              <><LoadingSpinner size="sm" /> Обновляю...</>
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="23 4 23 10 17 10" />
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                </svg>
+                Обновить ключ пользователя
+              </>
+            )}
+          </button>
+        )}
 
         {/* Revoke Subscription */}
         {user.isActive && (

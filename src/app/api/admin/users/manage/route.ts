@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, updateUser, createNotificationForUser } from "@/lib/store";
+import { getUserById, updateUser, createNotificationForUser, createAuditLog, regenerateUserKey } from "@/lib/store";
 import { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl, xrayRemoveUser, xrayAddUser } from "@/lib/xray";
 import { verifyAdmin } from "../../middleware";
 
@@ -89,6 +89,8 @@ export async function POST(request: NextRequest) {
         `Вам выдана подписка ${planLabel} на ${formatDuration(duration)}. Приятного пользования!`
       );
 
+      await createAuditLog("admin.grant", `${planLabel} на ${formatDuration(duration)}`, userId, user.email);
+
       return NextResponse.json({ success: true, data: { newEnd: newEnd.toISOString(), plan } });
     }
 
@@ -116,8 +118,25 @@ export async function POST(request: NextRequest) {
         "Ваша подписка была деактивирована администратором. VPN-ключ удалён."
       );
 
+      await createAuditLog("admin.revoke", "Подписка отозвана", userId, user.email);
       console.log(`[ADMIN] Revoked subscription for ${user.email}`);
       return NextResponse.json({ success: true });
+    }
+
+    if (action === "regen-key") {
+      const result = await regenerateUserKey(userId);
+      if (result.limitExceeded) {
+        return NextResponse.json({ success: false, error: `Лимит обновлений. Сброс: ${result.resetAt}` }, { status: 429 });
+      }
+      if (!result.user) {
+        return NextResponse.json({ success: false, error: "Не удалось обновить ключ" }, { status: 500 });
+      }
+      // Add new UUID to Xray
+      if (result.user.xrayUuid) {
+        await xrayAddUser(result.user.xrayUuid);
+      }
+      await createAuditLog("admin.regen", "Ключ обновлён администратором", userId, user.email);
+      return NextResponse.json({ success: true, data: { vpnKey: result.user.vpnKey } });
     }
 
     if (action === "send-notification") {

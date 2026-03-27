@@ -20,9 +20,6 @@ export default function Dashboard() {
   const [copiedDirect, setCopiedDirect] = useState(false);
   const [loadingDirect, setLoadingDirect] = useState(false);
   const [primaryKey, setPrimaryKey] = useState<string | null>(null);
-  const [showRegenConfirm, setShowRegenConfirm] = useState(false);
-  const [regenerating, setRegenerating] = useState(false);
-  const [regenError, setRegenError] = useState("");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -90,25 +87,6 @@ export default function Dashboard() {
       document.body.removeChild(ta);
       setCopiedDirect(true);
       setTimeout(() => setCopiedDirect(false), 2500);
-    }
-  };
-
-  const handleRegenerateKey = async () => {
-    setRegenerating(true);
-    setRegenError("");
-    try {
-      const res = await fetch("/api/vpn/generate-key", { method: "POST" });
-      const result = await res.json();
-      if (result.success) {
-        setData((prev) => prev ? { ...prev, vpnKey: result.data.vpnKey, xrayUuid: result.data.xrayUuid } : prev);
-        setShowRegenConfirm(false);
-      } else {
-        setRegenError(result.error || "Не удалось обновить подписку");
-      }
-    } catch {
-      setRegenError("Ошибка сервера. Попробуйте позже.");
-    } finally {
-      setRegenerating(false);
     }
   };
 
@@ -307,16 +285,6 @@ export default function Dashboard() {
                 )}
               </button>
 
-              <button
-                onClick={() => setShowRegenConfirm(true)}
-                className="w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 bg-card-hover border border-border text-foreground hover:bg-card-active mt-2.5"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="23 4 23 10 17 10" />
-                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                </svg>
-                Обновить подписку
-              </button>
             </>
           )}
 
@@ -334,62 +302,6 @@ export default function Dashboard() {
             Поддержка
           </a>
         </div>
-
-        {/* ═══ Regen Confirm Modal ═══ */}
-        {showRegenConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => { if (!regenerating) { setShowRegenConfirm(false); setRegenError(""); } }}>
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-            <div
-              className="relative bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-sm animate-scale-in"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-center mb-4">
-                <div className="w-12 h-12 rounded-full bg-warning/15 flex items-center justify-center">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                    <line x1="12" y1="9" x2="12" y2="13" />
-                    <line x1="12" y1="17" x2="12.01" y2="17" />
-                  </svg>
-                </div>
-              </div>
-
-              <h3 className="text-base sm:text-lg font-bold text-center mb-2">Обновить подписку?</h3>
-              <p className="text-muted text-xs sm:text-sm text-center mb-6 leading-relaxed">
-                Это приведёт к деактивации текущей ссылки и созданию новой. Вам нужно будет заново настроить подключение на всех устройствах.
-              </p>
-
-              {regenError && (
-                <div className="bg-danger/10 border border-danger/20 rounded-xl p-3 mb-4">
-                  <p className="text-danger text-xs sm:text-sm text-center">{regenError}</p>
-                </div>
-              )}
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => { setShowRegenConfirm(false); setRegenError(""); }}
-                  disabled={regenerating}
-                  className="flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base bg-card-hover border border-border text-foreground hover:bg-card-active transition-all btn-press disabled:opacity-40"
-                >
-                  Назад
-                </button>
-                <button
-                  onClick={handleRegenerateKey}
-                  disabled={regenerating}
-                  className="flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base bg-warning text-black hover:bg-warning/90 transition-all btn-press disabled:opacity-40 flex items-center justify-center gap-2"
-                >
-                  {regenerating ? (
-                    <>
-                      <LoadingSpinner size="sm" />
-                      Обновляем...
-                    </>
-                  ) : (
-                    "Подтвердить"
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* ═══ Referral Program ═══ */}
         <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-2">

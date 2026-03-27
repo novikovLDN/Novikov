@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyCode, getOrCreateUser, createNotificationForUser } from "@/lib/store";
+import { verifyCode, getOrCreateUser, createNotificationForUser, createAuditLog } from "@/lib/store";
 import { xrayAddUser } from "@/lib/xray";
 import { isDisposableEmail } from "@/lib/disposable-emails";
 
@@ -36,6 +36,9 @@ export async function POST(request: NextRequest) {
 
     // Create user with trial period or return existing
     const user = await getOrCreateUser(email.toLowerCase(), referralCode || undefined, clientIp, fingerprint || undefined);
+
+    // Audit log
+    await createAuditLog(user.isNew ? "user.register" : "user.login", undefined, user.id, user.email, clientIp);
 
     // Only add to Xray for newly created users (not on repeat login)
     if (user.isNew && user.xrayUuid) {
