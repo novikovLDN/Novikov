@@ -3,6 +3,7 @@ import "./globals.css";
 import CookieConsent from "@/components/CookieConsent";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atlassecure.uk"),
   title: "Atlas Secure — Безопасный доступ в интернет",
   description:
     "Быстрый и надежный сервис защиты интернет-соединения. Безлимитный трафик, все устройства, простое подключение за 1 минуту. Тестовый период 24 часа бесплатно.",
