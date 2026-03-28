@@ -146,7 +146,7 @@ export default function Devices() {
                   onClick={() => setSelectedDevice(selectedDevice === d.id ? null : d.id)}
                   className={`relative z-[1] w-full h-13 sm:h-14 rounded-2xl flex items-center justify-center gap-2 sm:gap-2.5 font-medium text-sm sm:text-base transition-all btn-press border ${
                     isSelected
-                      ? "bg-primary/15 border-transparent text-primary"
+                      ? "device-selected-bg border-transparent text-primary"
                       : "bg-card border-border hover:bg-card-hover active:bg-card-active"
                   }`}
                 >
@@ -165,7 +165,7 @@ export default function Devices() {
             onClick={() => setSelectedDevice(selectedDevice === "tv" ? null : "tv")}
             className={`relative z-[1] w-full h-13 sm:h-14 rounded-2xl flex items-center justify-center gap-2.5 font-medium text-sm sm:text-base transition-all btn-press border ${
               selectedDevice === "tv"
-                ? "bg-primary/15 border-transparent text-primary"
+                ? "device-selected-bg border-transparent text-primary"
                 : "bg-card border-border hover:bg-card-hover active:bg-card-active"
             }`}
           >
@@ -575,7 +575,7 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
                   onClick={() => setSelectedAppId(selectedAppId === app.appId ? null : app.appId)}
                   className={`relative z-[1] h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 btn-press border animate-fade-in-up ${
                     isSelected
-                      ? "bg-primary/15 border-transparent text-primary shadow-sm shadow-primary/10"
+                      ? "app-selected-bg border-transparent text-primary shadow-sm shadow-primary/10"
                       : "bg-background border-border hover:bg-card-hover hover:border-border/80"
                   }`}
                 >
