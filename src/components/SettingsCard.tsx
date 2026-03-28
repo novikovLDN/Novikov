@@ -12,6 +12,7 @@ export default function SettingsCard() {
   const [hasPasskey, setHasPasskey] = useState(false);
   const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [passkeyStatus, setPasskeyStatus] = useState<"" | "success" | "error">("");
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   const [open, setOpen] = useState(false);
 
@@ -223,12 +224,29 @@ export default function SettingsCard() {
             {passkeyLoading ? (
               <LoadingSpinner size="sm" className="text-primary" />
             ) : hasPasskey ? (
-              <button
-                onClick={handleRemovePasskey}
-                className="text-xs text-muted hover:text-danger transition-colors px-3 py-1.5 rounded-lg hover:bg-danger/10"
-              >
-                Отвязать
-              </button>
+              confirmRemove ? (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    onClick={() => setConfirmRemove(false)}
+                    className="text-[11px] text-muted px-2 py-1 rounded-lg hover:bg-card-hover transition-colors"
+                  >
+                    Нет
+                  </button>
+                  <button
+                    onClick={() => { handleRemovePasskey(); setConfirmRemove(false); }}
+                    className="text-[11px] text-danger font-medium px-2 py-1 rounded-lg bg-danger/10 hover:bg-danger/20 transition-colors"
+                  >
+                    Да, отвязать
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmRemove(true)}
+                  className="text-xs text-muted hover:text-danger transition-colors px-3 py-1.5 rounded-lg hover:bg-danger/10"
+                >
+                  Отвязать
+                </button>
+              )
             ) : (
               <button
                 onClick={handleSetupPasskey}
