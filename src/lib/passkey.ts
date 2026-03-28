@@ -16,132 +16,103 @@ const RP_NAME = "Atlas Secure";
 const RP_ID = process.env.PASSKEY_RP_ID || "atlassecure.uk";
 const ORIGIN = process.env.NEXT_PUBLIC_SITE_URL || `https://${RP_ID}`;
 
-// ─── Challenge store (short-lived, in-memory) ───────────────────
+// ─── Challenge store ────────────────────────────────────────────
 
-const challenges = new Map<string, { challenge: string; expiresAt: number }>();
+const challengeStore = new Map<string, { challenge: string; exp: number }>();
 
-function storeChallenge(key: string, challenge: string): void {
-  challenges.set(key, { challenge, expiresAt: Date.now() + 5 * 60 * 1000 });
+function saveChallenge(key: string, challenge: string) {
+  challengeStore.set(key, { challenge, exp: Date.now() + 300_000 });
 }
 
-function consumeChallenge(key: string): string | null {
-  const entry = challenges.get(key);
-  if (!entry || Date.now() > entry.expiresAt) {
-    challenges.delete(key);
-    return null;
-  }
-  challenges.delete(key);
-  return entry.challenge;
+function popChallenge(key: string): string | null {
+  const e = challengeStore.get(key);
+  challengeStore.delete(key);
+  if (!e || Date.now() > e.exp) return null;
+  return e.challenge;
 }
 
-// Cleanup expired challenges periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of challenges) {
-    if (now > entry.expiresAt) challenges.delete(key);
-  }
-}, 60_000);
-
-// ─── DB operations ──────────────────────────────────────────────
-
-interface PasskeyCredential {
-  id: string;
-  credentialId: string;
-  publicKey: string;
-  counter: number;
-  transports: string | null;
+// Cleanup every minute
+if (typeof setInterval !== "undefined") {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [k, v] of challengeStore) if (now > v.exp) challengeStore.delete(k);
+  }, 60_000);
 }
 
-async function getUserPasskeys(userId: string): Promise<PasskeyCredential[]> {
-  const result = await pool.query(
-    "SELECT id, credential_id, public_key, counter, transports FROM passkey_credentials WHERE user_id = $1",
-    [userId]
+// ─── DB helpers ─────────────────────────────────────────────────
+
+async function getUserCreds(userId: string) {
+  const r = await pool.query(
+    "SELECT id, credential_id, public_key, counter, transports FROM passkey_credentials WHERE user_id = $1", [userId]
   );
-  return result.rows.map((r) => ({
-    id: r.id,
-    credentialId: r.credential_id,
-    publicKey: r.public_key,
-    counter: Number(r.counter),
-    transports: r.transports,
+  return r.rows.map((row: Record<string, unknown>) => ({
+    id: row.id as string,
+    credentialId: row.credential_id as string,
+    publicKey: row.public_key as string,
+    counter: Number(row.counter),
+    transports: row.transports as string | null,
   }));
 }
 
-async function getPasskeyByCredentialId(credentialId: string): Promise<(PasskeyCredential & { userId: string }) | null> {
-  const result = await pool.query(
-    "SELECT id, user_id, credential_id, public_key, counter, transports FROM passkey_credentials WHERE credential_id = $1",
-    [credentialId]
+async function getCredById(credId: string) {
+  const r = await pool.query(
+    "SELECT id, user_id, credential_id, public_key, counter, transports FROM passkey_credentials WHERE credential_id = $1", [credId]
   );
-  if (result.rows.length === 0) return null;
-  const r = result.rows[0];
+  if (r.rows.length === 0) return null;
+  const row = r.rows[0];
   return {
-    id: r.id,
-    userId: r.user_id,
-    credentialId: r.credential_id,
-    publicKey: r.public_key,
-    counter: Number(r.counter),
-    transports: r.transports,
+    id: row.id as string,
+    userId: row.user_id as string,
+    credentialId: row.credential_id as string,
+    publicKey: row.public_key as string,
+    counter: Number(row.counter),
+    transports: row.transports as string | null,
   };
 }
 
 export async function userHasPasskey(userId: string): Promise<boolean> {
-  const result = await pool.query(
-    "SELECT 1 FROM passkey_credentials WHERE user_id = $1 LIMIT 1",
-    [userId]
-  );
-  return result.rows.length > 0;
+  const r = await pool.query("SELECT 1 FROM passkey_credentials WHERE user_id = $1 LIMIT 1", [userId]);
+  return r.rows.length > 0;
 }
 
 // ─── Registration ───────────────────────────────────────────────
 
-export async function generatePasskeyRegistration(userId: string, userEmail: string) {
-  const existingKeys = await getUserPasskeys(userId);
-
+export async function generatePasskeyRegistration(userId: string, email: string) {
+  const existing = await getUserCreds(userId);
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
     rpID: RP_ID,
-    userName: userEmail,
-    userDisplayName: userEmail,
+    userName: email,
+    userDisplayName: email,
     attestationType: "none",
-    excludeCredentials: existingKeys.map((k) => ({
-      id: k.credentialId,
-      transports: k.transports ? (k.transports.split(",") as AuthenticatorTransportFuture[]) : undefined,
+    excludeCredentials: existing.map((c) => ({
+      id: c.credentialId,
+      transports: c.transports ? c.transports.split(",") as AuthenticatorTransportFuture[] : undefined,
     })),
-    authenticatorSelection: {
-      residentKey: "preferred",
-      userVerification: "preferred",
-    },
+    authenticatorSelection: { residentKey: "preferred", userVerification: "preferred" },
   });
-
-  storeChallenge(`reg:${userId}`, options.challenge);
+  saveChallenge(`reg:${userId}`, options.challenge);
   return options;
 }
 
 export async function verifyPasskeyRegistration(userId: string, response: RegistrationResponseJSON) {
-  const expectedChallenge = consumeChallenge(`reg:${userId}`);
-  if (!expectedChallenge) throw new Error("Challenge expired");
+  const challenge = popChallenge(`reg:${userId}`);
+  if (!challenge) throw new Error("Challenge expired");
 
-  const verification = await verifyRegistrationResponse({
+  const v = await verifyRegistrationResponse({
     response,
-    expectedChallenge,
+    expectedChallenge: challenge,
     expectedOrigin: ORIGIN,
     expectedRPID: RP_ID,
   });
 
-  if (!verification.verified || !verification.registrationInfo) throw new Error("Verification failed");
+  if (!v.verified || !v.registrationInfo) throw new Error("Failed");
 
-  const { credential } = verification.registrationInfo;
-  const id = uuidv4();
+  const cred = v.registrationInfo.credential;
   await pool.query(
-    `INSERT INTO passkey_credentials (id, user_id, credential_id, public_key, counter, transports)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [
-      id, userId, credential.id,
-      Buffer.from(credential.publicKey).toString("base64"),
-      credential.counter,
-      credential.transports ? credential.transports.join(",") : null,
-    ]
+    `INSERT INTO passkey_credentials (id, user_id, credential_id, public_key, counter, transports) VALUES ($1,$2,$3,$4,$5,$6)`,
+    [uuidv4(), userId, cred.id, Buffer.from(cred.publicKey).toString("base64"), cred.counter, cred.transports?.join(",") || null]
   );
-
   return { verified: true };
 }
 
@@ -152,55 +123,46 @@ export async function generatePasskeyAuthentication() {
     rpID: RP_ID,
     userVerification: "preferred",
   });
-
-  // Key by challenge value so we can find it during verification
-  storeChallenge(`auth:${options.challenge}`, options.challenge);
+  saveChallenge(`auth:${options.challenge}`, options.challenge);
   return options;
 }
 
-export async function verifyPasskeyAuthentication(
-  response: AuthenticationResponseJSON
-): Promise<{ verified: boolean; userId: string | null }> {
-  const storedCred = await getPasskeyByCredentialId(response.id);
-  if (!storedCred) return { verified: false, userId: null };
+export async function verifyPasskeyAuthentication(response: AuthenticationResponseJSON): Promise<{ verified: boolean; userId: string | null }> {
+  const cred = await getCredById(response.id);
+  if (!cred) return { verified: false, userId: null };
 
-  // Extract challenge from clientDataJSON to find the stored challenge
+  // Extract challenge from client response to find our stored one
   let clientChallenge: string;
   try {
-    const clientData = JSON.parse(Buffer.from(response.response.clientDataJSON, "base64url").toString("utf-8"));
-    clientChallenge = clientData.challenge;
+    const raw = Buffer.from(response.response.clientDataJSON, "base64url").toString("utf-8");
+    clientChallenge = JSON.parse(raw).challenge;
   } catch {
     return { verified: false, userId: null };
   }
 
-  const expectedChallenge = consumeChallenge(`auth:${clientChallenge}`);
-  if (!expectedChallenge) return { verified: false, userId: null };
+  const challenge = popChallenge(`auth:${clientChallenge}`);
+  if (!challenge) return { verified: false, userId: null };
 
   try {
-    const verification = await verifyAuthenticationResponse({
+    const v = await verifyAuthenticationResponse({
       response,
-      expectedChallenge,
+      expectedChallenge: challenge,
       expectedOrigin: ORIGIN,
       expectedRPID: RP_ID,
       credential: {
-        id: storedCred.credentialId,
-        publicKey: Buffer.from(storedCred.publicKey, "base64"),
-        counter: storedCred.counter,
-        transports: storedCred.transports
-          ? (storedCred.transports.split(",") as AuthenticatorTransportFuture[])
-          : undefined,
+        id: cred.credentialId,
+        publicKey: Buffer.from(cred.publicKey, "base64"),
+        counter: cred.counter,
+        transports: cred.transports ? cred.transports.split(",") as AuthenticatorTransportFuture[] : undefined,
       },
     });
 
-    if (verification.verified) {
-      await pool.query(
-        "UPDATE passkey_credentials SET counter = $1 WHERE id = $2",
-        [verification.authenticationInfo.newCounter, storedCred.id]
-      );
-      return { verified: true, userId: storedCred.userId };
+    if (v.verified) {
+      await pool.query("UPDATE passkey_credentials SET counter = $1 WHERE id = $2", [v.authenticationInfo.newCounter, cred.id]);
+      return { verified: true, userId: cred.userId };
     }
   } catch (err) {
-    console.error("[PASSKEY] Auth error:", err);
+    console.error("[PASSKEY] Verify error:", err);
   }
 
   return { verified: false, userId: null };
