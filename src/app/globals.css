@@ -382,34 +382,33 @@ input:-webkit-autofill:focus {
 }
 
 /* Selected device/app — wave gradient fill */
-@keyframes waveGradient {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@keyframes waveSlide {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .device-selected-bg {
   background: linear-gradient(90deg,
-    rgba(14, 165, 233, 0.06) 0%,
-    rgba(59, 130, 246, 0.14) 25%,
-    rgba(99, 102, 241, 0.06) 50%,
-    rgba(14, 165, 233, 0.14) 75%,
-    rgba(99, 102, 241, 0.06) 100%
+    #0a0a0a 0%,
+    rgba(14, 165, 233, 0.18) 20%,
+    rgba(59, 130, 246, 0.25) 35%,
+    rgba(99, 102, 241, 0.18) 50%,
+    #0a0a0a 70%
   );
-  background-size: 300% 100%;
-  animation: waveGradient 5s ease-in-out infinite;
+  background-size: 200% 100%;
+  animation: waveSlide 4s ease-in-out infinite;
 }
 
 .app-selected-bg {
   background: linear-gradient(90deg,
-    rgba(168, 85, 247, 0.06) 0%,
-    rgba(236, 72, 153, 0.13) 25%,
-    rgba(139, 92, 246, 0.06) 50%,
-    rgba(236, 72, 153, 0.13) 75%,
-    rgba(168, 85, 247, 0.06) 100%
+    #0a0a0a 0%,
+    rgba(168, 85, 247, 0.18) 20%,
+    rgba(236, 72, 153, 0.22) 35%,
+    rgba(139, 92, 246, 0.18) 50%,
+    #0a0a0a 70%
   );
-  background-size: 300% 100%;
-  animation: waveGradient 4.5s ease-in-out infinite;
+  background-size: 200% 100%;
+  animation: waveSlide 3.5s ease-in-out infinite;
 }
 
 /* Custom cursor — desktop only */
