@@ -137,11 +137,10 @@ export default function Devices() {
             const isOrbit = !selectedDevice && orbitIndex === i;
             const isFading = !selectedDevice && prevOrbitIndex === i;
             const isSelected = selectedDevice === d.id;
-            const showBorder = isOrbit || isSelected;
             return (
               <div key={d.id} className="relative">
-                <div className={`device-orbit-border ${showBorder ? "active" : ""}`} />
-                <div className={`device-orbit-glow ${showBorder ? "active" : isFading ? "fading" : ""}`} />
+                <div className={`device-orbit-border ${isOrbit ? "active" : ""}`} />
+                <div className={`device-orbit-glow ${isOrbit ? "active" : isFading ? "fading" : ""}`} />
                 <button
                   onClick={() => setSelectedDevice(selectedDevice === d.id ? null : d.id)}
                   className={`relative z-[1] w-full h-13 sm:h-14 rounded-2xl flex items-center justify-center gap-2 sm:gap-2.5 font-medium text-sm sm:text-base transition-all btn-press border ${
@@ -159,8 +158,8 @@ export default function Devices() {
         </div>
 
         <div className="relative mb-5 sm:mb-6 animate-fade-in-up animate-delay-2">
-          <div className={`device-orbit-border ${(!selectedDevice && orbitIndex === 4) || selectedDevice === "tv" ? "active" : ""}`} />
-          <div className={`device-orbit-glow ${(!selectedDevice && orbitIndex === 4) || selectedDevice === "tv" ? "active" : !selectedDevice && prevOrbitIndex === 4 ? "fading" : ""}`} />
+          <div className={`device-orbit-border ${!selectedDevice && orbitIndex === 4 ? "active" : ""}`} />
+          <div className={`device-orbit-glow ${!selectedDevice && orbitIndex === 4 ? "active" : !selectedDevice && prevOrbitIndex === 4 ? "fading" : ""}`} />
           <button
             onClick={() => setSelectedDevice(selectedDevice === "tv" ? null : "tv")}
             className={`relative z-[1] w-full h-13 sm:h-14 rounded-2xl flex items-center justify-center gap-2.5 font-medium text-sm sm:text-base transition-all btn-press border ${
@@ -566,11 +565,10 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
             const isOrbit = !selectedAppId && appOrbitIndex === i;
             const isFading = !selectedAppId && prevAppOrbitIndex === i;
             const isSelected = selectedAppId === app.appId;
-            const showBorder = isOrbit || isSelected;
             return (
               <div key={app.appId} className="relative" style={{ animationDelay: `${i * 0.07}s` }}>
-                <div className={`app-orbit-border ${showBorder ? "active" : ""}`} />
-                <div className={`app-orbit-glow ${showBorder ? "active" : isFading ? "fading" : ""}`} />
+                <div className={`app-orbit-border ${isOrbit ? "active" : ""}`} />
+                <div className={`app-orbit-glow ${isOrbit ? "active" : isFading ? "fading" : ""}`} />
                 <button
                   onClick={() => setSelectedAppId(selectedAppId === app.appId ? null : app.appId)}
                   className={`relative z-[1] h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 btn-press border animate-fade-in-up ${
