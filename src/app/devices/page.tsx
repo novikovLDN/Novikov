@@ -265,7 +265,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       downloadUrl: "https://play.google.com/store/apps/details?id=com.happproxy",
       downloadLabel: "Скачать Happ",
       supportsQr: true,
-      deepLink: (url) => `happ://import/${url}`,
+      deepLink: (url) => `https://api.atlassecure.ru/open/happ?url=${encodeURIComponent(url)}`,
       steps: [
         { text: "Откройте Google Play и найдите приложение «Happ — Proxy Utility». Нажмите «Установить» и дождитесь загрузки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -353,7 +353,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       downloadUrl: "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973",
       downloadLabel: "Скачать Happ",
       supportsQr: true,
-      deepLink: (url) => `happ://import/${url}`,
+      deepLink: (url) => `https://api.atlassecure.ru/open/happ?url=${encodeURIComponent(url)}`,
       steps: [
         { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Happ — Proxy Utility» и нажмите «Загрузить». Дождитесь установки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
