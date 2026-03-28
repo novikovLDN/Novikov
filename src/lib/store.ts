@@ -590,6 +590,11 @@ export async function createNotificationForUser(userId: string, title: string, m
       "INSERT INTO notifications (id, title, message, target) VALUES ($1, $2, $3, $4)",
       [id, title, message, userId]
     );
+
+    // Send push notification (async, don't block)
+    import("./push").then(({ sendPushToUser }) => {
+      sendPushToUser(userId, title, message).catch(() => {});
+    }).catch(() => {});
   } catch (err) {
     console.error("[STORE] Failed to create notification:", err);
   }

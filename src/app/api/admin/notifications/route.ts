@@ -44,6 +44,18 @@ export async function POST(request: NextRequest) {
     [id, title, message, target || "all"]
   );
 
+  // Send push notifications
+  try {
+    const { sendPushToUser, sendPushToAll } = await import("@/lib/push");
+    if (target && target !== "all") {
+      await sendPushToUser(target, title, message);
+    } else {
+      await sendPushToAll(title, message);
+    }
+  } catch {
+    // Push is optional
+  }
+
   return NextResponse.json({ success: true, data: { id } });
 }
 
