@@ -538,38 +538,39 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               </div>
             </div>
 
-            <button
-              onClick={() => { setStep("login"); setLoginError(""); }}
-              className="w-full h-13 sm:h-14 rounded-2xl border border-border text-foreground font-semibold hover:bg-card active:bg-card-hover transition-colors flex items-center justify-center gap-2.5 btn-press"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0110 0v4" />
-              </svg>
-              Войти по логину и паролю
-            </button>
+            <div className="space-y-2.5">
+              <button
+                onClick={() => { setStep("login"); setLoginError(""); }}
+                className="w-full h-12 sm:h-13 rounded-2xl border border-border text-foreground font-medium text-sm sm:text-base hover:bg-card active:bg-card-hover transition-colors flex items-center justify-center gap-2 btn-press"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+                Войти по логину и паролю
+              </button>
 
-            <button
-              onClick={handlePasskeyLogin}
-              disabled={passkeyLoading}
-              className="w-full h-13 sm:h-14 rounded-2xl border border-primary/30 text-primary font-semibold hover:bg-primary/10 transition-colors flex items-center justify-center gap-2.5 btn-press disabled:opacity-50"
-            >
-              {passkeyLoading ? (
-                <><LoadingSpinner size="sm" /> Проверка...</>
-              ) : (
-                <>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
-                    <polyline points="10 17 15 12 10 7" />
-                    <line x1="15" y1="12" x2="3" y2="12" />
-                  </svg>
-                  Быстрый вход
-                </>
-              )}
-            </button>
+              <button
+                onClick={handlePasskeyLogin}
+                disabled={passkeyLoading}
+                className="w-full h-12 sm:h-13 rounded-2xl border border-primary/30 text-primary font-medium text-sm sm:text-base hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 btn-press disabled:opacity-50"
+              >
+                {passkeyLoading ? (
+                  <><LoadingSpinner size="sm" /> Проверка...</>
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 10a3 3 0 100-6 3 3 0 000 6z" />
+                      <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+                    </svg>
+                    Быстрый вход
+                  </>
+                )}
+              </button>
+            </div>
 
             {passkeyError && (
-              <p className="text-danger text-xs text-center animate-fade-in">{passkeyError}</p>
+              <p className="text-danger text-xs text-center mt-2 animate-fade-in">{passkeyError}</p>
             )}
 
             {/* Features */}
