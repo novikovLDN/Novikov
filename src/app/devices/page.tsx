@@ -216,6 +216,7 @@ interface AppInstruction {
   downloadLabel: string;
   recommended?: boolean;
   supportsQr?: boolean;
+  deepLink?: (subUrl: string) => string;
   steps: { text: string; copyKey?: boolean }[];
 }
 
@@ -230,6 +231,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       downloadLabel: "Скачать Hiddify",
       recommended: true,
       supportsQr: true,
+      deepLink: (url) => `hiddify://import/${url}`,
       steps: [
         { text: "Откройте Google Play на вашем Android-устройстве и найдите приложение «Hiddify». Нажмите «Установить» и дождитесь завершения загрузки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -246,12 +248,30 @@ const platformApps: Record<string, AppInstruction[]> = {
       downloadUrl: "https://play.google.com/store/apps/details?id=com.v2raytun.android",
       downloadLabel: "Скачать V2RayTun",
       supportsQr: true,
+      deepLink: (url) => `v2raytun://import/${url}`,
       steps: [
         { text: "Откройте Google Play на вашем Android-устройстве и найдите приложение «V2RayTun». Нажмите «Установить» и дождитесь завершения загрузки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
         { text: "Откройте V2RayTun. На главном экране нажмите значок «+» или «Импорт» в верхней панели, затем выберите «Импорт из буфера обмена». Конфигурация сервера будет добавлена автоматически." },
         { text: "Выберите добавленный сервер из списка, нажав на него. Затем нажмите кнопку подключения внизу экрана. Дождитесь статуса «Подключено»." },
         { text: "Если Android запросит разрешение на подключение — нажмите «ОК». Готово! Соединение установлено." },
+      ],
+    },
+    {
+      appId: "happ",
+      appName: "Happ",
+      appDesc: "Популярный клиент для Android",
+      storeLabel: "Google Play",
+      downloadUrl: "https://play.google.com/store/apps/details?id=com.happproxy",
+      downloadLabel: "Скачать Happ",
+      supportsQr: true,
+      deepLink: (url) => `happ://import/${url}`,
+      steps: [
+        { text: "Откройте Google Play и найдите приложение «Happ — Proxy Utility». Нажмите «Установить» и дождитесь загрузки." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Happ. Нажмите «+» в нижней панели, затем выберите «Добавить из буфера обмена» или «Добавить подписку». Вставьте ссылку — конфигурация импортируется автоматически." },
+        { text: "Выберите сервер из списка и нажмите кнопку подключения. Разрешите VPN-подключение при запросе системы." },
+        { text: "Когда статус изменится на «Подключено» — защита активна." },
       ],
     },
   ],
@@ -265,6 +285,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       downloadLabel: "Скачать Streisand",
       recommended: true,
       supportsQr: true,
+      deepLink: (url) => `streisand://import/${url}`,
       steps: [
         { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Streisand» и нажмите «Загрузить». Дождитесь установки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -281,6 +302,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       downloadUrl: "https://apps.apple.com/app/hiddify-proxy-vpn/id6596777532",
       downloadLabel: "Скачать Hiddify",
       supportsQr: true,
+      deepLink: (url) => `hiddify://import/${url}`,
       steps: [
         { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Hiddify» и нажмите «Загрузить». Дождитесь установки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -297,6 +319,7 @@ const platformApps: Record<string, AppInstruction[]> = {
       downloadUrl: "https://apps.apple.com/app/v2raytun/id6476628951",
       downloadLabel: "Скачать V2RayTun",
       supportsQr: true,
+      deepLink: (url) => `v2raytun://import/${url}`,
       steps: [
         { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «V2RayTun» и нажмите «Загрузить». Дождитесь установки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
@@ -313,12 +336,30 @@ const platformApps: Record<string, AppInstruction[]> = {
       downloadUrl: "https://apps.apple.com/app/shadowrocket/id932747118",
       downloadLabel: "Скачать Shadowrocket",
       supportsQr: true,
+      deepLink: (url) => `sub://${btoa(url)}`,
       steps: [
         { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Shadowrocket» (платное, ~$2.99) и нажмите «Купить» → «Загрузить». Дождитесь установки." },
         { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
         { text: "Откройте Shadowrocket. На главном экране нажмите «+» в правом верхнем углу. В поле «Тип» выберите «Subscribe», вставьте скопированную ссылку в поле «URL» и нажмите «Готово». Сервер появится в списке автоматически." },
         { text: "На главном экране Shadowrocket выберите добавленный сервер, нажав на него. Затем включите переключатель в верхней части экрана. При первом подключении iOS попросит разрешить конфигурацию — нажмите «Разрешить»." },
         { text: "Когда переключатель станет активным и в верхней части экрана появится значок подключения — соединение установлено. Shadowrocket также показывает скорость соединения в реальном времени." },
+      ],
+    },
+    {
+      appId: "happ",
+      appName: "Happ",
+      appDesc: "Универсальный клиент для iOS",
+      storeLabel: "App Store",
+      downloadUrl: "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973",
+      downloadLabel: "Скачать Happ",
+      supportsQr: true,
+      deepLink: (url) => `happ://import/${url}`,
+      steps: [
+        { text: "Откройте App Store на вашем iPhone или iPad. Найдите приложение «Happ — Proxy Utility» и нажмите «Загрузить». Дождитесь установки." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Happ. Нажмите «+» в нижней панели, затем выберите «Добавить подписку» или «Из буфера обмена». Конфигурация импортируется автоматически." },
+        { text: "Выберите сервер и нажмите кнопку подключения. При первом подключении iOS попросит разрешить конфигурацию — нажмите «Разрешить»." },
+        { text: "Когда в верхней части экрана появится значок подключения — соединение активно. Весь трафик защищён." },
       ],
     },
   ],
@@ -337,6 +378,21 @@ const platformApps: Record<string, AppInstruction[]> = {
         { text: "Откройте Hiddify. На главном экране нажмите «Новый профиль», затем выберите «Добавить профиль из буфера обмена». Приложение автоматически распознает конфигурацию и добавит сервер." },
         { text: "На главном экране Hiddify нажмите большую кнопку подключения по центру. Дождитесь, пока статус изменится на «Подключено»." },
         { text: "Если Windows Firewall запросит разрешение — нажмите «Разрешить доступ». Готово! Соединение установлено." },
+      ],
+    },
+    {
+      appId: "happ",
+      appName: "Happ",
+      appDesc: "Универсальный клиент для Windows",
+      storeLabel: "Скачать",
+      downloadUrl: "https://www.happ.su/main",
+      downloadLabel: "Скачать Happ",
+      steps: [
+        { text: "Перейдите на сайт happ.su и скачайте установочный файл Happ для Windows. Запустите установщик и следуйте инструкциям." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Happ. Нажмите «+» → «Добавить подписку» или «Из буфера обмена». Конфигурация импортируется автоматически." },
+        { text: "Выберите сервер и нажмите кнопку подключения. Разрешите доступ в брандмауэре Windows при запросе." },
+        { text: "Когда статус изменится на «Подключено» — защита активна." },
       ],
     },
   ],
@@ -385,6 +441,21 @@ const platformApps: Record<string, AppInstruction[]> = {
         { text: "Откройте Shadowrocket. На главном экране нажмите «+» в правом верхнем углу. В поле «Тип» выберите «Subscribe», вставьте скопированную ссылку в поле «URL» и нажмите «Готово». Сервер появится в списке." },
         { text: "Выберите добавленный сервер, нажав на него. Затем включите переключатель в верхней части экрана. При первом подключении macOS попросит разрешить конфигурацию — введите пароль от Mac и нажмите «Разрешить»." },
         { text: "Когда переключатель станет активным и в строке меню появится значок подключения — соединение установлено. Весь трафик теперь защищён." },
+      ],
+    },
+    {
+      appId: "happ",
+      appName: "Happ",
+      appDesc: "Универсальный клиент для macOS",
+      storeLabel: "App Store",
+      downloadUrl: "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973",
+      downloadLabel: "Скачать Happ",
+      steps: [
+        { text: "Откройте App Store на вашем Mac. Найдите приложение «Happ — Proxy Utility» и нажмите «Загрузить». Дождитесь установки." },
+        { text: "Скопируйте вашу ссылку подписки — она понадобится на следующем шаге.", copyKey: true },
+        { text: "Откройте Happ. Нажмите «+» → «Добавить подписку» или «Из буфера обмена». Конфигурация импортируется автоматически." },
+        { text: "Выберите сервер и нажмите кнопку подключения. При первом запуске macOS попросит разрешить конфигурацию — введите пароль от Mac и нажмите «Разрешить»." },
+        { text: "Когда в строке меню появится значок подключения — соединение активно. Весь трафик защищён." },
       ],
     },
   ],
@@ -507,33 +578,48 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
                   </a>
                 )}
 
-                {/* Copy key button */}
+                {/* Auto-configure + Copy key */}
                 {step.copyKey && vpnKey && (
-                  <button
-                    onClick={onCopyKey}
-                    className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 btn-press flex items-center justify-center gap-2 mt-3 ${
-                      copiedKey
-                        ? "bg-success/20 text-success border border-success/30"
-                        : "bg-primary text-white hover:bg-primary-hover"
-                    }`}
-                  >
-                    {copiedKey ? (
-                      <>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <polyline points="20 6 9 17 4 12" />
+                  <>
+                    {info.deepLink && (
+                      <a
+                        href={info.deepLink(vpnKey)}
+                        className="w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 btn-press flex items-center justify-center gap-2 mt-3 bg-primary text-white hover:bg-primary-hover"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14" />
+                          <path d="M12 5l7 7-7 7" />
                         </svg>
-                        Скопировано!
-                      </>
-                    ) : (
-                      <>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                        </svg>
-                        Скопировать мой ключ
-                      </>
+                        Настроить автоматически
+                      </a>
                     )}
-                  </button>
+
+                    <button
+                      onClick={onCopyKey}
+                      className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all duration-200 btn-press flex items-center justify-center gap-2 mt-2 ${
+                        copiedKey
+                          ? "bg-success/20 text-success border border-success/30"
+                          : "border border-border text-foreground hover:bg-card-hover"
+                      }`}
+                    >
+                      {copiedKey ? (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          Скопировано!
+                        </>
+                      ) : (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                          </svg>
+                          Скопировать ключ вручную
+                        </>
+                      )}
+                    </button>
+                  </>
                 )}
               </div>
             ))}
