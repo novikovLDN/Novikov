@@ -70,15 +70,26 @@ export default function Devices() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [orbitIndex, setOrbitIndex] = useState(0);
+  const [prevOrbitIndex, setPrevOrbitIndex] = useState(-1);
 
   // Auto-cycle orbit through device buttons when none selected
   useEffect(() => {
     if (selectedDevice) return;
     const timer = setInterval(() => {
-      setOrbitIndex((prev) => (prev + 1) % 5); // 4 grid + 1 TV
-    }, 2000);
+      setOrbitIndex((prev) => {
+        setPrevOrbitIndex(prev);
+        return (prev + 1) % 5;
+      });
+    }, 2500);
     return () => clearInterval(timer);
   }, [selectedDevice]);
+
+  // Clear fading trail after transition
+  useEffect(() => {
+    if (prevOrbitIndex < 0) return;
+    const t = setTimeout(() => setPrevOrbitIndex(-1), 800);
+    return () => clearTimeout(t);
+  }, [prevOrbitIndex]);
 
   const fetchKey = useCallback(async () => {
     try {
@@ -123,17 +134,20 @@ export default function Devices() {
         {/* Device Grid */}
         <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mb-2.5 sm:mb-3 animate-fade-in-up animate-delay-1">
           {devices.slice(0, 4).map((d, i) => {
-            const isOrbit = !selectedDevice && orbitIndex === i;
+            const isActive = !selectedDevice && orbitIndex === i;
+            const isFading = !selectedDevice && prevOrbitIndex === i;
             const isSelected = selectedDevice === d.id;
             return (
-              <div key={d.id} className={isOrbit ? "device-orbit-wrap" : ""}>
+              <div key={d.id} className="relative">
+                <div className={`device-orbit-border ${isActive ? "active" : ""}`} />
+                <div className={`device-orbit-glow ${isActive ? "active" : isFading ? "fading" : ""}`} />
                 <button
                   onClick={() => setSelectedDevice(selectedDevice === d.id ? null : d.id)}
-                  className={`w-full h-13 sm:h-14 rounded-2xl flex items-center justify-center gap-2 sm:gap-2.5 font-medium text-sm sm:text-base transition-all btn-press border ${
+                  className={`relative z-[1] w-full h-13 sm:h-14 rounded-2xl flex items-center justify-center gap-2 sm:gap-2.5 font-medium text-sm sm:text-base transition-all btn-press border ${
                     isSelected
                       ? "bg-primary/15 border-primary/40 text-primary"
                       : "bg-card border-border hover:bg-card-hover active:bg-card-active"
-                  } ${isOrbit ? "border-transparent" : ""}`}
+                  }`}
                 >
                   <DeviceIcon id={d.icon} size={20} />
                   <span>{d.name}</span>
@@ -143,14 +157,16 @@ export default function Devices() {
           })}
         </div>
 
-        <div className={!selectedDevice && orbitIndex === 4 ? "device-orbit-wrap" : ""}>
+        <div className="relative mb-5 sm:mb-6 animate-fade-in-up animate-delay-2">
+          <div className={`device-orbit-border ${!selectedDevice && orbitIndex === 4 ? "active" : ""}`} />
+          <div className={`device-orbit-glow ${!selectedDevice && orbitIndex === 4 ? "active" : !selectedDevice && prevOrbitIndex === 4 ? "fading" : ""}`} />
           <button
             onClick={() => setSelectedDevice(selectedDevice === "tv" ? null : "tv")}
-            className={`w-full h-13 sm:h-14 rounded-2xl flex items-center justify-center gap-2.5 font-medium text-sm sm:text-base transition-all btn-press border mb-5 sm:mb-6 animate-fade-in-up animate-delay-2 ${
+            className={`relative z-[1] w-full h-13 sm:h-14 rounded-2xl flex items-center justify-center gap-2.5 font-medium text-sm sm:text-base transition-all btn-press border ${
               selectedDevice === "tv"
                 ? "bg-primary/15 border-primary/40 text-primary"
                 : "bg-card border-border hover:bg-card-hover active:bg-card-active"
-            } ${!selectedDevice && orbitIndex === 4 ? "border-transparent" : ""}`}
+            }`}
           >
             <DeviceIcon id="tv" size={20} />
             <span>Android/Google TV</span>
@@ -518,16 +534,26 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
   const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
   const [appOrbitIndex, setAppOrbitIndex] = useState(0);
+  const [prevAppOrbitIndex, setPrevAppOrbitIndex] = useState(-1);
   const info = selectedAppId ? apps.find((a) => a.appId === selectedAppId) : null;
 
   // Auto-cycle orbit through app buttons when none selected
   useEffect(() => {
     if (selectedAppId) return;
     const timer = setInterval(() => {
-      setAppOrbitIndex((prev) => (prev + 1) % apps.length);
-    }, 1800);
+      setAppOrbitIndex((prev) => {
+        setPrevAppOrbitIndex(prev);
+        return (prev + 1) % apps.length;
+      });
+    }, 2200);
     return () => clearInterval(timer);
   }, [selectedAppId, apps.length]);
+
+  useEffect(() => {
+    if (prevAppOrbitIndex < 0) return;
+    const t = setTimeout(() => setPrevAppOrbitIndex(-1), 700);
+    return () => clearTimeout(t);
+  }, [prevAppOrbitIndex]);
 
   return (
     <div className="space-y-3">
@@ -536,17 +562,20 @@ function InstructionCard({ platform, vpnKey, onCopyKey, copiedKey }: Instruction
         <p className="text-xs text-muted mb-3 font-medium">Нажмите на кнопку с нужным приложением-клиентом для инструкции:</p>
         <div className="flex gap-2 flex-wrap">
           {apps.map((app, i) => {
-            const isOrbit = !selectedAppId && appOrbitIndex === i;
+            const isActive = !selectedAppId && appOrbitIndex === i;
+            const isFading = !selectedAppId && prevAppOrbitIndex === i;
             const isSelected = selectedAppId === app.appId;
             return (
-              <div key={app.appId} className={isOrbit ? "app-orbit-wrap" : ""} style={{ animationDelay: `${i * 0.07}s` }}>
+              <div key={app.appId} className="relative" style={{ animationDelay: `${i * 0.07}s` }}>
+                <div className={`app-orbit-border ${isActive ? "active" : ""}`} />
+                <div className={`app-orbit-glow ${isActive ? "active" : isFading ? "fading" : ""}`} />
                 <button
                   onClick={() => setSelectedAppId(selectedAppId === app.appId ? null : app.appId)}
-                  className={`h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 btn-press border animate-fade-in-up ${
+                  className={`relative z-[1] h-10 sm:h-11 px-4 sm:px-5 rounded-xl text-xs sm:text-sm font-medium transition-all duration-300 btn-press border animate-fade-in-up ${
                     isSelected
                       ? "bg-primary/15 border-primary/40 text-primary shadow-sm shadow-primary/10"
                       : "bg-background border-border hover:bg-card-hover hover:border-border/80"
-                  } ${isOrbit ? "border-transparent" : ""}`}
+                  }`}
                 >
                   {app.appName}
                   {app.recommended && (
