@@ -27,7 +27,9 @@ export default function PwaManager() {
       setInstallPrompt(e as BeforeInstallPromptEvent);
       // Don't show immediately — wait a bit
       setTimeout(() => {
-        if (!localStorage.getItem("pwa-install-dismissed")) {
+        const dismissedAt = localStorage.getItem("pwa-install-dismissed");
+        const expired = !dismissedAt || (Date.now() - Number(dismissedAt)) > 24 * 60 * 60 * 1000;
+        if (expired) {
           setShowInstall(true);
         }
       }, 5000);
@@ -97,7 +99,8 @@ export default function PwaManager() {
   const handleDismiss = () => {
     setShowInstall(false);
     setDismissed(true);
-    localStorage.setItem("pwa-install-dismissed", "1");
+    // Remember dismissal with timestamp — will show again after 24h
+    localStorage.setItem("pwa-install-dismissed", String(Date.now()));
   };
 
   if (!showInstall || dismissed) return null;
