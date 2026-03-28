@@ -15,11 +15,6 @@ export default function Dashboard() {
   const [data, setData] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedRef, setCopiedRef] = useState(false);
-  const [copiedKey, setCopiedKey] = useState(false);
-  const [copiedSub, setCopiedSub] = useState(false);
-  const [copiedDirect, setCopiedDirect] = useState(false);
-  const [loadingDirect, setLoadingDirect] = useState(false);
-  const [primaryKey, setPrimaryKey] = useState<string | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -31,12 +26,6 @@ export default function Dashboard() {
       const result = await res.json();
       if (result.success) {
         setData(result.data);
-        // Fetch primary VLESS key
-        if (!result.data.isExpired) {
-          fetch("/api/vpn/direct-links").then(r => r.json()).then(r => {
-            if (r.success && r.data?.key) setPrimaryKey(r.data.key);
-          }).catch(() => {});
-        }
       } else {
         router.push("/");
       }
@@ -51,42 +40,20 @@ export default function Dashboard() {
     fetchSubscription();
   }, [fetchSubscription]);
 
-  const copyToClipboard = async (text: string, type: "key" | "ref") => {
+  const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      if (type === "key") {
-        setCopiedKey(true);
-        setTimeout(() => setCopiedKey(false), 2500);
-      } else {
-        setCopiedRef(true);
-        setTimeout(() => setCopiedRef(false), 2500);
-      }
+      setCopiedRef(true);
+      setTimeout(() => setCopiedRef(false), 2500);
     } catch {
-      // Fallback
       const ta = document.createElement("textarea");
       ta.value = text;
       document.body.appendChild(ta);
       ta.select();
       document.execCommand("copy");
       document.body.removeChild(ta);
-    }
-  };
-
-  const handleCopyKey = async () => {
-    if (!primaryKey) return;
-    try {
-      await navigator.clipboard.writeText(primaryKey);
-      setCopiedDirect(true);
-      setTimeout(() => setCopiedDirect(false), 2500);
-    } catch {
-      const ta = document.createElement("textarea");
-      ta.value = primaryKey;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand("copy");
-      document.body.removeChild(ta);
-      setCopiedDirect(true);
-      setTimeout(() => setCopiedDirect(false), 2500);
+      setCopiedRef(true);
+      setTimeout(() => setCopiedRef(false), 2500);
     }
   };
 
@@ -216,75 +183,16 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              {/* Subscription URL — primary */}
-              {data.subToken && (
-                <>
-                  <div className="bg-background rounded-xl p-3 sm:p-3.5 mb-3 overflow-x-auto select-none">
-                    <p className="text-xs sm:text-sm text-muted font-mono break-all leading-relaxed">
-                      {`https://qodev.dev/api/sub/${data.subToken.slice(0, 6)}${"•".repeat(16)}${data.subToken.slice(-4)}`}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => copyToClipboard(`https://qodev.dev/api/sub/${data.subToken}`, "key")}
-                    className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
-                      copiedKey
-                        ? "bg-success/20 text-success border border-success/30"
-                        : "bg-primary text-white hover:bg-primary-hover"
-                    }`}
-                  >
-                    {copiedKey ? (
-                      <>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                        Скопировано!
-                      </>
-                    ) : (
-                      <>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                        </svg>
-                        Скопировать ссылку подписки
-                      </>
-                    )}
-                  </button>
-
-                  <p className="text-muted/70 text-[10px] sm:text-xs text-center mt-2 leading-relaxed px-2">
-                    Добавьте ссылку в V2RayTun / Hiddify / Streisand → Подписки → Добавить по ссылке
-                  </p>
-                </>
-              )}
-
-              {/* Individual key — secondary */}
               <button
-                onClick={handleCopyKey}
-                disabled={!primaryKey}
-                className={`w-full h-10 sm:h-11 rounded-xl font-medium text-xs sm:text-sm transition-all btn-press flex items-center justify-center gap-2 mt-2.5 ${
-                  copiedDirect
-                    ? "bg-success/20 text-success border border-success/30"
-                    : "border border-border text-muted hover:bg-card-hover hover:text-foreground"
-                }`}
+                onClick={() => router.push("/devices")}
+                className="w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-hover"
               >
-                {copiedDirect ? (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Скопировано!
-                  </>
-                ) : (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-                      <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-                    </svg>
-                    Скопировать отдельный ключ
-                  </>
-                )}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14" />
+                  <path d="M12 5l7 7-7 7" />
+                </svg>
+                Подключиться
               </button>
-
             </>
           )}
 
@@ -346,7 +254,7 @@ export default function Dashboard() {
           <div className="flex gap-2 sm:gap-3">
             <button
               onClick={() =>
-                copyToClipboard(`${window.location.origin}?ref=${data.referralCode}`, "ref")
+                copyToClipboard(`${window.location.origin}?ref=${data.referralCode}`)
               }
               className="flex-1 h-11 sm:h-12 rounded-xl bg-foreground text-background font-medium text-sm sm:text-base hover:bg-foreground/90 transition-all btn-press flex items-center justify-center gap-2"
             >
@@ -359,7 +267,7 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() =>
-                copyToClipboard(`${window.location.origin}?ref=${data.referralCode}`, "ref")
+                copyToClipboard(`${window.location.origin}?ref=${data.referralCode}`)
               }
               className={`flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
                 copiedRef
