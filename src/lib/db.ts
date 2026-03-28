@@ -115,6 +115,20 @@ export async function initDb(): Promise<void> {
     );
 
     CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subscriptions(user_id);
+
+    CREATE TABLE IF NOT EXISTS passkey_credentials (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      credential_id TEXT NOT NULL UNIQUE,
+      public_key TEXT NOT NULL,
+      counter BIGINT NOT NULL DEFAULT 0,
+      device_name TEXT,
+      transports TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_passkey_user ON passkey_credentials(user_id);
+    CREATE INDEX IF NOT EXISTS idx_passkey_cred ON passkey_credentials(credential_id);
   `);
 
   // ─── Migrations: add columns that may be missing on older DBs ───

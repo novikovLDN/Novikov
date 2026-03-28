@@ -8,6 +8,7 @@ import FeatureCard from "@/components/FeatureCard";
 import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PasswordInput from "@/components/PasswordInput";
+import { startAuthentication } from "@simplewebauthn/browser";
 import { sendCodeAction, verifyCodeAction } from "./actions";
 
 type AuthStep =
@@ -102,6 +103,10 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   const [loginLoading, setLoginLoading] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
+  // Passkey state
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
+  const [passkeyError, setPasskeyError] = useState("");
+
   // Set password state
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -125,6 +130,40 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   useEffect(() => {
     setDeviceFingerprint(generateDeviceFingerprint());
   }, []);
+
+  // ─── Passkey Login ──────────────────────────────────────────
+  const handlePasskeyLogin = async () => {
+    setPasskeyLoading(true);
+    setPasskeyError("");
+    try {
+      const optRes = await fetch("/api/auth/passkey/login");
+      const optData = await optRes.json();
+      if (!optData.success) throw new Error(optData.error);
+
+      const credential = await startAuthentication({ optionsJSON: optData.data });
+
+      const verRes = await fetch("/api/auth/passkey/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credential),
+      });
+      const verData = await verRes.json();
+
+      if (verData.success) {
+        router.push("/dashboard");
+      } else {
+        setPasskeyError(verData.error || "Ключ не распознан");
+      }
+    } catch (err) {
+      if ((err as Error).name === "NotAllowedError") {
+        setPasskeyError("");
+      } else {
+        setPasskeyError("Ошибка. Попробуйте другой способ входа.");
+      }
+    } finally {
+      setPasskeyLoading(false);
+    }
+  };
 
   // ─── Server Actions ───────────────────────────────────────────
   const [sendState, sendAction, sendPending] = useActionState(
@@ -509,6 +548,29 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               </svg>
               Войти по логину и паролю
             </button>
+
+            <button
+              onClick={handlePasskeyLogin}
+              disabled={passkeyLoading}
+              className="w-full h-13 sm:h-14 rounded-2xl border border-primary/30 text-primary font-semibold hover:bg-primary/10 transition-colors flex items-center justify-center gap-2.5 btn-press disabled:opacity-50"
+            >
+              {passkeyLoading ? (
+                <><LoadingSpinner size="sm" /> Проверка...</>
+              ) : (
+                <>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                  </svg>
+                  Быстрый вход
+                </>
+              )}
+            </button>
+
+            {passkeyError && (
+              <p className="text-danger text-xs text-center animate-fade-in">{passkeyError}</p>
+            )}
 
             {/* Features */}
             <div className="mt-8 sm:mt-10 space-y-2.5 sm:space-y-3">

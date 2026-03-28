@@ -8,6 +8,7 @@ import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import NotificationsModal from "@/components/NotificationsModal";
 import WelcomeToast from "@/components/WelcomeToast";
+import PasskeyPrompt from "@/components/PasskeyPrompt";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -408,6 +409,7 @@ export default function Dashboard() {
 
       <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
       <WelcomeToast telegramLinkToken={data?.telegramLinkToken} subscriptionEnd={data?.subscriptionEnd} />
+      <PasskeyPrompt />
     </div>
   );
 }
