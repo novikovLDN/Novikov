@@ -9,6 +9,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import NotificationsModal from "@/components/NotificationsModal";
 import WelcomeToast from "@/components/WelcomeToast";
 import PasskeyPrompt from "@/components/PasskeyPrompt";
+import SettingsCard from "@/components/SettingsCard";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -326,6 +327,9 @@ export default function Dashboard() {
             Перейти в Telegram
           </a>
         </div>
+
+        {/* ═══ Settings ═══ */}
+        <SettingsCard />
 
         {/* ═══ Admin ═══ */}
         {data.isAdmin && (
