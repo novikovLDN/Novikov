@@ -13,33 +13,20 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#0a0a0a",
+          background: "#212529",
           borderRadius: "6px",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-            height: "100%",
-          }}
-        >
-          <svg width="22" height="22" viewBox="0 0 100 100">
-            <defs>
-              <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#3b82f6" />
-                <stop offset="50%" stopColor="#6366f1" />
-                <stop offset="100%" stopColor="#8b5cf6" />
-              </linearGradient>
-            </defs>
-            <path
-              d="M50 8 L85 88 L72 88 L62 64 L38 64 L28 88 L15 88 Z M50 28 L40 56 L60 56 Z"
-              fill="url(#g)"
-            />
-          </svg>
-        </div>
+        <svg width="22" height="22" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#D4CDFF" />
+              <stop offset="100%" stopColor="#8942FE" />
+            </linearGradient>
+          </defs>
+          <path d="M30 80L50 15L70 80H60L55 65H45L40 80H30ZM47 55H53L50 42L47 55Z" fill="url(#g)" />
+          <path d="M62 35C62 28 56 23 48 23C40 23 34 28 34 35C34 48 62 42 62 55C62 62 56 68 48 68C40 68 34 62 34 55" stroke="url(#g)" strokeWidth="5" fill="none" strokeLinecap="round" />
+        </svg>
       </div>
     ),
     { ...size }
