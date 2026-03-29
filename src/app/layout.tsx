@@ -11,6 +11,13 @@ export const metadata: Metadata = {
   description:
     "Быстрый и надежный сервис защиты интернет-соединения. Безлимитный трафик, все устройства, простое подключение за 1 минуту. Тестовый период 24 часа бесплатно.",
   keywords: ["Atlas Secure", "безопасный интернет", "защита соединения", "приватность"],
+  icons: {
+    icon: [
+      { url: "/icon", type: "image/png", sizes: "32x32" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: "/apple-icon",
+  },
   manifest: "/manifest.json",
   openGraph: {
     title: "Atlas Secure — Безопасный доступ в интернет",
