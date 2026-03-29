@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, updateUser } from "@/lib/store";
-import { xrayRemoveUser } from "@/lib/xray";
+import { getUserById } from "@/lib/store";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,8 +11,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Always read fresh from DB
-    let user = await getUserById(sessionId);
+    const user = await getUserById(sessionId);
     if (!user) {
       const response = NextResponse.json(
         { success: false, error: "Пользователь не найден" },
@@ -31,54 +29,27 @@ export async function GET(request: NextRequest) {
     const daysLeft = Math.floor(totalHours / 24);
     const hoursLeft = totalHours % 24;
     const minutesLeft = totalMinutes % 60;
-
     const isExpired = msLeft === 0;
 
-    // Only clear VPN key if TRULY expired (not if bot just synced a new date)
-    // Check: subscription expired AND no recent sync (subscriptionEnd is in the past)
-    if (isExpired && user.xrayUuid) {
-      // Double-check by re-reading from DB (in case bot synced between page loads)
-      const freshUser = await getUserById(sessionId);
-      if (freshUser) {
-        const freshEnd = new Date(freshUser.subscriptionEnd);
-        if (freshEnd <= now) {
-          // Still expired after re-read — safe to clear
-          await xrayRemoveUser(freshUser.xrayUuid!);
-          await updateUser(user.id, { xrayUuid: null, vpnKey: null });
-          user = { ...freshUser, xrayUuid: null, vpnKey: null };
-        } else {
-          // Bot synced new date! Use fresh data
-          user = freshUser;
-        }
-      }
-    }
-
-    // Recalculate after possible refresh
-    const finalEnd = new Date(user.subscriptionEnd);
-    const finalMsLeft = Math.max(0, finalEnd.getTime() - now.getTime());
-    const finalExpired = finalMsLeft === 0;
-    const finalTotalMin = Math.floor(finalMsLeft / (1000 * 60));
-    const finalTotalHr = Math.floor(finalTotalMin / 60);
-    const finalDays = Math.floor(finalTotalHr / 24);
-    const finalHours = finalTotalHr % 24;
-    const finalMinutes = finalTotalMin % 60;
+    // DO NOT clear vpnKey/xrayUuid here — cleanup scheduler handles that.
+    // Clearing here causes race conditions with bot sync.
 
     return NextResponse.json({
       success: true,
       data: {
         email: user.email,
-        daysLeft: finalDays,
-        hoursLeft: finalHours,
-        minutesLeft: finalMinutes,
-        isExpired: finalExpired,
+        daysLeft,
+        hoursLeft,
+        minutesLeft,
+        isExpired,
         subscriptionEnd: user.subscriptionEnd,
-        vpnKey: finalExpired ? null : user.vpnKey,
-        xrayUuid: finalExpired ? null : user.xrayUuid,
-        subToken: finalExpired ? null : user.subToken,
+        vpnKey: isExpired ? null : user.vpnKey,
+        xrayUuid: isExpired ? null : user.xrayUuid,
+        subToken: isExpired ? null : user.subToken,
         telegramLinked: user.telegramLinked,
         telegramLinkToken: user.telegramLinkToken,
         referralCode: user.referralCode,
-        subscriptionPlan: finalExpired ? "expired" : (user.subscriptionPlan || "trial"),
+        subscriptionPlan: isExpired ? "expired" : (user.subscriptionPlan || "trial"),
         referrals: user.referrals,
         paidReferrals: user.paidReferrals,
         isAdmin: !!(process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL),

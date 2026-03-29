@@ -33,19 +33,30 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: "Valid subscriptionEnd required" }, { status: 400 });
       }
 
-      // Build updates object with correct UserRecord field names
+      // Check if this is a revocation (plan=none, epoch date)
+      const isRevocation = plan === "none" || subscriptionEnd.getTime() <= 0;
+
       const updates: Record<string, unknown> = {
         subscriptionEnd: subscriptionEnd.toISOString(),
       };
 
-      if (plan && ["trial", "basic", "plus"].includes(plan)) {
-        updates.subscriptionPlan = plan;
-      }
-      if (vpnKey) updates.vpnKey = vpnKey;
-      if (xrayUuid) {
-        updates.xrayUuid = xrayUuid;
-        const added = await xrayAddUser(xrayUuid);
-        console.log(`[SYNC] xrayAddUser(${xrayUuid.slice(0, 20)}): ${added}`);
+      if (isRevocation) {
+        // Revoke: clear everything
+        updates.subscriptionPlan = "trial";
+        updates.vpnKey = null;
+        updates.xrayUuid = null;
+        console.log(`[SYNC] REVOCATION for ${user.email}`);
+      } else {
+        // Normal sync: set plan and key
+        if (plan && ["trial", "basic", "plus"].includes(plan)) {
+          updates.subscriptionPlan = plan;
+        }
+        if (vpnKey) updates.vpnKey = vpnKey;
+        if (xrayUuid) {
+          updates.xrayUuid = xrayUuid;
+          const added = await xrayAddUser(xrayUuid);
+          console.log(`[SYNC] xrayAddUser(${xrayUuid.slice(0, 20)}): ${added}`);
+        }
       }
 
       console.log(`[SYNC] updateUser(${user.id}): ${JSON.stringify(Object.keys(updates))}`);

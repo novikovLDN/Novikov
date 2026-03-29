@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   if (!verifyBotApiKey(request)) return unauthorizedResponse();
 
   try {
-    const telegramId = request.nextUrl.searchParams.get("telegram_id");
+    const telegramId = request.nextUrl.searchParams.get("telegram_id") || request.nextUrl.searchParams.get("telegramId");
     if (!telegramId) {
       return NextResponse.json({ success: false, error: "telegram_id required" }, { status: 400 });
     }
