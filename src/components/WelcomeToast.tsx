@@ -19,8 +19,13 @@ function formatTimeLeft(subscriptionEnd: string): string {
   if (diff <= 0) return "0 ч";
 
   const totalHours = Math.floor(diff / 3600000);
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
   const minutes = Math.floor((diff % 3600000) / 60000);
 
+  if (days >= 1) {
+    return `${days} дн ${hours} ч`;
+  }
   if (totalHours >= 1) {
     return `${totalHours} ч ${minutes} мин`;
   }
