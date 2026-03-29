@@ -3,6 +3,7 @@ import "./globals.css";
 import CookieConsent from "@/components/CookieConsent";
 import CustomCursor from "@/components/CustomCursor";
 import PwaManager from "@/components/PwaManager";
+import IosInstallBanner from "@/components/IosInstallBanner";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atlassecure.uk"),
@@ -49,6 +50,7 @@ export default function RootLayout({
         <CookieConsent />
         <CustomCursor />
         <PwaManager />
+        <IosInstallBanner />
       </body>
     </html>
   );
