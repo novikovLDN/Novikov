@@ -7,10 +7,10 @@ import IosInstallBanner from "@/components/IosInstallBanner";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atlassecure.uk"),
-  title: "Atlas Secure — Безопасный доступ в интернет",
+  title: "Atlas Secure — Платформа безопасного доступа в интернет",
   description:
-    "Быстрый и надежный сервис защиты интернет-соединения. Безлимитный трафик, все устройства, простое подключение за 1 минуту. Тестовый период 24 часа бесплатно.",
-  keywords: ["Atlas Secure", "безопасный интернет", "защита соединения", "приватность"],
+    "Atlas Secure — сервис защиты интернет-соединения корпоративного класса. Enterprise Spectrum Protection, выделенные серверы до 75 Гбит/с, шифрование военного класса. Непрерывная работа 24/7 с 99.9% аптаймом.",
+  keywords: ["Atlas Secure", "безопасный интернет", "защита соединения", "приватность", "VPN", "Enterprise", "шифрование"],
   icons: {
     icon: [
       { url: "/icon", type: "image/png", sizes: "32x32" },
@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   openGraph: {
-    title: "Atlas Secure — Безопасный доступ в интернет",
-    description: "Быстрый и надежный сервис. 24 часа бесплатно.",
+    title: "Atlas Secure — Платформа безопасного доступа в интернет",
+    description: "Enterprise Spectrum Protection. Выделенные серверы до 75 Гбит/с. Шифрование военного класса. 99.9% аптайм.",
     type: "website",
   },
 };
