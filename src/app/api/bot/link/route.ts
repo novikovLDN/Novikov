@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { linkTelegramByToken } from "@/lib/store";
+import { linkTelegramByToken, createAuditLog } from "@/lib/store";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
 
 // POST /api/bot/link — bot links telegram_id to user by token
@@ -26,7 +26,13 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     const end = new Date(user.subscriptionEnd);
-    const daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    const msLeft = Math.max(0, end.getTime() - now.getTime());
+    const daysLeft = Math.floor(msLeft / (1000 * 60 * 60 * 24));
+    const hoursLeft = Math.floor((msLeft / (1000 * 60 * 60)) % 24);
+    const isExpired = msLeft === 0;
+    const hasActiveSubscription = !isExpired && !!user.xrayUuid;
+
+    await createAuditLog("telegram.link", `TG:${telegramId} linked`, user.id, user.email);
 
     return NextResponse.json({
       success: true,
@@ -34,9 +40,14 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         email: user.email,
         daysLeft,
-        isExpired: daysLeft === 0,
+        hoursLeft,
+        isExpired,
+        hasActiveSubscription,
         subscriptionEnd: user.subscriptionEnd,
-        vpnKey: daysLeft > 0 ? user.vpnKey : null,
+        subscriptionPlan: isExpired ? "expired" : (user.subscriptionPlan || "trial"),
+        vpnKey: isExpired ? null : user.vpnKey,
+        xrayUuid: isExpired ? null : user.xrayUuid,
+        referralCode: user.referralCode,
       },
     });
   } catch {

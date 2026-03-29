@@ -278,14 +278,9 @@ export async function linkTelegram(userId: string, telegramId: string): Promise<
   if (!user) return null;
   if (user.telegramLinked) return user;
 
-  // Add 7 days bonus for Telegram linking
-  const currentEnd = new Date(user.subscriptionEnd);
-  const newEnd = new Date(currentEnd.getTime() + 7 * 24 * 60 * 60 * 1000);
-
   return updateUser(userId, {
     telegramId,
     telegramLinked: true,
-    subscriptionEnd: newEnd.toISOString(),
   });
 }
 
