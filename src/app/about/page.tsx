@@ -9,34 +9,50 @@ import PageContainer from "@/components/PageContainer";
 // ─── Floating Squares Background ────────────────────────────────
 
 function FloatingSquares() {
+  const squares = [
+    { size: 45, x: 8, y: 12, dur: 18, delay: 0, color: "rgba(59,130,246,0.12)" },
+    { size: 70, x: 75, y: 8, dur: 22, delay: 0.5, color: "rgba(99,102,241,0.10)" },
+    { size: 35, x: 85, y: 55, dur: 15, delay: 1, color: "rgba(14,165,233,0.10)" },
+    { size: 55, x: 20, y: 70, dur: 20, delay: 1.5, color: "rgba(139,92,246,0.09)" },
+    { size: 60, x: 50, y: 30, dur: 25, delay: 0.8, color: "rgba(59,130,246,0.08)" },
+    { size: 40, x: 65, y: 80, dur: 17, delay: 2, color: "rgba(99,102,241,0.10)" },
+    { size: 50, x: 35, y: 45, dur: 23, delay: 1.2, color: "rgba(14,165,233,0.08)" },
+    { size: 30, x: 90, y: 35, dur: 16, delay: 0.3, color: "rgba(139,92,246,0.11)" },
+    { size: 65, x: 5, y: 90, dur: 21, delay: 1.8, color: "rgba(59,130,246,0.07)" },
+    { size: 38, x: 45, y: 5, dur: 19, delay: 0.6, color: "rgba(99,102,241,0.09)" },
+  ];
+
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      {Array.from({ length: 8 }).map((_, i) => (
+      {squares.map((s, i) => (
         <div
           key={i}
-          className="absolute rounded-xl opacity-0"
+          className="absolute opacity-0"
           style={{
-            width: `${40 + i * 12}px`,
-            height: `${40 + i * 12}px`,
-            left: `${10 + (i * 37) % 80}%`,
-            top: `${5 + (i * 29) % 85}%`,
-            background: `rgba(${30 + i * 8}, ${50 + i * 12}, ${180 - i * 10}, 0.06)`,
-            boxShadow: `0 0 ${20 + i * 5}px rgba(59, 130, 246, ${0.03 + i * 0.005})`,
-            animation: `floatSquare ${12 + i * 3}s ease-in-out infinite, fadeInSquare 1.5s ease-out ${i * 0.3}s forwards`,
-            transform: `rotate(${i * 15}deg)`,
+            width: s.size, height: s.size,
+            left: `${s.x}%`, top: `${s.y}%`,
+            border: `1px solid ${s.color}`,
+            borderRadius: "12px",
+            animation: `floatSquare${i % 3} ${s.dur}s ease-in-out infinite, fadeInSquare 2s ease-out ${s.delay}s forwards`,
           }}
         />
       ))}
       <style>{`
-        @keyframes floatSquare {
+        @keyframes floatSquare0 {
           0%, 100% { transform: translateY(0) rotate(0deg); }
-          25% { transform: translateY(-20px) rotate(5deg); }
-          50% { transform: translateY(-8px) rotate(-3deg); }
-          75% { transform: translateY(-25px) rotate(4deg); }
+          33% { transform: translateY(-30px) translateX(15px) rotate(8deg); }
+          66% { transform: translateY(-15px) translateX(-10px) rotate(-5deg); }
         }
-        @keyframes fadeInSquare {
-          to { opacity: 1; }
+        @keyframes floatSquare1 {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          33% { transform: translateY(-20px) translateX(-20px) rotate(-6deg); }
+          66% { transform: translateY(-35px) translateX(8px) rotate(4deg); }
         }
+        @keyframes floatSquare2 {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-25px) translateX(12px) rotate(10deg); }
+        }
+        @keyframes fadeInSquare { to { opacity: 1; } }
       `}</style>
     </div>
   );
@@ -44,7 +60,7 @@ function FloatingSquares() {
 
 // ─── Animated Stat Card ─────────────────────────────────────────
 
-function StatCard({ icon, value, label, type }: { icon: string; value: string; label: string; type: "speed" | "uptime" | "partners" | "monitoring" }) {
+function StatCard({ icon, value, label, type }: { icon: React.ReactNode; value: string; label: string; type: "speed" | "uptime" | "partners" | "monitoring" }) {
   const [animating, setAnimating] = useState(false);
   const [animValue, setAnimValue] = useState("");
   const [pressed, setPressed] = useState(false);
@@ -135,8 +151,8 @@ function StatCard({ icon, value, label, type }: { icon: string; value: string; l
         </div>
       )}
 
-      <div className={`transition-opacity duration-500 ${animating ? "opacity-0" : "opacity-100"}`}>
-        <span className="text-lg mb-1 block">{icon}</span>
+      <div className={`transition-opacity duration-500 ${animating ? "opacity-0" : "opacity-100"} flex flex-col items-center`}>
+        <div className="mb-1.5">{icon}</div>
         <p className="text-lg sm:text-xl font-bold tabular-nums">{value}</p>
         <p className="text-[11px] sm:text-xs text-muted mt-0.5">{label}</p>
       </div>
@@ -224,10 +240,22 @@ export default function AboutPage() {
 
         {/* Animated Stats */}
         <div className="grid grid-cols-2 gap-2.5 mb-6 sm:mb-8 animate-fade-in-up animate-delay-1">
-          <StatCard icon="⚡" value="75 Гбит/с" label="Пропускная способность" type="speed" />
-          <StatCard icon="🛡" value="99.9%" label="Аптайм серверов" type="uptime" />
-          <StatCard icon="🤝" value="30+" label="Бизнес-партнёров" type="partners" />
-          <StatCard icon="📡" value="24/7" label="Мониторинг" type="monitoring" />
+          <StatCard
+            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#3b82f6" strokeWidth="1.5"/></svg>}
+            value="75 Гбит/с" label="Пропускная способность" type="speed"
+          />
+          <StatCard
+            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#22c55e" strokeWidth="1.5"/><path d="M9 12l2 2 4-4" stroke="#22c55e" strokeWidth="2"/></svg>}
+            value="99.9%" label="Аптайм серверов" type="uptime"
+          />
+          <StatCard
+            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="4" stroke="#8b5cf6" strokeWidth="1.5"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="#8b5cf6" strokeWidth="1.5"/><line x1="19" y1="8" x2="19" y2="14" stroke="#8b5cf6" strokeWidth="1.5"/><line x1="16" y1="11" x2="22" y2="11" stroke="#8b5cf6" strokeWidth="1.5"/></svg>}
+            value="30+" label="Бизнес-партнёров" type="partners"
+          />
+          <StatCard
+            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" stroke="#0ea5e9" strokeWidth="1.5"/><path d="M12 12l4-2.5" stroke="#0ea5e9" strokeWidth="2"/><circle cx="12" cy="12" r="1.5" fill="#0ea5e9"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2" stroke="#0ea5e9" strokeWidth="1" opacity="0.5"/></svg>}
+            value="24/7" label="Мониторинг" type="monitoring"
+          />
         </div>
 
         {/* Features */}
