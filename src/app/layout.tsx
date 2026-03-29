@@ -4,6 +4,7 @@ import CookieConsent from "@/components/CookieConsent";
 import CustomCursor from "@/components/CustomCursor";
 import PwaManager from "@/components/PwaManager";
 import IosInstallBanner from "@/components/IosInstallBanner";
+import ThemeProvider from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atlassecure.uk"),
@@ -41,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className="dark">
+    <html lang="ru" className="dark" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -50,14 +51,17 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="antialiased">
-        <div className="relative min-h-dvh flex flex-col">
-          {children}
-        </div>
-        <CookieConsent />
-        <CustomCursor />
-        <PwaManager />
-        <IosInstallBanner />
+      <body className="antialiased" suppressHydrationWarning>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem("theme");if(t==="light"){document.documentElement.classList.remove("dark");document.documentElement.classList.add("light")}}catch(e){}})()` }} />
+        <ThemeProvider>
+          <div className="relative min-h-dvh flex flex-col">
+            {children}
+          </div>
+          <CookieConsent />
+          <CustomCursor />
+          <PwaManager />
+          <IosInstallBanner />
+        </ThemeProvider>
       </body>
     </html>
   );
