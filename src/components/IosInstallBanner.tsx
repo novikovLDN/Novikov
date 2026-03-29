@@ -67,14 +67,11 @@ export default function IosInstallBanner() {
           {/* Title */}
           <div className="text-center mt-4 mb-8">
             <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center mx-auto mb-4">
-              <svg width="32" height="32" viewBox="0 0 100 100">
-                <defs>
-                  <linearGradient id="ig" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#3b82f6" />
-                    <stop offset="100%" stopColor="#8b5cf6" />
-                  </linearGradient>
-                </defs>
-                <path d="M50 8 L85 88 L72 88 L62 64 L38 64 L28 88 L15 88 Z M50 28 L40 56 L60 56 Z" fill="url(#ig)" />
+              <svg width="32" height="32" viewBox="0 0 200 200" fill="white">
+                <path d="M20 15 L60 15 L60 30 L42 30 L75 63 L63 75 L30 42 L30 60 L15 60 L15 20 Z" />
+                <path d="M180 15 L140 15 L140 30 L158 30 L125 63 L137 75 L170 42 L170 60 L185 60 L185 20 Z" />
+                <path d="M20 185 L60 185 L60 170 L42 170 L75 137 L63 125 L30 158 L30 140 L15 140 L15 180 Z" />
+                <path d="M180 185 L140 185 L140 170 L158 170 L125 137 L137 125 L170 158 L170 140 L185 140 L185 180 Z" />
               </svg>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold mb-2">Установите Atlas Secure</h1>
@@ -197,14 +194,11 @@ export default function IosInstallBanner() {
       <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-xl shadow-black/20">
         <div className="flex items-start gap-3">
           <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-            <svg width="24" height="24" viewBox="0 0 100 100">
-              <defs>
-                <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#8b5cf6" />
-                </linearGradient>
-              </defs>
-              <path d="M50 8 L85 88 L72 88 L62 64 L38 64 L28 88 L15 88 Z M50 28 L40 56 L60 56 Z" fill="url(#bg)" />
+            <svg width="22" height="22" viewBox="0 0 200 200" fill="white">
+              <path d="M20 15 L60 15 L60 30 L42 30 L75 63 L63 75 L30 42 L30 60 L15 60 L15 20 Z" />
+              <path d="M180 15 L140 15 L140 30 L158 30 L125 63 L137 75 L170 42 L170 60 L185 60 L185 20 Z" />
+              <path d="M20 185 L60 185 L60 170 L42 170 L75 137 L63 125 L30 158 L30 140 L15 140 L15 180 Z" />
+              <path d="M180 185 L140 185 L140 170 L158 170 L125 137 L137 125 L170 158 L170 140 L185 140 L185 180 Z" />
             </svg>
           </div>
           <div className="flex-1 min-w-0">
