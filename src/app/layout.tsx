@@ -5,6 +5,7 @@ import CustomCursor from "@/components/CustomCursor";
 import PwaManager from "@/components/PwaManager";
 import IosInstallBanner from "@/components/IosInstallBanner";
 import ThemeProvider from "@/components/ThemeProvider";
+import ThemePickerModal from "@/components/ThemePickerModal";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atlassecure.uk"),
@@ -61,6 +62,7 @@ export default function RootLayout({
           <CustomCursor />
           <PwaManager />
           <IosInstallBanner />
+          <ThemePickerModal />
         </ThemeProvider>
       </body>
     </html>
