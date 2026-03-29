@@ -10,16 +10,16 @@ import PageContainer from "@/components/PageContainer";
 
 function FloatingSquares() {
   const squares = [
-    { size: 45, x: 8, y: 12, dur: 18, delay: 0, color: "rgba(212,205,255,0.10)" },
-    { size: 70, x: 75, y: 8, dur: 22, delay: 0.5, color: "rgba(137,66,254,0.08)" },
-    { size: 35, x: 85, y: 55, dur: 15, delay: 1, color: "rgba(212,205,255,0.08)" },
-    { size: 55, x: 20, y: 70, dur: 20, delay: 1.5, color: "rgba(137,66,254,0.07)" },
-    { size: 60, x: 50, y: 30, dur: 25, delay: 0.8, color: "rgba(212,205,255,0.06)" },
-    { size: 40, x: 65, y: 80, dur: 17, delay: 2, color: "rgba(137,66,254,0.09)" },
-    { size: 50, x: 35, y: 45, dur: 23, delay: 1.2, color: "rgba(212,205,255,0.07)" },
-    { size: 30, x: 90, y: 35, dur: 16, delay: 0.3, color: "rgba(137,66,254,0.10)" },
-    { size: 65, x: 5, y: 90, dur: 21, delay: 1.8, color: "rgba(212,205,255,0.06)" },
-    { size: 38, x: 45, y: 5, dur: 19, delay: 0.6, color: "rgba(137,66,254,0.08)" },
+    { size: 45, x: 8, y: 12, dur: 18, delay: 0, color: "rgba(59,130,246,0.12)" },
+    { size: 70, x: 75, y: 8, dur: 22, delay: 0.5, color: "rgba(99,102,241,0.10)" },
+    { size: 35, x: 85, y: 55, dur: 15, delay: 1, color: "rgba(14,165,233,0.10)" },
+    { size: 55, x: 20, y: 70, dur: 20, delay: 1.5, color: "rgba(139,92,246,0.09)" },
+    { size: 60, x: 50, y: 30, dur: 25, delay: 0.8, color: "rgba(59,130,246,0.08)" },
+    { size: 40, x: 65, y: 80, dur: 17, delay: 2, color: "rgba(99,102,241,0.10)" },
+    { size: 50, x: 35, y: 45, dur: 23, delay: 1.2, color: "rgba(14,165,233,0.08)" },
+    { size: 30, x: 90, y: 35, dur: 16, delay: 0.3, color: "rgba(139,92,246,0.11)" },
+    { size: 65, x: 5, y: 90, dur: 21, delay: 1.8, color: "rgba(59,130,246,0.07)" },
+    { size: 38, x: 45, y: 5, dur: 19, delay: 0.6, color: "rgba(99,102,241,0.09)" },
   ];
 
   return (
@@ -161,10 +161,10 @@ function StatCard({ icon, value, label, type }: { icon: React.ReactNode; value: 
         <div className="absolute inset-0 flex flex-col items-center justify-center animate-fade-in">
           {type === "speed" && (
             <>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D4CDFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-1">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-1">
                 <path d="M12 12m-9 0a9 9 0 1 0 18 0" />
                 <path d="M12 12l4-4" />
-                <circle cx="12" cy="12" r="1" fill="#D4CDFF" />
+                <circle cx="12" cy="12" r="1" fill="#3b82f6" />
               </svg>
               <p className="text-sm sm:text-base font-bold text-primary tabular-nums">{animValue}</p>
             </>
@@ -220,16 +220,16 @@ export default function AboutPage() {
       <PageContainer className="relative z-[1]">
         {/* Hero */}
         <div className="text-center pt-4 sm:pt-6 mb-8 sm:mb-10 animate-fade-in-up">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mx-auto mb-5">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-[#8b5cf6]/20 flex items-center justify-center mx-auto mb-5">
             <svg width="44" height="44" viewBox="0 0 100 100">
               <defs>
                 <linearGradient id="ag" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#D4CDFF" />
-                  <stop offset="100%" stopColor="#8942FE" />
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="50%" stopColor="#6366f1" />
+                  <stop offset="100%" stopColor="#8b5cf6" />
                 </linearGradient>
               </defs>
-              <path d="M30 80L50 15L70 80H60L55 65H45L40 80H30ZM47 55H53L50 42L47 55Z" fill="url(#ag)" />
-              <path d="M62 35C62 28 56 23 48 23C40 23 34 28 34 35C34 48 62 42 62 55C62 62 56 68 48 68C40 68 34 62 34 55" stroke="url(#ag)" strokeWidth="5" fill="none" strokeLinecap="round" />
+              <path d="M50 8 L85 88 L72 88 L62 64 L38 64 L28 88 L15 88 Z M50 28 L40 56 L60 56 Z" fill="url(#ag)" />
             </svg>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold mb-3">Atlas Secure</h1>
@@ -241,7 +241,7 @@ export default function AboutPage() {
         {/* Animated Stats */}
         <div className="grid grid-cols-2 gap-2.5 mb-6 sm:mb-8 animate-fade-in-up animate-delay-1">
           <StatCard
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#D4CDFF" strokeWidth="1.5"/></svg>}
+            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#3b82f6" strokeWidth="1.5"/></svg>}
             value="75 Гбит/с" label="Пропускная способность" type="speed"
           />
           <StatCard
@@ -249,11 +249,11 @@ export default function AboutPage() {
             value="99.9%" label="Аптайм серверов" type="uptime"
           />
           <StatCard
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="4" stroke="#8942FE" strokeWidth="1.5"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="#8942FE" strokeWidth="1.5"/><line x1="19" y1="8" x2="19" y2="14" stroke="#8942FE" strokeWidth="1.5"/><line x1="16" y1="11" x2="22" y2="11" stroke="#8942FE" strokeWidth="1.5"/></svg>}
+            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="4" stroke="#8b5cf6" strokeWidth="1.5"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="#8b5cf6" strokeWidth="1.5"/><line x1="19" y1="8" x2="19" y2="14" stroke="#8b5cf6" strokeWidth="1.5"/><line x1="16" y1="11" x2="22" y2="11" stroke="#8b5cf6" strokeWidth="1.5"/></svg>}
             value="30+" label="Бизнес-партнёров" type="partners"
           />
           <StatCard
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" stroke="#D4CDFF" strokeWidth="1.5"/><path d="M12 12l4-2.5" stroke="#D4CDFF" strokeWidth="2"/><circle cx="12" cy="12" r="1.5" fill="#D4CDFF"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2" stroke="#D4CDFF" strokeWidth="1" opacity="0.5"/></svg>}
+            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" stroke="#0ea5e9" strokeWidth="1.5"/><path d="M12 12l4-2.5" stroke="#0ea5e9" strokeWidth="2"/><circle cx="12" cy="12" r="1.5" fill="#0ea5e9"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2" stroke="#0ea5e9" strokeWidth="1" opacity="0.5"/></svg>}
             value="24/7" label="Мониторинг" type="monitoring"
           />
         </div>
@@ -263,14 +263,14 @@ export default function AboutPage() {
           <FeatureBlock
             title="Enterprise Spectrum Protection"
             desc="Наивысший класс защиты от DDoS-атак и сетевых угроз. Многоуровневая фильтрация трафика с интеллектуальным анализом в реальном времени."
-            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4CDFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" stroke="#D4CDFF" strokeWidth="2" /></svg>}
-            color="bg-[#D4CDFF]/10" delay={0.2}
+            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" stroke="#3b82f6" strokeWidth="2" /></svg>}
+            color="bg-primary/10" delay={0.2}
           />
           <FeatureBlock
             title="Выделенные серверы"
             desc="Инфраструктура премиум-класса с каналами до 75 Гбит/с. Оптимизированная маршрутизация для минимальной задержки и максимальной стабильности."
-            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8942FE" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="7" rx="2" /><rect x="2" y="14" width="20" height="7" rx="2" /><circle cx="6" cy="6.5" r="1" fill="#8942FE" /><circle cx="6" cy="17.5" r="1" fill="#8942FE" /><line x1="10" y1="6.5" x2="18" y2="6.5" /><line x1="10" y1="17.5" x2="18" y2="17.5" /></svg>}
-            color="bg-[#8942FE]/10" delay={0.3}
+            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="7" rx="2" /><rect x="2" y="14" width="20" height="7" rx="2" /><circle cx="6" cy="6.5" r="1" fill="#8b5cf6" /><circle cx="6" cy="17.5" r="1" fill="#8b5cf6" /><line x1="10" y1="6.5" x2="18" y2="6.5" /><line x1="10" y1="17.5" x2="18" y2="17.5" /></svg>}
+            color="bg-[#8b5cf6]/10" delay={0.3}
           />
           <FeatureBlock
             title="Непрерывная доступность"
@@ -281,7 +281,7 @@ export default function AboutPage() {
           <FeatureBlock
             title="Конфиденциальность"
             desc="Политика нулевого логирования. Мы не храним и не анализируем сетевую активность. Шифрование военного класса на всех соединениях."
-            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /><circle cx="12" cy="16" r="1.5" fill="#f59e0b" /></svg>}
+            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /><circle cx="12" cy="16" r="1.5" fill="#f59e0b" /></svg>}
             color="bg-warning/10" delay={0.5}
           />
         </div>
@@ -292,7 +292,7 @@ export default function AboutPage() {
         >
           <div className="flex items-start gap-3.5 mb-4">
             <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#D4CDFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="7" width="20" height="14" rx="2" />
                 <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
                 <line x1="12" y1="12" x2="12" y2="16" />
