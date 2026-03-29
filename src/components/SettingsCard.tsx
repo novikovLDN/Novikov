@@ -151,7 +151,7 @@ export default function SettingsCard() {
   };
 
   return (
-    <div className="animate-fade-in-up animate-delay-4">
+    <div>
       <button
         onClick={() => setOpen(!open)}
         className="w-full h-11 sm:h-12 rounded-2xl bg-card border border-border/50 text-foreground font-medium text-sm sm:text-base hover:bg-card-hover transition-all btn-press flex items-center justify-center gap-2"
