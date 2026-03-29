@@ -93,11 +93,10 @@ export default function Devices() {
 
   const fetchKey = useCallback(async () => {
     try {
-      // Fetch subscription URL for this user
       const res = await fetch("/api/user/subscription");
       const result = await res.json();
-      if (result.success && result.data.subToken) {
-        setVpnKey(`https://qodev.dev/api/sub/${result.data.subToken}`);
+      if (result.success && result.data.vpnKey) {
+        setVpnKey(result.data.vpnKey);
       }
     } catch {
       // silent

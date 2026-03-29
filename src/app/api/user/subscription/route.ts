@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = await getUserById(sessionId);
+    // Always read fresh from DB
+    let user = await getUserById(sessionId);
     if (!user) {
       const response = NextResponse.json(
         { success: false, error: "Пользователь не найден" },
@@ -33,28 +34,51 @@ export async function GET(request: NextRequest) {
 
     const isExpired = msLeft === 0;
 
-    // If subscription expired, remove user from Xray and clear VPN key
+    // Only clear VPN key if TRULY expired (not if bot just synced a new date)
+    // Check: subscription expired AND no recent sync (subscriptionEnd is in the past)
     if (isExpired && user.xrayUuid) {
-      await xrayRemoveUser(user.xrayUuid);
-      await updateUser(user.id, { xrayUuid: null, vpnKey: null });
+      // Double-check by re-reading from DB (in case bot synced between page loads)
+      const freshUser = await getUserById(sessionId);
+      if (freshUser) {
+        const freshEnd = new Date(freshUser.subscriptionEnd);
+        if (freshEnd <= now) {
+          // Still expired after re-read — safe to clear
+          await xrayRemoveUser(freshUser.xrayUuid!);
+          await updateUser(user.id, { xrayUuid: null, vpnKey: null });
+          user = { ...freshUser, xrayUuid: null, vpnKey: null };
+        } else {
+          // Bot synced new date! Use fresh data
+          user = freshUser;
+        }
+      }
     }
+
+    // Recalculate after possible refresh
+    const finalEnd = new Date(user.subscriptionEnd);
+    const finalMsLeft = Math.max(0, finalEnd.getTime() - now.getTime());
+    const finalExpired = finalMsLeft === 0;
+    const finalTotalMin = Math.floor(finalMsLeft / (1000 * 60));
+    const finalTotalHr = Math.floor(finalTotalMin / 60);
+    const finalDays = Math.floor(finalTotalHr / 24);
+    const finalHours = finalTotalHr % 24;
+    const finalMinutes = finalTotalMin % 60;
 
     return NextResponse.json({
       success: true,
       data: {
         email: user.email,
-        daysLeft,
-        hoursLeft,
-        minutesLeft,
-        isExpired,
+        daysLeft: finalDays,
+        hoursLeft: finalHours,
+        minutesLeft: finalMinutes,
+        isExpired: finalExpired,
         subscriptionEnd: user.subscriptionEnd,
-        vpnKey: isExpired ? null : user.vpnKey,
-        xrayUuid: isExpired ? null : user.xrayUuid,
-        subToken: isExpired ? null : user.subToken,
+        vpnKey: finalExpired ? null : user.vpnKey,
+        xrayUuid: finalExpired ? null : user.xrayUuid,
+        subToken: finalExpired ? null : user.subToken,
         telegramLinked: user.telegramLinked,
         telegramLinkToken: user.telegramLinkToken,
         referralCode: user.referralCode,
-        subscriptionPlan: isExpired ? "expired" : user.subscriptionPlan,
+        subscriptionPlan: finalExpired ? "expired" : (user.subscriptionPlan || "trial"),
         referrals: user.referrals,
         paidReferrals: user.paidReferrals,
         isAdmin: !!(process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL),

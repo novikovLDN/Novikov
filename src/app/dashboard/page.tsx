@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [data, setData] = useState<SubscriptionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedRef, setCopiedRef] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -185,15 +186,59 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
+              {/* VPN Key display */}
+              {data.vpnKey && (
+                <div className="bg-background rounded-xl p-3 sm:p-3.5 mb-3 overflow-x-auto select-none">
+                  <p className="text-xs sm:text-sm text-muted font-mono break-all leading-relaxed">
+                    {data.vpnKey.length > 20
+                      ? `${data.vpnKey.slice(0, 12)}${"•".repeat(16)}${data.vpnKey.slice(-8)}`
+                      : "••••••••"}
+                  </p>
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  if (data.vpnKey) {
+                    navigator.clipboard.writeText(data.vpnKey).catch(() => {});
+                    setCopiedKey(true);
+                    setTimeout(() => setCopiedKey(false), 2500);
+                  }
+                }}
+                disabled={!data.vpnKey}
+                className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
+                  copiedKey
+                    ? "bg-success/20 text-success border border-success/30"
+                    : "bg-primary text-white hover:bg-primary-hover"
+                }`}
+              >
+                {copiedKey ? (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Скопировано!
+                  </>
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                    </svg>
+                    Скопировать ключ
+                  </>
+                )}
+              </button>
+
               <button
                 onClick={() => router.push("/devices")}
-                className="w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-hover"
+                className="w-full h-10 sm:h-11 rounded-xl font-medium text-xs sm:text-sm transition-all btn-press flex items-center justify-center gap-2 border border-border text-foreground hover:bg-card-hover mt-2"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14" />
                   <path d="M12 5l7 7-7 7" />
                 </svg>
-                Подключиться
+                Подключить устройство
               </button>
             </>
           )}

@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
         hoursLeft,
         minutesLeft,
         isExpired,
+        hasActiveSubscription: !isExpired && !!user.vpnKey,
         subscriptionEnd: user.subscriptionEnd,
         subscriptionPlan: isExpired ? "expired" : (user.subscriptionPlan || "trial"),
         vpnKey: isExpired ? null : user.vpnKey,
