@@ -20,6 +20,9 @@ export default function Dashboard() {
   const [copiedKey, setCopiedKey] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
+  const [unlinkStep, setUnlinkStep] = useState(0); // 0=hidden, 1=first confirm, 2=final confirm
+  const [unlinking, setUnlinking] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -57,6 +60,26 @@ export default function Dashboard() {
       document.body.removeChild(ta);
       setCopiedRef(true);
       setTimeout(() => setCopiedRef(false), 2500);
+    }
+  };
+
+  const handleUnlinkTelegram = async () => {
+    setUnlinking(true);
+    try {
+      const res = await fetch("/api/user/telegram-unlink", { method: "POST" });
+      const result = await res.json();
+      if (result.success) {
+        setData((prev) => prev ? {
+          ...prev,
+          telegramLinked: false,
+          telegramLinkToken: result.data.telegramLinkToken,
+        } : prev);
+        setUnlinkStep(0);
+      }
+    } catch {
+      // silent
+    } finally {
+      setUnlinking(false);
     }
   };
 
@@ -364,11 +387,63 @@ export default function Dashboard() {
           </div>
 
           {data.telegramLinked ? (
-            <div className="flex items-center gap-2 bg-success-light rounded-xl px-4 py-3">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              <span className="text-sm text-success font-medium">Telegram привязан</span>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 bg-success-light rounded-xl px-4 py-3">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span className="text-sm text-success font-medium">Telegram привязан</span>
+              </div>
+
+              {/* Double confirmation unlink */}
+              {unlinkStep === 0 && (
+                <button
+                  onClick={() => setUnlinkStep(1)}
+                  className="w-full h-8 text-[11px] text-muted hover:text-danger transition-colors flex items-center justify-center gap-1"
+                >
+                  Отвязать Telegram
+                </button>
+              )}
+              {unlinkStep === 1 && (
+                <div className="bg-danger/5 border border-danger/20 rounded-xl p-3 animate-fade-in">
+                  <p className="text-xs text-muted mb-2.5 text-center">Синхронизация подписки с ботом будет остановлена. Продолжить?</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setUnlinkStep(0)}
+                      className="flex-1 h-9 rounded-lg text-xs font-medium border border-border hover:bg-card-hover transition-all btn-press"
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      onClick={() => setUnlinkStep(2)}
+                      className="flex-1 h-9 rounded-lg text-xs font-medium text-danger border border-danger/30 hover:bg-danger/10 transition-all btn-press"
+                    >
+                      Да, отвязать
+                    </button>
+                  </div>
+                </div>
+              )}
+              {unlinkStep === 2 && (
+                <div className="bg-danger/10 border border-danger/30 rounded-xl p-3 animate-fade-in">
+                  <p className="text-xs text-danger font-medium mb-2.5 text-center">Вы уверены? Это действие нельзя отменить мгновенно.</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setUnlinkStep(0)}
+                      disabled={unlinking}
+                      className="flex-1 h-9 rounded-lg text-xs font-medium border border-border hover:bg-card-hover transition-all btn-press disabled:opacity-40"
+                    >
+                      Нет, оставить
+                    </button>
+                    <button
+                      onClick={handleUnlinkTelegram}
+                      disabled={unlinking}
+                      className="flex-1 h-9 rounded-lg text-xs font-medium bg-danger text-white hover:bg-danger-hover transition-all btn-press disabled:opacity-40 flex items-center justify-center gap-1"
+                    >
+                      {unlinking ? "Отвязка..." : "Подтвердить отвязку"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <a

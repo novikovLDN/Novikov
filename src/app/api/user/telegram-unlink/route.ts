@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, updateUser } from "@/lib/store";
+import { getUserById, updateUser, createAuditLog } from "@/lib/store";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,15 +17,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Telegram не привязан" }, { status: 400 });
     }
 
-    // Generate a new link token so user can re-link later
     const crypto = require("crypto");
     const newToken = crypto.randomBytes(8).toString("hex");
+    const oldTelegramId = user.telegramId;
 
     await updateUser(user.id, {
       telegramId: null,
       telegramLinked: false,
       telegramLinkToken: newToken,
     });
+
+    await createAuditLog("telegram.unlink", `TG:${oldTelegramId} unlinked from site`, user.id, user.email);
 
     return NextResponse.json({ success: true, data: { telegramLinkToken: newToken } });
   } catch {
