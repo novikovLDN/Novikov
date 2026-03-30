@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById } from "@/lib/store";
+import { buildSubscriptionUrl } from "@/lib/xray";
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,8 +32,18 @@ export async function GET(request: NextRequest) {
     const minutesLeft = totalMinutes % 60;
     const isExpired = msLeft === 0;
 
-    // DO NOT clear vpnKey/xrayUuid here — cleanup scheduler handles that.
-    // Clearing here causes race conditions with bot sync.
+    // Build the subscription URL from subToken (preferred for VPN apps)
+    // Falls back to vpnKey from DB (could be vless:// from bot sync)
+    let displayKey: string | null = null;
+    if (!isExpired) {
+      if (user.subToken && user.subId) {
+        displayKey = buildSubscriptionUrl(user.subToken, user.subId);
+      } else if (user.subToken) {
+        displayKey = buildSubscriptionUrl(user.subToken, "");
+      } else {
+        displayKey = user.vpnKey;
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -43,7 +54,7 @@ export async function GET(request: NextRequest) {
         minutesLeft,
         isExpired,
         subscriptionEnd: user.subscriptionEnd,
-        vpnKey: isExpired ? null : user.vpnKey,
+        vpnKey: displayKey,
         xrayUuid: isExpired ? null : user.xrayUuid,
         subToken: isExpired ? null : user.subToken,
         telegramLinked: user.telegramLinked,
