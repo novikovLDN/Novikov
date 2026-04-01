@@ -103,7 +103,7 @@ export const SERVER_POOL: ServerEntry[] = [
   },
   {
     name: "🇷🇺 LTE-5G ОБХОД | Все операторы ⚡️",
-    ip: "185.241.193.94",
+    ip: "87.239.106.211",
     port: 443,
     sni: "eh.vk.com",
     fingerprint: "chrome",
@@ -115,7 +115,7 @@ export const SERVER_POOL: ServerEntry[] = [
   },
   {
     name: "🇷🇺 LTE-5G ОБХОД | Все + Мегафон ⚡️",
-    ip: "185.241.193.94",
+    ip: "87.239.106.211",
     port: 443,
     sni: "max.ru",
     fingerprint: "firefox",
@@ -127,7 +127,7 @@ export const SERVER_POOL: ServerEntry[] = [
   },
   {
     name: "🇪🇺 LTE-5G ОБХОД + ВПН ⚡️",
-    ip: "185.241.193.94",
+    ip: "87.239.106.211",
     port: 8444,
     sni: "eh.vk.com",
     fingerprint: "chrome",
@@ -139,7 +139,7 @@ export const SERVER_POOL: ServerEntry[] = [
   },
   {
     name: "🇪🇺 LTE-5G ОБХОД + ВПН Мегафон ⚡️",
-    ip: "185.241.193.94",
+    ip: "87.239.106.211",
     port: 8443,
     sni: "max.ru",
     fingerprint: "firefox",
