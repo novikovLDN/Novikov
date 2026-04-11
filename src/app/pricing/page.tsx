@@ -75,22 +75,8 @@ function PricingContent() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodOption | null>(null);
   const [loading, setLoading] = useState(false);
-  const [balanceLoading, setBalanceLoading] = useState(false);
   const [error, setError] = useState("");
   const [paymentId, setPaymentId] = useState<string | null>(null);
-  const [userBalance, setUserBalance] = useState<number>(0);
-
-  // Fetch user balance
-  useEffect(() => {
-    fetch("/api/user/subscription")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && typeof data.data.balance === "number") {
-          setUserBalance(data.data.balance);
-        }
-      })
-      .catch(() => {});
-  }, []);
 
   // Check for payment return from YooKassa
   useEffect(() => {
@@ -154,30 +140,6 @@ function PricingContent() {
     setSelectedPeriod(opt);
     setStep("payment-methods");
     setError("");
-  };
-
-  const handlePayBalance = async () => {
-    if (!selectedPlan || !selectedPeriod) return;
-    setBalanceLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/payments/balance-purchase", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: selectedPlan, period: selectedPeriod.months }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setUserBalance(data.data.newBalance);
-        setStep("success");
-      } else {
-        setError(data.error || "Не удалось оплатить с баланса");
-      }
-    } catch {
-      setError("Ошибка соединения. Попробуйте позже.");
-    } finally {
-      setBalanceLoading(false);
-    }
   };
 
   const handlePayYooKassa = async () => {
@@ -421,52 +383,6 @@ function PricingContent() {
 
             {/* Payment Methods */}
             <div className="space-y-3">
-              {/* Balance Payment */}
-              {userBalance > 0 && (
-                <button
-                  onClick={handlePayBalance}
-                  disabled={balanceLoading || loading || userBalance < selectedPeriod.price}
-                  className={`w-full text-left bg-card border rounded-2xl p-4 sm:p-5 transition-all active:scale-[0.98] btn-press animate-fade-in-up ${
-                    userBalance >= selectedPeriod.price
-                      ? "border-success/50 hover:border-success"
-                      : "border-border/50 opacity-60"
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-success/15 flex items-center justify-center shrink-0">
-                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M16 8h-6a2 2 0 100 4h4a2 2 0 110 4H8" />
-                        <path d="M12 18V6" />
-                      </svg>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="font-semibold text-sm sm:text-base">Оплатить с баланса</p>
-                        {userBalance >= selectedPeriod.price && (
-                          <span className="text-[10px] bg-success/15 text-success px-2 py-0.5 rounded-full font-semibold">
-                            Доступно
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-muted text-xs sm:text-sm">
-                        Баланс: {userBalance.toFixed(2)} ₽
-                        {userBalance < selectedPeriod.price && (
-                          <span className="text-danger ml-1">(недостаточно)</span>
-                        )}
-                      </p>
-                    </div>
-                    {balanceLoading ? (
-                      <LoadingSpinner size="sm" className="text-success shrink-0" />
-                    ) : (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted shrink-0">
-                        <path d="M9 18l6-6-6-6" />
-                      </svg>
-                    )}
-                  </div>
-                </button>
-              )}
-
               {/* YooKassa — Card / SBP */}
               <button
                 onClick={handlePayYooKassa}

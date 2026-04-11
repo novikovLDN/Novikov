@@ -139,11 +139,13 @@ export async function initDb(): Promise<void> {
       source TEXT,
       description TEXT,
       related_user_id TEXT,
+      synced_to_bot BOOLEAN NOT NULL DEFAULT TRUE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
     CREATE INDEX IF NOT EXISTS idx_balance_tx_user ON balance_transactions(user_id);
     CREATE INDEX IF NOT EXISTS idx_balance_tx_created ON balance_transactions(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_balance_tx_unsynced ON balance_transactions(user_id, synced_to_bot) WHERE synced_to_bot = FALSE;
 
     CREATE TABLE IF NOT EXISTS referral_rewards (
       id TEXT PRIMARY KEY,
@@ -172,6 +174,7 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS sub_id TEXT UNIQUE",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_plan TEXT NOT NULL DEFAULT 'trial'",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS balance INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE balance_transactions ADD COLUMN IF NOT EXISTS synced_to_bot BOOLEAN NOT NULL DEFAULT TRUE",
   ];
 
   for (const sql of migrations) {

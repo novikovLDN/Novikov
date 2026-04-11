@@ -295,18 +295,9 @@ export default function Dashboard() {
             </p>
             <p className="text-muted text-xs sm:text-sm mt-1">Доступно на балансе</p>
           </div>
-          {data.balance >= 149 && (
-            <button
-              onClick={() => router.push("/pricing?from=balance")}
-              className="w-full h-11 sm:h-12 rounded-xl bg-success/20 text-success border border-success/30 font-medium text-sm sm:text-base hover:bg-success/30 transition-all btn-press flex items-center justify-center gap-2 mt-2"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-                <line x1="1" y1="10" x2="23" y2="10" />
-              </svg>
-              Оплатить с баланса
-            </button>
-          )}
+          <p className="text-muted/60 text-[10px] sm:text-xs text-center mt-1">
+            Пополнение и оплата — через Telegram-бот
+          </p>
         </div>
 
         {/* ═══ Referral Program ═══ */}

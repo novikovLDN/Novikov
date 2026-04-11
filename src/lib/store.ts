@@ -480,14 +480,18 @@ export function getLoyaltyInfo(paidReferrals: number): LoyaltyInfo {
 
 // ─── Balance Operations ─────────────────────────────────────────
 
-/** Increase user balance (amount in kopecks). Returns new balance. */
+/**
+ * Increase user balance (amount in kopecks). Returns new balance.
+ * @param syncedToBot - false for site-originated cashback (pending bot sync)
+ */
 export async function increaseBalance(
   userId: string,
   amountKopecks: number,
   type: string,
   source: string,
   description: string,
-  relatedUserId?: string
+  relatedUserId?: string,
+  syncedToBot: boolean = true
 ): Promise<number> {
   const id = uuidv4();
   const result = await pool.query(
@@ -497,48 +501,51 @@ export async function increaseBalance(
   if (result.rows.length === 0) return 0;
 
   await pool.query(
-    `INSERT INTO balance_transactions (id, user_id, amount, type, source, description, related_user_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [id, userId, amountKopecks, type, source, description, relatedUserId || null]
+    `INSERT INTO balance_transactions (id, user_id, amount, type, source, description, related_user_id, synced_to_bot)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    [id, userId, amountKopecks, type, source, description, relatedUserId || null, syncedToBot]
   );
 
   return result.rows[0].balance;
-}
-
-/** Decrease user balance (amount in kopecks). Returns false if insufficient. */
-export async function decreaseBalance(
-  userId: string,
-  amountKopecks: number,
-  type: string,
-  source: string,
-  description: string
-): Promise<{ success: boolean; newBalance: number }> {
-  // Atomic check-and-deduct
-  const result = await pool.query(
-    `UPDATE users SET balance = balance - $1
-     WHERE id = $2 AND balance >= $1
-     RETURNING balance`,
-    [amountKopecks, userId]
-  );
-
-  if (result.rows.length === 0) {
-    return { success: false, newBalance: 0 };
-  }
-
-  const id = uuidv4();
-  await pool.query(
-    `INSERT INTO balance_transactions (id, user_id, amount, type, source, description)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [id, userId, -amountKopecks, type, source, description]
-  );
-
-  return { success: true, newBalance: result.rows[0].balance };
 }
 
 /** Get user balance in kopecks */
 export async function getUserBalance(userId: string): Promise<number> {
   const result = await pool.query("SELECT balance FROM users WHERE id = $1", [userId]);
   return result.rows[0]?.balance ?? 0;
+}
+
+/** Get unsynced cashback transactions for a user (pending bot sync) */
+export async function getUnsyncedCashback(userId: string): Promise<Array<{
+  id: string;
+  amount: number;
+  description: string | null;
+  relatedUserId: string | null;
+  createdAt: string;
+}>> {
+  const result = await pool.query(
+    `SELECT id, amount, description, related_user_id, created_at
+     FROM balance_transactions
+     WHERE user_id = $1 AND synced_to_bot = FALSE
+     ORDER BY created_at ASC`,
+    [userId]
+  );
+  return result.rows.map((r) => ({
+    id: r.id,
+    amount: r.amount,
+    description: r.description,
+    relatedUserId: r.related_user_id,
+    createdAt: new Date(r.created_at).toISOString(),
+  }));
+}
+
+/** Mark cashback transactions as synced to bot */
+export async function markCashbackSynced(transactionIds: string[]): Promise<void> {
+  if (transactionIds.length === 0) return;
+  await pool.query(
+    `UPDATE balance_transactions SET synced_to_bot = TRUE WHERE id = ANY($1)`,
+    [transactionIds]
+  );
 }
 
 // ─── Referral Cashback System ───────────────────────────────────
@@ -604,11 +611,11 @@ export async function creditReferrerOnPayment(
     [rewardKopecks, referrer.id]
   );
 
-  // Record balance transaction
+  // Record balance transaction (synced_to_bot = false — bot will pick up on next sync)
   const txId = uuidv4();
   await pool.query(
-    `INSERT INTO balance_transactions (id, user_id, amount, type, source, description, related_user_id)
-     VALUES ($1, $2, $3, 'cashback', 'referral', $4, $5)`,
+    `INSERT INTO balance_transactions (id, user_id, amount, type, source, description, related_user_id, synced_to_bot)
+     VALUES ($1, $2, $3, 'cashback', 'referral', $4, $5, FALSE)`,
     [txId, referrer.id, rewardKopecks, `Кешбэк ${percent}% от покупки ${purchaseAmountRubles}₽`, userId]
   );
 
