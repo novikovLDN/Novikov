@@ -29,6 +29,7 @@ export interface UserRecord {
   keyRegenWindowStart: string | null;
   telegramLinkToken: string | null;
   registrationIp: string | null;
+  balance: number;
 }
 
 export interface CodeRecord {
@@ -63,6 +64,7 @@ function rowToUser(row: any): UserRecord {
     keyRegenWindowStart: row.key_regen_window_start ? new Date(row.key_regen_window_start).toISOString() : null,
     telegramLinkToken: row.telegram_link_token,
     registrationIp: row.registration_ip,
+    balance: row.balance ?? 0,
   };
 }
 
@@ -188,6 +190,7 @@ export async function updateUser(id: string, updates: Partial<UserRecord>): Prom
     keyRegenWindowStart: "key_regen_window_start",
     telegramLinkToken: "telegram_link_token",
     registrationIp: "registration_ip",
+    balance: "balance",
   };
 
   const setClauses: string[] = [];
@@ -447,19 +450,178 @@ export async function extendSubscription(userId: string, days: number): Promise<
   return updateUser(userId, { subscriptionEnd: newEnd.toISOString() });
 }
 
-export async function creditReferrerOnPayment(userId: string): Promise<void> {
-  const user = await getUserById(userId);
-  if (!user || !user.referredBy) return;
+// ─── Loyalty Tiers & Cashback ───────────────────────────────────
 
-  // Credit referrer: +1 paid referral, +7 days subscription
+export interface LoyaltyInfo {
+  tier: string;
+  percent: number;
+  paidReferrals: number;
+  nextTier: string | null;
+  referralsToNextTier: number;
+}
+
+/** Get cashback percentage based on paid referrals count */
+export function getCashbackPercent(paidReferrals: number): number {
+  if (paidReferrals >= 50) return 45;
+  if (paidReferrals >= 25) return 25;
+  return 10;
+}
+
+/** Get full loyalty tier info */
+export function getLoyaltyInfo(paidReferrals: number): LoyaltyInfo {
+  if (paidReferrals >= 50) {
+    return { tier: "Партнёр", percent: 45, paidReferrals, nextTier: null, referralsToNextTier: 0 };
+  }
+  if (paidReferrals >= 25) {
+    return { tier: "Продвинутый", percent: 25, paidReferrals, nextTier: "Партнёр", referralsToNextTier: 50 - paidReferrals };
+  }
+  return { tier: "Стартовый", percent: 10, paidReferrals, nextTier: "Продвинутый", referralsToNextTier: 25 - paidReferrals };
+}
+
+// ─── Balance Operations ─────────────────────────────────────────
+
+/** Increase user balance (amount in kopecks). Returns new balance. */
+export async function increaseBalance(
+  userId: string,
+  amountKopecks: number,
+  type: string,
+  source: string,
+  description: string,
+  relatedUserId?: string
+): Promise<number> {
+  const id = uuidv4();
+  const result = await pool.query(
+    `UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING balance`,
+    [amountKopecks, userId]
+  );
+  if (result.rows.length === 0) return 0;
+
   await pool.query(
-    `UPDATE users
-     SET paid_referrals = paid_referrals + 1,
-         subscription_end = GREATEST(subscription_end, NOW()) + INTERVAL '7 days'
-     WHERE referral_code = $1`,
+    `INSERT INTO balance_transactions (id, user_id, amount, type, source, description, related_user_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [id, userId, amountKopecks, type, source, description, relatedUserId || null]
+  );
+
+  return result.rows[0].balance;
+}
+
+/** Decrease user balance (amount in kopecks). Returns false if insufficient. */
+export async function decreaseBalance(
+  userId: string,
+  amountKopecks: number,
+  type: string,
+  source: string,
+  description: string
+): Promise<{ success: boolean; newBalance: number }> {
+  // Atomic check-and-deduct
+  const result = await pool.query(
+    `UPDATE users SET balance = balance - $1
+     WHERE id = $2 AND balance >= $1
+     RETURNING balance`,
+    [amountKopecks, userId]
+  );
+
+  if (result.rows.length === 0) {
+    return { success: false, newBalance: 0 };
+  }
+
+  const id = uuidv4();
+  await pool.query(
+    `INSERT INTO balance_transactions (id, user_id, amount, type, source, description)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [id, userId, -amountKopecks, type, source, description]
+  );
+
+  return { success: true, newBalance: result.rows[0].balance };
+}
+
+/** Get user balance in kopecks */
+export async function getUserBalance(userId: string): Promise<number> {
+  const result = await pool.query("SELECT balance FROM users WHERE id = $1", [userId]);
+  return result.rows[0]?.balance ?? 0;
+}
+
+// ─── Referral Cashback System ───────────────────────────────────
+
+/**
+ * Credit referrer with cashback on a referral's payment.
+ *
+ * @param userId - the buyer (referred user) who made a payment
+ * @param purchaseAmountRubles - payment amount in rubles
+ * @param purchaseId - unique payment ID for idempotency
+ * @returns cashback info or null if no referrer
+ */
+export async function creditReferrerOnPayment(
+  userId: string,
+  purchaseAmountRubles?: number,
+  purchaseId?: string
+): Promise<{ referrerId: string; percent: number; rewardRubles: number } | null> {
+  const user = await getUserById(userId);
+  if (!user || !user.referredBy) return null;
+
+  // Find referrer by referral code
+  const referrerResult = await pool.query(
+    "SELECT * FROM users WHERE referral_code = $1",
     [user.referredBy]
   );
-  console.log(`[REFERRAL] Credited referrer of ${user.email} with +7 days`);
+  if (referrerResult.rows.length === 0) return null;
+  const referrer = rowToUser(referrerResult.rows[0]);
+
+  // Self-referral protection
+  if (referrer.id === userId) return null;
+
+  // If no amount provided, just increment paidReferrals (legacy compat)
+  if (!purchaseAmountRubles || purchaseAmountRubles <= 0) {
+    await pool.query(
+      `UPDATE users SET paid_referrals = paid_referrals + 1 WHERE id = $1`,
+      [referrer.id]
+    );
+    console.log(`[REFERRAL] Incremented paidReferrals for ${referrer.email} (no amount provided)`);
+    return null;
+  }
+
+  // Idempotency check: don't double-credit same purchase
+  if (purchaseId) {
+    const existing = await pool.query(
+      "SELECT id FROM referral_rewards WHERE buyer_id = $1 AND purchase_id = $2",
+      [userId, purchaseId]
+    );
+    if (existing.rows.length > 0) {
+      console.log(`[REFERRAL] Already credited for purchase ${purchaseId}, skipping`);
+      return null;
+    }
+  }
+
+  // Calculate cashback
+  const percent = getCashbackPercent(referrer.paidReferrals);
+  const rewardKopecks = Math.round(purchaseAmountRubles * percent / 100 * 100);
+  const rewardRubles = rewardKopecks / 100;
+  const purchaseKopecks = Math.round(purchaseAmountRubles * 100);
+
+  // Credit referrer balance + increment paidReferrals
+  await pool.query(
+    `UPDATE users SET balance = balance + $1, paid_referrals = paid_referrals + 1 WHERE id = $2`,
+    [rewardKopecks, referrer.id]
+  );
+
+  // Record balance transaction
+  const txId = uuidv4();
+  await pool.query(
+    `INSERT INTO balance_transactions (id, user_id, amount, type, source, description, related_user_id)
+     VALUES ($1, $2, $3, 'cashback', 'referral', $4, $5)`,
+    [txId, referrer.id, rewardKopecks, `Кешбэк ${percent}% от покупки ${purchaseAmountRubles}₽`, userId]
+  );
+
+  // Record referral reward
+  const rewardId = uuidv4();
+  await pool.query(
+    `INSERT INTO referral_rewards (id, referrer_id, buyer_id, purchase_id, purchase_amount, percent, reward_amount)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [rewardId, referrer.id, userId, purchaseId || uuidv4(), purchaseKopecks, percent, rewardKopecks]
+  );
+
+  console.log(`[REFERRAL] Credited ${referrer.email}: ${rewardRubles}₽ (${percent}% of ${purchaseAmountRubles}₽) from ${user.email}`);
+  return { referrerId: referrer.id, percent, rewardRubles };
 }
 
 export async function expirePendingPayments(): Promise<number> {

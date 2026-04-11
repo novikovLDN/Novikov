@@ -281,8 +281,36 @@ export default function Dashboard() {
           </a>
         </div>
 
-        {/* ═══ Referral Program ═══ */}
+        {/* ═══ Balance ═══ */}
         <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-2">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-sm sm:text-base">Баланс</h3>
+            <span className="text-[10px] sm:text-xs bg-success-light text-success px-2 py-0.5 rounded-full font-medium">
+              {data.balance > 0 ? `${data.balance.toFixed(2)} ₽` : "0 ₽"}
+            </span>
+          </div>
+          <div className="text-center py-3">
+            <p className="text-3xl sm:text-4xl font-extrabold tabular-nums gradient-text">
+              {data.balance.toFixed(2)} ₽
+            </p>
+            <p className="text-muted text-xs sm:text-sm mt-1">Доступно на балансе</p>
+          </div>
+          {data.balance >= 149 && (
+            <button
+              onClick={() => router.push("/pricing?from=balance")}
+              className="w-full h-11 sm:h-12 rounded-xl bg-success/20 text-success border border-success/30 font-medium text-sm sm:text-base hover:bg-success/30 transition-all btn-press flex items-center justify-center gap-2 mt-2"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                <line x1="1" y1="10" x2="23" y2="10" />
+              </svg>
+              Оплатить с баланса
+            </button>
+          )}
+        </div>
+
+        {/* ═══ Referral Program ═══ */}
+        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-3">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-warning-light flex items-center justify-center shrink-0">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -294,11 +322,36 @@ export default function Dashboard() {
             </div>
             <div className="min-w-0">
               <h3 className="font-semibold text-sm sm:text-base leading-tight">
-                Получи +7 дней за каждого друга
+                Кешбэк {data.cashbackPercent}% с покупок друзей
               </h3>
               <p className="text-xs sm:text-sm text-muted mt-1 leading-snug">
-                Поделись ссылкой — когда друг оплатит подписку, тебе начислятся +7 дней
+                Приглашай друзей — получай кешбэк на баланс с каждой их покупки
               </p>
+            </div>
+          </div>
+
+          {/* Loyalty Tier */}
+          <div className="bg-background rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 mb-3">
+            <div className="flex items-center justify-between text-xs sm:text-sm mb-2">
+              <span className="text-muted">Уровень:</span>
+              <span className="font-semibold text-foreground">{data.loyaltyTier}</span>
+            </div>
+            <div className="flex items-center gap-3 text-[10px] sm:text-xs text-muted">
+              <div className={`px-2 py-0.5 rounded-full font-medium ${data.cashbackPercent >= 10 ? "bg-primary/20 text-primary" : "bg-card-hover text-muted"}`}>
+                10%
+              </div>
+              <div className="flex-1 h-1 bg-border rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all"
+                  style={{ width: `${Math.min(100, (data.paidReferrals / 50) * 100)}%` }}
+                />
+              </div>
+              <div className={`px-2 py-0.5 rounded-full font-medium ${data.cashbackPercent >= 25 ? "bg-warning/20 text-warning" : "bg-card-hover text-muted"}`}>
+                25%
+              </div>
+              <div className={`px-2 py-0.5 rounded-full font-medium ${data.cashbackPercent >= 45 ? "bg-success/20 text-success" : "bg-card-hover text-muted"}`}>
+                45%
+              </div>
             </div>
           </div>
 
@@ -310,7 +363,7 @@ export default function Dashboard() {
                 <line x1="20" y1="8" x2="20" y2="14" />
                 <line x1="23" y1="11" x2="17" y2="11" />
               </svg>
-              <span>Всего рефералов: <b className="text-foreground">{data.referrals}</b></span>
+              <span>Приглашено: <b className="text-foreground">{data.referrals}</b></span>
             </div>
             <div className="w-px h-4 bg-border" />
             <div className="flex items-center gap-1.5">
@@ -366,7 +419,7 @@ export default function Dashboard() {
         </div>
 
         {/* ═══ Telegram Bot ═══ */}
-        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-3">
+        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-4">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-telegram/15 flex items-center justify-center shrink-0">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="#2AABEE">

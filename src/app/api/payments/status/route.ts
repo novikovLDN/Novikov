@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
             await xrayAddUser(newUuid);
           }
 
-          await creditReferrerOnPayment(payment.userId);
+          await creditReferrerOnPayment(payment.userId, payment.amount, payment.id);
 
           return NextResponse.json({
             success: true,

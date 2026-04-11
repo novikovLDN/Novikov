@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserByTelegramId, updateUser, createAuditLog } from "@/lib/store";
+import { getUserByTelegramId, updateUser, createAuditLog, getCashbackPercent, getLoyaltyInfo } from "@/lib/store";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
 
 /**
@@ -59,6 +59,8 @@ export async function POST(request: NextRequest) {
       console.log(`[SYNC] Referrals for ${user.email}: ${user.referrals}→${newReferrals}, paid ${user.paidReferrals}→${newPaid}`);
     }
 
+    const loyaltyInfo = getLoyaltyInfo(newPaid);
+
     return NextResponse.json({
       success: true,
       data: {
@@ -67,6 +69,12 @@ export async function POST(request: NextRequest) {
         referralCode: user.referralCode,
         siteReferralCode: user.referralCode,
         botReferralCode: referralCode || null,
+        balance: user.balance,
+        balanceRubles: user.balance / 100,
+        cashbackPercent: loyaltyInfo.percent,
+        loyaltyTier: loyaltyInfo.tier,
+        nextTier: loyaltyInfo.nextTier,
+        referralsToNextTier: loyaltyInfo.referralsToNextTier,
       },
     });
   } catch (err) {

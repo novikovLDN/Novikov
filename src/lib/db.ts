@@ -49,7 +49,8 @@ export async function initDb(): Promise<void> {
       referred_by TEXT,
       referrals INTEGER NOT NULL DEFAULT 0,
       paid_referrals INTEGER NOT NULL DEFAULT 0,
-      subscription_plan TEXT NOT NULL DEFAULT 'trial'
+      subscription_plan TEXT NOT NULL DEFAULT 'trial',
+      balance INTEGER NOT NULL DEFAULT 0
     );
 
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -129,6 +130,34 @@ export async function initDb(): Promise<void> {
 
     CREATE INDEX IF NOT EXISTS idx_passkey_user ON passkey_credentials(user_id);
     CREATE INDEX IF NOT EXISTS idx_passkey_cred ON passkey_credentials(credential_id);
+
+    CREATE TABLE IF NOT EXISTS balance_transactions (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      source TEXT,
+      description TEXT,
+      related_user_id TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_balance_tx_user ON balance_transactions(user_id);
+    CREATE INDEX IF NOT EXISTS idx_balance_tx_created ON balance_transactions(created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS referral_rewards (
+      id TEXT PRIMARY KEY,
+      referrer_id TEXT NOT NULL,
+      buyer_id TEXT NOT NULL,
+      purchase_id TEXT,
+      purchase_amount INTEGER NOT NULL,
+      percent INTEGER NOT NULL,
+      reward_amount INTEGER NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_referral_rewards_referrer ON referral_rewards(referrer_id);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_referral_rewards_unique ON referral_rewards(buyer_id, purchase_id);
   `);
 
   // ─── Migrations: add columns that may be missing on older DBs ───
@@ -142,6 +171,7 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS sub_token TEXT UNIQUE",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS sub_id TEXT UNIQUE",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_plan TEXT NOT NULL DEFAULT 'trial'",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS balance INTEGER NOT NULL DEFAULT 0",
   ];
 
   for (const sql of migrations) {

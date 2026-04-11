@@ -13,6 +13,7 @@ export interface User {
   referralCode: string;
   referrals: number;
   paidReferrals: number;
+  balance: number;
 }
 
 export interface VerificationCode {
@@ -43,6 +44,9 @@ export interface SubscriptionData {
   subscriptionPlan?: string;
   referrals: number;
   paidReferrals: number;
+  balance: number;
+  cashbackPercent: number;
+  loyaltyTier: string;
   isAdmin?: boolean;
 }
 

@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   if (!verifyBotApiKey(request)) return unauthorizedResponse();
 
   try {
-    const { telegramId, days, plan } = await request.json();
+    const { telegramId, days, plan, amount, paymentId } = await request.json();
 
     if (!telegramId || !days) {
       return NextResponse.json(
@@ -40,8 +40,12 @@ export async function POST(request: NextRequest) {
       await updateUser(user.id, { subscriptionPlan: plan });
     }
 
-    // Credit referrer
-    await creditReferrerOnPayment(user.id);
+    // Credit referrer with cashback
+    const cashbackResult = await creditReferrerOnPayment(
+      user.id,
+      typeof amount === "number" ? amount : undefined,
+      paymentId ? String(paymentId) : undefined
+    );
 
     // Notify user on site about subscription change
     const planLabel = plan === "plus" ? "Plus" : plan === "basic" ? "Basic" : "";
@@ -66,6 +70,11 @@ export async function POST(request: NextRequest) {
         subscriptionEnd: user.subscriptionEnd,
         vpnKey: user.vpnKey,
         subscriptionPlan: plan || user.subscriptionPlan,
+        referralReward: cashbackResult ? {
+          referrerId: cashbackResult.referrerId,
+          percent: cashbackResult.percent,
+          rewardAmount: cashbackResult.rewardRubles,
+        } : null,
       },
     });
   } catch {
