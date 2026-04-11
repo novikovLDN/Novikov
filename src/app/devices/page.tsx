@@ -15,6 +15,7 @@ interface AppInfo {
   storeLabel: string;
   downloadUrl: string;
   searchHint: string;
+  jsonFormat?: boolean;
   deepLink?: (url: string) => string;
   steps: string[];
 }
@@ -38,6 +39,7 @@ const APPS: Record<Platform, AppInfo[]> = {
       storeLabel: "App Store",
       downloadUrl: "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973",
       searchHint: "Найдите «Happ» в App Store или нажмите кнопку ниже",
+      jsonFormat: true,
       deepLink: (url) => `https://api.atlassecure.ru/open/happ?url=${encodeURIComponent(url)}`,
       steps: [
         "Откройте Happ и нажмите «+» внизу экрана",
@@ -70,6 +72,7 @@ const APPS: Record<Platform, AppInfo[]> = {
       storeLabel: "Google Play",
       downloadUrl: "https://play.google.com/store/apps/details?id=com.happproxy",
       searchHint: "Найдите «Happ» в Google Play или нажмите кнопку ниже",
+      jsonFormat: true,
       deepLink: (url) => `https://api.atlassecure.ru/open/happ?url=${encodeURIComponent(url)}`,
       steps: [
         "Откройте Happ и нажмите «+» внизу экрана",
@@ -87,6 +90,7 @@ const APPS: Record<Platform, AppInfo[]> = {
       storeLabel: "App Store",
       downloadUrl: "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973",
       searchHint: "Найдите «Happ» в App Store на Mac или нажмите кнопку ниже",
+      jsonFormat: true,
       deepLink: (url) => `https://api.atlassecure.ru/open/happ?url=${encodeURIComponent(url)}`,
       steps: [
         "Откройте Happ и нажмите «+» → «Добавить подписку»",
@@ -104,6 +108,7 @@ const APPS: Record<Platform, AppInfo[]> = {
       storeLabel: "Скачать с сайта",
       downloadUrl: "https://www.happ.su/main",
       searchHint: "Скачайте Happ с официального сайта и установите",
+      jsonFormat: true,
       steps: [
         "Откройте Happ и нажмите «+» → «Добавить подписку»",
         "Вставьте ссылку из буфера обмена",
@@ -250,6 +255,16 @@ export default function Devices() {
   const selectedApps = platform ? APPS[platform] : [];
   const currentApp = selectedApps[appIndex] || null;
 
+  // Build the key URL: add &format=json for Happ, plain for V2RayTun
+  const getKeyUrl = useCallback(() => {
+    if (!vpnKey) return null;
+    if (currentApp?.jsonFormat) {
+      const sep = vpnKey.includes("?") ? "&" : "?";
+      return `${vpnKey}${sep}format=json`;
+    }
+    return vpnKey;
+  }, [vpnKey, currentApp]);
+
   const handleBack = () => {
     if (step === "done") { setStep("install"); setShowConfetti(false); }
     else if (step === "install") setStep(selectedApps.length > 1 ? "app" : "device");
@@ -273,12 +288,13 @@ export default function Devices() {
   };
 
   const handleCopy = async () => {
-    if (!vpnKey) return;
+    const key = getKeyUrl();
+    if (!key) return;
     try {
-      await navigator.clipboard.writeText(vpnKey);
+      await navigator.clipboard.writeText(key);
     } catch {
       const ta = document.createElement("textarea");
-      ta.value = vpnKey;
+      ta.value = key;
       document.body.appendChild(ta);
       ta.select();
       document.execCommand("copy");
@@ -289,8 +305,9 @@ export default function Devices() {
   };
 
   const handleAutoInstall = () => {
-    if (!vpnKey || !currentApp?.deepLink) return;
-    window.location.href = currentApp.deepLink(vpnKey);
+    const key = getKeyUrl();
+    if (!key || !currentApp?.deepLink) return;
+    window.location.href = currentApp.deepLink(key);
   };
 
   const handleDone = () => {
@@ -431,7 +448,7 @@ export default function Devices() {
             </div>
             <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5">
               {/* Auto-install button */}
-              {currentApp.deepLink && vpnKey && (
+              {currentApp.deepLink && getKeyUrl() && (
                 <button
                   onClick={handleAutoInstall}
                   className="w-full h-12 sm:h-13 rounded-xl bg-primary text-white font-semibold text-sm sm:text-base hover:bg-primary-hover transition-all btn-press flex items-center justify-center gap-2.5 mb-3"
@@ -460,13 +477,11 @@ export default function Devices() {
               </div>
 
               {/* VPN Key */}
-              {vpnKey && (
+              {getKeyUrl() && (
                 <>
                   <div className="bg-background rounded-xl p-3 mb-3 overflow-hidden">
                     <p className="text-[11px] sm:text-xs text-muted font-mono break-all leading-relaxed select-all">
-                      {vpnKey.length > 40
-                        ? `${vpnKey.slice(0, 20)}...${vpnKey.slice(-15)}`
-                        : vpnKey}
+                      {(() => { const k = getKeyUrl()!; return k.length > 40 ? `${k.slice(0, 20)}...${k.slice(-15)}` : k; })()}
                     </p>
                   </div>
                   <button
