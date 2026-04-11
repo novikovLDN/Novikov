@@ -283,8 +283,12 @@ export default function Dashboard() {
               <span className="font-semibold text-foreground">{data.loyaltyTier}</span>
             </div>
             <div className="flex items-center gap-3 text-[10px] sm:text-xs text-muted">
-              <div className={`px-2 py-0.5 rounded-full font-medium ${data.cashbackPercent >= 10 ? "bg-primary/20 text-primary" : "bg-card-hover text-muted"}`}>
-                10%
+              <div className={`px-2 py-0.5 rounded-full font-medium ${
+                data.cashbackPercent >= 45 ? "bg-success/20 text-success" :
+                data.cashbackPercent >= 25 ? "bg-warning/20 text-warning" :
+                "bg-primary/20 text-primary"
+              }`}>
+                {data.cashbackPercent}%
               </div>
               <div className="flex-1 h-1 bg-border rounded-full overflow-hidden">
                 <div
