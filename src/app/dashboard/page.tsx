@@ -10,6 +10,7 @@ import NotificationsModal from "@/components/NotificationsModal";
 import WelcomeToast from "@/components/WelcomeToast";
 import PasskeyPrompt from "@/components/PasskeyPrompt";
 import SettingsCard from "@/components/SettingsCard";
+import TelegramLinkBanner from "@/components/TelegramLinkBanner";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -138,33 +139,67 @@ export default function Dashboard() {
 
           {isExpired ? (
             <p className="text-6xl sm:text-7xl font-extrabold mb-1 tabular-nums text-danger">0</p>
-          ) : data.daysLeft >= 1 ? (
-            <div className="flex items-baseline justify-center gap-2 mb-1">
-              <p className={`text-6xl sm:text-7xl font-extrabold tabular-nums ${isExpiring ? "text-warning" : "gradient-text"}`}>
-                {data.daysLeft}
-              </p>
-              <span className={`text-lg sm:text-xl font-semibold ${isExpiring ? "text-warning/70" : "text-muted"}`}>
-                дн
-              </span>
-              <p className={`text-4xl sm:text-5xl font-extrabold tabular-nums ${isExpiring ? "text-warning" : "gradient-text"}`}>
-                {data.hoursLeft}
-              </p>
-              <span className={`text-lg sm:text-xl font-semibold ${isExpiring ? "text-warning/70" : "text-muted"}`}>
-                ч
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-baseline justify-center gap-2 mb-1">
-              <p className="text-6xl sm:text-7xl font-extrabold tabular-nums text-warning">
-                {data.hoursLeft}
-              </p>
-              <span className="text-lg sm:text-xl font-semibold text-warning/70">ч</span>
-              <p className="text-4xl sm:text-5xl font-extrabold tabular-nums text-warning">
-                {data.minutesLeft}
-              </p>
-              <span className="text-lg sm:text-xl font-semibold text-warning/70">мин</span>
-            </div>
-          )}
+          ) : (() => {
+            const totalDays = data.daysLeft;
+            const totalMonths = Math.floor(totalDays / 30);
+            const years = Math.floor(totalMonths / 12);
+            const months = totalMonths % 12;
+            const remainingDays = totalDays % 30;
+
+            // > 12 months → years + months
+            if (totalMonths >= 12) {
+              return (
+                <div className="flex items-baseline justify-center gap-2 mb-1">
+                  <p className="text-6xl sm:text-7xl font-extrabold tabular-nums gradient-text">{years}</p>
+                  <span className="text-lg sm:text-xl font-semibold text-muted">г</span>
+                  {months > 0 && (
+                    <>
+                      <p className="text-4xl sm:text-5xl font-extrabold tabular-nums gradient-text">{months}</p>
+                      <span className="text-lg sm:text-xl font-semibold text-muted">мес</span>
+                    </>
+                  )}
+                </div>
+              );
+            }
+
+            // > 30 days → months + days
+            if (totalDays > 30) {
+              return (
+                <div className="flex items-baseline justify-center gap-2 mb-1">
+                  <p className="text-6xl sm:text-7xl font-extrabold tabular-nums gradient-text">{totalMonths}</p>
+                  <span className="text-lg sm:text-xl font-semibold text-muted">мес</span>
+                  {remainingDays > 0 && (
+                    <>
+                      <p className="text-4xl sm:text-5xl font-extrabold tabular-nums gradient-text">{remainingDays}</p>
+                      <span className="text-lg sm:text-xl font-semibold text-muted">дн</span>
+                    </>
+                  )}
+                </div>
+              );
+            }
+
+            // >= 1 day → days + hours
+            if (totalDays >= 1) {
+              return (
+                <div className="flex items-baseline justify-center gap-2 mb-1">
+                  <p className={`text-6xl sm:text-7xl font-extrabold tabular-nums ${isExpiring ? "text-warning" : "gradient-text"}`}>{totalDays}</p>
+                  <span className={`text-lg sm:text-xl font-semibold ${isExpiring ? "text-warning/70" : "text-muted"}`}>дн</span>
+                  <p className={`text-4xl sm:text-5xl font-extrabold tabular-nums ${isExpiring ? "text-warning" : "gradient-text"}`}>{data.hoursLeft}</p>
+                  <span className={`text-lg sm:text-xl font-semibold ${isExpiring ? "text-warning/70" : "text-muted"}`}>ч</span>
+                </div>
+              );
+            }
+
+            // < 1 day → hours + minutes
+            return (
+              <div className="flex items-baseline justify-center gap-2 mb-1">
+                <p className="text-6xl sm:text-7xl font-extrabold tabular-nums text-warning">{data.hoursLeft}</p>
+                <span className="text-lg sm:text-xl font-semibold text-warning/70">ч</span>
+                <p className="text-4xl sm:text-5xl font-extrabold tabular-nums text-warning">{data.minutesLeft}</p>
+                <span className="text-lg sm:text-xl font-semibold text-warning/70">мин</span>
+              </div>
+            );
+          })()}
 
           <p className="text-muted text-xs sm:text-sm mb-6 sm:mb-8">
             Заканчивается: {formatDate(data.subscriptionEnd)}
@@ -571,6 +606,7 @@ export default function Dashboard() {
 
       <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
       <WelcomeToast telegramLinkToken={data?.telegramLinkToken} subscriptionEnd={data?.subscriptionEnd} />
+      <TelegramLinkBanner telegramLinked={data?.telegramLinked ?? false} telegramLinkToken={data?.telegramLinkToken} />
       <PasskeyPrompt />
     </div>
   );
