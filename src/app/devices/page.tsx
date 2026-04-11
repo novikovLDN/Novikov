@@ -324,13 +324,13 @@ export default function Devices() {
         <WizardHeader onBack={() => router.push("/dashboard")} title="Подключение" />
         <div className="flex-1 flex flex-col px-4 sm:px-6 pb-8 max-w-lg mx-auto w-full">
           <div className="text-center mt-6 sm:mt-10 mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center animate-scale-in">
+              <svg className="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="5" y="2" width="14" height="20" rx="2" />
                 <line x1="12" y1="18" x2="12.01" y2="18" />
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Выберите устройство</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 animate-fade-in-up">Выберите устройство</h1>
             <p className="text-muted text-sm sm:text-base">На каком устройстве настраиваем VPN?</p>
           </div>
           <div className="space-y-2.5">
@@ -364,14 +364,14 @@ export default function Devices() {
         <WizardHeader onBack={handleBack} title="Выберите приложение" />
         <div className="flex-1 flex flex-col px-4 sm:px-6 pb-8 max-w-lg mx-auto w-full">
           <div className="text-center mt-6 sm:mt-10 mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center animate-scale-in">
+              <svg className="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Установите приложение</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 animate-fade-in-up">Установите приложение</h1>
             <p className="text-muted text-sm sm:text-base">Выберите VPN-клиент для установки</p>
           </div>
           <div className="space-y-3">
@@ -537,8 +537,8 @@ export default function Devices() {
         {showConfetti && <Confetti />}
         <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pb-8 max-w-lg mx-auto w-full">
           <div className="text-center animate-scale-in">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-success/15 flex items-center justify-center">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6 rounded-full bg-success/15 flex items-center justify-center">
+              <svg className="w-10 h-10 sm:w-12 sm:h-12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>

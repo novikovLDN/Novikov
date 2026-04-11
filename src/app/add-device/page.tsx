@@ -264,14 +264,14 @@ export default function AddDevice() {
         <WizardHeader onBack={() => router.push("/dashboard")} title="Добавить устройство" />
         <div className="flex-1 px-4 sm:px-6 pb-8 max-w-lg mx-auto w-full">
           <div className="text-center mt-6 sm:mt-10 mb-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center animate-scale-in">
+              <svg className="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Добавить устройство</h1>
-            <p className="text-muted text-sm sm:text-base">На каком устройстве подключаем VPN?</p>
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2 animate-fade-in-up">Добавить устройство</h1>
+            <p className="text-muted text-sm sm:text-base animate-fade-in-up animate-delay-1">На каком устройстве подключаем VPN?</p>
           </div>
           <div className="space-y-2.5">
             {PLATFORMS.map((p, i) => (
