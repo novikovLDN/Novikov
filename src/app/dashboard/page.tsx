@@ -10,6 +10,7 @@ import NotificationsModal from "@/components/NotificationsModal";
 import WelcomeToast from "@/components/WelcomeToast";
 import PasskeyPrompt from "@/components/PasskeyPrompt";
 import SettingsCard from "@/components/SettingsCard";
+import TelegramLinkBanner from "@/components/TelegramLinkBanner";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -571,6 +572,7 @@ export default function Dashboard() {
 
       <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
       <WelcomeToast telegramLinkToken={data?.telegramLinkToken} subscriptionEnd={data?.subscriptionEnd} />
+      <TelegramLinkBanner telegramLinked={data?.telegramLinked ?? false} telegramLinkToken={data?.telegramLinkToken} />
       <PasskeyPrompt />
     </div>
   );
