@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById } from "@/lib/store";
+import { getUserById, getLoyaltyInfo } from "@/lib/store";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,13 +19,19 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const loyalty = getLoyaltyInfo(user.paidReferrals);
+
     return NextResponse.json({
       success: true,
       data: {
         referralCode: user.referralCode,
         referrals: user.referrals,
         paidReferrals: user.paidReferrals,
-        bonusDays: 20,
+        cashbackPercent: loyalty.percent,
+        loyaltyTier: loyalty.tier,
+        nextTier: loyalty.nextTier,
+        referralsToNextTier: loyalty.referralsToNextTier,
+        balance: user.balance / 100,
       },
     });
   } catch {

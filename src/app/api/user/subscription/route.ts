@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById } from "@/lib/store";
+import { getUserById, getLoyaltyInfo } from "@/lib/store";
 import { buildSubscriptionUrl } from "@/lib/xray";
 
 export async function GET(request: NextRequest) {
@@ -63,6 +63,9 @@ export async function GET(request: NextRequest) {
         subscriptionPlan: isExpired ? "expired" : (user.subscriptionPlan || "trial"),
         referrals: user.referrals,
         paidReferrals: user.paidReferrals,
+        balance: user.balance / 100,
+        cashbackPercent: getLoyaltyInfo(user.paidReferrals).percent,
+        loyaltyTier: getLoyaltyInfo(user.paidReferrals).tier,
         isAdmin: !!(process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL),
       },
     });

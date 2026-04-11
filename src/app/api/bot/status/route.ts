@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserByTelegramId } from "@/lib/store";
+import { getUserByTelegramId, getLoyaltyInfo } from "@/lib/store";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
 
 /**
@@ -51,6 +51,10 @@ export async function GET(request: NextRequest) {
         referralCode: user.referralCode,
         referrals: user.referrals,
         paidReferrals: user.paidReferrals,
+        balance: user.balance,
+        balanceRubles: user.balance / 100,
+        cashbackPercent: getLoyaltyInfo(user.paidReferrals).percent,
+        loyaltyTier: getLoyaltyInfo(user.paidReferrals).tier,
       },
     });
   } catch {

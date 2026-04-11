@@ -108,8 +108,8 @@ export async function POST(request: NextRequest) {
         console.log(`[WEBHOOK] Regenerated VPN key for ${user.email}`);
       }
 
-      // Credit referrer
-      await creditReferrerOnPayment(paymentRecord.userId);
+      // Credit referrer with cashback
+      await creditReferrerOnPayment(paymentRecord.userId, paymentRecord.amount, paymentRecord.id);
 
       // Notify user
       const planLabel = paymentRecord.plan === "plus" ? "Plus" : "Basic";
