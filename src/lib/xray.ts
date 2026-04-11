@@ -263,6 +263,50 @@ export function buildXrayJsonConfigs(uuid: string): any[] {
   }));
 }
 
+/** Build V2RayTun routing header (base64-encoded JSON) */
+export function buildV2RayTunRoutingHeader(): string {
+  const routing = {
+    rules: [
+      {
+        type: "field",
+        outboundTag: "proxy",
+        domain: ["full:atlassecure.ru"],
+        domainMatcher: "hybrid",
+        __name__: "atlassecure-proxy",
+        __id__: "a0000001-0001-0001-0001-000000000001",
+      },
+      {
+        type: "field",
+        outboundTag: "freedom",
+        domain: [
+          "geosite:category-ru",
+          "geosite:apple",
+          "geosite:yandex",
+          "geosite:mailru",
+          ...DIRECT_DOMAINS.filter(d => d !== "atlassecure.ru").map(d => `domain:${d}`),
+        ],
+        domainMatcher: "hybrid",
+        __name__: "ru-direct",
+        __id__: "a0000002-0002-0002-0002-000000000002",
+      },
+      {
+        type: "field",
+        outboundTag: "freedom",
+        ip: ["geoip:ru", "geoip:private"],
+        __name__: "ru-ip-direct",
+        __id__: "a0000003-0003-0003-0003-000000000003",
+      },
+    ],
+    name: "Atlas Secure",
+    domainStrategy: "IPIfNonMatch",
+    id: "a0000000-0000-0000-0000-000000000000",
+    domainMatcher: "hybrid",
+    balancers: [],
+  };
+
+  return Buffer.from(JSON.stringify(routing)).toString("base64");
+}
+
 // ─── Subscription URL ────────────────────────────────────────────
 
 const SUB_BASE_URL = process.env.SUB_BASE_URL || "https://qodev.dev/api/sub";
