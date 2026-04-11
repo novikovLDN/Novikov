@@ -102,7 +102,7 @@ export const SERVER_POOL: ServerEntry[] = [
     security: "reality",
   },
   {
-    name: "Для Обхода",
+    name: "Для Обхода: /white",
     ip: "84.23.52.66",
     port: 8444,
     sni: "eh.vk.com",
