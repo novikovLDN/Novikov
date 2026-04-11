@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-import { buildAllServerUris, buildXrayJsonConfigs } from "@/lib/xray";
+import { buildAllServerUris, buildXrayJsonConfigs, buildV2RayTunRoutingHeader } from "@/lib/xray";
 
 // Force this route to be dynamic (never cached at edge)
 export const dynamic = "force-dynamic";
@@ -110,6 +110,7 @@ async function handleSubscription(
         ...commonHeaders,
         "profile-title": "base64:" + Buffer.from("Atlas Secure").toString("base64"),
         "profile-update-interval": "12",
+        "routing": buildV2RayTunRoutingHeader(),
       },
     });
   } catch (error) {
