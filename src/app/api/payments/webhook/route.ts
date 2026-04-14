@@ -3,6 +3,7 @@ import { getPaymentByTransactionId, updatePaymentStatus, extendSubscription, cre
 import { xrayAddUser, generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl } from "@/lib/xray";
 import { getPaymentStatus as ykGetPayment } from "@/lib/yookassa";
 import type { YooKassaNotification } from "@/lib/yookassa";
+import { pool } from "@/lib/db";
 
 // Period in months → days
 const PERIOD_DAYS: Record<number, number> = {
@@ -15,22 +16,92 @@ const PERIOD_DAYS: Record<number, number> = {
 // YooKassa notification IPs (official ranges)
 // https://yookassa.ru/developers/using-api/webhooks
 const YOOKASSA_IPS = [
-  "185.71.76.", "185.71.77.",  // 185.71.76.0/22
-  "77.75.153.", "77.75.154.", "77.75.156.", "77.75.157.", // 77.75.153.0/22
-  "77.75.152.", "77.75.155.",
+  "185.71.76.", "185.71.77.", "185.71.78.", "185.71.79.",  // 185.71.76.0/22
+  "77.75.152.", "77.75.153.", "77.75.154.", "77.75.155.",  // 77.75.152.0/22
 ];
 
 function isYooKassaIp(ip: string): boolean {
   if (!ip) return false;
-  // In development, allow localhost
   if (process.env.NODE_ENV !== "production") return true;
   return YOOKASSA_IPS.some((prefix) => ip.startsWith(prefix));
 }
 
 /**
+ * Process a confirmed payment: extend subscription, regenerate key if needed, credit referrer.
+ * Shared between webhook and status polling.
+ * Uses atomic status update to prevent double processing.
+ */
+export async function processConfirmedPayment(paymentId: string, transactionId: string): Promise<boolean> {
+  // Atomic idempotency: only update if still pending
+  const updated = await pool.query(
+    `UPDATE payments SET status = 'confirmed', paid_at = NOW()
+     WHERE id = $1 AND status = 'pending'
+     RETURNING *`,
+    [paymentId]
+  );
+
+  if (updated.rows.length === 0) {
+    // Already processed or not pending — skip silently
+    return false;
+  }
+
+  const record = updated.rows[0];
+  const userId = record.user_id;
+  const plan = record.plan;
+  const period = record.period;
+  const amount = parseFloat(record.amount);
+
+  // Extend subscription
+  const days = PERIOD_DAYS[period] || 30;
+  await extendSubscription(userId, days);
+  await updateUser(userId, { subscriptionPlan: plan });
+
+  // Regenerate VPN key if user had no key (expired)
+  try {
+    const user = await getUserById(userId);
+    if (user && !user.xrayUuid) {
+      const newUuid = generateXrayUuid();
+      const newSubToken = generateSubToken();
+      const subId = user.subId || generateSubId(user.email);
+      const newKey = buildSubscriptionUrl(newSubToken, subId);
+      await updateUser(user.id, {
+        xrayUuid: newUuid,
+        vpnKey: newKey,
+        subToken: newSubToken,
+        subId: subId,
+      });
+      await xrayAddUser(newUuid);
+      console.log(`[PAYMENT] Regenerated VPN key for ${user.email}`);
+    }
+  } catch (err) {
+    console.error(`[PAYMENT] Failed to regenerate key for ${userId}:`, err);
+  }
+
+  // Credit referrer with cashback
+  try {
+    await creditReferrerOnPayment(userId, amount, paymentId);
+  } catch (err) {
+    console.error(`[PAYMENT] Failed to credit referrer for ${userId}:`, err);
+  }
+
+  // Notify user
+  try {
+    const planLabel = plan === "plus" ? "Plus" : "Basic";
+    await createNotificationForUser(
+      userId,
+      "Оплата подтверждена",
+      `Подписка ${planLabel} на ${period} мес. активирована. Приятного пользования!`
+    );
+  } catch { /* silent */ }
+
+  console.log(`[PAYMENT] Subscription extended: ${userId} +${days}d (${plan} ${period}m, ${amount}₽)`);
+  await createAuditLog("payment.success", `${plan} ${period}мес, ${amount}₽`, userId).catch(() => {});
+
+  return true;
+}
+
+/**
  * YooKassa Webhook Handler
- *
- * Security: verifies source IP + validates payment via API callback
  */
 export async function POST(request: NextRequest) {
   try {
@@ -46,7 +117,6 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    // YooKassa notification format
     const notification = body as YooKassaNotification;
     const event = notification.event;
     const payment = notification.object;
@@ -57,7 +127,7 @@ export async function POST(request: NextRequest) {
 
     console.log(`[WEBHOOK] YooKassa ${event}: ${payment.id} (${payment.status}) from IP: ${clientIp}`);
 
-    // Double-check: verify payment status via YooKassa API (prevents forgery)
+    // Double-check via YooKassa API
     let verifiedStatus: string;
     try {
       const verified = await ykGetPayment(payment.id);
@@ -66,7 +136,6 @@ export async function POST(request: NextRequest) {
         console.warn(`[WEBHOOK] Status mismatch: webhook=${payment.status}, API=${verifiedStatus}`);
       }
     } catch {
-      // If API check fails, trust the webhook (already IP-verified)
       verifiedStatus = payment.status;
     }
 
@@ -83,49 +152,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (verifiedStatus === "succeeded") {
-      // Mark as confirmed
-      await updatePaymentStatus(paymentRecord.id, "confirmed", new Date());
-
-      // Extend subscription
-      const days = PERIOD_DAYS[paymentRecord.period] || 30;
-      await extendSubscription(paymentRecord.userId, days);
-      await updateUser(paymentRecord.userId, { subscriptionPlan: paymentRecord.plan });
-
-      // If user had no VPN key (expired), regenerate and add to Xray
-      const user = await getUserById(paymentRecord.userId);
-      if (user && !user.xrayUuid) {
-        const newUuid = generateXrayUuid();
-        const newSubToken = generateSubToken();
-        const subId = user.subId || generateSubId(user.email);
-        const newKey = buildSubscriptionUrl(newSubToken, subId);
-        await updateUser(user.id, {
-          xrayUuid: newUuid,
-          vpnKey: newKey,
-          subToken: newSubToken,
-          subId: subId,
-        });
-        await xrayAddUser(newUuid);
-        console.log(`[WEBHOOK] Regenerated VPN key for ${user.email}`);
-      }
-
-      // Credit referrer with cashback
-      await creditReferrerOnPayment(paymentRecord.userId, paymentRecord.amount, paymentRecord.id);
-
-      // Notify user
-      const planLabel = paymentRecord.plan === "plus" ? "Plus" : "Basic";
-      await createNotificationForUser(
-        paymentRecord.userId,
-        "Оплата подтверждена",
-        `Подписка ${planLabel} на ${paymentRecord.period} мес. активирована. Приятного пользования!`
-      ).catch(() => {});
-
-      console.log(`[WEBHOOK] Subscription extended: ${paymentRecord.userId} +${days}d (${paymentRecord.plan} ${paymentRecord.period}m)`);
-      await createAuditLog("payment.success", `${paymentRecord.plan} ${paymentRecord.period}мес, ${paymentRecord.amount}₽`, paymentRecord.userId);
-
+      await processConfirmedPayment(paymentRecord.id, payment.id);
     } else if (verifiedStatus === "canceled") {
       await updatePaymentStatus(paymentRecord.id, "canceled");
       console.log(`[WEBHOOK] Payment canceled: ${payment.id}`);
-      await createAuditLog("payment.canceled", `YooKassa ID: ${payment.id}`, paymentRecord.userId);
+      await createAuditLog("payment.canceled", `YooKassa ID: ${payment.id}`, paymentRecord.userId).catch(() => {});
     }
 
     return NextResponse.json({ ok: true });

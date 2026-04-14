@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, getPaymentById, updatePaymentStatus, extendSubscription, creditReferrerOnPayment, updateUser } from "@/lib/store";
+import { getUserById, getPaymentById, updatePaymentStatus } from "@/lib/store";
 import { getPaymentStatus, PaymentStatus } from "@/lib/yookassa";
-import { xrayAddUser } from "@/lib/xray";
-
-const PERIOD_DAYS: Record<number, number> = {
-  1: 30,
-  3: 90,
-  6: 180,
-  12: 365,
-};
+import { processConfirmedPayment } from "../webhook/route";
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,23 +40,7 @@ export async function GET(request: NextRequest) {
         const ykPayment = await getPaymentStatus(payment.transactionId);
 
         if (ykPayment.status === PaymentStatus.SUCCEEDED) {
-          await updatePaymentStatus(payment.id, "confirmed", new Date());
-          const days = PERIOD_DAYS[payment.period] || 30;
-          await extendSubscription(payment.userId, days);
-          await updateUser(payment.userId, { subscriptionPlan: payment.plan });
-
-          // Regenerate key if needed
-          if (!user.xrayUuid) {
-            const { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl } = await import("@/lib/xray");
-            const newUuid = generateXrayUuid();
-            const newSubToken = generateSubToken();
-            const subId = user.subId || generateSubId(user.email);
-            const newKey = buildSubscriptionUrl(newSubToken, subId);
-            await updateUser(user.id, { xrayUuid: newUuid, vpnKey: newKey, subToken: newSubToken, subId });
-            await xrayAddUser(newUuid);
-          }
-
-          await creditReferrerOnPayment(payment.userId, payment.amount, payment.id);
+          await processConfirmedPayment(payment.id, payment.transactionId);
 
           return NextResponse.json({
             success: true,

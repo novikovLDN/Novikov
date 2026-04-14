@@ -90,7 +90,7 @@ function PricingContent() {
 
   const checkPaymentStatus = useCallback(async (id: string) => {
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 40; // 2 minutes of polling (40 * 3s)
 
     const poll = async () => {
       try {
@@ -116,8 +116,8 @@ function PricingContent() {
         if (attempts < maxAttempts) {
           setTimeout(poll, 3000);
         } else {
-          // After 30s of polling, check one more time
-          setStep("processing");
+          // After 2min of polling, show success anyway (payment will process via webhook later)
+          setStep("success");
         }
       } catch {
         attempts++;
