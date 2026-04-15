@@ -1,9 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 type Tab = "vpn" | "vps" | "vds";
+
+function AnimatedPrice({ value, duration = 600 }: { value: number; duration?: number }) {
+  const [display, setDisplay] = useState(value);
+  const animRef = useRef<number>(0);
+  const startVal = useRef(value);
+  const startTime = useRef(0);
+
+  useEffect(() => {
+    if (display === value) return;
+    startVal.current = display;
+    startTime.current = performance.now();
+    cancelAnimationFrame(animRef.current);
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime.current;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = startVal.current + (value - startVal.current) * eased;
+      setDisplay(Math.round(current * 100) / 100);
+      if (progress < 1) animRef.current = requestAnimationFrame(animate);
+    };
+    animRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, duration]);
+
+  return <>{display.toFixed(2)}</>;
+}
 
 const VPN_PLANS = [
   {
@@ -42,11 +70,26 @@ const VDS_PRESETS = [
   { name: "Infrastructure", cpu: 16, ram: 32, ssd: 500, port: 1, price: 249.99, priceYearly: 199.99 },
 ];
 
-function calcVpsPrice(cpu: number, ram: number, ssd: number) {
-  return Math.round((cpu * 3 + ram * 2.5 + (ssd / 10) * 1 + 2) * 100) / 100;
+const PORT_OPTIONS = [1, 5, 10, 15, 25, 40, 75, 100, 150, 200];
+
+function portPrice(gbps: number): number {
+  if (gbps <= 1) return 0;
+  if (gbps <= 5) return 4;
+  if (gbps <= 10) return 9;
+  if (gbps <= 15) return 16;
+  if (gbps <= 25) return 28;
+  if (gbps <= 40) return 48;
+  if (gbps <= 75) return 85;
+  if (gbps <= 100) return 120;
+  if (gbps <= 150) return 170;
+  return 230;
 }
-function calcVdsPrice(cpu: number, ram: number, ssd: number) {
-  return Math.round((cpu * 8 + ram * 3.5 + (ssd / 10) * 1.5 + 3) * 100) / 100;
+
+function calcVpsPrice(cpu: number, ram: number, ssd: number, port: number) {
+  return Math.round((cpu * 3 + ram * 2.5 + (ssd / 10) * 1 + 2 + portPrice(port)) * 100) / 100;
+}
+function calcVdsPrice(cpu: number, ram: number, ssd: number, port: number) {
+  return Math.round((cpu * 8 + ram * 3.5 + (ssd / 10) * 1.5 + 3 + portPrice(port)) * 100) / 100;
 }
 
 function CheckIcon() {
@@ -63,13 +106,14 @@ export default function PricingPage() {
   const [cpu, setCpu] = useState(2);
   const [ram, setRam] = useState(4);
   const [ssd, setSsd] = useState(50);
+  const [port, setPort] = useState(1);
 
   useEffect(() => {
     document.documentElement.classList.add("premium-page");
     return () => document.documentElement.classList.remove("premium-page");
   }, []);
 
-  const customPrice = tab === "vds" ? calcVdsPrice(cpu, ram, ssd) : calcVpsPrice(cpu, ram, ssd);
+  const customPrice = tab === "vds" ? calcVdsPrice(cpu, ram, ssd, port) : calcVpsPrice(cpu, ram, ssd, port);
   const customPriceYearly = Math.round(customPrice * 0.8 * 100) / 100;
   const presets = tab === "vds" ? VDS_PRESETS : VPS_PRESETS;
 
@@ -133,7 +177,7 @@ export default function PricingPage() {
                   <div className="pl-plan-price">
                     {p.price > 0 ? (
                       <>
-                        <span className="pl-price-amount">{yearly && p.priceYearly ? p.priceYearly : p.price} $</span>
+                        <span className="pl-price-amount"><AnimatedPrice value={yearly && p.priceYearly ? p.priceYearly : p.price} /> $</span>
                         <span className="pl-price-period">{p.period}</span>
                       </>
                     ) : (
@@ -182,7 +226,7 @@ export default function PricingPage() {
                 <div key={p.name} className="pl-plan-card">
                   <h3 className="pl-plan-name">{p.name}</h3>
                   <div className="pl-plan-price">
-                    <span className="pl-price-amount">{yearly ? p.priceYearly : p.price} $</span>
+                    <span className="pl-price-amount"><AnimatedPrice value={yearly ? p.priceYearly : p.price} /> $</span>
                     <span className="pl-price-period">per month</span>
                   </div>
                   <div className="pl-plan-divider" />
@@ -191,6 +235,7 @@ export default function PricingPage() {
                     <li><CheckIcon /> {p.ram} GB RAM</li>
                     <li><CheckIcon /> {p.ssd} GB NVMe SSD</li>
                     <li><CheckIcon /> {p.port} Gbps port</li>
+                    <li><CheckIcon /> Unlimited traffic</li>
                     <li><CheckIcon /> AES-256 encryption</li>
                     <li><CheckIcon /> DDoS protection</li>
                     {tab === "vds" && <li><CheckIcon /> Full root access</li>}
@@ -238,16 +283,31 @@ export default function PricingPage() {
                       <input type="range" min={10} max={tab === "vds" ? 1000 : 500} step={10} value={ssd} onChange={(e) => setSsd(Number(e.target.value))} />
                       <div className="pl-slider-range"><span>10 GB</span><span>{tab === "vds" ? "1 TB" : "500 GB"}</span></div>
                     </div>
+                    <div className="pl-slider-group">
+                      <div className="pl-slider-header">
+                        <span>Port speed</span>
+                        <span className="pl-slider-val">{port} Gb/s</span>
+                      </div>
+                      <div className="pl-port-select">
+                        {PORT_OPTIONS.map((p) => (
+                          <button key={p} className={`pl-port-btn${port === p ? " active" : ""}`} onClick={() => setPort(p)}>
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--pl-t3)", marginTop: 6 }}>Gb/s &middot; Unlimited traffic included</div>
+                    </div>
                   </div>
                   <div className="pl-config-result">
                     <div className="pl-config-specs">
                       <div>{cpu} {tab === "vds" ? "Core" : "vCPU"}{cpu > 1 ? "s" : ""}</div>
                       <div>{ram} GB RAM</div>
                       <div>{ssd} GB NVMe</div>
-                      <div>1 Gbps port</div>
+                      <div>{port} Gb/s port</div>
+                      <div style={{ color: "var(--pl-accent)" }}>Unlimited traffic</div>
                     </div>
                     <div className="pl-config-price">
-                      <span className="pl-config-amount">{yearly ? customPriceYearly : customPrice} $</span>
+                      <span className="pl-config-amount"><AnimatedPrice value={yearly ? customPriceYearly : customPrice} /> $</span>
                       <span className="pl-config-period">/ month</span>
                     </div>
                     <Link href="/auth" className="pl-plan-btn primary" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>
