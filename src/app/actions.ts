@@ -52,7 +52,7 @@ export async function sendCodeAction(
   }
 
   // Redirect to code step — works with and without JS
-  redirect("/?step=code");
+  redirect("/auth?step=code");
 }
 
 export interface VerifyCodeState {
