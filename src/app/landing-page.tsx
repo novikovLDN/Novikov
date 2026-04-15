@@ -213,86 +213,152 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
         </div>
       </section>
 
-      {/* ═══ 3-CARD ISOMETRIC — like Linear's FIG cards ═══ */}
+      {/* ═══ 3-CARD ISOMETRIC — detailed, animated ═══ */}
       <section className="pl-figures pl-reveal">
         <div className="pl-figures-inner">
+
+          {/* ── Card 1: Server Platform ── */}
           <div className="pl-fig-card">
             <div className="pl-fig-label">FIG 0.1</div>
             <div className="pl-fig-illustration">
-              {/* Isometric server stack */}
-              <svg viewBox="0 0 280 220" fill="none" className="pl-iso-svg">
-                <g transform="translate(140,30)">
-                  <path d="M0,0 L100,50 L0,100 L-100,50 Z" stroke="currentColor" strokeWidth="0.8" opacity="0.15" />
-                  <path d="M0,0 L100,50 L100,50 L0,100" stroke="currentColor" strokeWidth="0.8" opacity="0.1" />
-                  <g transform="translate(0,-15)">
-                    <path d="M0,0 L100,50 L0,100 L-100,50 Z" stroke="currentColor" strokeWidth="0.8" opacity="0.2" />
-                    <ellipse cx="0" cy="50" rx="40" ry="20" stroke="currentColor" strokeWidth="0.8" opacity="0.15" />
-                  </g>
-                  <g transform="translate(0,-30)">
-                    <path d="M0,0 L100,50 L0,100 L-100,50 Z" stroke="currentColor" strokeWidth="0.8" opacity="0.25" />
-                    <ellipse cx="0" cy="50" rx="30" ry="15" stroke="currentColor" strokeWidth="0.8" opacity="0.2" />
-                  </g>
-                  <g transform="translate(0,-45)">
-                    <path d="M0,0 L100,50 L0,100 L-100,50 Z" stroke="currentColor" strokeWidth="0.8" opacity="0.3" />
-                    <path d="M-20,40 L0,30 L20,40 L0,50 Z" stroke="currentColor" strokeWidth="0.8" fill="currentColor" opacity="0.06" />
-                  </g>
-                  <g transform="translate(0,-60)">
-                    <path d="M0,0 L100,50 L0,100 L-100,50 Z" stroke="currentColor" strokeWidth="0.8" opacity="0.35" />
-                  </g>
+              <svg viewBox="0 0 320 260" fill="none" className="pl-iso-svg">
+                {/* Base platform with dotted grid */}
+                <path d="M160,230 L290,165 L160,100 L30,165 Z" stroke="currentColor" strokeWidth="0.5" opacity="0.1" />
+                <line x1="63" y1="148" x2="257" y2="148" stroke="currentColor" strokeWidth="0.3" opacity="0.05" strokeDasharray="2 6" />
+                <line x1="63" y1="165" x2="257" y2="165" stroke="currentColor" strokeWidth="0.3" opacity="0.05" strokeDasharray="2 6" />
+                <line x1="63" y1="182" x2="257" y2="182" stroke="currentColor" strokeWidth="0.3" opacity="0.05" strokeDasharray="2 6" />
+                <line x1="95" y1="132" x2="95" y2="198" stroke="currentColor" strokeWidth="0.3" opacity="0.04" strokeDasharray="2 6" />
+                <line x1="160" y1="100" x2="160" y2="230" stroke="currentColor" strokeWidth="0.3" opacity="0.04" strokeDasharray="2 6" />
+                <line x1="225" y1="132" x2="225" y2="198" stroke="currentColor" strokeWidth="0.3" opacity="0.04" strokeDasharray="2 6" />
+                {/* Layer 1 */}
+                <g className="pl-iso-l pl-iso-l1">
+                  <path d="M160,210 L275,152 L160,94 L45,152 Z" stroke="currentColor" strokeWidth="0.6" opacity="0.15" />
+                  <path d="M45,152 L45,160 L160,218 L275,160 L275,152" stroke="currentColor" strokeWidth="0.5" opacity="0.08" />
+                  <path d="M160,210 L160,218" stroke="currentColor" strokeWidth="0.5" opacity="0.08" />
+                  <line x1="80" y1="152" x2="240" y2="152" stroke="currentColor" strokeWidth="0.3" opacity="0.06" className="pl-fl" />
+                </g>
+                {/* Layer 2 */}
+                <g className="pl-iso-l pl-iso-l2">
+                  <path d="M160,190 L255,140 L160,90 L65,140 Z" stroke="currentColor" strokeWidth="0.6" opacity="0.2" />
+                  <path d="M65,140 L65,147 L160,197 L255,147 L255,140" stroke="currentColor" strokeWidth="0.5" opacity="0.1" />
+                  <path d="M160,190 L160,197" stroke="currentColor" strokeWidth="0.5" opacity="0.1" />
+                  <line x1="95" y1="140" x2="225" y2="140" stroke="currentColor" strokeWidth="0.3" opacity="0.07" className="pl-fl" />
+                  <line x1="105" y1="133" x2="215" y2="133" stroke="currentColor" strokeWidth="0.3" opacity="0.05" className="pl-fl" />
+                </g>
+                {/* Layer 3 */}
+                <g className="pl-iso-l pl-iso-l3">
+                  <path d="M160,172 L235,130 L160,88 L85,130 Z" stroke="currentColor" strokeWidth="0.6" opacity="0.25" />
+                  <path d="M85,130 L85,136 L160,178 L235,136 L235,130" stroke="currentColor" strokeWidth="0.5" opacity="0.12" />
+                  <path d="M160,172 L160,178" stroke="currentColor" strokeWidth="0.5" opacity="0.12" />
+                  <ellipse cx="160" cy="130" rx="35" ry="18" stroke="currentColor" strokeWidth="0.5" opacity="0.12" />
+                  <ellipse cx="160" cy="130" rx="20" ry="10" stroke="currentColor" strokeWidth="0.4" opacity="0.08" />
+                </g>
+                {/* Layer 4 */}
+                <g className="pl-iso-l pl-iso-l4">
+                  <path d="M160,155 L218,120 L160,85 L102,120 Z" stroke="currentColor" strokeWidth="0.6" opacity="0.3" />
+                  <path d="M102,120 L102,125 L160,160 L218,125 L218,120" stroke="currentColor" strokeWidth="0.5" opacity="0.15" />
+                  <path d="M160,155 L160,160" stroke="currentColor" strokeWidth="0.5" opacity="0.15" />
+                  <ellipse cx="160" cy="120" rx="25" ry="13" stroke="currentColor" strokeWidth="0.5" opacity="0.15" />
+                  <path d="M150,116 C153,108 167,108 170,116" stroke="currentColor" strokeWidth="0.5" opacity="0.1" fill="none" />
+                  <line x1="140" y1="120" x2="180" y2="120" stroke="currentColor" strokeWidth="0.3" opacity="0.08" className="pl-fl" />
+                </g>
+                {/* Layer 5 — top cap */}
+                <g className="pl-iso-l pl-iso-l5">
+                  <path d="M160,138 L200,110 L160,82 L120,110 Z" stroke="currentColor" strokeWidth="0.7" opacity="0.35" />
+                  <path d="M120,110 L120,113 L160,141 L200,113 L200,110" stroke="currentColor" strokeWidth="0.5" opacity="0.18" />
+                  <path d="M160,138 L160,141" stroke="currentColor" strokeWidth="0.5" opacity="0.18" />
                 </g>
               </svg>
             </div>
             <h3 className="pl-fig-title">Built for enterprise</h3>
             <p className="pl-fig-desc">Infrastructure designed around the needs of businesses handling sensitive data across jurisdictions.</p>
           </div>
+
+          {/* ── Card 2: Distributed Hex Cluster ── */}
           <div className="pl-fig-card">
             <div className="pl-fig-label">FIG 0.2</div>
             <div className="pl-fig-illustration">
-              {/* Isometric hexagonal nodes */}
-              <svg viewBox="0 0 280 220" fill="none" className="pl-iso-svg">
-                <g transform="translate(140,110)">
-                  <polygon points="0,-50 43,-25 43,25 0,50 -43,25 -43,-25" stroke="currentColor" strokeWidth="0.8" opacity="0.3" />
-                  <polygon points="0,-35 30,-17.5 30,17.5 0,35 -30,17.5 -30,-17.5" stroke="currentColor" strokeWidth="0.8" opacity="0.2" />
-                  <circle cx="0" cy="0" r="4" fill="currentColor" opacity="0.15" />
-                  <g transform="translate(75,-30)">
-                    <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" stroke="currentColor" strokeWidth="0.8" opacity="0.2" />
-                    <circle cx="0" cy="0" r="3" fill="currentColor" opacity="0.1" />
-                  </g>
-                  <g transform="translate(-75,-30)">
-                    <polygon points="0,-30 26,-15 26,15 0,30 -26,15 -26,-15" stroke="currentColor" strokeWidth="0.8" opacity="0.2" />
-                    <circle cx="0" cy="0" r="3" fill="currentColor" opacity="0.1" />
-                  </g>
-                  <g transform="translate(0,70)">
-                    <polygon points="0,-25 22,-12.5 22,12.5 0,25 -22,12.5 -22,-12.5" stroke="currentColor" strokeWidth="0.8" opacity="0.15" />
-                    <circle cx="0" cy="0" r="2.5" fill="currentColor" opacity="0.1" />
-                  </g>
-                  <line x1="30" y1="17" x2="50" y2="-13" stroke="currentColor" strokeWidth="0.5" opacity="0.12" />
-                  <line x1="-30" y1="17" x2="-50" y2="-13" stroke="currentColor" strokeWidth="0.5" opacity="0.12" />
-                  <line x1="0" y1="35" x2="0" y2="45" stroke="currentColor" strokeWidth="0.5" opacity="0.12" />
+              <svg viewBox="0 0 320 260" fill="none" className="pl-iso-svg">
+                {/* Large cube — bottom center */}
+                <g className="pl-hex-main">
+                  <path d="M160,140 L210,165 L160,190 L110,165 Z" stroke="currentColor" strokeWidth="0.7" opacity="0.3" />
+                  <path d="M110,165 L110,205 L160,230 L160,190 Z" stroke="currentColor" strokeWidth="0.6" opacity="0.18" />
+                  <path d="M210,165 L210,205 L160,230 L160,190 Z" stroke="currentColor" strokeWidth="0.6" opacity="0.12" />
+                  <polygon points="160,140 210,165 160,190 110,165" fill="currentColor" opacity="0.03" />
+                  <circle cx="160" cy="165" r="3" fill="currentColor" opacity="0.08" className="pl-glow" />
+                </g>
+                {/* Medium cube — upper right */}
+                <g className="pl-hex-med">
+                  <path d="M230,85 L268,105 L230,125 L192,105 Z" stroke="currentColor" strokeWidth="0.6" opacity="0.25" />
+                  <path d="M192,105 L192,135 L230,155 L230,125 Z" stroke="currentColor" strokeWidth="0.5" opacity="0.14" />
+                  <path d="M268,105 L268,135 L230,155 L230,125 Z" stroke="currentColor" strokeWidth="0.5" opacity="0.1" />
+                  <polygon points="230,85 268,105 230,125 192,105" fill="currentColor" opacity="0.02" />
+                  <circle cx="230" cy="105" r="2.5" fill="currentColor" opacity="0.06" className="pl-glow" />
+                </g>
+                {/* Small cube — upper left */}
+                <g className="pl-hex-sm">
+                  <path d="M95,70 L123,85 L95,100 L67,85 Z" stroke="currentColor" strokeWidth="0.6" opacity="0.2" />
+                  <path d="M67,85 L67,108 L95,123 L95,100 Z" stroke="currentColor" strokeWidth="0.5" opacity="0.12" />
+                  <path d="M123,85 L123,108 L95,123 L95,100 Z" stroke="currentColor" strokeWidth="0.5" opacity="0.08" />
+                  <polygon points="95,70 123,85 95,100 67,85" fill="currentColor" opacity="0.02" />
+                  <circle cx="95" cy="85" r="2" fill="currentColor" opacity="0.06" className="pl-glow" />
+                </g>
+                {/* Connection lines */}
+                <line x1="135" y1="155" x2="200" y2="120" stroke="currentColor" strokeWidth="0.4" opacity="0.1" />
+                <line x1="120" y1="150" x2="100" y2="110" stroke="currentColor" strokeWidth="0.4" opacity="0.1" />
+                <line x1="115" y1="95" x2="200" y2="100" stroke="currentColor" strokeWidth="0.4" opacity="0.08" />
+                {/* Flow dots on connections */}
+                <circle cx="168" cy="137" r="1.5" fill="currentColor" className="pl-flow-dot pl-fd1" opacity="0.08" />
+                <circle cx="110" cy="130" r="1.5" fill="currentColor" className="pl-flow-dot pl-fd2" opacity="0.08" />
+                <circle cx="155" cy="98" r="1.5" fill="currentColor" className="pl-flow-dot pl-fd3" opacity="0.08" />
+                {/* Tiny floating cube */}
+                <g opacity="0.12">
+                  <path d="M175,60 L190,68 L175,76 L160,68 Z" stroke="currentColor" strokeWidth="0.5" />
+                  <path d="M160,68 L160,78 L175,86 L175,76 Z" stroke="currentColor" strokeWidth="0.4" />
+                  <path d="M190,68 L190,78 L175,86 L175,76 Z" stroke="currentColor" strokeWidth="0.4" />
                 </g>
               </svg>
             </div>
             <h3 className="pl-fig-title">Distributed by design</h3>
             <p className="pl-fig-desc">Three continental jurisdictions ensure data sovereignty and geographic fault tolerance.</p>
           </div>
+
+          {/* ── Card 3: Speed / Data Layers ── */}
           <div className="pl-fig-card">
             <div className="pl-fig-label">FIG 0.3</div>
             <div className="pl-fig-illustration">
-              {/* Isometric speed/layers */}
-              <svg viewBox="0 0 280 220" fill="none" className="pl-iso-svg">
-                <g transform="translate(60,60)">
-                  {[0,1,2,3,4,5,6,7].map((i) => (
-                    <line key={i} x1={20} y1={30 + i * 18} x2={200} y2={30 + i * 18} stroke="currentColor" strokeWidth="0.6" opacity={0.08 + i * 0.03} />
+              <svg viewBox="0 0 320 260" fill="none" className="pl-iso-svg">
+                {/* Vertical server structure — left side */}
+                <g className="pl-rack">
+                  <path d="M60,60 L60,220 L100,240 L100,80 Z" stroke="currentColor" strokeWidth="0.6" opacity="0.2" fill="none" />
+                  <path d="M100,80 L100,240 L110,235 L110,75 Z" stroke="currentColor" strokeWidth="0.5" opacity="0.12" fill="none" />
+                  {/* Shelf lines inside rack */}
+                  {[0,1,2,3,4,5,6,7,8].map((i) => (
+                    <line key={`shelf-${i}`} x1="60" y1={80 + i * 18} x2="100" y2={100 + i * 18} stroke="currentColor" strokeWidth="0.4" opacity="0.1" />
                   ))}
-                  <g transform="translate(0,0)">
-                    <rect x="20" y="25" width="180" height="8" rx="1" stroke="currentColor" strokeWidth="0.8" opacity="0.25" fill="none" />
-                    <rect x="20" y="45" width="140" height="8" rx="1" stroke="currentColor" strokeWidth="0.8" opacity="0.2" fill="none" />
-                    <rect x="20" y="65" width="160" height="8" rx="1" stroke="currentColor" strokeWidth="0.8" opacity="0.15" fill="none" />
+                </g>
+                {/* Horizontal data bars extending right */}
+                <g className="pl-speed-lines">
+                  {[0,1,2,3,4,5,6,7].map((i) => (
+                    <g key={`bar-${i}`} className={`pl-speed-bar pl-sb${i}`}>
+                      <line x1="110" y1={88 + i * 20} x2={180 + (i % 3) * 30 + (i % 2) * 20} y2={88 + i * 20} stroke="currentColor" strokeWidth="0.6" opacity={0.08 + i * 0.025} />
+                      <rect x="110" y={84 + i * 20} width={70 + (i % 3) * 30 + (i % 2) * 20} height="8" rx="1" stroke="currentColor" strokeWidth="0.5" opacity={0.06 + i * 0.02} fill="none" />
+                    </g>
+                  ))}
+                </g>
+                {/* Stacked panels — right side */}
+                <g className="pl-panels">
+                  <g className="pl-panel-stack">
+                    <rect x="200" y="155" width="80" height="60" rx="2" stroke="currentColor" strokeWidth="0.6" opacity="0.2" fill="none" />
+                    <line x1="200" y1="170" x2="280" y2="170" stroke="currentColor" strokeWidth="0.3" opacity="0.08" />
+                    <line x1="215" y1="178" x2="265" y2="178" stroke="currentColor" strokeWidth="0.3" opacity="0.06" />
+                    <line x1="215" y1="186" x2="250" y2="186" stroke="currentColor" strokeWidth="0.3" opacity="0.06" />
                   </g>
-                  <g transform="translate(130,85)">
-                    <rect x="0" y="0" width="70" height="55" rx="2" stroke="currentColor" strokeWidth="0.8" opacity="0.25" fill="none" />
-                    <rect x="0" y="-15" width="70" height="55" rx="2" stroke="currentColor" strokeWidth="0.8" opacity="0.2" fill="none" />
-                    <rect x="0" y="-30" width="70" height="55" rx="2" stroke="currentColor" strokeWidth="0.8" opacity="0.15" fill="none" />
+                  <g className="pl-panel-stack" style={{ transform: 'translateY(-18px)' }}>
+                    <rect x="200" y="155" width="80" height="60" rx="2" stroke="currentColor" strokeWidth="0.5" opacity="0.15" fill="none" />
+                  </g>
+                  <g className="pl-panel-stack" style={{ transform: 'translateY(-36px)' }}>
+                    <rect x="200" y="155" width="80" height="60" rx="2" stroke="currentColor" strokeWidth="0.4" opacity="0.1" fill="none" />
                   </g>
                 </g>
               </svg>
@@ -300,6 +366,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
             <h3 className="pl-fig-title">Engineered for speed</h3>
             <p className="pl-fig-desc">200 Gb/s bandwidth per server, sub-5ms regional latency, BGP Anycast routing.</p>
           </div>
+
         </div>
       </section>
 
