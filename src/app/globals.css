@@ -860,6 +860,10 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .pl-config-result { display: flex; flex-direction: column; gap: 16px; padding: 24px; border: 1px solid var(--pl-border); border-radius: 10px; background: var(--pl-surface); height: fit-content; }
 .pl-config-specs { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--pl-t2); }
 .pl-config-price { display: flex; align-items: baseline; gap: 4px; }
+.pl-port-select { display: flex; flex-wrap: wrap; gap: 6px; }
+.pl-port-btn { font-size: 12px; font-weight: 500; color: var(--pl-t3); background: var(--pl-elevated); border: 1px solid var(--pl-border); border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all .15s; min-width: 44px; text-align: center; }
+.pl-port-btn:hover { border-color: var(--pl-border-h); color: var(--pl-t2); }
+.pl-port-btn.active { background: var(--pl-accent); border-color: var(--pl-accent); color: #fff; }
 .pl-config-amount { font-size: 28px; font-weight: 600; color: var(--pl-t1); }
 .pl-config-period { font-size: 14px; color: var(--pl-t3); }
 
