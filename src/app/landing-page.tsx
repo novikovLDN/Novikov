@@ -81,6 +81,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
             <a href="#services">Solutions</a>
             <a href="#infra">Infrastructure</a>
             <a href="#tech">Security</a>
+            <Link href="/pricing">Pricing</Link>
           </nav>
           <div className="pl-header-actions">
             <span className="pl-header-sep" />
