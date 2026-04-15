@@ -18,8 +18,6 @@ function AtlasLogo({ size = 24 }: { size?: number }) {
 export default function LandingPage({ referralCode }: { referralCode?: string }) {
   const authUrl = referralCode ? `/auth?ref=${referralCode}` : "/auth";
   const { t } = useI18n();
-  const [splashDone, setSplashDone] = useState(false);
-  const [splashFading, setSplashFading] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [headerSolid, setHeaderSolid] = useState(false);
   const lastScroll = useRef(0);
@@ -28,14 +26,6 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
   useEffect(() => {
     document.documentElement.classList.add("premium-page");
     return () => document.documentElement.classList.remove("premium-page");
-  }, []);
-
-  useEffect(() => {
-    const isTouch = window.matchMedia("(pointer: coarse)").matches;
-    if (isTouch || window.innerWidth < 1024) { setSplashDone(true); return; }
-    const t1 = setTimeout(() => setSplashFading(true), 1800);
-    const t2 = setTimeout(() => setSplashDone(true), 2500);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   useEffect(() => {
@@ -52,7 +42,6 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
   }, []);
 
   useEffect(() => {
-    if (!splashDone) return;
     const obs = new IntersectionObserver(
       (entries) => entries.forEach((e) => {
         if (e.isIntersecting) { e.target.classList.add("pl-visible"); obs.unobserve(e.target); }
@@ -61,21 +50,10 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
     );
     document.querySelectorAll(".pl-reveal").forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, [splashDone]);
+  }, []);
 
   return (
     <div className="premium-landing">
-      {/* ═══ SPLASH ═══ */}
-      {!splashDone && (
-        <div className={`pl-splash${splashFading ? " pl-splash-out" : ""}`}>
-          <div className="pl-splash-inner">
-            <div className="pl-splash-logo" style={{ color: '#5E6AD2' }}><AtlasLogo size={40} /></div>
-            <div className="pl-splash-text">Atlas Secure</div>
-            <div className="pl-splash-bar"><div className="pl-splash-bar-fill" /></div>
-          </div>
-        </div>
-      )}
-
       {/* ═══ HEADER ═══ */}
       <header className={`pl-header${headerSolid ? " pl-header-solid" : ""}${headerVisible ? "" : " pl-header-hide"}`}>
         <div className="pl-header-inner">

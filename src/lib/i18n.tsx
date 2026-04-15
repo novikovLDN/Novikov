@@ -62,8 +62,8 @@ const t = {
 
   // ═══ FEATURE: ENCRYPTION ═══
   "enc.title": {
-    en: "Military-grade encryption — not marketing",
-    ru: "Военный класс шифрования — не маркетинг",
+    en: "Encryption trusted by governments",
+    ru: "Шифрование, которому доверяют государства",
   },
   "enc.desc": {
     en: "AES-256-GCM combined with ChaCha20-Poly1305 — the standard used by NSA, NATO and EU intelligence for TOP SECRET classified data. Perfect Forward Secrecy via X25519 ECDHE.",
