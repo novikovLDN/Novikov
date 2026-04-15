@@ -33,10 +33,10 @@ export default function Dashboard() {
       if (result.success) {
         setData(result.data);
       } else {
-        router.push("/");
+        router.push("/auth");
       }
     } catch {
-      router.push("/");
+      router.push("/auth");
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ export default function Dashboard() {
     } catch {
       // ignore
     }
-    router.push("/");
+    router.push("/auth");
   };
 
   const formatDate = (dateStr: string) => {
