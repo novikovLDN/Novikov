@@ -2,9 +2,22 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useI18n, LanguageSwitcher } from "@/lib/i18n";
+
+function AtlasLogo({ size = 24 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M5,5 L1,1 M5,5 L5,1 M5,5 L1,5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19,5 L23,1 M19,5 L19,1 M19,5 L23,5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5,19 L1,23 M5,19 L5,23 M5,19 L1,19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19,19 L23,23 M19,19 L19,23 M19,19 L23,19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export default function LandingPage({ referralCode }: { referralCode?: string }) {
   const authUrl = referralCode ? `/auth?ref=${referralCode}` : "/auth";
+  const { t } = useI18n();
   const [splashDone, setSplashDone] = useState(false);
   const [splashFading, setSplashFading] = useState(false);
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -56,10 +69,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       {!splashDone && (
         <div className={`pl-splash${splashFading ? " pl-splash-out" : ""}`}>
           <div className="pl-splash-inner">
-            <svg className="pl-splash-logo" viewBox="0 0 60 60" width="40" height="40" fill="none">
-              <polygon points="30,4 54,18 54,42 30,56 6,42 6,18" stroke="#5E6AD2" strokeWidth="1.2" fill="none" />
-              <circle cx="30" cy="30" r="3" fill="#5E6AD2" className="pl-splash-dot" />
-            </svg>
+            <div className="pl-splash-logo" style={{ color: '#5E6AD2' }}><AtlasLogo size={40} /></div>
             <div className="pl-splash-text">Atlas Secure</div>
             <div className="pl-splash-bar"><div className="pl-splash-bar-fill" /></div>
           </div>
@@ -70,23 +80,21 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       <header className={`pl-header${headerSolid ? " pl-header-solid" : ""}${headerVisible ? "" : " pl-header-hide"}`}>
         <div className="pl-header-inner">
           <Link href="/" className="pl-logo">
-            <svg viewBox="0 0 32 32" width="24" height="24" fill="none">
-              <polygon points="16,2 29,9.5 29,22.5 16,30 3,22.5 3,9.5" stroke="currentColor" strokeWidth="1.5" fill="none" />
-              <circle cx="16" cy="16" r="2.5" fill="currentColor" />
-            </svg>
+            <AtlasLogo size={22} />
             <span>Atlas Secure</span>
           </Link>
           <nav className="pl-nav">
-            <a href="#about">Product</a>
-            <a href="#services">Solutions</a>
-            <a href="#infra">Infrastructure</a>
-            <a href="#tech">Security</a>
-            <Link href="/pricing">Pricing</Link>
+            <a href="#about">{t("nav.product")}</a>
+            <a href="#services">{t("nav.solutions")}</a>
+            <a href="#infra">{t("nav.infrastructure")}</a>
+            <a href="#tech">{t("nav.security")}</a>
+            <Link href="/pricing">{t("nav.pricing")}</Link>
           </nav>
           <div className="pl-header-actions">
+            <LanguageSwitcher />
             <span className="pl-header-sep" />
-            <Link href={authUrl} className="pl-header-login">Log in</Link>
-            <Link href={authUrl} className="pl-header-signup">Sign up</Link>
+            <Link href={authUrl} className="pl-header-login">{t("nav.login")}</Link>
+            <Link href={authUrl} className="pl-header-signup">{t("nav.signup")}</Link>
           </div>
           <button className="pl-burger" onClick={() => setMobileMenu(true)} aria-label="Menu">
             <span /><span /><span />
@@ -101,11 +109,11 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
             <button className="pl-mobile-close" onClick={() => setMobileMenu(false)} aria-label="Close">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
             </button>
-            <a href="#about" onClick={() => setMobileMenu(false)}>Product</a>
-            <a href="#services" onClick={() => setMobileMenu(false)}>Solutions</a>
-            <a href="#infra" onClick={() => setMobileMenu(false)}>Infrastructure</a>
-            <a href="#tech" onClick={() => setMobileMenu(false)}>Security</a>
-            <Link href={authUrl} className="pl-mobile-cta" onClick={() => setMobileMenu(false)}>Sign up</Link>
+            <a href="#about" onClick={() => setMobileMenu(false)}>{t("nav.product")}</a>
+            <a href="#services" onClick={() => setMobileMenu(false)}>{t("nav.solutions")}</a>
+            <a href="#infra" onClick={() => setMobileMenu(false)}>{t("nav.infrastructure")}</a>
+            <a href="#tech" onClick={() => setMobileMenu(false)}>{t("nav.security")}</a>
+            <Link href={authUrl} className="pl-mobile-cta" onClick={() => setMobileMenu(false)}>{t("nav.signup")}</Link>
           </nav>
         </div>
       )}
@@ -114,23 +122,18 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       <section className="pl-hero">
         <div className="pl-hero-inner">
           <div className="pl-hero-left">
-            <h1 className="pl-hero-title">
-              The secure infrastructure for business and beyond
-            </h1>
+            <h1 className="pl-hero-title">{t("hero.title")}</h1>
           </div>
           <div className="pl-hero-right">
-            <p className="pl-hero-desc">
-              Enterprise-grade VPN, VPS and VDS solutions with military-class encryption.
-              Headquartered in Hong Kong with data centers across three continental jurisdictions.
-            </p>
+            <p className="pl-hero-desc">{t("hero.desc")}</p>
             <div className="pl-hero-link">
               <Link href={authUrl} className="pl-arrow-link">
                 <span className="pl-arrow-ver">1.0</span>
-                Request access <span className="pl-arrow">&rarr;</span>
+                {t("hero.cta")} <span className="pl-arrow">&rarr;</span>
               </Link>
             </div>
             <Link href={authUrl} className="pl-hero-vpn-btn">
-              Подключиться к VPN
+              {t("hero.vpn")}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
           </div>
@@ -140,7 +143,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
           <div className="pl-panel-mock">
             <div className="pl-panel-sidebar">
               <div className="pl-panel-brand">
-                <svg viewBox="0 0 20 20" width="16" height="16" fill="none"><polygon points="10,1 19,6 19,14 10,19 1,14 1,6" stroke="#5E6AD2" strokeWidth="1.2" fill="none" /><circle cx="10" cy="10" r="1.5" fill="#5E6AD2" /></svg>
+                <span style={{ color: '#5E6AD2' }}><AtlasLogo size={14} /></span>
                 <span>Atlas Secure</span>
               </div>
               <div className="pl-panel-menu">
@@ -200,11 +203,11 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       {/* ═══ LOGOS / STATS strip ═══ */}
       <section className="pl-strip">
         <div className="pl-strip-inner">
-          <div className="pl-strip-item"><span className="pl-strip-val">3+</span><span className="pl-strip-label">Data centers</span></div>
-          <div className="pl-strip-item"><span className="pl-strip-val">200 Gb/s</span><span className="pl-strip-label">Bandwidth</span></div>
-          <div className="pl-strip-item"><span className="pl-strip-val">256-bit</span><span className="pl-strip-label">Encryption</span></div>
-          <div className="pl-strip-item"><span className="pl-strip-val">99.98%</span><span className="pl-strip-label">SLA uptime</span></div>
-          <div className="pl-strip-item"><span className="pl-strip-val">24/7</span><span className="pl-strip-label">NOC monitoring</span></div>
+          <div className="pl-strip-item"><span className="pl-strip-val">3+</span><span className="pl-strip-label">{t("stats.dc")}</span></div>
+          <div className="pl-strip-item"><span className="pl-strip-val">200 Gb/s</span><span className="pl-strip-label">{t("stats.bw")}</span></div>
+          <div className="pl-strip-item"><span className="pl-strip-val">256-bit</span><span className="pl-strip-label">{t("stats.enc")}</span></div>
+          <div className="pl-strip-item"><span className="pl-strip-val">99.98%</span><span className="pl-strip-label">{t("stats.sla")}</span></div>
+          <div className="pl-strip-item"><span className="pl-strip-val">24/7</span><span className="pl-strip-label">{t("stats.noc")}</span></div>
         </div>
       </section>
 
@@ -212,8 +215,8 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       <section className="pl-statement pl-reveal">
         <div className="pl-statement-inner">
           <h2 className="pl-statement-text">
-            <span className="pl-statement-white">A new standard of security.</span>{" "}
-            <span className="pl-statement-muted">Military-grade encryption infrastructure built for businesses and individuals who value privacy as an absolute priority.</span>
+            <span className="pl-statement-white">{t("statement.white")}</span>{" "}
+            <span className="pl-statement-muted">{t("statement.muted")}</span>
           </h2>
         </div>
       </section>
@@ -275,8 +278,8 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
                 </g>
               </svg>
             </div>
-            <h3 className="pl-fig-title">Built for enterprise</h3>
-            <p className="pl-fig-desc">Infrastructure designed around the needs of businesses handling sensitive data across jurisdictions.</p>
+            <h3 className="pl-fig-title">{t("fig1.title")}</h3>
+            <p className="pl-fig-desc">{t("fig1.desc")}</p>
           </div>
 
           {/* ── Card 2: Distributed Hex Cluster ── */}
@@ -324,8 +327,8 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
                 </g>
               </svg>
             </div>
-            <h3 className="pl-fig-title">Distributed by design</h3>
-            <p className="pl-fig-desc">Three continental jurisdictions ensure data sovereignty and geographic fault tolerance.</p>
+            <h3 className="pl-fig-title">{t("fig2.title")}</h3>
+            <p className="pl-fig-desc">{t("fig2.desc")}</p>
           </div>
 
           {/* ── Card 3: Speed / Data Layers ── */}
@@ -368,8 +371,8 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
                 </g>
               </svg>
             </div>
-            <h3 className="pl-fig-title">Engineered for speed</h3>
-            <p className="pl-fig-desc">200 Gb/s bandwidth per server, sub-5ms regional latency, BGP Anycast routing.</p>
+            <h3 className="pl-fig-title">{t("fig3.title")}</h3>
+            <p className="pl-fig-desc">{t("fig3.desc")}</p>
           </div>
 
         </div>
@@ -379,13 +382,13 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       <section id="tech" className="pl-feature">
         <div className="pl-feature-inner pl-reveal">
           <div className="pl-feature-left">
-            <h2 className="pl-feature-title">Military-grade encryption — not marketing</h2>
+            <h2 className="pl-feature-title">{t("enc.title")}</h2>
           </div>
           <div className="pl-feature-right">
-            <p className="pl-feature-desc">AES-256-GCM combined with ChaCha20-Poly1305 — the standard used by NSA, NATO and EU intelligence for TOP SECRET classified data. Perfect Forward Secrecy via X25519 ECDHE.</p>
+            <p className="pl-feature-desc">{t("enc.desc")}</p>
             <Link href="#tech-detail" className="pl-arrow-link">
               <span className="pl-arrow-ver">2.0</span>
-              Security stack <span className="pl-arrow">&rarr;</span>
+              {t("enc.link")} <span className="pl-arrow">&rarr;</span>
             </Link>
           </div>
         </div>
@@ -419,29 +422,22 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       <section id="services" className="pl-feature">
         <div className="pl-feature-inner pl-reveal">
           <div className="pl-feature-left">
-            <h2 className="pl-feature-title">Solutions for every scale</h2>
+            <h2 className="pl-feature-title">{t("sol.title")}</h2>
           </div>
           <div className="pl-feature-right">
-            <p className="pl-feature-desc">From personal privacy to critical enterprise infrastructure — Atlas Secure covers the full spectrum of security needs.</p>
+            <p className="pl-feature-desc">{t("sol.desc")}</p>
             <Link href={authUrl} className="pl-arrow-link">
               <span className="pl-arrow-ver">3.0</span>
-              Get started <span className="pl-arrow">&rarr;</span>
+              {t("sol.link")} <span className="pl-arrow">&rarr;</span>
             </Link>
           </div>
         </div>
         <div className="pl-services-grid pl-reveal">
-          {[
-            { n: "01", t: "Secure VPN & Tunneling", d: "WireGuard, IKEv2/IPSec, OpenVPN with AES-256-GCM. Traffic obfuscation, HTTPS masking, DPI protection." },
-            { n: "02", t: "Zero Trust Network", d: "Zero trust architecture for enterprise. Microsegmentation, RBAC, continuous session verification." },
-            { n: "03", t: "DDoS Protection", d: "Multi-layer L3/L4/L7 protection. Behavioral analysis, anycast filtering, <10s failover." },
-            { n: "04", t: "Encrypted Storage", d: "Client-side encryption — keys never leave the device. BYOK/BYOE, S3-compatible API." },
-            { n: "05", t: "Secure Remote Access", d: "SD-WAN, split-tunneling, hardware MFA tokens, tamper-proof session audit logs." },
-            { n: "06", t: "Threat Intelligence", d: "24/7 SOC monitoring. Threat Hunting, SIEM integration, incident response with 15min SLA." },
-          ].map((s) => (
-            <div key={s.n} className="pl-srv-card">
-              <span className="pl-srv-num">{s.n}</span>
-              <h3 className="pl-srv-title">{s.t}</h3>
-              <p className="pl-srv-desc">{s.d}</p>
+          {([["01","srv1"],["02","srv2"],["03","srv3"],["04","srv4"],["05","srv5"],["06","srv6"]] as const).map(([n, k]) => (
+            <div key={n} className="pl-srv-card">
+              <span className="pl-srv-num">{n}</span>
+              <h3 className="pl-srv-title">{t(`${k}.t`)}</h3>
+              <p className="pl-srv-desc">{t(`${k}.d`)}</p>
             </div>
           ))}
         </div>
@@ -451,13 +447,13 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       <section id="infra" className="pl-feature">
         <div className="pl-feature-inner pl-reveal">
           <div className="pl-feature-left">
-            <h2 className="pl-feature-title">Three jurisdictions. One standard.</h2>
+            <h2 className="pl-feature-title">{t("infra.title")}</h2>
           </div>
           <div className="pl-feature-right">
-            <p className="pl-feature-desc">Partner data center network spanning Europe, Asia-Pacific and Russia — ensuring data sovereignty and compliance with local regulation.</p>
+            <p className="pl-feature-desc">{t("infra.desc")}</p>
             <Link href="#infra-detail" className="pl-arrow-link">
               <span className="pl-arrow-ver">4.0</span>
-              Infrastructure <span className="pl-arrow">&rarr;</span>
+              {t("infra.link")} <span className="pl-arrow">&rarr;</span>
             </Link>
           </div>
         </div>
@@ -483,32 +479,23 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       <section id="about" className="pl-feature">
         <div className="pl-feature-inner pl-reveal">
           <div className="pl-feature-left">
-            <h2 className="pl-feature-title">Security is not a feature — it{"\u2019"}s architecture</h2>
+            <h2 className="pl-feature-title">{t("about.title")}</h2>
           </div>
           <div className="pl-feature-right">
-            <p className="pl-feature-desc">Atlas Secure is an international technology company founded in Hong Kong, specializing in protected IT solutions for enterprise and private clients worldwide.</p>
+            <p className="pl-feature-desc">{t("about.desc")}</p>
           </div>
         </div>
         <div className="pl-about-content pl-reveal">
           <div className="pl-about-text">
-            <p>The company operates at the intersection of three strategic disciplines: cryptographic data protection, high-performance network engineering, and operational security.</p>
-            <p>Hong Kong&apos;s special administrative status provides a unique legal framework with strong trade secret protection and independence from third parties — fundamental for information security businesses.</p>
-            <p>Partner infrastructure spans three continental jurisdictions — Germany, Russia and Australia — providing clients with data sovereignty, local regulatory compliance and geographically distributed fault tolerance.</p>
+            <p>{t("about.p1")}</p>
+            <p>{t("about.p2")}</p>
+            <p>{t("about.p3")}</p>
           </div>
           <div className="pl-about-table">
-            {[
-              ["Headquarters", "Hong Kong SAR"],
-              ["Business type", "B2B / B2C · Information Security"],
-              ["Specialization", "Encrypted network solutions"],
-              ["Partner DCs", "Germany · Russia · Australia"],
-              ["Protection class", "Military-Grade · NSA Suite B"],
-              ["Standards", "ISO 27001 · FIPS 140-3 · GDPR"],
-              ["Uptime SLA", "99.98% guaranteed"],
-              ["Operations", "NOC monitoring 24/7/365"],
-            ].map(([k, v]) => (
+            {(["at.hq","at.type","at.spec","at.dc","at.class","at.std","at.sla","at.ops"] as const).map((k) => (
               <div key={k} className="pl-about-row">
-                <span className="pl-about-key">{k}</span>
-                <span className="pl-about-val">{v}</span>
+                <span className="pl-about-key">{t(k)}</span>
+                <span className="pl-about-val">{t(`${k}.v` as const)}</span>
               </div>
             ))}
           </div>
@@ -519,18 +506,13 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       <section className="pl-manifesto-section pl-reveal">
         <div className="pl-manifesto-inner">
           <blockquote className="pl-quote">
-            &laquo;Privacy is not an option or a privilege. It is a fundamental right of everyone operating in the digital space. We exist to technically guarantee that right.&raquo;
+            {t("quote")}
           </blockquote>
           <div className="pl-principles">
-            {[
-              ["Zero logs", "Strict No-Log policy: no client activity data is recorded or can be disclosed to third parties."],
-              ["Transparency", "Open audit of cryptographic solutions by independent researchers. Quarterly transparency reports."],
-              ["Independence", "Hong Kong jurisdiction ensures legal independence from third-state pressure and foreign regulators."],
-              ["Security by Design", "Protection is built into the architecture level, not added as an afterthought."],
-            ].map(([t, d]) => (
-              <div key={t} className="pl-principle">
-                <h4>{t}</h4>
-                <p>{d}</p>
+            {(["pr1","pr2","pr3","pr4"] as const).map((k) => (
+              <div key={k} className="pl-principle">
+                <h4>{t(`${k}.t`)}</h4>
+                <p>{t(`${k}.d`)}</p>
               </div>
             ))}
           </div>
@@ -540,10 +522,10 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       {/* ═══ CTA ═══ */}
       <section className="pl-cta-final pl-reveal">
         <div className="pl-cta-final-inner">
-          <h2 className="pl-cta-title">Ready to get started?</h2>
-          <p className="pl-cta-desc">Request access to Enterprise VPN, VPS or VDS infrastructure.</p>
+          <h2 className="pl-cta-title">{t("cta.title")}</h2>
+          <p className="pl-cta-desc">{t("cta.desc")}</p>
           <Link href={authUrl} className="pl-cta-primary">
-            Request access <span className="pl-arrow">&rarr;</span>
+            {t("cta.btn")} <span className="pl-arrow">&rarr;</span>
           </Link>
         </div>
       </section>
@@ -552,13 +534,13 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       <footer className="pl-footer">
         <div className="pl-footer-inner">
           <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="pl-footer-brand" style={{ cursor: 'pointer', textDecoration: 'none' }}>
-            <svg viewBox="0 0 20 20" width="16" height="16" fill="none"><polygon points="10,1 19,6 19,14 10,19 1,14 1,6" stroke="currentColor" strokeWidth="1.2" fill="none" /><circle cx="10" cy="10" r="1.5" fill="currentColor" /></svg>
+            <AtlasLogo size={14} />
             <span>Atlas Secure</span>
           </a>
           <div className="pl-footer-links">
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/terms">Terms</Link>
-            <Link href="/privacy">Privacy</Link>
+            <Link href="/pricing">{t("footer.pricing")}</Link>
+            <Link href="/terms">{t("footer.terms")}</Link>
+            <Link href="/privacy">{t("footer.privacy")}</Link>
           </div>
           <div className="pl-footer-copy">
             HQ: Hong Kong SAR &middot; Infra: DE &middot; RU &middot; AU &middot; &copy; {new Date().getFullYear()} Atlas Secure

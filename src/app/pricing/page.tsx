@@ -2,6 +2,18 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useI18n, LanguageSwitcher } from "@/lib/i18n";
+
+function AtlasLogo({ size = 24 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M5,5 L1,1 M5,5 L5,1 M5,5 L1,5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19,5 L23,1 M19,5 L19,1 M19,5 L23,5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5,19 L1,23 M5,19 L5,23 M5,19 L1,19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19,19 L23,23 M19,19 L19,23 M19,19 L23,19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 type Tab = "vpn" | "vps" | "vds";
 
@@ -50,7 +62,7 @@ const VPN_PLANS = [
     cta: "Request", ctaStyle: "ghost" as const,
   },
   {
-    name: "Custom", price: 0, period: "", sub: "Custom configuration",
+    name: "Custom", price: 0, period: "", sub: "CUSTOM_SUB",
     features: ["Tailored infrastructure", "Custom bandwidth", "Custom server locations", "Invoice billing", "SAML / SSO", "Dedicated account team"],
     cta: "Contact sales", ctaStyle: "ghost" as const,
   },
@@ -100,6 +112,7 @@ function CrossIcon() {
 }
 
 export default function PricingPage() {
+  const { t } = useI18n();
   const [tab, setTab] = useState<Tab>("vpn");
   const [yearly, setYearly] = useState(true);
   const [showConfig, setShowConfig] = useState(false);
@@ -123,28 +136,29 @@ export default function PricingPage() {
       <header className="pl-header pl-header-solid" style={{ position: "sticky" }}>
         <div className="pl-header-inner">
           <Link href="/" className="pl-logo">
-            <svg viewBox="0 0 32 32" width="24" height="24" fill="none"><polygon points="16,2 29,9.5 29,22.5 16,30 3,22.5 3,9.5" stroke="currentColor" strokeWidth="1.5" fill="none" /><circle cx="16" cy="16" r="2.5" fill="currentColor" /></svg>
+            <AtlasLogo size={22} />
             <span>Atlas Secure</span>
           </Link>
           <nav className="pl-nav">
-            <Link href="/#about">Product</Link>
-            <Link href="/#services">Solutions</Link>
-            <Link href="/#infra">Infrastructure</Link>
-            <Link href="/pricing" style={{ color: "var(--pl-t1)" }}>Pricing</Link>
+            <Link href="/#about">{t("nav.product")}</Link>
+            <Link href="/#services">{t("nav.solutions")}</Link>
+            <Link href="/#infra">{t("nav.infrastructure")}</Link>
+            <Link href="/pricing" style={{ color: "var(--pl-t1)" }}>{t("nav.pricing")}</Link>
           </nav>
           <div className="pl-header-actions">
+            <LanguageSwitcher />
             <span className="pl-header-sep" />
-            <Link href="/auth" className="pl-header-login">Log in</Link>
-            <Link href="/auth" className="pl-header-signup">Sign up</Link>
+            <Link href="/auth" className="pl-header-login">{t("nav.login")}</Link>
+            <Link href="/auth" className="pl-header-signup">{t("nav.signup")}</Link>
           </div>
         </div>
       </header>
 
       {/* Hero */}
       <section style={{ padding: "120px 40px 60px", maxWidth: 1280, margin: "0 auto" }}>
-        <h1 style={{ fontSize: "clamp(36px, 4vw, 52px)", fontWeight: 500, letterSpacing: "-.03em", marginBottom: 16 }}>Pricing</h1>
+        <h1 style={{ fontSize: "clamp(36px, 4vw, 52px)", fontWeight: 500, letterSpacing: "-.03em", marginBottom: 16 }}>{t("pricing.title")}</h1>
         <p style={{ fontSize: 17, color: "var(--pl-t2)", maxWidth: 480, marginBottom: 48 }}>
-          Transparent pricing for every scale. Start free, upgrade when you need.
+          {t("pricing.desc")}
         </p>
 
         {/* Tab switcher */}
@@ -166,8 +180,8 @@ export default function PricingPage() {
               <button className={`pl-billing-toggle${yearly ? " active" : ""}`} onClick={() => setYearly(!yearly)}>
                 <span className="pl-toggle-track"><span className="pl-toggle-thumb" /></span>
               </button>
-              <span style={{ fontSize: 14, color: "var(--pl-t2)" }}>Billed yearly</span>
-              {yearly && <span className="pl-save-tag">Save 20%</span>}
+              <span style={{ fontSize: 14, color: "var(--pl-t2)" }}>{t("pricing.yearly")}</span>
+              {yearly && <span className="pl-save-tag">{t("pricing.save")}</span>}
             </div>
 
             <div className="pl-plans-grid">
@@ -181,7 +195,7 @@ export default function PricingPage() {
                         <span className="pl-price-period">{p.period}</span>
                       </>
                     ) : (
-                      <span className="pl-price-amount">{p.sub || "$0"}</span>
+                      <span className="pl-price-amount">{p.sub === "CUSTOM_SUB" ? t("pricing.custom.sub") : (p.sub || "$0")}</span>
                     )}
                   </div>
                   {p.price > 0 && !p.sub && (
@@ -189,10 +203,10 @@ export default function PricingPage() {
                       <button className={`pl-billing-toggle sm${yearly ? " active" : ""}`} onClick={() => setYearly(!yearly)}>
                         <span className="pl-toggle-track"><span className="pl-toggle-thumb" /></span>
                       </button>
-                      <span style={{ fontSize: 13, color: "var(--pl-t3)" }}>Billed yearly</span>
+                      <span style={{ fontSize: 13, color: "var(--pl-t3)" }}>{t("pricing.yearly")}</span>
                     </div>
                   )}
-                  {p.sub && <p className="pl-plan-sub">{p.sub}</p>}
+                  {p.sub && <p className="pl-plan-sub">{p.sub === "CUSTOM_SUB" ? t("pricing.custom.sub") : p.sub}</p>}
                   <div className="pl-plan-divider" />
                   <ul className="pl-plan-features">
                     {p.features.map((f) => (
@@ -217,8 +231,8 @@ export default function PricingPage() {
               <button className={`pl-billing-toggle${yearly ? " active" : ""}`} onClick={() => setYearly(!yearly)}>
                 <span className="pl-toggle-track"><span className="pl-toggle-thumb" /></span>
               </button>
-              <span style={{ fontSize: 14, color: "var(--pl-t2)" }}>Billed yearly</span>
-              {yearly && <span className="pl-save-tag">Save 20%</span>}
+              <span style={{ fontSize: 14, color: "var(--pl-t2)" }}>{t("pricing.yearly")}</span>
+              {yearly && <span className="pl-save-tag">{t("pricing.save")}</span>}
             </div>
 
             <div className="pl-plans-grid pl-plans-4">
@@ -235,7 +249,7 @@ export default function PricingPage() {
                     <li><CheckIcon /> {p.ram} GB RAM</li>
                     <li><CheckIcon /> {p.ssd} GB NVMe SSD</li>
                     <li><CheckIcon /> {p.port} Gbps port</li>
-                    <li><CheckIcon /> Unlimited traffic</li>
+                    <li><CheckIcon /> {t("pricing.unlimited")}</li>
                     <li><CheckIcon /> AES-256 encryption</li>
                     <li><CheckIcon /> DDoS protection</li>
                     {tab === "vds" && <li><CheckIcon /> Full root access</li>}
@@ -250,7 +264,7 @@ export default function PricingPage() {
             {/* Custom configurator */}
             <div className="pl-config-section">
               <button className="pl-config-toggle" onClick={() => setShowConfig(!showConfig)}>
-                Custom configuration
+                {t("pricing.custom")}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: showConfig ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
                   <path d="M6 9l6 6 6-6" />
                 </svg>
@@ -285,7 +299,7 @@ export default function PricingPage() {
                     </div>
                     <div className="pl-slider-group">
                       <div className="pl-slider-header">
-                        <span>Port speed</span>
+                        <span>{t("pricing.port")}</span>
                         <span className="pl-slider-val">{port} Gb/s</span>
                       </div>
                       <div className="pl-port-select">
@@ -295,7 +309,7 @@ export default function PricingPage() {
                           </button>
                         ))}
                       </div>
-                      <div style={{ fontSize: 11, color: "var(--pl-t3)", marginTop: 6 }}>Gb/s &middot; Unlimited traffic included</div>
+                      <div style={{ fontSize: 11, color: "var(--pl-t3)", marginTop: 6 }}>Gb/s &middot; {t("pricing.unlimited")} included</div>
                     </div>
                   </div>
                   <div className="pl-config-result">
@@ -304,14 +318,14 @@ export default function PricingPage() {
                       <div>{ram} GB RAM</div>
                       <div>{ssd} GB NVMe</div>
                       <div>{port} Gb/s port</div>
-                      <div style={{ color: "var(--pl-accent)" }}>Unlimited traffic</div>
+                      <div style={{ color: "var(--pl-accent)" }}>{t("pricing.unlimited")}</div>
                     </div>
                     <div className="pl-config-price">
                       <span className="pl-config-amount"><AnimatedPrice value={yearly ? customPriceYearly : customPrice} /> $</span>
                       <span className="pl-config-period">/ month</span>
                     </div>
                     <Link href="/auth" className="pl-plan-btn primary" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>
-                      Request configuration
+                      {t("pricing.config.req")}
                     </Link>
                   </div>
                 </div>
@@ -326,7 +340,7 @@ export default function PricingPage() {
         <section className="pl-comparison">
           <div className="pl-comparison-inner">
             <div className="pl-comp-header">
-              <div className="pl-comp-label">Features</div>
+              <div className="pl-comp-label">{t("pricing.features")}</div>
               <div>Trial</div>
               <div>Personal</div>
               <div>Business</div>
@@ -365,13 +379,13 @@ export default function PricingPage() {
       <footer className="pl-footer">
         <div className="pl-footer-inner">
           <div className="pl-footer-brand">
-            <svg viewBox="0 0 20 20" width="16" height="16" fill="none"><polygon points="10,1 19,6 19,14 10,19 1,14 1,6" stroke="currentColor" strokeWidth="1.2" fill="none" /><circle cx="10" cy="10" r="1.5" fill="currentColor" /></svg>
+            <AtlasLogo size={14} />
             <span>Atlas Secure</span>
           </div>
           <div className="pl-footer-links">
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/terms">Terms</Link>
-            <Link href="/privacy">Privacy</Link>
+            <Link href="/pricing">{t("footer.pricing")}</Link>
+            <Link href="/terms">{t("footer.terms")}</Link>
+            <Link href="/privacy">{t("footer.privacy")}</Link>
           </div>
           <div className="pl-footer-copy">HQ: Hong Kong SAR &middot; &copy; {new Date().getFullYear()} Atlas Secure</div>
         </div>

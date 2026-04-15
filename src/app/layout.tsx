@@ -6,6 +6,7 @@ import PwaManager from "@/components/PwaManager";
 import IosInstallBanner from "@/components/IosInstallBanner";
 import ThemeProvider from "@/components/ThemeProvider";
 import ThemePickerModal from "@/components/ThemePickerModal";
+import { I18nProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atlassecure.uk"),
@@ -56,16 +57,18 @@ export default function RootLayout({
       </head>
       <body className="antialiased" suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem("theme");if(t==="light"){document.documentElement.classList.remove("dark");document.documentElement.classList.add("light")}}catch(e){}})()` }} />
-        <ThemeProvider>
-          <div className="relative min-h-dvh flex flex-col">
-            {children}
-          </div>
-          <CookieConsent />
-          <CustomCursor />
-          <PwaManager />
-          <IosInstallBanner />
-          <ThemePickerModal />
-        </ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider>
+            <div className="relative min-h-dvh flex flex-col">
+              {children}
+            </div>
+            <CookieConsent />
+            <CustomCursor />
+            <PwaManager />
+            <IosInstallBanner />
+            <ThemePickerModal />
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );
