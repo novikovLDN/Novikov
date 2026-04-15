@@ -114,6 +114,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
             <a href="#infra" onClick={() => setMobileMenu(false)}>{t("nav.infrastructure")}</a>
             <a href="#tech" onClick={() => setMobileMenu(false)}>{t("nav.security")}</a>
             <Link href={authUrl} className="pl-mobile-cta" onClick={() => setMobileMenu(false)}>{t("nav.signup")}</Link>
+            <LanguageSwitcher />
           </nav>
         </div>
       )}

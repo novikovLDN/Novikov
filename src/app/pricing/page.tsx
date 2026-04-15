@@ -120,6 +120,7 @@ export default function PricingPage() {
   const [ram, setRam] = useState(4);
   const [ssd, setSsd] = useState(50);
   const [port, setPort] = useState(1);
+  const [mobileMenu, setMobileMenu] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.add("premium-page");
@@ -151,11 +152,28 @@ export default function PricingPage() {
             <Link href="/auth" className="pl-header-login">{t("nav.login")}</Link>
             <Link href="/auth" className="pl-header-signup">{t("nav.signup")}</Link>
           </div>
+          <button className="pl-burger" onClick={() => setMobileMenu(true)} aria-label="Menu">
+            <span /><span /><span />
+          </button>
         </div>
       </header>
 
+      {mobileMenu && (
+        <div className="pl-mobile-overlay" onClick={() => setMobileMenu(false)}>
+          <nav className="pl-mobile-nav" onClick={(e) => e.stopPropagation()}>
+            <button className="pl-mobile-close" onClick={() => setMobileMenu(false)} aria-label="Close">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </button>
+            <Link href="/" onClick={() => setMobileMenu(false)}>{t("nav.product")}</Link>
+            <Link href="/pricing" onClick={() => setMobileMenu(false)}>{t("nav.pricing")}</Link>
+            <Link href="/auth" className="pl-mobile-cta" onClick={() => setMobileMenu(false)}>{t("nav.signup")}</Link>
+            <LanguageSwitcher />
+          </nav>
+        </div>
+      )}
+
       {/* Hero */}
-      <section style={{ padding: "120px 40px 60px", maxWidth: 1280, margin: "0 auto" }}>
+      <section className="pl-pricing-hero">
         <h1 style={{ fontSize: "clamp(36px, 4vw, 52px)", fontWeight: 500, letterSpacing: "-.03em", marginBottom: 16 }}>{t("pricing.title")}</h1>
         <p style={{ fontSize: 17, color: "var(--pl-t2)", maxWidth: 480, marginBottom: 48 }}>
           {t("pricing.desc")}
