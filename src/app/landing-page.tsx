@@ -114,6 +114,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
             <a href="#infra" onClick={() => setMobileMenu(false)}>{t("nav.infrastructure")}</a>
             <a href="#tech" onClick={() => setMobileMenu(false)}>{t("nav.security")}</a>
             <Link href={authUrl} className="pl-mobile-cta" onClick={() => setMobileMenu(false)}>{t("nav.signup")}</Link>
+            <LanguageSwitcher />
           </nav>
         </div>
       )}
@@ -121,18 +122,18 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       {/* ═══ HERO — two columns like Linear ═══ */}
       <section className="pl-hero">
         <div className="pl-hero-inner">
-          <div className="pl-hero-left">
+          <div className="pl-hero-left pl-entrance pl-ed1">
             <h1 className="pl-hero-title">{t("hero.title")}</h1>
           </div>
-          <div className="pl-hero-right">
+          <div className="pl-hero-right pl-entrance pl-ed2">
             <p className="pl-hero-desc">{t("hero.desc")}</p>
-            <div className="pl-hero-link">
+            <div className="pl-hero-link pl-entrance pl-ed3">
               <Link href={authUrl} className="pl-arrow-link">
                 <span className="pl-arrow-ver">1.0</span>
                 {t("hero.cta")} <span className="pl-arrow">&rarr;</span>
               </Link>
             </div>
-            <Link href={authUrl} className="pl-hero-vpn-btn">
+            <Link href={authUrl} className="pl-hero-vpn-btn pl-entrance pl-ed4">
               {t("hero.vpn")}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
@@ -201,7 +202,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       </section>
 
       {/* ═══ LOGOS / STATS strip ═══ */}
-      <section className="pl-strip">
+      <section className="pl-strip pl-reveal">
         <div className="pl-strip-inner">
           <div className="pl-strip-item"><span className="pl-strip-val">3+</span><span className="pl-strip-label">{t("stats.dc")}</span></div>
           <div className="pl-strip-item"><span className="pl-strip-val">200 Gb/s</span><span className="pl-strip-label">{t("stats.bw")}</span></div>
@@ -504,7 +505,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
 
       {/* ═══ MANIFESTO ═══ */}
       <section className="pl-manifesto-section pl-reveal">
-        <div className="pl-manifesto-inner">
+        <div className="pl-manifesto-inner pl-reveal">
           <blockquote className="pl-quote">
             {t("quote")}
           </blockquote>
