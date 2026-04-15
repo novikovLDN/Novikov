@@ -129,6 +129,10 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
                 Request access <span className="pl-arrow">&rarr;</span>
               </Link>
             </div>
+            <Link href={authUrl} className="pl-hero-vpn-btn">
+              Подключиться к VPN
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </Link>
           </div>
         </div>
         {/* Hero visual — system status panel */}
@@ -547,10 +551,10 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
       {/* ═══ FOOTER ═══ */}
       <footer className="pl-footer">
         <div className="pl-footer-inner">
-          <div className="pl-footer-brand">
+          <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="pl-footer-brand" style={{ cursor: 'pointer', textDecoration: 'none' }}>
             <svg viewBox="0 0 20 20" width="16" height="16" fill="none"><polygon points="10,1 19,6 19,14 10,19 1,14 1,6" stroke="currentColor" strokeWidth="1.2" fill="none" /><circle cx="10" cy="10" r="1.5" fill="currentColor" /></svg>
             <span>Atlas Secure</span>
-          </div>
+          </a>
           <div className="pl-footer-links">
             <Link href="/pricing">Pricing</Link>
             <Link href="/terms">Terms</Link>

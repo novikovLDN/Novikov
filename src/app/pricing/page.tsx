@@ -1,9 +1,37 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 type Tab = "vpn" | "vps" | "vds";
+
+function AnimatedPrice({ value, duration = 600 }: { value: number; duration?: number }) {
+  const [display, setDisplay] = useState(value);
+  const animRef = useRef<number>(0);
+  const startVal = useRef(value);
+  const startTime = useRef(0);
+
+  useEffect(() => {
+    if (display === value) return;
+    startVal.current = display;
+    startTime.current = performance.now();
+    cancelAnimationFrame(animRef.current);
+
+    const animate = (now: number) => {
+      const elapsed = now - startTime.current;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = startVal.current + (value - startVal.current) * eased;
+      setDisplay(Math.round(current * 100) / 100);
+      if (progress < 1) animRef.current = requestAnimationFrame(animate);
+    };
+    animRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animRef.current);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, duration]);
+
+  return <>{display.toFixed(2)}</>;
+}
 
 const VPN_PLANS = [
   {
@@ -149,7 +177,7 @@ export default function PricingPage() {
                   <div className="pl-plan-price">
                     {p.price > 0 ? (
                       <>
-                        <span className="pl-price-amount">{yearly && p.priceYearly ? p.priceYearly : p.price} $</span>
+                        <span className="pl-price-amount"><AnimatedPrice value={yearly && p.priceYearly ? p.priceYearly : p.price} /> $</span>
                         <span className="pl-price-period">{p.period}</span>
                       </>
                     ) : (
@@ -198,7 +226,7 @@ export default function PricingPage() {
                 <div key={p.name} className="pl-plan-card">
                   <h3 className="pl-plan-name">{p.name}</h3>
                   <div className="pl-plan-price">
-                    <span className="pl-price-amount">{yearly ? p.priceYearly : p.price} $</span>
+                    <span className="pl-price-amount"><AnimatedPrice value={yearly ? p.priceYearly : p.price} /> $</span>
                     <span className="pl-price-period">per month</span>
                   </div>
                   <div className="pl-plan-divider" />
@@ -279,7 +307,7 @@ export default function PricingPage() {
                       <div style={{ color: "var(--pl-accent)" }}>Unlimited traffic</div>
                     </div>
                     <div className="pl-config-price">
-                      <span className="pl-config-amount">{yearly ? customPriceYearly : customPrice} $</span>
+                      <span className="pl-config-amount"><AnimatedPrice value={yearly ? customPriceYearly : customPrice} /> $</span>
                       <span className="pl-config-period">/ month</span>
                     </div>
                     <Link href="/auth" className="pl-plan-btn primary" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>
