@@ -675,32 +675,32 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .pl-hero-vpn-btn:hover { background: var(--pl-elevated); border-color: var(--pl-border-h); }
 .pl-arrow-link:hover .pl-arrow { transform: translateX(3px); }
 
-/* Hero visual — product mock */
-.pl-hero-visual { max-width: 1280px; margin: 0 auto 0; padding: 0 0; position: relative; }
-.pl-panel-mock { display: grid; grid-template-columns: 200px 1fr 220px; background: var(--pl-surface); border: 1px solid var(--pl-border); border-radius: 12px; overflow: hidden; min-height: 340px; }
-.pl-panel-sidebar { padding: 16px; border-right: 1px solid var(--pl-border); }
+/* Hero visual — full-width product mock like Linear */
+.pl-hero-visual { margin: 0 -40px; padding: 0 40px; position: relative; overflow: hidden; }
+.pl-panel-mock { display: grid; grid-template-columns: 200px 1fr 240px; background: var(--pl-surface); border: 1px solid var(--pl-border); border-radius: 12px; overflow: hidden; min-height: 420px; }
+.pl-panel-sidebar { padding: 20px; border-right: 1px solid var(--pl-border); min-width: 200px; }
 .pl-panel-brand { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
 .pl-panel-menu { display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px; }
 .pl-panel-item { font-size: 13px; color: var(--pl-t3); padding: 6px 10px; border-radius: 6px; transition: all .1s; }
 .pl-panel-active { color: var(--pl-t1); background: rgba(255,255,255,.05); }
 .pl-panel-section { font-size: 11px; font-weight: 500; color: var(--pl-t3); letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; margin-bottom: 4px; }
-.pl-panel-main { padding: 20px; }
+.pl-panel-main { padding: 24px 28px; }
 .pl-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; font-size: 14px; font-weight: 500; }
 .pl-panel-status { font-size: 12px; color: #34D399; font-weight: 400; }
 .pl-panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-.pl-panel-card { background: var(--pl-elevated); border: 1px solid var(--pl-border); border-radius: 8px; padding: 14px; }
+.pl-panel-card { background: var(--pl-elevated); border: 1px solid var(--pl-border); border-radius: 8px; padding: 18px 20px; }
 .pl-panel-card-label { font-size: 11px; color: var(--pl-t3); margin-bottom: 4px; }
-.pl-panel-card-val { font-size: 15px; font-weight: 600; }
+.pl-panel-card-val { font-size: 17px; font-weight: 600; }
 .pl-panel-activity { display: flex; flex-direction: column; gap: 8px; }
 .pl-panel-act-row { font-size: 12px; color: var(--pl-t3); display: flex; align-items: center; gap: 8px; }
 .pl-act-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .pl-act-green { background: #34D399; }
-.pl-panel-detail { padding: 20px; border-left: 1px solid var(--pl-border); }
+.pl-panel-detail { padding: 24px; border-left: 1px solid var(--pl-border); min-width: 240px; }
 .pl-panel-detail-title { font-size: 13px; font-weight: 500; margin-bottom: 16px; }
 .pl-panel-detail-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--pl-t3); padding: 6px 0; border-bottom: 1px solid var(--pl-border); }
 .pl-panel-detail-row:last-child { border-bottom: none; }
 .pl-detail-on { color: #34D399; }
-.pl-panel-fade { position: absolute; bottom: 0; left: 0; right: 0; height: 120px; background: linear-gradient(to bottom, transparent, var(--pl-bg)); pointer-events: none; }
+.pl-panel-fade { position: absolute; bottom: 0; left: 0; right: 0; height: 160px; background: linear-gradient(to bottom, transparent, var(--pl-bg)); pointer-events: none; }
 
 /* ═══ STATS STRIP ═══ */
 .pl-strip { border-top: 1px solid var(--pl-border); border-bottom: 1px solid var(--pl-border); padding: 40px 40px; }
@@ -990,7 +990,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .pl-footer { padding: 24px 20px; }
   .pl-footer-inner { flex-direction: column; text-align: center; }
   .pl-header { padding: 0 20px; }
-  .pl-hero-visual { padding: 0; }
+  .pl-hero-visual { margin: 0; padding: 0; }
   .pl-pricing-hero { padding: 120px 20px 60px; }
   .pl-comparison-inner { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .pl-comp-header, .pl-comp-row { min-width: 600px; }

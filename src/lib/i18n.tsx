@@ -17,7 +17,7 @@ const t = {
   // ═══ HERO ═══
   "hero.title": {
     en: "The secure infrastructure for business and beyond",
-    ru: "Защищённая инфраструктура для бизнеса и не только",
+    ru: "Защищённая инфраструктура для бизнеса",
   },
   "hero.desc": {
     en: "Enterprise-grade VPN, VPS and VDS solutions with military-class encryption. Headquartered in Hong Kong with data centers across three continental jurisdictions.",
