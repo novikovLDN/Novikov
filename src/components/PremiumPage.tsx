@@ -70,15 +70,15 @@ export default function PremiumPage({ children, title }: { children: ReactNode; 
           </div>
           <div className="pl-footer-col">
             <h4>Product</h4>
-            <Link href="/pricing">VPN</Link>
-            <Link href="/pricing">VPS</Link>
-            <Link href="/pricing">VDS</Link>
+            <Link href="/vpn">VPN</Link>
+            <Link href="/vps">VPS</Link>
+            <Link href="/vds">VDS</Link>
             <Link href="/pricing">{t("nav.pricing")}</Link>
           </div>
           <div className="pl-footer-col">
             <h4>{locale === "ru" ? "Компания" : "Company"}</h4>
-            <Link href="/#about">{locale === "ru" ? "О нас" : "About"}</Link>
-            <Link href="/#infra">{t("nav.infrastructure")}</Link>
+            <Link href="/about">{locale === "ru" ? "О нас" : "About"}</Link>
+            <Link href="/infrastructure">{t("nav.infrastructure")}</Link>
             <Link href="/contact">{locale === "ru" ? "Контакты" : "Contact us"}</Link>
           </div>
           <div className="pl-footer-col">

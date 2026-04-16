@@ -1,333 +1,47 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef, useCallback } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import PageContainer from "@/components/PageContainer";
-
-// ─── Floating Squares Background ────────────────────────────────
-
-function FloatingSquares() {
-  const squares = [
-    { size: 45, x: 8, y: 12, dur: 18, delay: 0, color: "rgba(59,130,246,0.12)" },
-    { size: 70, x: 75, y: 8, dur: 22, delay: 0.5, color: "rgba(99,102,241,0.10)" },
-    { size: 35, x: 85, y: 55, dur: 15, delay: 1, color: "rgba(14,165,233,0.10)" },
-    { size: 55, x: 20, y: 70, dur: 20, delay: 1.5, color: "rgba(139,92,246,0.09)" },
-    { size: 60, x: 50, y: 30, dur: 25, delay: 0.8, color: "rgba(59,130,246,0.08)" },
-    { size: 40, x: 65, y: 80, dur: 17, delay: 2, color: "rgba(99,102,241,0.10)" },
-    { size: 50, x: 35, y: 45, dur: 23, delay: 1.2, color: "rgba(14,165,233,0.08)" },
-    { size: 30, x: 90, y: 35, dur: 16, delay: 0.3, color: "rgba(139,92,246,0.11)" },
-    { size: 65, x: 5, y: 90, dur: 21, delay: 1.8, color: "rgba(59,130,246,0.07)" },
-    { size: 38, x: 45, y: 5, dur: 19, delay: 0.6, color: "rgba(99,102,241,0.09)" },
-  ];
-
-  return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      {squares.map((s, i) => (
-        <div
-          key={i}
-          className="absolute opacity-0"
-          style={{
-            width: s.size, height: s.size,
-            left: `${s.x}%`, top: `${s.y}%`,
-            border: `1px solid ${s.color}`,
-            borderRadius: "12px",
-            animation: `floatSquare${i % 3} ${s.dur}s ease-in-out infinite, fadeInSquare 2s ease-out ${s.delay}s forwards`,
-          }}
-        />
-      ))}
-      <style>{`
-        @keyframes floatSquare0 {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          33% { transform: translateY(-30px) translateX(15px) rotate(8deg); }
-          66% { transform: translateY(-15px) translateX(-10px) rotate(-5deg); }
-        }
-        @keyframes floatSquare1 {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          33% { transform: translateY(-20px) translateX(-20px) rotate(-6deg); }
-          66% { transform: translateY(-35px) translateX(8px) rotate(4deg); }
-        }
-        @keyframes floatSquare2 {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-25px) translateX(12px) rotate(10deg); }
-        }
-        @keyframes fadeInSquare { to { opacity: 1; } }
-      `}</style>
-    </div>
-  );
-}
-
-// ─── Animated Stat Card ─────────────────────────────────────────
-
-function StatCard({ icon, value, label, type }: { icon: React.ReactNode; value: string; label: string; type: "speed" | "uptime" | "partners" | "monitoring" }) {
-  const [animating, setAnimating] = useState(false);
-  const [animValue, setAnimValue] = useState("");
-  const [pressed, setPressed] = useState(false);
-  const rafRef = useRef<number>(0);
-
-  const startAnimation = useCallback(() => {
-    if (animating) return;
-    setAnimating(true);
-
-    const duration = 3000;
-    const start = Date.now();
-
-    if (type === "speed") {
-      const animate = () => {
-        const elapsed = Date.now() - start;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const val = Math.round(eased * 75000);
-        setAnimValue(`${val.toLocaleString()} Мб/с`);
-        if (progress < 1) { rafRef.current = requestAnimationFrame(animate); }
-        else { setTimeout(() => { setAnimating(false); setAnimValue(""); }, 800); }
-      };
-      rafRef.current = requestAnimationFrame(animate);
-    }
-
-    if (type === "uptime") {
-      const animate = () => {
-        const elapsed = Date.now() - start;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const val = (eased * 99.9).toFixed(1);
-        setAnimValue(`${val}%`);
-        if (progress < 1) { rafRef.current = requestAnimationFrame(animate); }
-        else { setTimeout(() => { setAnimating(false); setAnimValue(""); }, 800); }
-      };
-      rafRef.current = requestAnimationFrame(animate);
-    }
-
-    if (type === "partners") {
-      const animate = () => {
-        const elapsed = Date.now() - start;
-        const progress = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        const val = Math.round(eased * 30);
-        setAnimValue(`${val}+`);
-        if (progress < 1) { rafRef.current = requestAnimationFrame(animate); }
-        else { setTimeout(() => { setAnimating(false); setAnimValue(""); }, 800); }
-      };
-      rafRef.current = requestAnimationFrame(animate);
-    }
-
-    if (type === "monitoring") {
-      setTimeout(() => { setAnimating(false); setAnimValue(""); }, 6500);
-    }
-
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [animating, type]);
-
-  return (
-    <button
-      onClick={startAnimation}
-      onPointerDown={() => setPressed(true)}
-      onPointerUp={() => setPressed(false)}
-      onPointerLeave={() => setPressed(false)}
-      className="bg-card border border-border/50 rounded-2xl p-4 text-center transition-transform duration-200 active:scale-[0.95] relative overflow-hidden"
-      style={{ transform: pressed ? "scale(0.95)" : "scale(1)" }}
-    >
-      {/* Monitoring radar animation */}
-      {type === "monitoring" && animating && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="absolute rounded-full border border-primary/30"
-              style={{
-                animation: `radarPulse 2s ease-out ${i * 2}s forwards`,
-                width: "10px", height: "10px",
-              }}
-            />
-          ))}
-          <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-          <style>{`
-            @keyframes radarPulse {
-              0% { width: 10px; height: 10px; opacity: 0.8; }
-              100% { width: 120px; height: 120px; opacity: 0; }
-            }
-          `}</style>
-        </div>
-      )}
-
-      <div className={`transition-opacity duration-500 ${animating ? "opacity-0" : "opacity-100"} flex flex-col items-center`}>
-        <div className="mb-1.5">{icon}</div>
-        <p className="text-lg sm:text-xl font-bold tabular-nums">{value}</p>
-        <p className="text-[11px] sm:text-xs text-muted mt-0.5">{label}</p>
-      </div>
-
-      {animating && type !== "monitoring" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center animate-fade-in">
-          {type === "speed" && (
-            <>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-1">
-                <path d="M12 12m-9 0a9 9 0 1 0 18 0" />
-                <path d="M12 12l4-4" />
-                <circle cx="12" cy="12" r="1" fill="#3b82f6" />
-              </svg>
-              <p className="text-sm sm:text-base font-bold text-primary tabular-nums">{animValue}</p>
-            </>
-          )}
-          {type === "uptime" && (
-            <p className="text-xl sm:text-2xl font-bold text-success tabular-nums">{animValue}</p>
-          )}
-          {type === "partners" && (
-            <p className="text-xl sm:text-2xl font-bold text-foreground tabular-nums">{animValue}</p>
-          )}
-        </div>
-      )}
-    </button>
-  );
-}
-
-// ─── Feature Card ───────────────────────────────────────────────
-
-function FeatureBlock({ title, desc, icon, color, delay }: { title: string; desc: string; icon: React.ReactNode; color: string; delay: number }) {
-  const [pressed, setPressed] = useState(false);
-
-  return (
-    <div
-      onPointerDown={() => setPressed(true)}
-      onPointerUp={() => setPressed(false)}
-      onPointerLeave={() => setPressed(false)}
-      className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5 animate-fade-in-up cursor-default transition-transform duration-200"
-      style={{ animationDelay: `${delay}s`, transform: pressed ? "scale(0.97)" : "scale(1)" }}
-    >
-      <div className="flex items-start gap-3.5">
-        <div className={`w-11 h-11 rounded-xl ${color} flex items-center justify-center shrink-0`}>
-          {icon}
-        </div>
-        <div className="min-w-0">
-          <h3 className="font-semibold text-sm sm:text-base mb-1">{title}</h3>
-          <p className="text-xs sm:text-sm text-muted leading-relaxed">{desc}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Page ───────────────────────────────────────────────────────
+import PremiumPage from "@/components/PremiumPage";
+import { useI18n } from "@/lib/i18n";
 
 export default function AboutPage() {
-  const router = useRouter();
+  const { locale } = useI18n();
+  const en = locale === "en";
 
   return (
-    <div className="min-h-dvh flex flex-col relative">
-      <FloatingSquares />
-      <Header showBack onBack={() => router.push("/dashboard")} />
-
-      <PageContainer className="relative z-[1]">
-        {/* Hero */}
-        <div className="text-center pt-4 sm:pt-6 mb-8 sm:mb-10 animate-fade-in-up">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-[#8b5cf6]/20 flex items-center justify-center mx-auto mb-5">
-            <svg width="44" height="44" viewBox="0 0 200 200" fill="white">
-              <path d="M20 15 L60 15 L60 30 L42 30 L75 63 L63 75 L30 42 L30 60 L15 60 L15 20 Z" />
-              <path d="M180 15 L140 15 L140 30 L158 30 L125 63 L137 75 L170 42 L170 60 L185 60 L185 20 Z" />
-              <path d="M20 185 L60 185 L60 170 L42 170 L75 137 L63 125 L30 158 L30 140 L15 140 L15 180 Z" />
-              <path d="M180 185 L140 185 L140 170 L158 170 L125 137 L137 125 L170 158 L170 140 L185 140 L185 180 Z" />
-            </svg>
+    <PremiumPage>
+      <div className="pl-product-hero">
+        <div className="pl-product-hero-inner">
+          <div className="pl-product-hero-text" style={{ maxWidth: 640 }}>
+            <div className="pl-eyebrow">{en ? "Company" : "Компания"}</div>
+            <h1 className="pl-product-title">{en ? "Security is not\na feature \u2014\nit\u2019s architecture" : "Безопасность \u2014\nне функция,\nа архитектура"}</h1>
+            <p className="pl-product-desc">{en ? "Atlas Secure is an international technology company founded in Hong Kong, specializing in protected IT solutions for enterprise and private clients worldwide." : "Atlas Secure \u2014 международная технологическая компания со штаб-квартирой в Гонконге, специализирующаяся на защищённых IT-решениях для корпоративного и частного сектора."}</p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-3">Atlas Secure</h1>
-          <p className="text-muted text-sm sm:text-base leading-relaxed max-w-sm mx-auto">
-            Платформа безопасного доступа в интернет корпоративного класса для частных пользователей и бизнеса
-          </p>
         </div>
-
-        {/* Animated Stats */}
-        <div className="grid grid-cols-2 gap-2.5 mb-6 sm:mb-8 animate-fade-in-up animate-delay-1">
-          <StatCard
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#3b82f6" strokeWidth="1.5"/></svg>}
-            value="75 Гбит/с" label="Пропускная способность" type="speed"
-          />
-          <StatCard
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#22c55e" strokeWidth="1.5"/><path d="M9 12l2 2 4-4" stroke="#22c55e" strokeWidth="2"/></svg>}
-            value="99.9%" label="Аптайм серверов" type="uptime"
-          />
-          <StatCard
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="7" r="4" stroke="#8b5cf6" strokeWidth="1.5"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="#8b5cf6" strokeWidth="1.5"/><line x1="19" y1="8" x2="19" y2="14" stroke="#8b5cf6" strokeWidth="1.5"/><line x1="16" y1="11" x2="22" y2="11" stroke="#8b5cf6" strokeWidth="1.5"/></svg>}
-            value="30+" label="Бизнес-партнёров" type="partners"
-          />
-          <StatCard
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" stroke="#0ea5e9" strokeWidth="1.5"/><path d="M12 12l4-2.5" stroke="#0ea5e9" strokeWidth="2"/><circle cx="12" cy="12" r="1.5" fill="#0ea5e9"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2" stroke="#0ea5e9" strokeWidth="1" opacity="0.5"/></svg>}
-            value="24/7" label="Мониторинг" type="monitoring"
-          />
+      </div>
+      <div className="pl-product-features">
+        <div className="pl-about-text-block">
+          <p>{en ? "The company operates at the intersection of three strategic disciplines: cryptographic data protection, high-performance network engineering, and operational security. This allows Atlas Secure to set a new industry standard \u2014 providing military-grade infrastructure to those who value privacy as an absolute priority." : "Компания работает на пересечении трёх стратегических дисциплин: криптографической защиты данных, высокопроизводительной сетевой инженерии и операционной безопасности."}</p>
+          <p>{en ? "Hong Kong\u2019s special administrative status provides a unique legal framework with strong trade secret protection and independence from third parties \u2014 fundamental for information security businesses." : "Особый административный статус Гонконга обеспечивает уникальный правовой режим с высоким уровнем защиты коммерческой тайны и независимости от третьих сторон."}</p>
+          <p>{en ? "Partner infrastructure spans three continental jurisdictions \u2014 Germany, Russia and Australia \u2014 providing clients with data sovereignty, local regulatory compliance and geographically distributed fault tolerance." : "Партнёрская инфраструктура охватывает три континентальные юрисдикции \u2014 Германию, Россию и Австралию \u2014 обеспечивая суверенитет данных и распределённую отказоустойчивость."}</p>
         </div>
-
-        {/* Features */}
-        <div className="space-y-3 mb-6 sm:mb-8">
-          <FeatureBlock
-            title="Enterprise Spectrum Protection"
-            desc="Наивысший класс защиты от DDoS-атак и сетевых угроз. Многоуровневая фильтрация трафика с интеллектуальным анализом в реальном времени."
-            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" stroke="#3b82f6" strokeWidth="2" /></svg>}
-            color="bg-primary/10" delay={0.2}
-          />
-          <FeatureBlock
-            title="Выделенные серверы"
-            desc="Инфраструктура премиум-класса с каналами до 75 Гбит/с. Оптимизированная маршрутизация для минимальной задержки и максимальной стабильности."
-            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="7" rx="2" /><rect x="2" y="14" width="20" height="7" rx="2" /><circle cx="6" cy="6.5" r="1" fill="#8b5cf6" /><circle cx="6" cy="17.5" r="1" fill="#8b5cf6" /><line x1="10" y1="6.5" x2="18" y2="6.5" /><line x1="10" y1="17.5" x2="18" y2="17.5" /></svg>}
-            color="bg-[#8b5cf6]/10" delay={0.3}
-          />
-          <FeatureBlock
-            title="Непрерывная доступность"
-            desc="Резервные каналы и автоматическое переключение гарантируют стабильную работу даже в самых сложных сетевых условиях."
-            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /><circle cx="12" cy="12" r="1" fill="#22c55e" /></svg>}
-            color="bg-success/10" delay={0.4}
-          />
-          <FeatureBlock
-            title="Конфиденциальность"
-            desc="Политика нулевого логирования. Мы не храним и не анализируем сетевую активность. Шифрование военного класса на всех соединениях."
-            icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /><circle cx="12" cy="16" r="1.5" fill="#f59e0b" /></svg>}
-            color="bg-warning/10" delay={0.5}
-          />
+      </div>
+      <div className="pl-product-features">
+        <h2 className="pl-product-section-title">{en ? "Company details" : "О компании"}</h2>
+        <div className="pl-about-table-full">
+          {[
+            [en ? "Headquarters" : "Штаб-квартира", en ? "Hong Kong SAR" : "Гонконг, КНР (SAR)"],
+            [en ? "Business type" : "Деятельность", en ? "B2B / B2C \u00b7 Information Security" : "B2B / B2C \u00b7 Информационная безопасность"],
+            [en ? "Specialization" : "Специализация", en ? "Encrypted network solutions, traffic protection, cybersecurity" : "Защищённые сетевые решения, шифрование трафика, кибербезопасность"],
+            [en ? "Partner DCs" : "Партнёрские ЦОД", en ? "Germany \u00b7 Russia \u00b7 Australia" : "Германия \u00b7 Россия \u00b7 Австралия"],
+            [en ? "Protection class" : "Класс защиты", "Military-Grade \u00b7 NSA Suite B"],
+            [en ? "Standards" : "Стандарты", "ISO/IEC 27001 \u00b7 FIPS 140-3 \u00b7 GDPR"],
+            [en ? "Uptime SLA" : "Аптайм SLA", en ? "99.98% guaranteed" : "99.98% гарантированно"],
+            [en ? "Operations" : "Режим работы", en ? "NOC monitoring 24/7/365" : "NOC-мониторинг 24/7/365"],
+          ].map(([k, v]) => (
+            <div key={k} className="pl-about-row"><span className="pl-about-key">{k}</span><span className="pl-about-val">{v}</span></div>
+          ))}
         </div>
-
-        {/* Business */}
-        <div
-          className="bg-card border border-primary/20 rounded-2xl p-5 sm:p-6 mb-6 sm:mb-8 animate-fade-in-up animate-delay-4 transition-transform duration-200 active:scale-[0.98]"
-        >
-          <div className="flex items-start gap-3.5 mb-4">
-            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="7" width="20" height="14" rx="2" />
-                <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" />
-                <line x1="12" y1="12" x2="12" y2="16" />
-                <line x1="10" y1="14" x2="14" y2="14" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-sm sm:text-base mb-1">Корпоративный пакет</h3>
-              <p className="text-xs sm:text-sm text-muted leading-relaxed">
-                Расширенное решение для бизнеса с индивидуальной разработкой, выделенной инфраструктурой и персональной поддержкой. Более 30 компаний уже выбрали Atlas Secure.
-              </p>
-            </div>
-          </div>
-          <a
-            href="https://t.me/Atlas_SupportSecurity"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full h-11 sm:h-12 rounded-xl bg-primary text-white font-medium text-sm sm:text-base hover:bg-primary-hover transition-all btn-press flex items-center justify-center gap-2"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-            </svg>
-            Связаться с нами
-          </a>
-        </div>
-
-        {/* Trust */}
-        <div className="text-center mb-6 animate-fade-in-up animate-delay-5">
-          <p className="text-muted/50 text-[11px] sm:text-xs leading-relaxed">
-            Atlas Secure — платформа нового поколения, которой доверяют пользователи в более чем 20 странах мира. Мы создаём технологии, которые работают тогда, когда это важнее всего.
-          </p>
-        </div>
-
-        <div className="text-center pb-4">
-          <p className="text-muted/30 text-[10px] font-mono">v2.0.0 · Atlas Secure Platform</p>
-        </div>
-      </PageContainer>
-
-      <Footer />
-    </div>
+      </div>
+    </PremiumPage>
   );
 }
