@@ -111,7 +111,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
             </Link>
           </div>
         </div>
-        {/* Hero visual — system status panel */}
+        {/* Hero visual — full viewport width */}
         <div className="pl-hero-visual pl-entrance pl-ed5">
           <div className="pl-panel-mock">
             <div className="pl-panel-sidebar">
