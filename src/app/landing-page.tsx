@@ -55,7 +55,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
   return (
     <div className="premium-landing">
       {/* ═══ HEADER ═══ */}
-      <header className={`pl-header${headerSolid ? " pl-header-solid" : ""}${headerVisible ? "" : " pl-header-hide"}`}>
+      <header className={`pl-header pl-entrance pl-ed0${headerSolid ? " pl-header-solid" : ""}${headerVisible ? "" : " pl-header-hide"}`}>
         <div className="pl-header-inner">
           <Link href="/" className="pl-logo">
             <AtlasLogo size={22} />
@@ -118,7 +118,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
           </div>
         </div>
         {/* Hero visual — system status panel */}
-        <div className="pl-hero-visual pl-reveal">
+        <div className="pl-hero-visual pl-entrance pl-ed5">
           <div className="pl-panel-mock">
             <div className="pl-panel-sidebar">
               <div className="pl-panel-brand">
