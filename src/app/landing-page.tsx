@@ -738,24 +738,22 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
           </div>
           <div className="pl-footer-col">
             <h4>Product</h4>
-            <Link href="/pricing">VPN</Link>
-            <Link href="/pricing">VPS</Link>
-            <Link href="/pricing">VDS</Link>
+            <Link href="/vpn">VPN</Link>
+            <Link href="/vps">VPS</Link>
+            <Link href="/vds">VDS</Link>
             <Link href="/pricing">{t("nav.pricing")}</Link>
-            <Link href="/#tech">{t("nav.security")}</Link>
           </div>
           <div className="pl-footer-col">
             <h4>{locale === "ru" ? "Безопасность" : "Security"}</h4>
-            <span>AES-256-GCM</span>
-            <span>ChaCha20-Poly1305</span>
-            <span>TLS 1.3</span>
-            <span>Zero Trust</span>
-            <span>DDoS Protection</span>
+            <Link href="/security">{locale === "ru" ? "Обзор" : "Overview"}</Link>
+            <Link href="/security">AES-256-GCM</Link>
+            <Link href="/security">TLS 1.3</Link>
+            <Link href="/security">Zero Trust</Link>
           </div>
           <div className="pl-footer-col">
             <h4>{locale === "ru" ? "Компания" : "Company"}</h4>
-            <Link href="/#about">{locale === "ru" ? "О нас" : "About"}</Link>
-            <Link href="/#infra">{t("nav.infrastructure")}</Link>
+            <Link href="/about">{locale === "ru" ? "О нас" : "About"}</Link>
+            <Link href="/infrastructure">{t("nav.infrastructure")}</Link>
             <Link href="/contact">{locale === "ru" ? "Контакты" : "Contact us"}</Link>
           </div>
           <div className="pl-footer-col">

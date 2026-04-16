@@ -1,85 +1,68 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import PageContainer from "@/components/PageContainer";
+import PremiumPage from "@/components/PremiumPage";
+import { useI18n } from "@/lib/i18n";
 
 export default function PrivacyPage() {
-  const router = useRouter();
+  const { locale } = useI18n();
 
   return (
-    <div className="min-h-dvh flex flex-col">
-      <Header showBack onBack={() => router.back()} />
+    <PremiumPage title={locale === "ru" ? "Политика конфиденциальности" : "Privacy Policy"}>
+      <div className="pl-legal">
+        <p className="pl-legal-date">{locale === "ru" ? "Последнее обновление: 23 марта 2026 г." : "Last updated: March 23, 2026"}</p>
 
-      <PageContainer>
-        <div className="animate-fade-in-up pt-2 sm:pt-4">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-6">Политика конфиденциальности</h1>
+        <section>
+          <h2>{locale === "ru" ? "1. Введение" : "1. Introduction"}</h2>
+          <p>{locale === "ru" ? "Настоящая Политика конфиденциальности устанавливает порядок сбора, обработки, хранения и защиты информации, предоставляемой Пользователями сервиса Atlas Secure. Сервис осуществляет деятельность в соответствии с принципами минимизации данных и уважения к конфиденциальности. Используя Сервис, вы подтверждаете согласие с настоящей Политикой." : "This Privacy Policy establishes the procedures for collection, processing, storage, and protection of information provided by Users of Atlas Secure. The Service operates in accordance with data minimization principles and respect for privacy. By using the Service, you confirm your agreement with this Policy."}</p>
+        </section>
 
-          <div className="prose-custom space-y-6 text-sm sm:text-base text-muted-light leading-relaxed">
-            <p className="text-xs text-muted">Последнее обновление: 23 марта 2026 г.</p>
+        <section>
+          <h2>{locale === "ru" ? "2. Принцип отсутствия логирования" : "2. No-Logging Policy"}</h2>
+          <p>{locale === "ru" ? "Сервис придерживается строгой политики отсутствия логирования (no-logs policy). Сервис не осуществляет запись, хранение или мониторинг: содержимого интернет-трафика, IP-адресов подключений, DNS-запросов, временных меток сессий, объёма данных в привязке к Пользователю, информации о посещаемых ресурсах." : "The Service adheres to a strict no-logs policy. The Service does not record, store, or monitor: internet traffic content, connection IP addresses, DNS queries, session timestamps, per-user data volumes, or information about visited resources."}</p>
+        </section>
 
-            <section>
-              <h2 className="text-foreground font-semibold text-base sm:text-lg mb-2">1. Введение</h2>
-              <p>Настоящая Политика конфиденциальности (далее — «Политика») устанавливает порядок сбора, обработки, хранения, использования и защиты информации, предоставляемой Пользователями сервиса Atlas Secure (далее — «Сервис»). Сервис осуществляет свою деятельность в строгом соответствии с принципами минимизации данных и уважения к конфиденциальности Пользователей. Настоящая Политика является неотъемлемой частью Условий предоставления услуг и применяется ко всем лицам, использующим Сервис. Используя Сервис, вы подтверждаете, что ознакомились с настоящей Политикой и согласны с её положениями.</p>
-            </section>
+        <section>
+          <h2>{locale === "ru" ? "3. Собираемая информация" : "3. Information Collected"}</h2>
+          <p>{locale === "ru" ? "Для функционирования Сервис собирает минимально необходимый объём информации:" : "For operation, the Service collects the minimum necessary information:"}</p>
+          <ul>
+            <li><strong>Email</strong> — {locale === "ru" ? "идентификация учётной записи и отправка кодов верификации" : "account identification and verification codes"}</li>
+            <li><strong>{locale === "ru" ? "Хэш пароля" : "Password hash"}</strong> — {locale === "ru" ? "криптографически защищённая производная пароля (bcrypt)" : "cryptographically protected password derivative (bcrypt)"}</li>
+            <li><strong>{locale === "ru" ? "Дата и срок подписки" : "Subscription dates"}</strong> — {locale === "ru" ? "управление тарифным планом" : "subscription plan management"}</li>
+            <li><strong>{locale === "ru" ? "Реферальный код" : "Referral code"}</strong> — {locale === "ru" ? "участие в реферальной программе" : "referral program participation"}</li>
+            <li><strong>{locale === "ru" ? "Данные платежей" : "Payment data"}</strong> — {locale === "ru" ? "ID транзакции, сумма, статус. Данные карт не хранятся." : "transaction ID, amount, status. Card data is not stored."}</li>
+          </ul>
+        </section>
 
-            <section>
-              <h2 className="text-foreground font-semibold text-base sm:text-lg mb-2">2. Принцип отсутствия логирования</h2>
-              <p>Сервис придерживается строгой политики отсутствия логирования (no-logs policy). Это означает, что Сервис не осуществляет запись, хранение, мониторинг или какой-либо иной вид обработки следующих данных: содержимого интернет-трафика Пользователя, проходящего через серверы Сервиса; IP-адресов, с которых Пользователь подключается к Сервису; IP-адресов, присваиваемых Пользователю при подключении к Сервису; DNS-запросов, формируемых устройствами Пользователя; временных меток подключений и отключений от Сервиса; объёма переданных или полученных данных в привязке к конкретному Пользователю; информации о посещаемых Пользователем интернет-ресурсах. Сервис не ведёт журналов активности Пользователей, журналов подключений и не хранит какую-либо информацию, позволяющую идентифицировать действия конкретного Пользователя в сети Интернет.</p>
-            </section>
+        <section>
+          <h2>{locale === "ru" ? "4. Цели обработки" : "4. Processing Purposes"}</h2>
+          <p>{locale === "ru" ? "Информация используется для: предоставления услуг, аутентификации, управления подписками, обработки платежей, функционирования реферальной программы, уведомлений и предотвращения злоупотреблений. Сервис не использует информацию в рекламных целях и не передаёт её для маркетинга." : "Information is used for: service provision, authentication, subscription management, payment processing, referral program operation, notifications, and abuse prevention. The Service does not use information for advertising or share it for marketing."}</p>
+        </section>
 
-            <section>
-              <h2 className="text-foreground font-semibold text-base sm:text-lg mb-2">3. Информация, собираемая Сервисом</h2>
-              <p>Для обеспечения функционирования Сервиса и обслуживания Пользователей Сервис собирает и обрабатывает минимально необходимый объём информации, а именно:</p>
-              <ul className="list-disc list-inside space-y-2 ml-2 mt-2">
-                <li><b className="text-foreground">Адрес электронной почты</b> — используется для идентификации учётной записи Пользователя, отправки одноразовых кодов верификации и уведомлений, непосредственно связанных с функционированием Сервиса.</li>
-                <li><b className="text-foreground">Хэш пароля</b> — криптографически защищённая производная пароля Пользователя, используемая исключительно для аутентификации. Сервис не хранит пароли Пользователей в открытом виде.</li>
-                <li><b className="text-foreground">Дата создания учётной записи и срок подписки</b> — необходимы для управления тарифным планом и периодом подписки Пользователя.</li>
-                <li><b className="text-foreground">Реферальный код</b> — уникальный идентификатор, присваиваемый каждому Пользователю для участия в реферальной программе.</li>
-                <li><b className="text-foreground">Информация о платежах</b> — идентификатор транзакции, сумма и статус платежа. Сервис не хранит данные платёжных карт Пользователей; обработка платежей осуществляется авторизованным платёжным оператором.</li>
-              </ul>
-            </section>
+        <section>
+          <h2>{locale === "ru" ? "5. Хранение и защита" : "5. Storage and Protection"}</h2>
+          <p>{locale === "ru" ? "Информация хранится на защищённых серверах с современным шифрованием. Пароли хранятся как bcrypt-хэши. Сессии передаются через httpOnly secure cookies." : "Information is stored on protected servers with modern encryption. Passwords are stored as bcrypt hashes. Sessions are transmitted via httpOnly secure cookies."}</p>
+        </section>
 
-            <section>
-              <h2 className="text-foreground font-semibold text-base sm:text-lg mb-2">4. Цели обработки информации</h2>
-              <p>Собираемая Сервисом информация используется исключительно в следующих целях: предоставление и обеспечение функционирования услуг Сервиса; аутентификация и авторизация Пользователей; управление подписками и тарифными планами; обработка платежей через авторизованного платёжного оператора; обеспечение функционирования реферальной программы; направление Пользователям уведомлений, непосредственно связанных с обслуживанием; выявление и предотвращение злоупотреблений Сервисом. Сервис не использует собираемую информацию в рекламных целях, не осуществляет профилирование Пользователей и не передаёт информацию третьим лицам для целей маркетинга.</p>
-            </section>
+        <section>
+          <h2>{locale === "ru" ? "6. Передача третьим лицам" : "6. Third-Party Disclosure"}</h2>
+          <p>{locale === "ru" ? "Сервис не продаёт и не передаёт информацию. Передача возможна только платёжному оператору для обработки платежа или по запросу компетентных органов в соответствии с законодательством." : "The Service does not sell or share information. Disclosure is possible only to the payment processor for transaction processing or upon lawful request from competent authorities."}</p>
+        </section>
 
-            <section>
-              <h2 className="text-foreground font-semibold text-base sm:text-lg mb-2">5. Хранение и защита информации</h2>
-              <p>Информация Пользователей хранится на защищённых серверах с применением современных стандартов шифрования. Доступ к базам данных ограничен и предоставляется исключительно авторизованному техническому персоналу Сервиса. Пароли Пользователей хранятся в виде криптографического хэша с использованием алгоритма bcrypt, что исключает возможность их восстановления в открытом виде. Сессионные данные передаются через защищённые куки (httpOnly, secure) и имеют ограниченный срок действия. Сервис применяет технические и организационные меры для защиты информации от несанкционированного доступа, утраты, изменения или уничтожения.</p>
-            </section>
+        <section>
+          <h2>{locale === "ru" ? "7. Cookies" : "7. Cookies"}</h2>
+          <p>{locale === "ru" ? "Сервис использует только функциональные cookies: сессионный и верификационный. Аналитические, рекламные и отслеживающие cookies не используются." : "The Service uses only functional cookies: session and verification. Analytics, advertising, and tracking cookies are not used."}</p>
+        </section>
 
-            <section>
-              <h2 className="text-foreground font-semibold text-base sm:text-lg mb-2">6. Передача информации третьим лицам</h2>
-              <p>Сервис не продаёт, не сдаёт в аренду и не передаёт на иных коммерческих основаниях персональную информацию Пользователей третьим лицам. Передача информации возможна исключительно в следующих случаях: авторизованному платёжному оператору в объёме, необходимом для обработки платежа (при этом данные платёжных карт обрабатываются непосредственно платёжным оператором и не проходят через серверы Сервиса); по обоснованному и надлежащим образом оформленному запросу компетентных государственных органов в соответствии с требованиями применимого законодательства. В силу строгой политики отсутствия логирования, Сервис объективно не располагает данными об активности Пользователей в сети Интернет и, соответственно, не имеет возможности предоставить такие данные по какому-либо запросу.</p>
-            </section>
+        <section>
+          <h2>{locale === "ru" ? "8. Права пользователя" : "8. User Rights"}</h2>
+          <p>{locale === "ru" ? "Пользователь вправе: запросить информацию о хранящихся данных, потребовать удаления учётной записи, отозвать согласие на обработку." : "Users may: request information about stored data, demand account deletion, withdraw consent to data processing."}</p>
+        </section>
 
-            <section>
-              <h2 className="text-foreground font-semibold text-base sm:text-lg mb-2">7. Файлы cookie и технологии отслеживания</h2>
-              <p>Сервис использует минимальное количество функциональных куки, необходимых для обеспечения работоспособности: сессионный куки для поддержания аутентификации Пользователя и временный куки для процесса верификации. Сервис не использует аналитические, рекламные и отслеживающие куки. Сервис не использует инструменты веб-аналитики, пиксели отслеживания, фингерпринтинг браузеров или иные технологии, позволяющие отслеживать поведение Пользователей.</p>
-            </section>
-
-            <section>
-              <h2 className="text-foreground font-semibold text-base sm:text-lg mb-2">8. Права Пользователя</h2>
-              <p>Пользователь имеет право: запросить информацию о данных, хранящихся Сервисом в отношении его учётной записи; потребовать удаления своей учётной записи и связанных с ней данных; отозвать согласие на обработку данных путём прекращения использования Сервиса. Для реализации указанных прав Пользователь может обратиться в службу поддержки Сервиса через Telegram-бот.</p>
-            </section>
-
-            <section>
-              <h2 className="text-foreground font-semibold text-base sm:text-lg mb-2">9. Изменение Политики</h2>
-              <p>Сервис оставляет за собой право вносить изменения в настоящую Политику. Актуальная редакция Политики размещается на соответствующей странице Сервиса с указанием даты последнего обновления. Продолжение использования Сервиса после внесения изменений означает согласие Пользователя с новой редакцией Политики.</p>
-            </section>
-
-            <section>
-              <h2 className="text-foreground font-semibold text-base sm:text-lg mb-2">10. Контактная информация</h2>
-              <p>По всем вопросам, связанным с обработкой персональных данных, Пользователь может обратиться через Telegram-бот <a href="https://t.me/atlassecure_bot" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary-hover transition-colors">@atlassecure_bot</a>.</p>
-            </section>
-          </div>
-        </div>
-      </PageContainer>
-
-      <Footer />
-    </div>
+        <section>
+          <h2>{locale === "ru" ? "9. Контакты" : "9. Contact"}</h2>
+          <p>{locale === "ru" ? "По вопросам обработки данных обращайтесь через" : "For data processing inquiries, contact us via"} <a href="https://t.me/atlassecure_bot" target="_blank" rel="noopener noreferrer">@atlassecure_bot</a>.</p>
+        </section>
+      </div>
+    </PremiumPage>
   );
 }
