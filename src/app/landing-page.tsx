@@ -105,13 +105,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
           </div>
           <div className="pl-hero-right pl-entrance pl-ed2">
             <p className="pl-hero-desc">{t("hero.desc")}</p>
-            <div className="pl-hero-link pl-entrance pl-ed3">
-              <Link href="/contact" className="pl-arrow-link">
-                <span className="pl-arrow-ver">1.0</span>
-                {t("hero.cta")} <span className="pl-arrow">&rarr;</span>
-              </Link>
-            </div>
-            <Link href={authUrl} className="pl-hero-vpn-btn pl-entrance pl-ed4">
+            <Link href={authUrl} className="pl-hero-vpn-btn pl-entrance pl-ed3">
               {t("hero.vpn")}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
