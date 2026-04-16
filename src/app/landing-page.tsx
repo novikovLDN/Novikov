@@ -17,7 +17,7 @@ function AtlasLogo({ size = 24 }: { size?: number }) {
 
 export default function LandingPage({ referralCode }: { referralCode?: string }) {
   const authUrl = referralCode ? `/auth?ref=${referralCode}` : "/auth";
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [mobileMenu, setMobileMenu] = useState(false);
   const [headerSolid, setHeaderSolid] = useState(false);
   const lastScroll = useRef(0);
@@ -550,6 +550,127 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
             </div>
           ))}
         </div>
+        {/* Infrastructure monitoring visual */}
+        <div className="pl-feature-visual pl-reveal">
+          <div className="pl-mock-full">
+            <div className="pl-mock-panel pl-mock-dc-status">
+              <div className="pl-dc-pulse-title">{locale === "ru" ? "Еженедельный отчёт" : "Weekly Infrastructure Report"}</div>
+              <div className="pl-dc-pulse-date">Apr 16, 2026</div>
+              <div className="pl-dc-pulse-divider" />
+              <div className="pl-dc-pulse-section">Frankfurt (DE)</div>
+              <div className="pl-dc-pulse-item"><span className="pl-pulse-status pl-ps-green" /><span>Operational</span><span className="pl-pulse-meta">uptime 99.99% &middot; 14 days</span></div>
+              <div className="pl-dc-pulse-item"><span className="pl-pulse-status pl-ps-green" /><span>Bandwidth peak 74.2 Gb/s</span></div>
+              <div className="pl-dc-pulse-divider" />
+              <div className="pl-dc-pulse-section">Moscow (RU)</div>
+              <div className="pl-dc-pulse-item"><span className="pl-pulse-status pl-ps-green" /><span>Operational</span><span className="pl-pulse-meta">uptime 99.98% &middot; 14 days</span></div>
+              <div className="pl-dc-pulse-item"><span className="pl-pulse-status pl-ps-yellow" /><span>{locale === "ru" ? "Плановое обслуживание запланировано" : "Scheduled maintenance planned"}</span></div>
+              <div className="pl-dc-pulse-divider" />
+              <div className="pl-dc-pulse-section">Sydney (AU)</div>
+              <div className="pl-dc-pulse-item"><span className="pl-pulse-status pl-ps-green" /><span>Operational</span><span className="pl-pulse-meta">uptime 100% &middot; 14 days</span></div>
+            </div>
+            <div className="pl-mock-panel pl-mock-dc-graph">
+              <div className="pl-dc-graph-title">{locale === "ru" ? "Задержка по регионам" : "Latency by region"}</div>
+              <svg viewBox="0 0 500 200" className="pl-dc-scatter-svg">
+                {/* Y axis labels */}
+                <text x="20" y="30" fill="#55555A" fontSize="10">18ms</text>
+                <text x="20" y="70" fill="#55555A" fontSize="10">12ms</text>
+                <text x="20" y="110" fill="#55555A" fontSize="10">6ms</text>
+                <text x="20" y="150" fill="#55555A" fontSize="10">0ms</text>
+                {/* Grid lines */}
+                {[30,70,110,150].map((y) => <line key={y} x1="50" y1={y} x2="480" y2={y} stroke="#1a1a1e" strokeWidth="0.5" />)}
+                {/* Frankfurt dots — low latency cluster */}
+                {Array.from({length: 25}).map((_, i) => <circle key={`de-${i}`} cx={100 + Math.sin(i*1.7)*30 + (i%5)*6} cy={130 - Math.random()*20 - Math.sin(i)*8} r="3" fill="#5E6AD2" opacity="0.7" />)}
+                {/* Moscow dots — medium */}
+                {Array.from({length: 25}).map((_, i) => <circle key={`ru-${i}`} cx={250 + Math.sin(i*2.1)*30 + (i%5)*6} cy={115 - Math.random()*25 - Math.cos(i)*10} r="3" fill="#F97316" opacity="0.7" />)}
+                {/* Sydney dots — higher latency */}
+                {Array.from({length: 25}).map((_, i) => <circle key={`au-${i}`} cx={400 + Math.sin(i*1.3)*25 + (i%4)*5} cy={100 - Math.random()*30 - Math.sin(i)*6} r="3" fill="#8A8A8E" opacity="0.5" />)}
+                {/* X axis labels */}
+                <text x="110" y="175" fill="#55555A" fontSize="11" textAnchor="middle">Frankfurt</text>
+                <text x="260" y="175" fill="#55555A" fontSize="11" textAnchor="middle">Moscow</text>
+                <text x="405" y="175" fill="#55555A" fontSize="11" textAnchor="middle">Sydney</text>
+                {/* Trend lines */}
+                <line x1="70" y1="125" x2="140" y2="120" stroke="#5E6AD2" strokeWidth="0.8" opacity="0.3" />
+                <line x1="220" y1="108" x2="290" y2="100" stroke="#F97316" strokeWidth="0.8" opacity="0.3" />
+                <line x1="375" y1="90" x2="440" y2="82" stroke="#8A8A8E" strokeWidth="0.8" opacity="0.3" />
+              </svg>
+            </div>
+            <div className="pl-panel-fade" />
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ SECURITY — Linear "Safe, secure, private" style ═══ */}
+      <section className="pl-security-section pl-reveal">
+        <div className="pl-security-inner">
+          <div className="pl-security-eyebrow">Security</div>
+          <h2 className="pl-security-title">{locale === "ru" ? "Безопасно,\nнадёжно, приватно." : "Safe, secure,\nand private."}</h2>
+          <p className="pl-security-desc">
+            {locale === "ru"
+              ? "Всё в Atlas Secure спроектировано для защиты ваших данных. Потому что ваш бизнес — только ваше дело."
+              : "Everything in Atlas Secure is designed to keep your data safe and secure. Because your business is nobody else\u2019s business."}
+          </p>
+          {/* Certification badges */}
+          <div className="pl-cert-badges">
+            <div className="pl-cert-badge">
+              <svg viewBox="0 0 120 120" className="pl-cert-svg">
+                <circle cx="60" cy="60" r="54" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.2" />
+                <circle cx="60" cy="60" r="48" stroke="currentColor" strokeWidth="0.5" fill="none" opacity="0.1" />
+                <text x="60" y="50" textAnchor="middle" fill="currentColor" fontSize="14" fontWeight="500" opacity="0.6">ISO</text>
+                <text x="60" y="70" textAnchor="middle" fill="currentColor" fontSize="12" opacity="0.4">27001</text>
+              </svg>
+            </div>
+            <div className="pl-cert-badge">
+              <svg viewBox="0 0 120 120" className="pl-cert-svg">
+                <circle cx="60" cy="60" r="54" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.2" />
+                {[0,60,120,180,240,300].map((a,i) => <circle key={i} cx={60 + 38*Math.cos(a*Math.PI/180)} cy={60 + 38*Math.sin(a*Math.PI/180)} r="3" fill="currentColor" opacity="0.15" />)}
+                <text x="60" y="56" textAnchor="middle" fill="currentColor" fontSize="15" fontWeight="500" opacity="0.6">GDPR</text>
+                <text x="60" y="72" textAnchor="middle" fill="currentColor" fontSize="10" opacity="0.35">Compliant</text>
+              </svg>
+            </div>
+            <div className="pl-cert-badge">
+              <svg viewBox="0 0 120 120" className="pl-cert-svg">
+                <circle cx="60" cy="60" r="54" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.2" />
+                <circle cx="60" cy="60" r="44" stroke="currentColor" strokeWidth="0.3" fill="none" opacity="0.1" />
+                <text x="60" y="50" textAnchor="middle" fill="currentColor" fontSize="12" fontWeight="500" opacity="0.6">FIPS</text>
+                <text x="60" y="68" textAnchor="middle" fill="currentColor" fontSize="11" opacity="0.4">140-3</text>
+              </svg>
+            </div>
+            <div className="pl-cert-badge">
+              <svg viewBox="0 0 120 120" className="pl-cert-svg">
+                <circle cx="60" cy="60" r="54" stroke="currentColor" strokeWidth="0.8" fill="none" opacity="0.2" />
+                <text x="60" y="50" textAnchor="middle" fill="currentColor" fontSize="11" fontWeight="500" opacity="0.6">SOC 2</text>
+                <text x="60" y="68" textAnchor="middle" fill="currentColor" fontSize="10" opacity="0.35">Type II</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+        {/* Security features grid */}
+        <div className="pl-security-grid">
+          <div className="pl-sec-hero-text">
+            <span className="pl-sec-label">{locale === "ru" ? "Корпоративная безопасность" : "Enterprise-grade security"}</span>
+            <p className="pl-sec-desc-big">
+              <strong>{locale === "ru" ? "Спокойствие как сервис." : "Peace of mind as a service."}</strong>{" "}
+              <span className="pl-sec-muted">
+                {locale === "ru"
+                  ? "Atlas Secure построен на лучших практиках безопасности. Шифрование на каждом уровне, надёжные партнёры и независимый аудит."
+                  : "Atlas Secure is built with best-in-class security practices. State-of-the-art encryption, reliable infrastructure partners, and independently verified security controls."}
+              </span>
+            </p>
+          </div>
+          {[
+            { title: locale === "ru" ? "AES-256-GCM" : "AES-256-GCM", desc: locale === "ru" ? "Шифрование военного класса, одобренное NSA для данных TOP SECRET." : "Military-grade encryption approved by NSA for TOP SECRET data." },
+            { title: "Perfect Forward Secrecy", desc: locale === "ru" ? "Компрометация одного сеанса не раскрывает предыдущие или будущие." : "Compromise of one session cannot reveal previous or future sessions." },
+            { title: locale === "ru" ? "Нулевые логи" : "Zero logs", desc: locale === "ru" ? "Политика строгого No-Log. Никакие данные о действиях не регистрируются." : "Strict No-Log policy. No activity data is recorded or can be disclosed." },
+            { title: locale === "ru" ? "Kill Switch" : "Kill Switch", desc: locale === "ru" ? "Автоматическая блокировка трафика при разрыве VPN-соединения." : "Automatic traffic blocking if VPN connection drops." },
+            { title: locale === "ru" ? "Аудит безопасности" : "Security audit", desc: locale === "ru" ? "Открытый аудит криптографических решений независимыми исследователями." : "Open audit of cryptographic solutions by independent researchers." },
+            { title: locale === "ru" ? "DNS защита" : "DNS protection", desc: locale === "ru" ? "Полная защита от утечек DNS и IPv6 на всех устройствах." : "Full DNS and IPv6 leak protection on all devices." },
+          ].map((item) => (
+            <div key={item.title} className="pl-sec-card">
+              <h4>{item.title}</h4>
+              <p>{item.desc}</p>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* ═══ ABOUT ═══ */}
@@ -607,21 +728,46 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
         </div>
       </section>
 
-      {/* ═══ FOOTER ═══ */}
-      <footer className="pl-footer">
-        <div className="pl-footer-inner">
-          <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="pl-footer-brand" style={{ cursor: 'pointer', textDecoration: 'none' }}>
-            <AtlasLogo size={14} />
-            <span>Atlas Secure</span>
-          </a>
-          <div className="pl-footer-links">
-            <Link href="/pricing">{t("footer.pricing")}</Link>
-            <Link href="/terms">{t("footer.terms")}</Link>
+      {/* ═══ FOOTER — Linear style columns ═══ */}
+      <footer className="pl-footer-big">
+        <div className="pl-footer-big-inner">
+          <div className="pl-footer-logo-col">
+            <a href="#" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="pl-footer-brand" style={{ cursor: 'pointer', textDecoration: 'none' }}>
+              <AtlasLogo size={20} />
+            </a>
+          </div>
+          <div className="pl-footer-col">
+            <h4>Product</h4>
+            <Link href="/pricing">VPN</Link>
+            <Link href="/pricing">VPS</Link>
+            <Link href="/pricing">VDS</Link>
+            <Link href="/pricing">{t("nav.pricing")}</Link>
+            <Link href="/#tech">{t("nav.security")}</Link>
+          </div>
+          <div className="pl-footer-col">
+            <h4>{locale === "ru" ? "Безопасность" : "Security"}</h4>
+            <span>AES-256-GCM</span>
+            <span>ChaCha20-Poly1305</span>
+            <span>TLS 1.3</span>
+            <span>Zero Trust</span>
+            <span>DDoS Protection</span>
+          </div>
+          <div className="pl-footer-col">
+            <h4>{locale === "ru" ? "Компания" : "Company"}</h4>
+            <Link href="/#about">{locale === "ru" ? "О нас" : "About"}</Link>
+            <Link href="/#infra">{t("nav.infrastructure")}</Link>
+            <Link href="/contact">{locale === "ru" ? "Контакты" : "Contact us"}</Link>
+          </div>
+          <div className="pl-footer-col">
+            <h4>{locale === "ru" ? "Юридическое" : "Legal"}</h4>
             <Link href="/privacy">{t("footer.privacy")}</Link>
+            <Link href="/terms">{t("footer.terms")}</Link>
           </div>
-          <div className="pl-footer-copy">
-            HQ: Hong Kong SAR &middot; Infra: DE &middot; RU &middot; AU &middot; &copy; {new Date().getFullYear()} Atlas Secure
-          </div>
+        </div>
+        <div className="pl-footer-bottom">
+          <span>&copy; {new Date().getFullYear()} Atlas Secure</span>
+          <span>HQ: Hong Kong SAR</span>
+          <span>Infra: DE &middot; RU &middot; AU</span>
         </div>
       </footer>
     </div>
