@@ -596,14 +596,14 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
         </div>
       </section>
 
-      {/* ═══ CTA ═══ */}
+      {/* ═══ CTA — Linear "Built for the future" style ═══ */}
       <section className="pl-cta-final pl-reveal">
         <div className="pl-cta-final-inner">
-          <h2 className="pl-cta-title">{t("cta.title")}</h2>
-          <p className="pl-cta-desc">{t("cta.desc")}</p>
-          <Link href="/contact" className="pl-cta-primary">
-            {t("cta.btn")} <span className="pl-arrow">&rarr;</span>
-          </Link>
+          <h2 className="pl-cta-big">{t("cta.title")}</h2>
+          <div className="pl-cta-buttons">
+            <Link href={authUrl} className="pl-cta-btn-light">{t("hero.vpn")}</Link>
+            <Link href="/contact" className="pl-cta-btn-dark">{t("cta.btn")}</Link>
+          </div>
         </div>
       </section>
 

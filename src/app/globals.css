@@ -990,11 +990,15 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .pl-comp-feature { color: var(--pl-t2); padding: 0 12px; }
 .pl-comp-val { padding: 0 12px; color: var(--pl-t2); display: flex; align-items: center; }
 
-/* CTA final */
-.pl-cta-final { padding: 120px 40px; text-align: center; }
-.pl-cta-final-inner { max-width: 480px; margin: 0 auto; }
-.pl-cta-title { font-size: 32px; font-weight: 500; letter-spacing: -.02em; margin-bottom: 12px; }
-.pl-cta-desc { font-size: 16px; color: var(--pl-t2); margin-bottom: 32px; }
+/* CTA final — "Built for the future" style */
+.pl-cta-final { padding: 180px 40px; text-align: center; }
+.pl-cta-final-inner { max-width: 900px; margin: 0 auto; }
+.pl-cta-big { font-size: clamp(40px, 6vw, 72px); font-weight: 600; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 48px; white-space: pre-line; }
+.pl-cta-buttons { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.pl-cta-btn-light { display: inline-flex; align-items: center; justify-content: center; padding: 14px 32px; font-size: 15px; font-weight: 500; background: var(--pl-t1); color: var(--pl-bg); border-radius: 8px; text-decoration: none; transition: all .2s; border: 1px solid var(--pl-t1); }
+.pl-cta-btn-light:hover { background: #fff; }
+.pl-cta-btn-dark { display: inline-flex; align-items: center; justify-content: center; padding: 14px 32px; font-size: 15px; font-weight: 500; background: var(--pl-elevated); color: var(--pl-t1); border: 1px solid var(--pl-border-h); border-radius: 8px; text-decoration: none; transition: all .2s; }
+.pl-cta-btn-dark:hover { background: var(--pl-surface); border-color: rgba(255,255,255,.2); }
 .pl-cta-primary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: var(--pl-accent); color: #fff; font-size: 14px; font-weight: 500; border-radius: 6px; text-decoration: none; transition: all .2s; }
 .pl-cta-primary:hover { filter: brightness(1.15); box-shadow: 0 4px 24px rgba(94,106,210,.3); }
 
