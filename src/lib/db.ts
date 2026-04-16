@@ -117,6 +117,19 @@ export async function initDb(): Promise<void> {
 
     CREATE INDEX IF NOT EXISTS idx_push_subs_user ON push_subscriptions(user_id);
 
+    CREATE TABLE IF NOT EXISTS contact_requests (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      interest TEXT NOT NULL,
+      message TEXT,
+      status TEXT NOT NULL DEFAULT 'new',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_contact_created ON contact_requests(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_contact_status ON contact_requests(status);
+
     CREATE TABLE IF NOT EXISTS passkey_credentials (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,

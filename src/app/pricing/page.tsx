@@ -232,7 +232,7 @@ export default function PricingPage() {
                     ))}
                   </ul>
                   <div className="pl-plan-cta">
-                    <Link href="/auth" className={`pl-plan-btn ${p.ctaStyle}`}>{p.cta}</Link>
+                    <Link href="/contact" className={`pl-plan-btn ${p.ctaStyle}`}>{p.cta}</Link>
                   </div>
                 </div>
               ))}
@@ -273,7 +273,7 @@ export default function PricingPage() {
                     {tab === "vds" && <li><CheckIcon /> Full root access</li>}
                   </ul>
                   <div className="pl-plan-cta">
-                    <Link href="/auth" className="pl-plan-btn ghost">Request</Link>
+                    <Link href="/contact" className="pl-plan-btn ghost">Request</Link>
                   </div>
                 </div>
               ))}
@@ -342,7 +342,7 @@ export default function PricingPage() {
                       <span className="pl-config-amount"><AnimatedPrice value={yearly ? customPriceYearly : customPrice} /> $</span>
                       <span className="pl-config-period">/ month</span>
                     </div>
-                    <Link href="/auth" className="pl-plan-btn primary" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>
+                    <Link href="/contact" className="pl-plan-btn primary" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>
                       {t("pricing.config.req")}
                     </Link>
                   </div>

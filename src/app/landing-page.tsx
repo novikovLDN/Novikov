@@ -55,7 +55,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
   return (
     <div className="premium-landing">
       {/* ═══ HEADER ═══ */}
-      <header className={`pl-header${headerSolid ? " pl-header-solid" : ""}${headerVisible ? "" : " pl-header-hide"}`}>
+      <header className={`pl-header pl-entrance pl-ed0${headerSolid ? " pl-header-solid" : ""}${headerVisible ? "" : " pl-header-hide"}`}>
         <div className="pl-header-inner">
           <Link href="/" className="pl-logo">
             <AtlasLogo size={22} />
@@ -106,7 +106,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
           <div className="pl-hero-right pl-entrance pl-ed2">
             <p className="pl-hero-desc">{t("hero.desc")}</p>
             <div className="pl-hero-link pl-entrance pl-ed3">
-              <Link href={authUrl} className="pl-arrow-link">
+              <Link href="/contact" className="pl-arrow-link">
                 <span className="pl-arrow-ver">1.0</span>
                 {t("hero.cta")} <span className="pl-arrow">&rarr;</span>
               </Link>
@@ -118,7 +118,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
           </div>
         </div>
         {/* Hero visual — system status panel */}
-        <div className="pl-hero-visual pl-reveal">
+        <div className="pl-hero-visual pl-entrance pl-ed5">
           <div className="pl-panel-mock">
             <div className="pl-panel-sidebar">
               <div className="pl-panel-brand">
@@ -503,7 +503,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
         <div className="pl-cta-final-inner">
           <h2 className="pl-cta-title">{t("cta.title")}</h2>
           <p className="pl-cta-desc">{t("cta.desc")}</p>
-          <Link href={authUrl} className="pl-cta-primary">
+          <Link href="/contact" className="pl-cta-primary">
             {t("cta.btn")} <span className="pl-arrow">&rarr;</span>
           </Link>
         </div>
