@@ -186,11 +186,7 @@ const t = {
   },
 
   // ═══ CTA ═══
-  "cta.title": { en: "Ready to get started?", ru: "Готовы начать?" },
-  "cta.desc": {
-    en: "Request access to Enterprise VPN, VPS or VDS infrastructure.",
-    ru: "Запросите доступ к Enterprise VPN, VPS или VDS инфраструктуре.",
-  },
+  "cta.title": { en: "Built for the future.\nAvailable today.", ru: "Создано для будущего.\nДоступно сейчас." },
   "cta.btn": { en: "Request access", ru: "Запросить доступ" },
 
   // ═══ FOOTER ═══
