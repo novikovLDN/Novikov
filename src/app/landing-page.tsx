@@ -366,27 +366,73 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
           </div>
         </div>
         <div className="pl-feature-visual pl-reveal" id="tech-detail">
-          <div className="pl-terminal">
-            <div className="pl-terminal-bar">
-              <span className="pl-dot pl-dot-r" /><span className="pl-dot pl-dot-y" /><span className="pl-dot pl-dot-g" />
-              <span className="pl-terminal-title">crypto_config.conf</span>
+          <div className="pl-mock-full">
+            {/* Left: crypto config terminal */}
+            <div className="pl-mock-panel">
+              <div className="pl-terminal" style={{ border: 'none', borderRadius: 0 }}>
+                <div className="pl-terminal-bar">
+                  <span className="pl-dot pl-dot-r" /><span className="pl-dot pl-dot-y" /><span className="pl-dot pl-dot-g" />
+                  <span className="pl-terminal-title">crypto_config.conf</span>
+                </div>
+                <div className="pl-terminal-body">
+                  <div className="pl-code-comment"># Primary encryption stack</div>
+                  <div className="pl-code-line"><span className="pl-code-k">cipher</span><span className="pl-code-v">AES-256-GCM</span></div>
+                  <div className="pl-code-line"><span className="pl-code-k">fallback_cipher</span><span className="pl-code-v">CHACHA20-POLY1305</span></div>
+                  <div className="pl-code-line"><span className="pl-code-k">key_length</span><span className="pl-code-v">256</span><span className="pl-code-c"># bits</span></div>
+                  <div className="pl-code-spacer" />
+                  <div className="pl-code-comment"># Key exchange</div>
+                  <div className="pl-code-line"><span className="pl-code-k">kex_algo</span><span className="pl-code-v">ECDHE</span></div>
+                  <div className="pl-code-line"><span className="pl-code-k">curve</span><span className="pl-code-v">X25519</span></div>
+                  <div className="pl-code-line"><span className="pl-code-k">pfs</span><span className="pl-code-g">ENABLED</span></div>
+                  <div className="pl-code-spacer" />
+                  <div className="pl-code-comment"># Protection</div>
+                  <div className="pl-code-line"><span className="pl-code-k">tls_version</span><span className="pl-code-v">TLS 1.3</span><span className="pl-code-c"># only</span></div>
+                  <div className="pl-code-line"><span className="pl-code-k">kill_switch</span><span className="pl-code-g">ENABLED</span></div>
+                  <div className="pl-code-line"><span className="pl-code-k">dns_leak_protect</span><span className="pl-code-g">ENABLED</span></div>
+                </div>
+              </div>
             </div>
-            <div className="pl-terminal-body">
-              <div className="pl-code-comment"># Primary encryption stack</div>
-              <div className="pl-code-line"><span className="pl-code-k">cipher</span><span className="pl-code-v">AES-256-GCM</span></div>
-              <div className="pl-code-line"><span className="pl-code-k">fallback_cipher</span><span className="pl-code-v">CHACHA20-POLY1305</span></div>
-              <div className="pl-code-line"><span className="pl-code-k">key_length</span><span className="pl-code-v">256</span><span className="pl-code-c"># bits</span></div>
-              <div className="pl-code-spacer" />
-              <div className="pl-code-comment"># Key exchange</div>
-              <div className="pl-code-line"><span className="pl-code-k">kex_algo</span><span className="pl-code-v">ECDHE</span></div>
-              <div className="pl-code-line"><span className="pl-code-k">curve</span><span className="pl-code-v">X25519</span></div>
-              <div className="pl-code-line"><span className="pl-code-k">pfs</span><span className="pl-code-g">ENABLED</span></div>
-              <div className="pl-code-spacer" />
-              <div className="pl-code-comment"># Protection</div>
-              <div className="pl-code-line"><span className="pl-code-k">tls_version</span><span className="pl-code-v">TLS 1.3</span><span className="pl-code-c"># only</span></div>
-              <div className="pl-code-line"><span className="pl-code-k">kill_switch</span><span className="pl-code-g">ENABLED</span></div>
-              <div className="pl-code-line"><span className="pl-code-k">dns_leak_protect</span><span className="pl-code-g">ENABLED</span></div>
+            {/* Right: live datacenter monitoring */}
+            <div className="pl-mock-panel pl-mock-monitor">
+              <div className="pl-monitor-header">
+                <span className="pl-monitor-title">Network Monitoring</span>
+                <span className="pl-monitor-live"><span className="pl-live-dot" />Live</span>
+              </div>
+              <div className="pl-monitor-nodes">
+                <div className="pl-node-row">
+                  <span className="pl-node-flag">DE</span>
+                  <span className="pl-node-name">Frankfurt</span>
+                  <span className="pl-node-bar"><span className="pl-bar-fill" style={{ width: '95%' }} /><span className="pl-bar-ping">2ms</span></span>
+                  <span className="pl-node-speed">74.2 Gb/s</span>
+                </div>
+                <div className="pl-node-row">
+                  <span className="pl-node-flag">RU</span>
+                  <span className="pl-node-name">Moscow</span>
+                  <span className="pl-node-bar"><span className="pl-bar-fill" style={{ width: '88%' }} /><span className="pl-bar-ping">4ms</span></span>
+                  <span className="pl-node-speed">71.8 Gb/s</span>
+                </div>
+                <div className="pl-node-row">
+                  <span className="pl-node-flag">AU</span>
+                  <span className="pl-node-name">Sydney</span>
+                  <span className="pl-node-bar"><span className="pl-bar-fill" style={{ width: '82%' }} /><span className="pl-bar-ping">8ms</span></span>
+                  <span className="pl-node-speed">68.4 Gb/s</span>
+                </div>
+              </div>
+              <div className="pl-monitor-graph">
+                <div className="pl-graph-label">Throughput — last 24h</div>
+                <svg viewBox="0 0 400 80" className="pl-graph-svg">
+                  <path d="M0,60 C30,58 60,40 100,42 S160,20 200,25 S260,35 300,15 S360,30 400,10" stroke="#5E6AD2" strokeWidth="1.5" fill="none" opacity="0.6" />
+                  <path d="M0,60 C30,58 60,40 100,42 S160,20 200,25 S260,35 300,15 S360,30 400,10 L400,80 L0,80 Z" fill="url(#graphGrad)" opacity="0.15" />
+                  <defs><linearGradient id="graphGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#5E6AD2" /><stop offset="100%" stopColor="transparent" /></linearGradient></defs>
+                </svg>
+              </div>
+              <div className="pl-monitor-metrics">
+                <div className="pl-metric"><span className="pl-metric-val">214.4</span><span className="pl-metric-unit">Gb/s total</span></div>
+                <div className="pl-metric"><span className="pl-metric-val">99.98%</span><span className="pl-metric-unit">uptime</span></div>
+                <div className="pl-metric"><span className="pl-metric-val">4.7ms</span><span className="pl-metric-unit">avg latency</span></div>
+              </div>
             </div>
+            <div className="pl-panel-fade" />
           </div>
         </div>
       </section>
@@ -405,6 +451,64 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
             </Link>
           </div>
         </div>
+        {/* Full-width solutions visual */}
+        <div className="pl-feature-visual pl-reveal">
+          <div className="pl-mock-full">
+            {/* Left: service catalog */}
+            <div className="pl-mock-panel pl-mock-catalog">
+              <div className="pl-catalog-title">Service Catalog</div>
+              <div className="pl-catalog-items">
+                {[
+                  { icon: "vpn", label: "VPN Tunneling", count: "3 locations", active: true },
+                  { icon: "vps", label: "Virtual Servers", count: "12 instances" },
+                  { icon: "vds", label: "Dedicated Servers", count: "4 nodes" },
+                  { icon: "ddos", label: "DDoS Protection", count: "L3/L4/L7" },
+                  { icon: "soc", label: "SOC Monitoring", count: "24/7" },
+                ].map((item) => (
+                  <div key={item.label} className={`pl-catalog-item${item.active ? " pl-cat-active" : ""}`}>
+                    <span className="pl-cat-icon" />
+                    <div className="pl-cat-info">
+                      <span className="pl-cat-label">{item.label}</span>
+                      <span className="pl-cat-count">{item.count}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Right: deployment timeline */}
+            <div className="pl-mock-panel pl-mock-timeline">
+              <div className="pl-timeline-header">
+                <span>Deployment Timeline</span>
+                <span style={{ fontSize: 12, color: 'var(--pl-t3)' }}>Q1 2026 — Q3 2026</span>
+              </div>
+              <div className="pl-timeline-months">
+                {["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG"].map((m) => (
+                  <span key={m} className="pl-tl-month">{m}</span>
+                ))}
+              </div>
+              <div className="pl-timeline-rows">
+                <div className="pl-tl-row">
+                  <span className="pl-tl-label">Frankfurt Expansion</span>
+                  <div className="pl-tl-bar" style={{ left: '5%', width: '35%', background: '#5E6AD2' }} />
+                </div>
+                <div className="pl-tl-row">
+                  <span className="pl-tl-label">Moscow Tier IV Upgrade</span>
+                  <div className="pl-tl-bar" style={{ left: '20%', width: '30%', background: '#818CF8' }} />
+                </div>
+                <div className="pl-tl-row">
+                  <span className="pl-tl-label">Sydney PoP Launch</span>
+                  <div className="pl-tl-bar" style={{ left: '40%', width: '25%', background: '#06B6D4' }} />
+                </div>
+                <div className="pl-tl-row">
+                  <span className="pl-tl-label">Zero Trust v2.0</span>
+                  <div className="pl-tl-bar" style={{ left: '55%', width: '40%', background: '#34D399' }} />
+                </div>
+              </div>
+            </div>
+            <div className="pl-panel-fade" />
+          </div>
+        </div>
+
         <div className="pl-services-grid pl-reveal">
           {([["01","srv1"],["02","srv2"],["03","srv3"],["04","srv4"],["05","srv5"],["06","srv6"]] as const).map(([n, k]) => (
             <div key={n} className="pl-srv-card">
