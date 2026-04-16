@@ -208,6 +208,33 @@ export default function ContactPage() {
           )}
         </div>
       </section>
+
+      <footer className="pl-footer-big">
+        <div className="pl-footer-big-inner">
+          <div className="pl-footer-logo-col">
+            <Link href="/" className="pl-footer-brand"><AtlasLogo size={20} /></Link>
+          </div>
+          <div className="pl-footer-col">
+            <h4>Product</h4>
+            <Link href="/pricing">VPN</Link>
+            <Link href="/pricing">VPS</Link>
+            <Link href="/pricing">VDS</Link>
+          </div>
+          <div className="pl-footer-col">
+            <h4>{locale === "ru" ? "Компания" : "Company"}</h4>
+            <Link href="/#about">{locale === "ru" ? "О нас" : "About"}</Link>
+            <Link href="/contact">{locale === "ru" ? "Контакты" : "Contact us"}</Link>
+          </div>
+          <div className="pl-footer-col">
+            <h4>{locale === "ru" ? "Юридическое" : "Legal"}</h4>
+            <Link href="/privacy">{t("footer.privacy")}</Link>
+            <Link href="/terms">{t("footer.terms")}</Link>
+          </div>
+        </div>
+        <div className="pl-footer-bottom">
+          <span>&copy; {new Date().getFullYear()} Atlas Secure</span>
+        </div>
+      </footer>
     </div>
   );
 }

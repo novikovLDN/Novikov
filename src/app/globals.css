@@ -1038,6 +1038,22 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .pl-sec-card h4 { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
 .pl-sec-card p { font-size: 13px; color: var(--pl-t3); line-height: 1.6; }
 
+/* Page content wrapper */
+.pl-page-content { max-width: 800px; margin: 0 auto; padding: 120px 40px 80px; }
+.pl-page-title { font-size: clamp(28px, 4vw, 40px); font-weight: 500; letter-spacing: -.02em; margin-bottom: 40px; }
+
+/* Legal pages */
+.pl-legal { display: flex; flex-direction: column; gap: 32px; }
+.pl-legal-date { font-size: 12px; color: var(--pl-t3); }
+.pl-legal section h2 { font-size: 16px; font-weight: 500; color: var(--pl-t1); margin-bottom: 12px; }
+.pl-legal section p { font-size: 14px; color: var(--pl-t2); line-height: 1.8; }
+.pl-legal section ul { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.pl-legal section li { font-size: 14px; color: var(--pl-t2); line-height: 1.7; padding-left: 16px; position: relative; }
+.pl-legal section li::before { content: ''; position: absolute; left: 0; top: 9px; width: 4px; height: 4px; border-radius: 50%; background: var(--pl-t3); }
+.pl-legal section li strong { color: var(--pl-t1); font-weight: 500; }
+.pl-legal a { color: var(--pl-accent); text-decoration: none; transition: color .15s; }
+.pl-legal a:hover { color: #818CF8; }
+
 /* Footer — Linear column style */
 .pl-footer-big { border-top: 1px solid var(--pl-border); padding: 80px 40px 40px; }
 .pl-footer-big-inner { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 80px repeat(4, 1fr); gap: 40px; margin-bottom: 60px; }
@@ -1080,6 +1096,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .pl-strip-inner { justify-content: center; gap: 20px 40px; }
   .pl-manifesto-section { padding: 80px 20px; }
   .pl-cta-final { padding: 80px 20px; }
+  .pl-page-content { padding: 100px 20px 60px; }
   .pl-security-section { padding: 80px 20px 40px; }
   .pl-security-grid { grid-template-columns: 1fr; }
   .pl-sec-hero-text { grid-column: auto; grid-row: auto; }
