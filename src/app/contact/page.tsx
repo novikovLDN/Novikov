@@ -19,12 +19,14 @@ const INTERESTS = [
   { value: "vpn", label: { en: "VPN", ru: "VPN" } },
   { value: "vps", label: { en: "VPS", ru: "VPS" } },
   { value: "vds", label: { en: "VDS", ru: "VDS" } },
-  { value: "enterprise", label: { en: "Enterprise solution", ru: "Enterprise решение" } },
+  { value: "enterprise", label: { en: "Enterprise", ru: "Enterprise" } },
+  { value: "security", label: { en: "Security inquiry", ru: "Безопасность" } },
   { value: "other", label: { en: "Other", ru: "Другое" } },
 ];
 
 export default function ContactPage() {
   const { t, locale } = useI18n();
+  const en = locale === "en";
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [interest, setInterest] = useState("");
@@ -43,7 +45,7 @@ export default function ContactPage() {
     e.preventDefault();
     setError("");
     if (!name || !email || !interest) {
-      setError(locale === "ru" ? "Заполните все обязательные поля" : "Please fill in all required fields");
+      setError(en ? "Please fill in all required fields" : "Заполните все обязательные поля");
       return;
     }
     setSending(true);
@@ -54,13 +56,9 @@ export default function ContactPage() {
         body: JSON.stringify({ name, email, interest, message }),
       });
       const data = await res.json();
-      if (data.success) {
-        setSent(true);
-      } else {
-        setError(data.error || "Error");
-      }
+      if (data.success) setSent(true); else setError(data.error || "Error");
     } catch {
-      setError(locale === "ru" ? "Ошибка сети" : "Network error");
+      setError(en ? "Network error" : "Ошибка сети");
     } finally {
       setSending(false);
     }
@@ -68,13 +66,9 @@ export default function ContactPage() {
 
   return (
     <div className="premium-landing">
-      {/* Header */}
       <header className="pl-header pl-header-solid" style={{ position: "sticky" }}>
         <div className="pl-header-inner">
-          <Link href="/" className="pl-logo">
-            <AtlasLogo size={22} />
-            <span>Atlas Secure</span>
-          </Link>
+          <Link href="/" className="pl-logo"><AtlasLogo size={22} /><span>Atlas Secure</span></Link>
           <nav className="pl-nav">
             <Link href="/#about">{t("nav.product")}</Link>
             <Link href="/#services">{t("nav.solutions")}</Link>
@@ -86,9 +80,7 @@ export default function ContactPage() {
             <Link href="/auth" className="pl-header-login">{t("nav.login")}</Link>
             <Link href="/auth" className="pl-header-signup">{t("nav.signup")}</Link>
           </div>
-          <button className="pl-burger" onClick={() => setMobileMenu(true)} aria-label="Menu">
-            <span /><span /><span />
-          </button>
+          <button className="pl-burger" onClick={() => setMobileMenu(true)} aria-label="Menu"><span /><span /><span /></button>
         </div>
       </header>
 
@@ -106,106 +98,124 @@ export default function ContactPage() {
         </div>
       )}
 
-      {/* Form */}
-      <section className="pl-contact">
-        <div className="pl-contact-inner pl-entrance pl-ed1">
-          {sent ? (
-            <div className="pl-contact-success">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 12l2.5 2.5L16 9" />
-              </svg>
-              <h2 className="pl-contact-title">
-                {locale === "ru" ? "Запрос отправлен" : "Request submitted"}
-              </h2>
-              <p className="pl-contact-sub">
-                {locale === "ru"
-                  ? "Мы свяжемся с вами в ближайшее время"
-                  : "We will get back to you shortly"}
-              </p>
-              <Link href="/" className="pl-cta-primary" style={{ marginTop: 32 }}>
-                {locale === "ru" ? "На главную" : "Back to home"} <span className="pl-arrow">&rarr;</span>
-              </Link>
+      <section style={{ position: "relative", overflow: "hidden" }}>
+        <div className="plx-hero-bg" />
+        <div className="plx-hero-grid" />
+        <div className="plx-contact-wrap pl-entrance pl-ed1" style={{ position: "relative", zIndex: 1 }}>
+          {/* LEFT — INFO */}
+          <div className="plx-contact-info">
+            <div className="plx-eyebrow">{en ? "CONTACT" : "КОНТАКТЫ"}</div>
+            <h1>
+              {en ? "Talk to us." : "Напишите нам."}<br />
+              <span className="plx-grad">{en ? "We read everything." : "Мы читаем всё."}</span>
+            </h1>
+            <p>
+              {en
+                ? "Sales, technical, legal, security — pick the channel that fits your question. Most requests are answered within 4 business hours."
+                : "Продажи, техподдержка, юридические вопросы, безопасность — выберите подходящий канал. На большинство запросов отвечаем в течение 4 рабочих часов."}
+            </p>
+
+            <div className="plx-contact-channels">
+              <a href="https://t.me/atlassecure_bot" target="_blank" rel="noopener noreferrer" className="plx-contact-ch">
+                <div className="plx-contact-ch-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.5 10.5c-.8.3-.8 1.5 0 1.8l4.7 1.8 2 6.3c.3.8 1.2 1 1.8.4l2.7-2.5 4.6 3.3c.8.6 1.9.2 2.1-.8l2.5-14.8c.3-1.1-.8-2-1.9-1.5zM10 15l-1 3-1-4 11-8-9 9z" /></svg>
+                </div>
+                <div>
+                  <div className="plx-contact-ch-name">{en ? "Telegram support" : "Telegram поддержка"}</div>
+                  <div className="plx-contact-ch-val">@atlassecure_bot</div>
+                </div>
+              </a>
+              <a href="mailto:sales@atlas.secure" className="plx-contact-ch">
+                <div className="plx-contact-ch-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>
+                </div>
+                <div>
+                  <div className="plx-contact-ch-name">{en ? "Sales" : "Продажи"}</div>
+                  <div className="plx-contact-ch-val">sales@atlas.secure</div>
+                </div>
+              </a>
+              <a href="mailto:security@atlas.secure" className="plx-contact-ch">
+                <div className="plx-contact-ch-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-3z" /></svg>
+                </div>
+                <div>
+                  <div className="plx-contact-ch-name">{en ? "Security disclosure" : "Безопасность / уязвимости"}</div>
+                  <div className="plx-contact-ch-val">security@atlas.secure</div>
+                </div>
+              </a>
+              <a href="mailto:privacy@atlas.secure" className="plx-contact-ch">
+                <div className="plx-contact-ch-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 018 0v3" /></svg>
+                </div>
+                <div>
+                  <div className="plx-contact-ch-name">{en ? "Privacy / DPO" : "Приватность / DPO"}</div>
+                  <div className="plx-contact-ch-val">privacy@atlas.secure</div>
+                </div>
+              </a>
             </div>
-          ) : (
-            <>
-              <h1 className="pl-contact-title">
-                {locale === "ru" ? "Запросить доступ" : "Request access"}
-              </h1>
-              <p className="pl-contact-sub">
-                {locale === "ru"
-                  ? "Заполните форму и мы подберём оптимальное решение"
-                  : "Fill out the form and we'll find the right solution for you"}
-              </p>
 
-              <form className="pl-form" onSubmit={handleSubmit}>
-                <div className="pl-form-group">
-                  <label className="pl-form-label">
-                    {locale === "ru" ? "Как к вам обращаться?" : "How should we address you?"} *
-                  </label>
-                  <input
-                    type="text"
-                    className="pl-form-input"
-                    placeholder={locale === "ru" ? "Господин / Госпожа, имя" : "Mr. / Ms., name"}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
+            <div style={{ marginTop: 32, padding: 20, border: "1px solid var(--pl-border)", borderRadius: 12, background: "var(--pl-surface)" }}>
+              <div style={{ fontFamily: "var(--pl-mono)", fontSize: 10, letterSpacing: "0.14em", color: "var(--pl-accent)", marginBottom: 10, textTransform: "uppercase" }}>{en ? "Response times" : "Время ответа"}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "6px 12px", fontSize: 13 }}>
+                <span style={{ color: "var(--pl-t3)" }}>{en ? "Telegram" : "Telegram"}</span><span style={{ color: "var(--pl-t1)" }}>&lt; 30 {en ? "min" : "мин"}</span>
+                <span style={{ color: "var(--pl-t3)" }}>{en ? "Sales email" : "Email продажи"}</span><span style={{ color: "var(--pl-t1)" }}>&lt; 4 {en ? "hrs" : "ч"}</span>
+                <span style={{ color: "var(--pl-t3)" }}>{en ? "Security" : "Безопасность"}</span><span style={{ color: "var(--pl-t1)" }}>&lt; 24 {en ? "hrs" : "ч"}</span>
+                <span style={{ color: "var(--pl-t3)" }}>{en ? "DPO / Privacy" : "DPO / приватность"}</span><span style={{ color: "var(--pl-t1)" }}>&lt; 48 {en ? "hrs" : "ч"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT — FORM */}
+          <div className="plx-contact-form-card">
+            {sent ? (
+              <div style={{ textAlign: "center", padding: "40px 0" }}>
+                <div style={{ width: 64, height: 64, borderRadius: "50%", margin: "0 auto 24px", background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
                 </div>
-
-                <div className="pl-form-group">
-                  <label className="pl-form-label">Email *</label>
-                  <input
-                    type="email"
-                    className="pl-form-input"
-                    placeholder="email@company.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-
-                <div className="pl-form-group">
-                  <label className="pl-form-label">
-                    {locale === "ru" ? "Что вас интересует?" : "What are you interested in?"} *
-                  </label>
-                  <div className="pl-form-options">
-                    {INTERESTS.map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        className={`pl-form-option${interest === opt.value ? " active" : ""}`}
-                        onClick={() => setInterest(opt.value)}
-                      >
-                        {opt.label[locale]}
-                      </button>
-                    ))}
+                <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 8 }}>{en ? "Request submitted" : "Запрос отправлен"}</h2>
+                <p style={{ fontSize: 14, color: "var(--pl-t2)", marginBottom: 28 }}>{en ? "We'll get back within 4 business hours." : "Ответим в течение 4 рабочих часов."}</p>
+                <Link href="/" className="pl-cta-btn-light" style={{ display: "inline-flex" }}>{en ? "Back to home" : "На главную"} <span className="pl-arrow">→</span></Link>
+              </div>
+            ) : (
+              <>
+                <h2>{en ? "Request access" : "Запросить доступ"}</h2>
+                <p className="plx-sub">{en ? "Fill out the form and we'll tailor a plan for you." : "Заполните форму — подберём оптимальное решение."}</p>
+                <form className="pl-form" onSubmit={handleSubmit}>
+                  <div className="pl-form-group">
+                    <label className="pl-form-label">{en ? "How should we address you?" : "Как к вам обращаться?"} *</label>
+                    <input type="text" className="pl-form-input" placeholder={en ? "Name or Mr./Ms., name" : "Имя, например Александр"} value={name} onChange={(e) => setName(e.target.value)} />
                   </div>
-                </div>
-
-                <div className="pl-form-group">
-                  <label className="pl-form-label">
-                    {locale === "ru" ? "Сообщение" : "Message"}
-                    <span style={{ color: "var(--pl-t3)", fontWeight: 400 }}> ({locale === "ru" ? "опционально" : "optional"})</span>
-                  </label>
-                  <textarea
-                    className="pl-form-input pl-form-textarea"
-                    placeholder={locale === "ru" ? "Расскажите о ваших потребностях..." : "Tell us about your needs..."}
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    rows={4}
-                  />
-                </div>
-
-                {error && <p className="pl-form-error">{error}</p>}
-
-                <button type="submit" className="pl-cta-primary pl-form-submit" disabled={sending}>
-                  {sending
-                    ? (locale === "ru" ? "Отправка..." : "Sending...")
-                    : (locale === "ru" ? "Отправить запрос" : "Submit request")}
-                  {!sending && <span className="pl-arrow">&rarr;</span>}
-                </button>
-              </form>
-            </>
-          )}
+                  <div className="pl-form-group">
+                    <label className="pl-form-label">Email *</label>
+                    <input type="email" className="pl-form-input" placeholder="email@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  </div>
+                  <div className="pl-form-group">
+                    <label className="pl-form-label">{en ? "What interests you?" : "Что интересует?"} *</label>
+                    <div className="pl-form-options">
+                      {INTERESTS.map((opt) => (
+                        <button key={opt.value} type="button" className={`pl-form-option${interest === opt.value ? " active" : ""}`} onClick={() => setInterest(opt.value)}>
+                          {opt.label[locale]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="pl-form-group">
+                    <label className="pl-form-label">{en ? "Message" : "Сообщение"} <span style={{ color: "var(--pl-t3)", fontWeight: 400 }}>({en ? "optional" : "опционально"})</span></label>
+                    <textarea className="pl-form-input pl-form-textarea" placeholder={en ? "Tell us about your needs..." : "Расскажите о задачах..."} value={message} onChange={(e) => setMessage(e.target.value)} rows={4} />
+                  </div>
+                  {error && <p className="pl-form-error">{error}</p>}
+                  <button type="submit" className="pl-cta-primary pl-form-submit" disabled={sending}>
+                    {sending ? (en ? "Sending..." : "Отправка...") : (en ? "Submit request" : "Отправить запрос")}
+                    {!sending && <span className="pl-arrow">→</span>}
+                  </button>
+                  <p style={{ fontSize: 11, color: "var(--pl-t3)", textAlign: "center", marginTop: 4, lineHeight: 1.5 }}>
+                    {en ? "By submitting you agree to our " : "Отправляя запрос, вы соглашаетесь с "}
+                    <Link href="/privacy" style={{ color: "var(--pl-t2)" }}>{en ? "Privacy Policy" : "Политикой конфиденциальности"}</Link>.
+                  </p>
+                </form>
+              </>
+            )}
+          </div>
         </div>
       </section>
 
@@ -216,17 +226,19 @@ export default function ContactPage() {
           </div>
           <div className="pl-footer-col">
             <h4>Product</h4>
-            <Link href="/pricing">VPN</Link>
-            <Link href="/pricing">VPS</Link>
-            <Link href="/pricing">VDS</Link>
+            <Link href="/vpn">VPN</Link>
+            <Link href="/vps">VPS</Link>
+            <Link href="/vds">VDS</Link>
+            <Link href="/pricing">{t("nav.pricing")}</Link>
           </div>
           <div className="pl-footer-col">
-            <h4>{locale === "ru" ? "Компания" : "Company"}</h4>
-            <Link href="/#about">{locale === "ru" ? "О нас" : "About"}</Link>
-            <Link href="/contact">{locale === "ru" ? "Контакты" : "Contact us"}</Link>
+            <h4>{en ? "Company" : "Компания"}</h4>
+            <Link href="/about">{en ? "About" : "О нас"}</Link>
+            <Link href="/infrastructure">{t("nav.infrastructure")}</Link>
+            <Link href="/contact">{en ? "Contact us" : "Контакты"}</Link>
           </div>
           <div className="pl-footer-col">
-            <h4>{locale === "ru" ? "Юридическое" : "Legal"}</h4>
+            <h4>{en ? "Legal" : "Юридическое"}</h4>
             <Link href="/privacy">{t("footer.privacy")}</Link>
             <Link href="/terms">{t("footer.terms")}</Link>
           </div>
