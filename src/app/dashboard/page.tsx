@@ -207,7 +207,7 @@ export default function Dashboard() {
 
           <div className="space-y-2.5 sm:space-y-3">
             <button
-              onClick={() => router.push("/pricing")}
+              onClick={() => router.push("/subscribe")}
               className="w-full h-12 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-sm sm:text-lg hover:bg-foreground/90 transition-all btn-press"
             >
               {isExpired ? "Купить подписку" : "Продлить подписку"}

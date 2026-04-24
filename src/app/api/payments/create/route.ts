@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     // Build return URL — user comes back here after payment
     const origin = request.headers.get("origin") || request.headers.get("referer")?.replace(/\/[^/]*$/, "") || "";
-    const returnUrl = `${origin}/pricing?payment=${paymentId}`;
+    const returnUrl = `${origin}/subscribe?payment=${paymentId}`;
 
     const planLabel = plan === "plus" ? "Plus" : "Basic";
     const description = `Atlas Secure ${planLabel} — ${period} мес.`;
