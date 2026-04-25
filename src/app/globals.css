@@ -1487,3 +1487,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .plx-stack-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; padding: 24px; border: 1px solid var(--pl-border); border-radius: 12px; background: var(--pl-surface); }
 .plx-stack-pill { padding: 10px 18px; border: 1px solid var(--pl-border); border-radius: 100px; font-family: var(--pl-mono); font-size: 12px; color: var(--pl-t2); letter-spacing: 0.04em; }
 .plx-stack-pill.accent { color: var(--pl-accent); border-color: rgba(94,106,210,0.25); background: rgba(94,106,210,0.05); }
+
+/* HERO V3 — fullscreen video hero (Securify-style) */
+.hero-title { font-family: 'Readex Pro', system-ui, -apple-system, sans-serif; letter-spacing: -0.04em; line-height: 0.95; }
+.hero-readex { font-family: 'Readex Pro', system-ui, -apple-system, sans-serif; }
