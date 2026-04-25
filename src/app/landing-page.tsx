@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useI18n, LanguageSwitcher } from "@/lib/i18n";
 
 function AtlasLogo({ size = 24 }: { size?: number }) {
@@ -19,26 +19,10 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
   const authUrl = referralCode ? `/auth?ref=${referralCode}` : "/auth";
   const { t, locale } = useI18n();
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [headerSolid, setHeaderSolid] = useState(false);
-  const lastScroll = useRef(0);
-  const [headerVisible, setHeaderVisible] = useState(true);
 
   useEffect(() => {
     document.documentElement.classList.add("premium-page");
     return () => document.documentElement.classList.remove("premium-page");
-  }, []);
-
-  useEffect(() => {
-    const fn = () => {
-      const y = window.scrollY;
-      setHeaderSolid(y > 20);
-      if (y > lastScroll.current + 4) setHeaderVisible(false);
-      else if (y < lastScroll.current - 4) setHeaderVisible(true);
-      if (y < 10) setHeaderVisible(true);
-      lastScroll.current = y;
-    };
-    window.addEventListener("scroll", fn, { passive: true });
-    return () => window.removeEventListener("scroll", fn);
   }, []);
 
   useEffect(() => {
@@ -54,122 +38,112 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
 
   return (
     <div className="premium-landing">
-      {/* ═══ HEADER ═══ */}
-      <header className={`pl-header pl-entrance pl-ed0${headerSolid ? " pl-header-solid" : ""}${headerVisible ? "" : " pl-header-hide"}`}>
-        <div className="pl-header-inner">
-          <Link href="/" className="pl-logo">
-            <AtlasLogo size={22} />
-            <span>Atlas Secure</span>
-          </Link>
-          <nav className="pl-nav">
-            <a href="#about">{t("nav.product")}</a>
-            <a href="#services">{t("nav.solutions")}</a>
-            <a href="#infra">{t("nav.infrastructure")}</a>
-            <a href="#tech">{t("nav.security")}</a>
-            <Link href="/pricing">{t("nav.pricing")}</Link>
-          </nav>
-          <div className="pl-header-actions">
-            <LanguageSwitcher />
-            <span className="pl-header-sep" />
-            <Link href={authUrl} className="pl-header-login">{t("nav.login")}</Link>
-            <Link href={authUrl} className="pl-header-signup">{t("nav.signup")}</Link>
-          </div>
-          <button className="pl-burger" onClick={() => setMobileMenu(true)} aria-label="Menu">
-            <span /><span /><span />
-          </button>
-        </div>
-      </header>
+      {/* ═══ VIDEO HERO ═══ */}
+      <section className="hero-readex relative h-screen w-full overflow-hidden bg-black">
+        {/* Background video */}
+        <video
+          className="absolute inset-0 w-full h-full object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+          src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260418_063509_7d167302-4fd4-480b-8260-18ab572333d4.mp4"
+        />
 
-      {/* ═══ MOBILE MENU ═══ */}
-      {mobileMenu && (
-        <div className="pl-mobile-overlay" onClick={() => setMobileMenu(false)}>
-          <nav className="pl-mobile-nav" onClick={(e) => e.stopPropagation()}>
-            <button className="pl-mobile-close" onClick={() => setMobileMenu(false)} aria-label="Close">
+        {/* Navbar (pill) */}
+        <nav className="absolute top-0 left-0 right-0 z-20 px-6 md:px-10 pt-6 flex items-center justify-between gap-4">
+          <Link href="/" className="flex items-center gap-2 bg-neutral-900/90 backdrop-blur rounded-full pl-4 pr-6 py-3">
+            <span className="text-white"><AtlasLogo size={20} /></span>
+            <span className="text-white text-sm font-normal tracking-tight">atlas secure</span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-1 bg-neutral-900/90 backdrop-blur rounded-full px-3 py-2">
+            <a href="#services" className="text-neutral-300 hover:text-white transition-colors text-sm px-5 py-2 rounded-full">{locale === "ru" ? "продукт" : "platform"}</a>
+            <a href="#about" className="text-neutral-300 hover:text-white transition-colors text-sm px-5 py-2 rounded-full">{locale === "ru" ? "решения" : "solutions"}</a>
+            <Link href="/about" className="text-neutral-300 hover:text-white transition-colors text-sm px-5 py-2 rounded-full">{locale === "ru" ? "компания" : "company"}</Link>
+            <Link href="/contact" className="text-neutral-300 hover:text-white transition-colors text-sm px-5 py-2 rounded-full">{locale === "ru" ? "поддержка" : "support"}</Link>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:block"><LanguageSwitcher /></div>
+            <Link href={authUrl} className="bg-white text-black text-sm font-normal rounded-full px-6 py-3 hover:bg-neutral-200 transition-colors">
+              {locale === "ru" ? "начать" : "get started"}
+            </Link>
+            <button className="md:hidden bg-neutral-900/90 backdrop-blur rounded-full p-3 text-white" onClick={() => setMobileMenu(true)} aria-label="Menu">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
+            </button>
+          </div>
+        </nav>
+
+        {/* Mobile menu */}
+        {mobileMenu && (
+          <div className="md:hidden absolute inset-0 z-30 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8 hero-readex" onClick={() => setMobileMenu(false)}>
+            <button className="absolute top-6 right-6 text-white p-3" onClick={() => setMobileMenu(false)} aria-label="Close">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
             </button>
-            <a href="#about" onClick={() => setMobileMenu(false)}>{t("nav.product")}</a>
-            <a href="#services" onClick={() => setMobileMenu(false)}>{t("nav.solutions")}</a>
-            <a href="#infra" onClick={() => setMobileMenu(false)}>{t("nav.infrastructure")}</a>
-            <a href="#tech" onClick={() => setMobileMenu(false)}>{t("nav.security")}</a>
-            <Link href={authUrl} className="pl-mobile-cta" onClick={() => setMobileMenu(false)}>{t("nav.signup")}</Link>
-            <LanguageSwitcher />
-          </nav>
-        </div>
-      )}
+            <a href="#services" className="text-white text-2xl" onClick={() => setMobileMenu(false)}>{locale === "ru" ? "продукт" : "platform"}</a>
+            <a href="#about" className="text-white text-2xl" onClick={() => setMobileMenu(false)}>{locale === "ru" ? "решения" : "solutions"}</a>
+            <Link href="/about" className="text-white text-2xl" onClick={() => setMobileMenu(false)}>{locale === "ru" ? "компания" : "company"}</Link>
+            <Link href="/contact" className="text-white text-2xl" onClick={() => setMobileMenu(false)}>{locale === "ru" ? "поддержка" : "support"}</Link>
+            <Link href={authUrl} className="bg-white text-black rounded-full px-8 py-3 text-sm" onClick={() => setMobileMenu(false)}>{locale === "ru" ? "начать" : "get started"}</Link>
+          </div>
+        )}
 
-      {/* ═══ HERO — two columns like Linear ═══ */}
-      <section className="pl-hero">
-        <div className="pl-hero-inner">
-          <div className="pl-hero-left pl-entrance pl-ed1">
-            <h1 className="pl-hero-title">{t("hero.title")}</h1>
-          </div>
-          <div className="pl-hero-right pl-entrance pl-ed2">
-            <p className="pl-hero-desc">{t("hero.desc")}</p>
-            <Link href={authUrl} className="pl-hero-vpn-btn pl-entrance pl-ed3">
-              {t("hero.vpn")}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-            </Link>
-          </div>
-        </div>
-        {/* Hero visual — full viewport width */}
-        <div className="pl-hero-visual pl-entrance pl-ed5">
-          <div className="pl-panel-mock">
-            <div className="pl-panel-sidebar">
-              <div className="pl-panel-brand">
-                <span style={{ color: '#5E6AD2' }}><AtlasLogo size={14} /></span>
-                <span>Atlas Secure</span>
-              </div>
-              <div className="pl-panel-menu">
-                <div className="pl-panel-item pl-panel-active">Dashboard</div>
-                <div className="pl-panel-item">VPN Keys</div>
-                <div className="pl-panel-item">Devices</div>
-                <div className="pl-panel-item">Referrals</div>
-              </div>
-              <div className="pl-panel-section">Infrastructure</div>
-              <div className="pl-panel-menu">
-                <div className="pl-panel-item">Servers</div>
-                <div className="pl-panel-item">Monitoring</div>
-              </div>
+        {/* Foreground content */}
+        <div className="relative h-full w-full">
+          {/* Three giant staggered words */}
+          <h1 className="hero-title absolute text-white font-medium text-[14vw] md:text-[13vw] left-4 md:left-10 top-[18%]">
+            {locale === "ru" ? "защити" : "protect"}
+          </h1>
+          <h1 className="hero-title absolute text-white font-medium text-[14vw] md:text-[13vw] right-4 md:right-10 top-[38%]">
+            {locale === "ru" ? "свои" : "your"}
+          </h1>
+          <h1 className="hero-title absolute text-white font-medium text-[14vw] md:text-[13vw] left-[18%] md:left-[28%] top-[58%]">
+            {locale === "ru" ? "данные" : "data"}
+          </h1>
+
+          {/* Description */}
+          <p className="hero-readex absolute left-6 md:left-10 top-[46%] max-w-[240px] text-[15px] leading-snug text-white/90">
+            {locale === "ru"
+              ? "защищаем ваши данные с максимальной заботой, обеспечивая приватность всегда и везде"
+              : "we guard your data with utmost care, empowering you with privacy everywhere"}
+          </p>
+
+          {/* Stat — top right */}
+          <div className="hero-readex absolute right-6 md:right-24 top-[14%]">
+            <div className="flex items-center gap-3 justify-end">
+              <span className="hidden md:block h-px w-24 bg-white/40 rotate-[20deg]" />
+              <span className="text-4xl md:text-5xl font-medium tracking-tight text-white">+1m</span>
             </div>
-            <div className="pl-panel-main">
-              <div className="pl-panel-header">
-                <span>System Status</span>
-                <span className="pl-panel-status">All systems operational</span>
-              </div>
-              <div className="pl-panel-grid">
-                <div className="pl-panel-card">
-                  <div className="pl-panel-card-label">Encryption</div>
-                  <div className="pl-panel-card-val">AES-256-GCM</div>
-                </div>
-                <div className="pl-panel-card">
-                  <div className="pl-panel-card-label">Uptime SLA</div>
-                  <div className="pl-panel-card-val">99.98%</div>
-                </div>
-                <div className="pl-panel-card">
-                  <div className="pl-panel-card-label">Bandwidth</div>
-                  <div className="pl-panel-card-val">200 Gb/s</div>
-                </div>
-                <div className="pl-panel-card">
-                  <div className="pl-panel-card-label">Data Centers</div>
-                  <div className="pl-panel-card-val">DE · RU · AU</div>
-                </div>
-              </div>
-              <div className="pl-panel-activity">
-                <div className="pl-panel-act-row"><span className="pl-act-dot pl-act-green" />Frankfurt node — latency 2ms — operational</div>
-                <div className="pl-panel-act-row"><span className="pl-act-dot pl-act-green" />Moscow node — latency 4ms — operational</div>
-                <div className="pl-panel-act-row"><span className="pl-act-dot pl-act-green" />Sydney node — latency 8ms — operational</div>
-              </div>
-            </div>
-            <div className="pl-panel-detail">
-              <div className="pl-panel-detail-title">Connection</div>
-              <div className="pl-panel-detail-row"><span>Protocol</span><span>VLESS + Reality</span></div>
-              <div className="pl-panel-detail-row"><span>TLS</span><span>1.3</span></div>
-              <div className="pl-panel-detail-row"><span>PFS</span><span>X25519 ECDHE</span></div>
-              <div className="pl-panel-detail-row"><span>Kill Switch</span><span className="pl-detail-on">Enabled</span></div>
-              <div className="pl-panel-detail-row"><span>DNS Leak</span><span className="pl-detail-on">Protected</span></div>
+            <div className="text-xs md:text-sm text-white/70 mt-1 text-right">
+              {locale === "ru" ? "пользователей" : "users protected"}
             </div>
           </div>
-          <div className="pl-panel-fade" />
+
+          {/* Bottom gradient */}
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-b from-transparent to-black" />
+
+          {/* Stat — bottom left */}
+          <div className="hero-readex absolute left-6 md:left-20 bottom-20 md:bottom-24">
+            <div className="flex items-center gap-3">
+              <span className="text-4xl md:text-5xl font-medium tracking-tight text-white">+1.5pb</span>
+              <span className="hidden md:block h-px w-24 bg-white/40 rotate-[-20deg]" />
+            </div>
+            <div className="text-xs md:text-sm text-white/70 mt-1">
+              {locale === "ru" ? "трафика зашифровано" : "traffic encrypted"}
+            </div>
+          </div>
+
+          {/* Stat — bottom right */}
+          <div className="hero-readex absolute right-6 md:right-20 bottom-16 md:bottom-20">
+            <div className="flex items-center gap-3 justify-end">
+              <span className="hidden md:block h-px w-24 bg-white/40 rotate-[-20deg]" />
+              <span className="text-4xl md:text-5xl font-medium tracking-tight text-white">99.98%</span>
+            </div>
+            <div className="text-xs md:text-sm text-white/70 mt-1 text-right">
+              {locale === "ru" ? "аптайм sla" : "uptime sla"}
+            </div>
+          </div>
         </div>
       </section>
 
