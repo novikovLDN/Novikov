@@ -66,6 +66,7 @@ const defaultConfig: XrayConfig = {
 export interface ServerEntry {
   name: string;
   ip: string;
+  hostname?: string;
   port: number;
   sni: string;
   fingerprint: string;
@@ -80,6 +81,7 @@ export const SERVER_POOL: ServerEntry[] = [
   {
     name: "🇩🇪 Atlas Fast #1 ⚡️",
     ip: "77.221.156.97",
+    hostname: "gastricsilver.aeza.network",
     port: 4443,
     sni: "api-maps.yandex.ru",
     fingerprint: "chrome",
@@ -92,6 +94,7 @@ export const SERVER_POOL: ServerEntry[] = [
   {
     name: "🇩🇪 Atlas Fast #2 ⚡️",
     ip: "45.144.55.159",
+    hostname: "atlas.aeza.network",
     port: 4443,
     sni: "flowgrocery.com",
     fingerprint: "chrome",
