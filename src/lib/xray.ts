@@ -66,6 +66,7 @@ const defaultConfig: XrayConfig = {
 export interface ServerEntry {
   name: string;
   ip: string;
+  hostname?: string;
   port: number;
   sni: string;
   fingerprint: string;
@@ -78,8 +79,21 @@ export interface ServerEntry {
 
 export const SERVER_POOL: ServerEntry[] = [
   {
-    name: "🇩🇪 Atlas Fast #1 ⚡️",
+    name: "🇳🇱 Atlas Fast #1 ⚡️",
+    ip: "5.255.126.237",
+    port: 443,
+    sni: "www.apple.com",
+    fingerprint: "chrome",
+    publicKey: "pWt4oLKF9VOzHfjpYfJwlIHqAXJawVXX6mvtrGYw5AI",
+    shortId: "3f9fa000",
+    flow: "xtls-rprx-vision",
+    network: "tcp",
+    security: "reality",
+  },
+  {
+    name: "🇩🇪 Atlas Fast #2 ⚡️",
     ip: "77.221.156.97",
+    hostname: "gastricsilver.aeza.network",
     port: 4443,
     sni: "api-maps.yandex.ru",
     fingerprint: "chrome",
@@ -90,8 +104,9 @@ export const SERVER_POOL: ServerEntry[] = [
     security: "reality",
   },
   {
-    name: "🇩🇪 Atlas Fast #2 ⚡️",
+    name: "🇩🇪 Atlas Fast #3 ⚡️",
     ip: "45.144.55.159",
+    hostname: "atlas.aeza.network",
     port: 4443,
     sni: "flowgrocery.com",
     fingerprint: "chrome",
@@ -102,13 +117,25 @@ export const SERVER_POOL: ServerEntry[] = [
     security: "reality",
   },
   {
-    name: "Для Обхода: /white",
-    ip: "84.23.52.66",
-    port: 8444,
-    sni: "eh.vk.com",
+    name: "🇷🇺 YouTube | Без рекламы",
+    ip: "92.255.76.7",
+    port: 443,
+    sni: "max.ru",
     fingerprint: "chrome",
-    publicKey: "AD3iu5zxfDZWeMEHSWTH5JuiokSv3ohQEg1Y_aUxzgA",
-    shortId: "a1b2c3d4",
+    publicKey: "bqKBZB2CyyD28LXcCVXxIVS12J4J7mVd9Gm4hD3SLVU",
+    shortId: "d4a09544",
+    flow: "xtls-rprx-vision",
+    network: "tcp",
+    security: "reality",
+  },
+  {
+    name: "🇳🇱 Atlas Fast #4 ⚡️",
+    ip: "185.35.139.195",
+    port: 4443,
+    sni: "max.ru",
+    fingerprint: "chrome",
+    publicKey: "0vnUxsBSJO7Id1bbOcRH5RRNGJ1-Es1liVeBFLfBN0s",
+    shortId: "fe6cccae",
     flow: "xtls-rprx-vision",
     network: "tcp",
     security: "reality",
