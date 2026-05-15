@@ -3,6 +3,9 @@ import { getPaymentByTransactionId, updatePaymentStatus, extendSubscription, cre
 import { xrayAddUser, generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl } from "@/lib/xray";
 import { getPaymentStatus as ykGetPayment } from "@/lib/yookassa";
 import type { YooKassaNotification } from "@/lib/yookassa";
+import { setUserExpire, createUserWithExpire, encryptHappLink } from "@/lib/remnawave";
+import { sendPaymentSucceededEmail, sendRefundAdminAlertEmail } from "@/lib/email";
+import { pool } from "@/lib/db";
 
 // Period in months → days
 const PERIOD_DAYS: Record<number, number> = {
@@ -86,14 +89,60 @@ export async function POST(request: NextRequest) {
       // Mark as confirmed
       await updatePaymentStatus(paymentRecord.id, "confirmed", new Date());
 
-      // Extend subscription
+      // Extend subscription locally — this becomes the source of truth.
       const days = PERIOD_DAYS[paymentRecord.period] || 30;
       await extendSubscription(paymentRecord.userId, days);
       await updateUser(paymentRecord.userId, { subscriptionPlan: paymentRecord.plan });
 
-      // If user had no VPN key (expired), regenerate and add to Xray
+      // Mirror the freshly computed local subscription_end into Remnawave
+      // (or create a panel user with that exact expireAt if missing).
       const user = await getUserById(paymentRecord.userId);
-      if (user && !user.xrayUuid) {
+      const targetExpireIso = user?.subscriptionEnd
+        ? new Date(user.subscriptionEnd).toISOString()
+        : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      let remnawaveProvisioned = Boolean(user?.remnawaveUserUuid);
+
+      if (user?.remnawaveUserUuid) {
+        const updated = await setUserExpire(user.remnawaveUserUuid, targetExpireIso);
+        if (updated) {
+          await pool.query(
+            "UPDATE payments SET applied_to_remnawave_at = NOW() WHERE id = $1",
+            [paymentRecord.id]
+          );
+          console.log(`[WEBHOOK] Remnawave expireAt set for ${user.email}: ${updated.expireAt}`);
+        } else {
+          console.warn(`[WEBHOOK] Remnawave PATCH failed for ${user.email} (uuid=${user.remnawaveUserUuid.slice(0, 8)}…) — local DB is correct, will reconcile later`);
+        }
+      } else if (user) {
+        // No Remnawave user yet (legacy account or trial creation failed earlier) —
+        // create one with the local end as expireAt so the subscription works immediately.
+        const rwNew = await createUserWithExpire(user.email, targetExpireIso, "webhook payment.succeeded autoprovision");
+        if (rwNew) {
+          const happLink = await encryptHappLink(rwNew.subscriptionUrl);
+          await pool.query(
+            `UPDATE users SET
+               remnawave_user_uuid = $1,
+               remnawave_short_uuid = $2,
+               subscription_url = $3,
+               happ_crypto_link = $4,
+               crypto_link_updated_at = $5
+             WHERE id = $6`,
+            [rwNew.uuid, rwNew.shortUuid || null, rwNew.subscriptionUrl, happLink, happLink ? new Date() : null, user.id]
+          );
+          await pool.query(
+            "UPDATE payments SET applied_to_remnawave_at = NOW() WHERE id = $1",
+            [paymentRecord.id]
+          );
+          remnawaveProvisioned = true;
+          console.log(`[WEBHOOK] Remnawave user autoprovisioned for ${user.email} at ${rwNew.expireAt}`);
+        } else {
+          console.warn(`[WEBHOOK] Remnawave autoprovision failed for ${user.email}`);
+        }
+      }
+
+      // Legacy Xray fallback: only when both Remnawave and Xray are absent.
+      if (user && !remnawaveProvisioned && !user.xrayUuid) {
+        // Legacy fallback: no Remnawave UUID yet — regenerate Xray key
         const newUuid = generateXrayUuid();
         const newSubToken = generateSubToken();
         const subId = user.subId || generateSubId(user.email);
@@ -111,13 +160,20 @@ export async function POST(request: NextRequest) {
       // Credit referrer with cashback
       await creditReferrerOnPayment(paymentRecord.userId, paymentRecord.amount, paymentRecord.id);
 
-      // Notify user
+      // Notify user (in-app + email)
       const planLabel = paymentRecord.plan === "plus" ? "Plus" : "Basic";
       await createNotificationForUser(
         paymentRecord.userId,
         "Оплата подтверждена",
         `Подписка ${planLabel} на ${paymentRecord.period} мес. активирована. Приятного пользования!`
       ).catch(() => {});
+
+      if (user) {
+        const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+        const baseUrl = (process.env.SITE_BASE_URL || "https://qodev.dev").replace(/\/+$/, "");
+        sendPaymentSucceededEmail(user.email, `${planLabel} · ${paymentRecord.period} мес.`, expiresAt, `${baseUrl}/dashboard`)
+          .catch((err) => console.warn("[EMAIL] payment_succeeded send failed:", err));
+      }
 
       console.log(`[WEBHOOK] Subscription extended: ${paymentRecord.userId} +${days}d (${paymentRecord.plan} ${paymentRecord.period}m)`);
       await createAuditLog("payment.success", `${paymentRecord.plan} ${paymentRecord.period}мес, ${paymentRecord.amount}₽`, paymentRecord.userId);
@@ -126,6 +182,30 @@ export async function POST(request: NextRequest) {
       await updatePaymentStatus(paymentRecord.id, "canceled");
       console.log(`[WEBHOOK] Payment canceled: ${payment.id}`);
       await createAuditLog("payment.canceled", `YooKassa ID: ${payment.id}`, paymentRecord.userId);
+
+    } else if (verifiedStatus === "refunded") {
+      // Log refund — do NOT auto-revoke. Admin decides via panel.
+      await pool.query(
+        "UPDATE payments SET status = 'refunded', refund_logged_at = NOW() WHERE id = $1",
+        [paymentRecord.id]
+      );
+      const user = await getUserById(paymentRecord.userId);
+      const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.ADMIN_EMAIL;
+      if (adminEmail && user) {
+        sendRefundAdminAlertEmail({
+          adminEmail,
+          orderId: paymentRecord.id,
+          userEmail: user.email,
+          remnawaveUuid: user.remnawaveUserUuid,
+          amountRub: paymentRecord.amount,
+          plan: `${paymentRecord.plan} ${paymentRecord.period}m`,
+          yookassaPaymentId: payment.id,
+          appliedAt: paymentRecord.paidAt ? new Date(paymentRecord.paidAt) : null,
+        }).catch((err) => console.warn("[EMAIL] refund admin alert failed:", err));
+      } else if (!adminEmail) {
+        console.warn("[WEBHOOK] Refund received but ADMIN_NOTIFY_EMAIL is not set");
+      }
+      await createAuditLog("payment.refunded", `YooKassa ID: ${payment.id}, amount=${paymentRecord.amount}₽`, paymentRecord.userId);
     }
 
     return NextResponse.json({ ok: true });

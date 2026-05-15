@@ -30,6 +30,12 @@ export interface UserRecord {
   telegramLinkToken: string | null;
   registrationIp: string | null;
   balance: number;
+  remnawaveUserUuid: string | null;
+  remnawaveShortUuid: string | null;
+  subscriptionUrl: string | null;
+  happCryptoLink: string | null;
+  cryptoLinkUpdatedAt: string | null;
+  trialUsedAt: string | null;
 }
 
 export interface CodeRecord {
@@ -65,6 +71,12 @@ function rowToUser(row: any): UserRecord {
     telegramLinkToken: row.telegram_link_token,
     registrationIp: row.registration_ip,
     balance: row.balance ?? 0,
+    remnawaveUserUuid: row.remnawave_user_uuid ?? null,
+    remnawaveShortUuid: row.remnawave_short_uuid ?? null,
+    subscriptionUrl: row.subscription_url ?? null,
+    happCryptoLink: row.happ_crypto_link ?? null,
+    cryptoLinkUpdatedAt: row.crypto_link_updated_at ? new Date(row.crypto_link_updated_at).toISOString() : null,
+    trialUsedAt: row.trial_used_at ? new Date(row.trial_used_at).toISOString() : null,
   };
 }
 

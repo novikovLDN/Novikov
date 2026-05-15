@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import RemnawaveMigrationCard from "@/components/RemnawaveMigrationCard";
 
 interface UserInfo {
   id: string;
@@ -279,6 +280,8 @@ export default function AdminDashboard() {
                 ))}
               </div>
             </div>
+
+            <RemnawaveMigrationCard />
           </div>
         )}
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCode, getOrCreateUser, createNotificationForUser, createAuditLog } from "@/lib/store";
 import { xrayAddUser } from "@/lib/xray";
 import { isDisposableEmail } from "@/lib/disposable-emails";
+import { issueTrial } from "@/lib/trial";
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,11 +47,20 @@ export async function POST(request: NextRequest) {
         console.error(`[AUTH] Failed to add user to Xray: ${user.email}`);
       });
 
+      // Issue Remnawave trial: creates a panel user, fetches subscription URL
+      // and Happ crypto link, caches them on users row. Anti-fraud check
+      // (email + IP) is performed inside issueTrial.
+      issueTrial(user.id, user.email, clientIp === "unknown" ? null : clientIp, fingerprint || null)
+        .then((r) => {
+          if (!r.success) console.warn(`[TRIAL] activation skipped for ${user.email}: ${r.reason}`);
+        })
+        .catch((err) => console.error("[TRIAL] activation failed:", err));
+
       // Send welcome notification about 24h trial
       createNotificationForUser(
         user.id,
         "Добро пожаловать в Atlas Secure!",
-        "Ваш ключ выдан на 24 часа для тестирования. Для приобретения полноценной подписки перейдите в Telegram-бот Atlas Secure."
+        "Ваш пробный период активирован на 24 часа. В личном кабинете доступен QR-код и кнопки для подключения в Happ и V2RayTun."
       ).catch(() => {});
     }
 

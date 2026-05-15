@@ -67,6 +67,10 @@ export async function GET(request: NextRequest) {
         cashbackPercent: getLoyaltyInfo(user.paidReferrals).percent,
         loyaltyTier: getLoyaltyInfo(user.paidReferrals).tier,
         isAdmin: !!(process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL),
+        // ── Remnawave-issued subscription (preferred) ──
+        subscriptionUrl: isExpired ? null : user.subscriptionUrl,
+        happCryptoLink: isExpired ? null : user.happCryptoLink,
+        trialUsedAt: user.trialUsedAt,
       },
     });
   } catch {

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserById, updateUser, createNotificationForUser, createAuditLog, regenerateUserKey } from "@/lib/store";
 import { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl, xrayRemoveUser, xrayAddUser } from "@/lib/xray";
 import { verifyAdmin } from "../../middleware";
+import { createUserWithExpire, setUserExpire, encryptHappLink } from "@/lib/remnawave";
+import { pool } from "@/lib/db";
 
 // Duration presets in minutes
 const DURATION_MAP: Record<string, number> = {
@@ -80,6 +82,40 @@ export async function POST(request: NextRequest) {
       }
 
       await updateUser(userId, updates);
+
+      // Mirror to Remnawave: set the exact same expireAt that was just
+      // committed locally (newEnd above). This avoids drift from
+      // minute-vs-day rounding when admin issues short durations like
+      // 30m or 12h. Failures are non-blocking — local DB stays
+      // authoritative until bulk migration is run again.
+      if (user.remnawaveUserUuid) {
+        const rwUpdated = await setUserExpire(user.remnawaveUserUuid, newEnd.toISOString());
+        if (!rwUpdated) console.warn(`[ADMIN] Remnawave setExpire failed for ${user.email}`);
+      } else {
+        const rwNew = await createUserWithExpire(user.email, newEnd.toISOString(), "admin grant-subscription");
+        if (rwNew) {
+          const happLink = await encryptHappLink(rwNew.subscriptionUrl);
+          await pool.query(
+            `UPDATE users SET
+               remnawave_user_uuid = $1,
+               remnawave_short_uuid = $2,
+               subscription_url = $3,
+               happ_crypto_link = $4,
+               crypto_link_updated_at = $5
+             WHERE id = $6`,
+            [
+              rwNew.uuid,
+              rwNew.shortUuid || null,
+              rwNew.subscriptionUrl,
+              happLink,
+              happLink ? new Date() : null,
+              userId,
+            ]
+          );
+        } else {
+          console.warn(`[ADMIN] Remnawave createUser failed for ${user.email}`);
+        }
+      }
 
       // Send notification to user
       const planLabel = plan === "plus" ? "Plus" : "Basic";

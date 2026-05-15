@@ -11,6 +11,7 @@ import WelcomeToast from "@/components/WelcomeToast";
 import PasskeyPrompt from "@/components/PasskeyPrompt";
 import SettingsCard from "@/components/SettingsCard";
 import TelegramLinkBanner from "@/components/TelegramLinkBanner";
+import SubscriptionCard from "@/components/SubscriptionCard";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -222,10 +223,20 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ═══ Key ═══ */}
+        {/* ═══ Subscription (Remnawave: QR + Happ + V2RayTun + Copy) ═══ */}
+        {!isExpired && data.subscriptionUrl && (
+          <SubscriptionCard
+            subscriptionUrl={data.subscriptionUrl}
+            happCryptoLink={data.happCryptoLink ?? null}
+            subscriptionEnd={data.subscriptionEnd}
+            isTrial={data.subscriptionPlan === "trial"}
+          />
+        )}
+
+        {/* ═══ Key (legacy fallback / actions) ═══ */}
         <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-1">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm sm:text-base">Ваша подписка</h3>
+            <h3 className="font-semibold text-sm sm:text-base">Управление</h3>
             <span className="text-[10px] sm:text-xs bg-primary-light text-primary px-2 py-0.5 rounded-full font-medium">
               Подписка
             </span>
