@@ -14,6 +14,9 @@
  * All methods return Promise<T | null>. null means "Remnawave is unreachable
  * or returned a non-recoverable error" — callers should degrade gracefully
  * (show cached data, log a warning, do not crash).
+ *
+ * The last error from the most recent rwFetch call is stored in
+ * lastRwError so admin diagnostics can read it without re-issuing a call.
  */
 
 const API_URL = (process.env.REMNAWAVE_API_URL || "https://rmnw.atlassecure.ru").replace(/\/+$/, "");
@@ -22,6 +25,9 @@ const MAIN_SQUAD = process.env.REMNAWAVE_MAINSERVER_SQUAD_UUID || "2c8eba36-6e74
 
 const REQUEST_TIMEOUT_MS = 5000;
 const MAX_RETRIES = 2;
+
+let lastRwError: string | null = null;
+export function getLastRwError(): string | null { return lastRwError; }
 
 export interface RemnawaveUser {
   uuid: string;
@@ -39,7 +45,8 @@ export interface RemnawaveUser {
 /** Minimal fetch with timeout + retry + exponential backoff. */
 async function rwFetch(path: string, init: RequestInit = {}): Promise<Response | null> {
   if (!API_TOKEN) {
-    console.warn("[REMNAWAVE] REMNAWAVE_API_TOKEN is not set; skipping API call:", path);
+    lastRwError = "REMNAWAVE_API_TOKEN is not set";
+    console.warn("[REMNAWAVE]", lastRwError, "— skipping", path);
     return null;
   }
 
@@ -57,7 +64,11 @@ async function rwFetch(path: string, init: RequestInit = {}): Promise<Response |
     try {
       const res = await fetch(url, { ...init, headers, signal: ctrl.signal });
       clearTimeout(timer);
-      if (res.ok || (res.status >= 400 && res.status < 500)) return res;
+      if (res.ok || (res.status >= 400 && res.status < 500)) {
+        if (!res.ok) lastRwError = `${init.method || "GET"} ${path} → HTTP ${res.status}`;
+        else lastRwError = null;
+        return res;
+      }
       lastErr = new Error(`HTTP ${res.status}`);
     } catch (err) {
       clearTimeout(timer);
@@ -94,21 +105,30 @@ function parseUser(data: any): RemnawaveUser | null {
 /**
  * Derive a Remnawave-compatible username from an email.
  *
- * Remnawave usernames are typically constrained to 6–32 chars of
- * [a-z0-9._-]. We:
+ * Remnawave 2.7.4 validation: ^[a-zA-Z0-9_-]+$ — only letters, digits,
+ * underscores and dashes. NO dots, NO @ signs. We:
  *  - lowercase the address
- *  - keep only [a-z0-9._-], collapsing anything else (including @) to "_"
+ *  - replace anything outside [a-z0-9_-] (including ".", "@", "+") with "_"
+ *  - collapse repeated underscores to a single "_"
+ *  - trim leading/trailing underscores
  *  - cap at 32 chars
- *  - if the truncated head would lose uniqueness on a long address, append
- *    a short hex suffix derived from the full email to disambiguate
+ *  - if truncated, append a 4-char sha1 suffix of the full email so two
+ *    very-long addresses with the same first 27 chars don't collide
  *
  * Examples:
- *   "Foo.Bar+spam@gmail.com" → "foo.bar_spam_gmail.com"
- *   "long-customer-name+report@some-corp.example.org"
- *     → "long-customer-name_report_so_<hex4>"
+ *   "Foo.Bar+spam@gmail.com" → "foo_bar_spam_gmail_com"
+ *   "user@example.com"        → "user_example_com"
+ *   "very-long-customer-name+report@some-corp.example.org"
+ *                             → "very-long-customer-name_repo_a3f8"
  */
 function makeUsername(email: string): string {
-  const cleaned = email.trim().toLowerCase().replace(/[^a-z0-9._-]/g, "_");
+  const cleaned = email
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^[_-]+|[_-]+$/g, "");
+  if (cleaned.length === 0) return "user_unnamed";
   if (cleaned.length <= 32) return cleaned;
   const crypto = require("crypto") as typeof import("crypto");
   const suffix = crypto.createHash("sha1").update(email.toLowerCase()).digest("hex").slice(0, 4);
@@ -163,15 +183,17 @@ export async function createUserWithExpire(
       return parseUser(data);
     }
     if (res.status === 409 || res.status === 422) {
-      // Username (or email) already exists in panel — retry with a suffix.
+      // Username (or email) already exists — retry with a suffix.
       console.warn(`[REMNAWAVE] createUser ${res.status} for ${username} — retrying with hex suffix`);
       continue;
     }
     const text = await res.text().catch(() => "");
+    lastRwError = `createUser HTTP ${res.status}: ${text.slice(0, 200)}`;
     console.warn("[REMNAWAVE] createUser non-ok:", res.status, text.slice(0, 200));
     return null;
   }
-  console.warn(`[REMNAWAVE] createUser exhausted retries for ${email}`);
+  lastRwError = `createUser exhausted retries for ${email}`;
+  console.warn(`[REMNAWAVE] ${lastRwError}`);
   return null;
 }
 
