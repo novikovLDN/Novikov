@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-import { createUserWithExpire, encryptHappLink } from "@/lib/remnawave";
+import { createUserWithExpire, encryptHappLink, getLastRwError } from "@/lib/remnawave";
 import { verifyAdmin } from "../../middleware";
 
 /**
@@ -44,7 +44,10 @@ export async function POST() {
 
     if (!rwUser) {
       result.failed += 1;
-      result.failures.push({ email: row.email, reason: "remnawave_unavailable" });
+      result.failures.push({
+        email: row.email,
+        reason: getLastRwError() || "remnawave_unavailable",
+      });
       continue;
     }
 
