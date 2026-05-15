@@ -1,19 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById, getLoyaltyInfo } from "@/lib/store";
-import { createUserWithExpire, encryptHappLink } from "@/lib/remnawave";
+import { createUserWithExpire, getUser, encryptHappLink, REMNAWAVE_CONFIG } from "@/lib/remnawave";
 import { pool } from "@/lib/db";
 import crypto from "crypto";
 
 /**
- * Single source of truth for the user's subscription. Always returns the
- * Remnawave-issued subscription URL (or null if the panel is unreachable
- * AND we have never cached a URL). No qodev.dev fallback path.
+ * Single source of truth for the user's subscription.
  *
- * Provisioning is synchronous:
- *   - if users.panel_id is missing → generate one inline
- *   - if users.remnawave_user_uuid is missing → call createUserWithExpire
- *     (which pre-checks by panel_id to avoid duplicates) and persist
- *   - re-read user, return the freshly populated columns
+ * Resolution order while subscription is active:
+ *
+ *   1. Ensure users.panel_id exists (inline backfill).
+ *   2. If users.remnawave_user_uuid IS NOT NULL:
+ *        GET /api/users/{uuid}.
+ *        If 200 → use panel's subscriptionUrl, refresh local cache.
+ *        If 404 → clear local uuid, fall through to step 3.
+ *   3. createUserWithExpire(email, end, "...", panel_id):
+ *        Pre-checks the panel by panel_id (username) → adopts if found,
+ *        else POSTs. Cannot create duplicates because panel_id is unique
+ *        per local user.
+ *   4. Persist uuid + subscription_url + happ_crypto_link.
+ *   5. Return user.subscription_url as vpnKey. No qodev fallback.
+ *
+ * If the panel is unreachable AND we have never cached a URL, vpnKey is
+ * null — the dashboard will show "preparing" copy until a refresh.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -42,10 +51,10 @@ export async function GET(request: NextRequest) {
     const minutesLeft = totalMinutes % 60;
     const isExpired = msLeft === 0;
 
-    // ── Synchronous provisioning while subscription is active ──
+    let provisioningError: string | null = null;
+
     if (!isExpired) {
-      // Step 1: ensure panel_id exists (defensive — startup backfill should
-      // have already taken care of every existing row).
+      // ── Step 1: ensure panel_id ──
       if (!user.panelId) {
         const pid = crypto.randomBytes(4).toString("hex");
         await pool.query(
@@ -56,7 +65,40 @@ export async function GET(request: NextRequest) {
         if (refreshed) user = refreshed;
       }
 
-      // Step 2: ensure Remnawave user exists and we have subscription_url.
+      // ── Step 2: if we have a UUID, fetch live state from panel ──
+      if (user.remnawaveUserUuid) {
+        const live = await getUser(user.remnawaveUserUuid);
+        if (live) {
+          // Panel is the source of truth for subscriptionUrl. Refresh cache.
+          if (
+            live.subscriptionUrl &&
+            live.subscriptionUrl !== user.subscriptionUrl
+          ) {
+            await pool.query(
+              `UPDATE users SET subscription_url = $1, remnawave_short_uuid = $2 WHERE id = $3`,
+              [live.subscriptionUrl, live.shortUuid || user.remnawaveShortUuid, user.id]
+            );
+            const refreshed = await getUserById(user.id);
+            if (refreshed) user = refreshed;
+          }
+        } else if (REMNAWAVE_CONFIG.isConfigured) {
+          // Panel responded but we couldn't parse / 404 — uuid is stale.
+          // Clear local pointer so step 3 can re-provision cleanly.
+          await pool.query(
+            `UPDATE users SET
+               remnawave_user_uuid = NULL,
+               subscription_url = NULL,
+               happ_crypto_link = NULL,
+               crypto_link_updated_at = NULL
+             WHERE id = $1`,
+            [user.id]
+          );
+          const refreshed = await getUserById(user.id);
+          if (refreshed) user = refreshed;
+        }
+      }
+
+      // ── Step 3: provision if no UUID ──
       if (!user.remnawaveUserUuid && user.panelId) {
         const rwUser = await createUserWithExpire(
           user.email,
@@ -73,7 +115,7 @@ export async function GET(request: NextRequest) {
                subscription_url = $3,
                happ_crypto_link = $4,
                crypto_link_updated_at = $5
-             WHERE id = $6 AND remnawave_user_uuid IS NULL`,
+             WHERE id = $6`,
             [
               rwUser.uuid,
               rwUser.shortUuid || null,
@@ -85,11 +127,12 @@ export async function GET(request: NextRequest) {
           );
           const refreshed = await getUserById(user.id);
           if (refreshed) user = refreshed;
+        } else {
+          provisioningError = "remnawave_create_failed";
         }
       }
 
-      // Step 3: refresh Happ crypto link if subscription_url exists but link
-      // is missing (e.g. earlier encrypt-API failure).
+      // ── Step 4: refresh Happ link if missing ──
       if (user.subscriptionUrl && !user.happCryptoLink) {
         const link = await encryptHappLink(user.subscriptionUrl);
         if (link) {
@@ -103,10 +146,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // The ONLY subscription URL we surface is the Remnawave one. If it
-    // isn't ready yet (panel down on a brand-new account), return null —
-    // the frontend will show "preparing" copy rather than the legacy URL.
-    const vpnKey = isExpired ? null : user.subscriptionUrl || null;
+    const vpnKey = isExpired ? null : (user.subscriptionUrl || null);
 
     return NextResponse.json({
       success: true,
@@ -130,11 +170,14 @@ export async function GET(request: NextRequest) {
         cashbackPercent: getLoyaltyInfo(user.paidReferrals).percent,
         loyaltyTier: getLoyaltyInfo(user.paidReferrals).tier,
         isAdmin: !!(process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL),
-        // Remnawave fields
+        // Remnawave
         subscriptionUrl: vpnKey,
         happCryptoLink: isExpired ? null : user.happCryptoLink,
         panelId: user.panelId,
         trialUsedAt: user.trialUsedAt,
+        // Diagnostic — helps the dashboard distinguish "preparing" from
+        // "panel actually returned no URL"
+        provisioningError,
       },
     });
   } catch (err) {
