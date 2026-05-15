@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById, getLoyaltyInfo } from "@/lib/store";
 import { buildSubscriptionUrl } from "@/lib/xray";
+import { createUserWithExpire, encryptHappLink } from "@/lib/remnawave";
+import { pool } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +14,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = await getUserById(sessionId);
+    let user = await getUserById(sessionId);
     if (!user) {
       const response = NextResponse.json(
         { success: false, error: "Пользователь не найден" },
@@ -24,6 +26,40 @@ export async function GET(request: NextRequest) {
 
     const now = new Date();
     const end = new Date(user.subscriptionEnd);
+
+    // Lazy-provision Remnawave for active subscribers without a panel UUID.
+    // This auto-heals users created before the migration or for whom the
+    // background trial-issuance failed. Idempotent — once subscription_url
+    // is populated, this branch never re-fires.
+    if (end > now && !user.remnawaveUserUuid) {
+      const rwUser = await createUserWithExpire(
+        user.email,
+        end.toISOString(),
+        "user/subscription lazy-provision"
+      );
+      if (rwUser) {
+        const happLink = await encryptHappLink(rwUser.subscriptionUrl);
+        await pool.query(
+          `UPDATE users SET
+             remnawave_user_uuid = $1,
+             remnawave_short_uuid = $2,
+             subscription_url = $3,
+             happ_crypto_link = $4,
+             crypto_link_updated_at = $5
+           WHERE id = $6 AND remnawave_user_uuid IS NULL`,
+          [
+            rwUser.uuid,
+            rwUser.shortUuid || null,
+            rwUser.subscriptionUrl,
+            happLink,
+            happLink ? new Date() : null,
+            user.id,
+          ]
+        );
+        const refreshed = await getUserById(user.id);
+        if (refreshed) user = refreshed;
+      }
+    }
     const msLeft = Math.max(0, end.getTime() - now.getTime());
     const totalMinutes = Math.floor(msLeft / (1000 * 60));
     const totalHours = Math.floor(totalMinutes / 60);
