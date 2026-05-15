@@ -6,6 +6,7 @@
 import { pool } from "./db";
 import { normalizeEmail } from "./email-normalize";
 import { createTrialUser, encryptHappLink } from "./remnawave";
+import { getUserById } from "./store";
 
 export interface TrialActivationResult {
   success: boolean;
@@ -82,7 +83,8 @@ export async function issueTrial(
   const block = await checkTrialEligibility(email, ip);
   if (block) return { success: false, reason: block };
 
-  const rwUser = await createTrialUser(email);
+  const local = await getUserById(userId);
+  const rwUser = await createTrialUser(email, local?.panelId || null);
   if (!rwUser) return { success: false, reason: "remnawave_unavailable" };
 
   const happLink = await encryptHappLink(rwUser.subscriptionUrl);

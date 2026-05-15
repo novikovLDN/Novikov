@@ -18,8 +18,8 @@ export async function POST() {
   }
 
   const rows = (
-    await pool.query<{ id: string; email: string; subscription_end: Date }>(
-      `SELECT id, email, subscription_end FROM users
+    await pool.query<{ id: string; email: string; subscription_end: Date; panel_id: string | null }>(
+      `SELECT id, email, subscription_end, panel_id FROM users
        WHERE remnawave_user_uuid IS NULL
          AND subscription_end > NOW()
        ORDER BY subscription_end DESC`
@@ -35,11 +35,20 @@ export async function POST() {
   };
 
   for (const row of rows) {
+    if (!row.panel_id) {
+      // Should never happen after the panel_id backfill migration runs at
+      // startup; report as a failure so the admin can investigate.
+      result.failed += 1;
+      result.failures.push({ email: row.email, reason: "panel_id is null" });
+      continue;
+    }
+
     const expireIso = new Date(row.subscription_end).toISOString();
     const rwUser = await createUserWithExpire(
       row.email,
       expireIso,
-      "site admin bulk-migration of active subscription"
+      "site admin bulk-migration of active subscription",
+      row.panel_id
     );
 
     if (!rwUser) {
