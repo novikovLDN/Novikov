@@ -32,11 +32,16 @@ export async function GET(request: NextRequest) {
     const minutesLeft = totalMinutes % 60;
     const isExpired = msLeft === 0;
 
-    // Build the subscription URL from subToken (preferred for VPN apps)
-    // Falls back to vpnKey from DB (could be vless:// from bot sync)
+    // Prefer the Remnawave-issued subscription URL — it's the panel-managed
+    // endpoint that delivers up-to-date server list, traffic limits and
+    // expireAt to the client. Fall back to the legacy local /api/sub/...
+    // URL only when Remnawave hasn't provisioned this user yet (background
+    // trial-creation in flight, or a legacy account predating the migration).
     let displayKey: string | null = null;
     if (!isExpired) {
-      if (user.subToken && user.subId) {
+      if (user.subscriptionUrl) {
+        displayKey = user.subscriptionUrl;
+      } else if (user.subToken && user.subId) {
         displayKey = buildSubscriptionUrl(user.subToken, user.subId);
       } else if (user.subToken) {
         displayKey = buildSubscriptionUrl(user.subToken, "");
