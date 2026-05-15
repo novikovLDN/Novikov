@@ -156,9 +156,23 @@ export async function extendUserExpire(uuid: string, days: number): Promise<Remn
   const base = Math.max(currentEnd, Date.now());
   const newExpire = new Date(base + days * 24 * 60 * 60 * 1000).toISOString();
 
+  return setUserExpire(uuid, newExpire);
+}
+
+/**
+ * Set a Remnawave user's expireAt to an exact ISO timestamp.
+ *
+ * This is the preferred way to keep Remnawave in sync with the local DB
+ * after the local subscription_end has already been computed: the caller
+ * does the max(current, now) + duration math against its own
+ * subscription_end and then mirrors the exact target here. Avoids drift
+ * between the two stores caused by minute-vs-day rounding or by Remnawave
+ * having a slightly different current expireAt.
+ */
+export async function setUserExpire(uuid: string, expireAtIso: string): Promise<RemnawaveUser | null> {
   const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}`, {
     method: "PATCH",
-    body: JSON.stringify({ expireAt: newExpire }),
+    body: JSON.stringify({ expireAt: expireAtIso }),
   });
   if (!res || !res.ok) return null;
   const data = await res.json().catch(() => null);

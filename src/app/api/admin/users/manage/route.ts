@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserById, updateUser, createNotificationForUser, createAuditLog, regenerateUserKey } from "@/lib/store";
 import { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl, xrayRemoveUser, xrayAddUser } from "@/lib/xray";
 import { verifyAdmin } from "../../middleware";
-import { createUserWithExpire, extendUserExpire, encryptHappLink } from "@/lib/remnawave";
+import { createUserWithExpire, setUserExpire, encryptHappLink } from "@/lib/remnawave";
 import { pool } from "@/lib/db";
 
 // Duration presets in minutes
@@ -83,13 +83,14 @@ export async function POST(request: NextRequest) {
 
       await updateUser(userId, updates);
 
-      // Mirror to Remnawave: create user (if missing) or extend expireAt.
-      // Failures are non-blocking — local DB stays authoritative until
-      // bulk migration is run again.
+      // Mirror to Remnawave: set the exact same expireAt that was just
+      // committed locally (newEnd above). This avoids drift from
+      // minute-vs-day rounding when admin issues short durations like
+      // 30m or 12h. Failures are non-blocking — local DB stays
+      // authoritative until bulk migration is run again.
       if (user.remnawaveUserUuid) {
-        const days = Math.ceil(minutes / (60 * 24));
-        const rwUpdated = await extendUserExpire(user.remnawaveUserUuid, days);
-        if (!rwUpdated) console.warn(`[ADMIN] Remnawave extendExpire failed for ${user.email}`);
+        const rwUpdated = await setUserExpire(user.remnawaveUserUuid, newEnd.toISOString());
+        if (!rwUpdated) console.warn(`[ADMIN] Remnawave setExpire failed for ${user.email}`);
       } else {
         const rwNew = await createUserWithExpire(user.email, newEnd.toISOString(), "admin grant-subscription");
         if (rwNew) {

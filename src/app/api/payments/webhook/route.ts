@@ -3,7 +3,7 @@ import { getPaymentByTransactionId, updatePaymentStatus, extendSubscription, cre
 import { xrayAddUser, generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl } from "@/lib/xray";
 import { getPaymentStatus as ykGetPayment } from "@/lib/yookassa";
 import type { YooKassaNotification } from "@/lib/yookassa";
-import { extendUserExpire } from "@/lib/remnawave";
+import { setUserExpire, createUserWithExpire, encryptHappLink } from "@/lib/remnawave";
 import { sendPaymentSucceededEmail, sendRefundAdminAlertEmail } from "@/lib/email";
 import { pool } from "@/lib/db";
 
@@ -89,25 +89,59 @@ export async function POST(request: NextRequest) {
       // Mark as confirmed
       await updatePaymentStatus(paymentRecord.id, "confirmed", new Date());
 
-      // Extend subscription locally
+      // Extend subscription locally — this becomes the source of truth.
       const days = PERIOD_DAYS[paymentRecord.period] || 30;
       await extendSubscription(paymentRecord.userId, days);
       await updateUser(paymentRecord.userId, { subscriptionPlan: paymentRecord.plan });
 
-      // Extend in Remnawave (max(current, now) + days)
+      // Mirror the freshly computed local subscription_end into Remnawave
+      // (or create a panel user with that exact expireAt if missing).
       const user = await getUserById(paymentRecord.userId);
+      const targetExpireIso = user?.subscriptionEnd
+        ? new Date(user.subscriptionEnd).toISOString()
+        : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+      let remnawaveProvisioned = Boolean(user?.remnawaveUserUuid);
+
       if (user?.remnawaveUserUuid) {
-        const updated = await extendUserExpire(user.remnawaveUserUuid, days);
+        const updated = await setUserExpire(user.remnawaveUserUuid, targetExpireIso);
         if (updated) {
           await pool.query(
             "UPDATE payments SET applied_to_remnawave_at = NOW() WHERE id = $1",
             [paymentRecord.id]
           );
-          console.log(`[WEBHOOK] Remnawave expireAt extended for ${user.email} to ${updated.expireAt}`);
+          console.log(`[WEBHOOK] Remnawave expireAt set for ${user.email}: ${updated.expireAt}`);
         } else {
-          console.warn(`[WEBHOOK] Remnawave extend failed for ${user.email} (uuid=${user.remnawaveUserUuid.slice(0, 8)}…) — local DB is correct, will reconcile later`);
+          console.warn(`[WEBHOOK] Remnawave PATCH failed for ${user.email} (uuid=${user.remnawaveUserUuid.slice(0, 8)}…) — local DB is correct, will reconcile later`);
         }
-      } else if (user && !user.xrayUuid) {
+      } else if (user) {
+        // No Remnawave user yet (legacy account or trial creation failed earlier) —
+        // create one with the local end as expireAt so the subscription works immediately.
+        const rwNew = await createUserWithExpire(user.email, targetExpireIso, "webhook payment.succeeded autoprovision");
+        if (rwNew) {
+          const happLink = await encryptHappLink(rwNew.subscriptionUrl);
+          await pool.query(
+            `UPDATE users SET
+               remnawave_user_uuid = $1,
+               remnawave_short_uuid = $2,
+               subscription_url = $3,
+               happ_crypto_link = $4,
+               crypto_link_updated_at = $5
+             WHERE id = $6`,
+            [rwNew.uuid, rwNew.shortUuid || null, rwNew.subscriptionUrl, happLink, happLink ? new Date() : null, user.id]
+          );
+          await pool.query(
+            "UPDATE payments SET applied_to_remnawave_at = NOW() WHERE id = $1",
+            [paymentRecord.id]
+          );
+          remnawaveProvisioned = true;
+          console.log(`[WEBHOOK] Remnawave user autoprovisioned for ${user.email} at ${rwNew.expireAt}`);
+        } else {
+          console.warn(`[WEBHOOK] Remnawave autoprovision failed for ${user.email}`);
+        }
+      }
+
+      // Legacy Xray fallback: only when both Remnawave and Xray are absent.
+      if (user && !remnawaveProvisioned && !user.xrayUuid) {
         // Legacy fallback: no Remnawave UUID yet — regenerate Xray key
         const newUuid = generateXrayUuid();
         const newSubToken = generateSubToken();
