@@ -48,6 +48,10 @@ export interface SubscriptionData {
   cashbackPercent: number;
   loyaltyTier: string;
   isAdmin?: boolean;
+  // Remnawave-issued subscription
+  subscriptionUrl?: string | null;
+  happCryptoLink?: string | null;
+  trialUsedAt?: string | null;
 }
 
 export interface DeviceInfo {
