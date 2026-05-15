@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
               );
             }
           } else if (refreshed) {
-            const rwNew = await createUserWithExpire(refreshed.email, targetExpireIso, "payments/status reconcile after redirect");
+            const rwNew = await createUserWithExpire(refreshed.email, targetExpireIso, "payments/status reconcile after redirect", refreshed.panelId);
             if (rwNew) {
               const happLink = await encryptHappLink(rwNew.subscriptionUrl);
               await pool.query(

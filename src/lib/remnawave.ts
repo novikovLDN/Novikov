@@ -136,9 +136,9 @@ function makeUsername(email: string): string {
 }
 
 /** Create a Remnawave user with a 24h unlimited trial on the MainServer squad. */
-export async function createTrialUser(email: string): Promise<RemnawaveUser | null> {
+export async function createTrialUser(email: string, panelId?: string | null): Promise<RemnawaveUser | null> {
   const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-  return createUserWithExpire(email, expireAt, "site signup, trial 1d unlimited");
+  return createUserWithExpire(email, expireAt, "site signup, trial 1d unlimited", panelId);
 }
 
 /**
@@ -146,26 +146,44 @@ export async function createTrialUser(email: string): Promise<RemnawaveUser | nu
  * migration of legacy users and by admin grant-subscription).
  */
 /**
- * Idempotent create-or-adopt for a Remnawave user.
+ * Idempotent create-or-adopt for a Remnawave user, keyed by a stable
+ * 8-char panel_id we control on both sides. Email is metadata only —
+ * the panel index is the username.
  *
- * 1. Try POST /api/users with username derived from email.
- * 2. On 400/A019/409/422 (panel says "already exists"): look the user up
- *    by username, then by email. If found — adopt that uuid, PATCH the
- *    expireAt to the requested value, and return the result.
- * 3. If lookup endpoints aren't available in this Remnawave version, fall
- *    back to retrying create with a short hex suffix on the username.
+ * Flow:
+ *   1. GET /api/users/by-username/{panelId} — if the panel already has
+ *      this user, PATCH its expireAt to the requested value and return.
+ *      No POST is attempted, so no duplicate can be created.
+ *   2. Else POST /api/users with username=panelId. On success — return.
+ *   3. Else if the panel responds "already exists" (A019/409/422), one
+ *      of the very rare concurrent calls beat us to it; re-run step 1
+ *      and adopt.
  *
- * This means re-running the bulk migration (or the lazy provisioner) for
- * users that were left half-created by previous attempts will adopt them
- * cleanly instead of failing with A019 forever.
+ * Because panelId is unique per local user, two concurrent provisions
+ * of the same local user can only collide on the panel's unique
+ * username constraint — they cannot produce two different panel users.
  */
 export async function createUserWithExpire(
   email: string,
   expireAtIso: string,
-  description?: string
+  description?: string,
+  panelId?: string | null
 ): Promise<RemnawaveUser | null> {
-  const baseUsername = makeUsername(email);
-  const buildBody = (username: string) => ({
+  const username = (panelId && panelId.trim()) || makeUsername(email);
+
+  // Step 1: pre-check. If the panel has us already → adopt without POST.
+  const preExisting = await getUserByUsername(username);
+  if (preExisting?.uuid) {
+    const updated = await setUserExpire(preExisting.uuid, expireAtIso);
+    if (updated) {
+      console.log(`[REMNAWAVE] adopted ${username} (uuid=${preExisting.uuid.slice(0, 8)}…) without POST`);
+      return updated;
+    }
+    return preExisting;
+  }
+
+  // Step 2: POST.
+  const body = {
     username,
     email,
     telegramId: null,
@@ -175,75 +193,37 @@ export async function createUserWithExpire(
     activeInternalSquads: [MAIN_SQUAD],
     internalSquads: [MAIN_SQUAD],
     description: description || "site admin issue",
-  });
+  };
 
-  // Attempt 1: straight create
-  const firstRes = await rwFetch("/api/users", {
-    method: "POST",
-    body: JSON.stringify(buildBody(baseUsername)),
-  });
-  if (!firstRes) return null;
-  if (firstRes.ok) {
-    const data = await firstRes.json().catch(() => null);
+  const res = await rwFetch("/api/users", { method: "POST", body: JSON.stringify(body) });
+  if (!res) return null;
+  if (res.ok) {
+    const data = await res.json().catch(() => null);
     return parseUser(data);
   }
 
-  const bodyText = await firstRes.text().catch(() => "");
+  const bodyText = await res.text().catch(() => "");
   const alreadyExists =
     bodyText.includes('"A019"') ||
     bodyText.toLowerCase().includes("already exists") ||
-    firstRes.status === 409 ||
-    firstRes.status === 422;
+    res.status === 409 ||
+    res.status === 422;
 
-  if (!alreadyExists) {
-    lastRwError = `createUser HTTP ${firstRes.status}: ${bodyText.slice(0, 200)}`;
-    console.warn("[REMNAWAVE] createUser non-ok:", firstRes.status, bodyText.slice(0, 200));
+  if (alreadyExists) {
+    // Step 3: race-loser path — another worker created us a moment ago.
+    const existing = (await getUserByUsername(username)) || (await getUserByEmail(email));
+    if (existing?.uuid) {
+      const updated = await setUserExpire(existing.uuid, expireAtIso);
+      console.log(`[REMNAWAVE] race-loser adopted ${username} uuid=${existing.uuid.slice(0, 8)}…`);
+      return updated || existing;
+    }
+    lastRwError = `createUser ${res.status} (already exists) but lookup failed for username=${username}`;
+    console.warn(`[REMNAWAVE] ${lastRwError}`);
     return null;
   }
 
-  // Attempt 2: adopt the existing panel user by username, then by email.
-  const existing =
-    (await getUserByUsername(baseUsername)) || (await getUserByEmail(email));
-  if (existing?.uuid) {
-    const updated = await setUserExpire(existing.uuid, expireAtIso);
-    if (updated) {
-      console.log(`[REMNAWAVE] adopted existing panel user ${existing.uuid.slice(0, 8)}… for ${email}`);
-      return updated;
-    }
-    // PATCH failed but we still have the existing user — return as-is.
-    console.warn(`[REMNAWAVE] adopted ${email} but PATCH expireAt failed; returning current state`);
-    return existing;
-  }
-
-  // Attempt 3: lookup endpoints unavailable — retry create with hex suffix.
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    const suffix = (require("crypto") as typeof import("crypto"))
-      .randomBytes(2)
-      .toString("hex");
-    const username = `${baseUsername.slice(0, 27)}_${suffix}`;
-    const res = await rwFetch("/api/users", {
-      method: "POST",
-      body: JSON.stringify(buildBody(username)),
-    });
-    if (!res) return null;
-    if (res.ok) {
-      const data = await res.json().catch(() => null);
-      console.log(`[REMNAWAVE] created ${email} with suffixed username ${username}`);
-      return parseUser(data);
-    }
-    const t = await res.text().catch(() => "");
-    if (
-      attempt < 2 &&
-      (t.includes('"A019"') || t.toLowerCase().includes("already exists") || res.status === 409 || res.status === 422)
-    ) {
-      continue;
-    }
-    lastRwError = `createUser HTTP ${res.status}: ${t.slice(0, 200)}`;
-    console.warn("[REMNAWAVE] createUser suffix retry non-ok:", res.status, t.slice(0, 200));
-    return null;
-  }
-  lastRwError = `createUser exhausted retries for ${email}`;
-  console.warn(`[REMNAWAVE] ${lastRwError}`);
+  lastRwError = `createUser HTTP ${res.status}: ${bodyText.slice(0, 200)}`;
+  console.warn("[REMNAWAVE] createUser non-ok:", res.status, bodyText.slice(0, 200));
   return null;
 }
 

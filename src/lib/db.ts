@@ -207,6 +207,10 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used_at TIMESTAMPTZ",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ",
+    // Stable 8-char hex ID used as Remnawave username. One per local user,
+    // generated at insert time. Lets us look up the panel user by a key
+    // we control on both sides without depending on email format quirks.
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_id TEXT UNIQUE",
     // ── Orders: extend payments table with Remnawave/YooKassa lifecycle fields ──
     "ALTER TABLE payments ADD COLUMN IF NOT EXISTS applied_to_remnawave_at TIMESTAMPTZ",
     "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_logged_at TIMESTAMPTZ",
@@ -239,6 +243,31 @@ export async function initDb(): Promise<void> {
     }
   } catch (err) {
     console.error("[DB] Failed to generate tokens:", err);
+  }
+
+  // Generate panel_id for existing users who don't have one. 8 hex chars,
+  // unique. Retried on the (extremely unlikely) collision case.
+  try {
+    const crypto = require("crypto");
+    const usersWithoutPanel = await pool.query(
+      "SELECT id FROM users WHERE panel_id IS NULL"
+    );
+    for (const row of usersWithoutPanel.rows) {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const pid = crypto.randomBytes(4).toString("hex"); // 8 chars
+        try {
+          await pool.query("UPDATE users SET panel_id = $1 WHERE id = $2", [pid, row.id]);
+          break;
+        } catch {
+          if (attempt === 4) throw new Error(`panel_id collision for ${row.id}`);
+        }
+      }
+    }
+    if (usersWithoutPanel.rows.length > 0) {
+      console.log(`[DB] Generated panel_id for ${usersWithoutPanel.rows.length} existing users`);
+    }
+  } catch (err) {
+    console.error("[DB] Failed to backfill panel_id:", err);
   }
 
   // Generate sub_token and sub_id for existing users who don't have them

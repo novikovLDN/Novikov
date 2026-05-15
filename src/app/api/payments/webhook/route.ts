@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
       } else if (user) {
         // No Remnawave user yet (legacy account or trial creation failed earlier) —
         // create one with the local end as expireAt so the subscription works immediately.
-        const rwNew = await createUserWithExpire(user.email, targetExpireIso, "webhook payment.succeeded autoprovision");
+        const rwNew = await createUserWithExpire(user.email, targetExpireIso, "webhook payment.succeeded autoprovision", user.panelId);
         if (rwNew) {
           const happLink = await encryptHappLink(rwNew.subscriptionUrl);
           await pool.query(

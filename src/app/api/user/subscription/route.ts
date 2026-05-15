@@ -28,14 +28,16 @@ export async function GET(request: NextRequest) {
     const end = new Date(user.subscriptionEnd);
 
     // Lazy-provision Remnawave for active subscribers without a panel UUID.
-    // This auto-heals users created before the migration or for whom the
-    // background trial-issuance failed. Idempotent — once subscription_url
-    // is populated, this branch never re-fires.
-    if (end > now && !user.remnawaveUserUuid) {
+    // Idempotent via stable panel_id: createUserWithExpire pre-checks the
+    // panel by panel_id before POSTing, so even multiple in-flight dashboard
+    // requests for the same user will all resolve to the same panel UUID
+    // rather than creating duplicates.
+    if (end > now && !user.remnawaveUserUuid && user.panelId) {
       const rwUser = await createUserWithExpire(
         user.email,
         end.toISOString(),
-        "user/subscription lazy-provision"
+        "user/subscription lazy-provision",
+        user.panelId
       );
       if (rwUser) {
         const happLink = await encryptHappLink(rwUser.subscriptionUrl);

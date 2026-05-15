@@ -10,6 +10,14 @@ interface MigrationResult {
   failures: Array<{ email: string; reason: string }>;
 }
 
+interface CleanupResult {
+  scanned: number;
+  canonical_repaired: number;
+  duplicates_deleted: number;
+  failed: number;
+  failures: Array<{ email: string; reason: string }>;
+}
+
 /**
  * Admin-only utility card. Single-button trigger for the bulk
  * migration of every locally-active subscriber into Remnawave.
@@ -18,7 +26,9 @@ interface MigrationResult {
  */
 export default function RemnawaveMigrationCard() {
   const [running, setRunning] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
   const [result, setResult] = useState<MigrationResult | null>(null);
+  const [cleanupResult, setCleanupResult] = useState<CleanupResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const run = async () => {
@@ -37,6 +47,26 @@ export default function RemnawaveMigrationCard() {
       setError("Ошибка сети");
     } finally {
       setRunning(false);
+    }
+  };
+
+  const runCleanup = async () => {
+    if (!confirm("Удалить все дубликаты в Remnawave для активных юзеров? Это безопасно — оставляет одного канонического (по panel_id) и удаляет остальных.")) return;
+    setCleaning(true);
+    setCleanupResult(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/users/cleanup-remnawave-duplicates", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        setCleanupResult(data.data as CleanupResult);
+      } else {
+        setError(data.error || "Ошибка очистки");
+      }
+    } catch {
+      setError("Ошибка сети");
+    } finally {
+      setCleaning(false);
     }
   };
 
@@ -114,6 +144,70 @@ export default function RemnawaveMigrationCard() {
           )}
         </div>
       )}
+
+      {/* ── Cleanup duplicates ── */}
+      <div className="mt-4 pt-4 border-t border-border/30">
+        <p className="text-xs text-muted mb-3 leading-relaxed">
+          Если в панели образовались дубликаты от прошлых запусков — нажмите чтобы оставить одного канонического (по panel_id) и удалить остальных.
+        </p>
+        <button
+          onClick={runCleanup}
+          disabled={cleaning}
+          className="w-full h-10 rounded-xl bg-card-hover border border-border text-foreground font-medium text-xs btn-press disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {cleaning ? (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="animate-spin">
+                <path d="M21 12a9 9 0 11-6.219-8.56" strokeLinecap="round" />
+              </svg>
+              Очистка дубликатов…
+            </>
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+              </svg>
+              Удалить дубликаты в панели
+            </>
+          )}
+        </button>
+
+        {cleanupResult && (
+          <div className="mt-3 space-y-2">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="bg-card-hover rounded-lg p-2">
+                <div className="text-lg font-bold tabular-nums">{cleanupResult.scanned}</div>
+                <div className="text-[10px] text-muted">Просмотрено</div>
+              </div>
+              <div className="bg-danger/10 rounded-lg p-2">
+                <div className="text-lg font-bold tabular-nums text-danger">{cleanupResult.duplicates_deleted}</div>
+                <div className="text-[10px] text-muted">Удалено</div>
+              </div>
+              <div className="bg-success/10 rounded-lg p-2">
+                <div className="text-lg font-bold tabular-nums text-success">{cleanupResult.canonical_repaired}</div>
+                <div className="text-[10px] text-muted">Исправлено</div>
+              </div>
+            </div>
+            {cleanupResult.failures.length > 0 && (
+              <details>
+                <summary className="text-xs text-muted cursor-pointer hover:text-foreground">
+                  Подробности ошибок ({cleanupResult.failures.length})
+                </summary>
+                <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                  {cleanupResult.failures.map((f, i) => (
+                    <div key={`${f.email}-${i}`} className="text-[11px] py-1 px-2 bg-card-hover rounded flex justify-between gap-2">
+                      <span className="truncate">{f.email}</span>
+                      <span className="text-muted shrink-0">{f.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

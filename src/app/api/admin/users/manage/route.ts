@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         const rwUpdated = await setUserExpire(user.remnawaveUserUuid, newEnd.toISOString());
         if (!rwUpdated) console.warn(`[ADMIN] Remnawave setExpire failed for ${user.email}`);
       } else {
-        const rwNew = await createUserWithExpire(user.email, newEnd.toISOString(), "admin grant-subscription");
+        const rwNew = await createUserWithExpire(user.email, newEnd.toISOString(), "admin grant-subscription", user.panelId);
         if (rwNew) {
           const happLink = await encryptHappLink(rwNew.subscriptionUrl);
           await pool.query(

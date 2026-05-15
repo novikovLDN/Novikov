@@ -36,6 +36,7 @@ export interface UserRecord {
   happCryptoLink: string | null;
   cryptoLinkUpdatedAt: string | null;
   trialUsedAt: string | null;
+  panelId: string | null;
 }
 
 export interface CodeRecord {
@@ -77,6 +78,7 @@ function rowToUser(row: any): UserRecord {
     happCryptoLink: row.happ_crypto_link ?? null,
     cryptoLinkUpdatedAt: row.crypto_link_updated_at ? new Date(row.crypto_link_updated_at).toISOString() : null,
     trialUsedAt: row.trial_used_at ? new Date(row.trial_used_at).toISOString() : null,
+    panelId: row.panel_id ?? null,
   };
 }
 
@@ -150,12 +152,14 @@ export async function getOrCreateUser(email: string, referredByCode?: string, ip
   const subId = generateSubId(email);
   const vpnKey = buildSubscriptionUrl(subToken, subId);
   const id = uuidv4();
+  const crypto = require("crypto") as typeof import("crypto");
+  const panelId = crypto.randomBytes(4).toString("hex"); // 8-char hex Remnawave username
 
   const result = await pool.query(
-    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, sub_token, sub_id, referral_code, referred_by, telegram_link_token, registration_ip, device_fingerprint)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, sub_token, sub_id, referral_code, referred_by, telegram_link_token, registration_ip, device_fingerprint, panel_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
      RETURNING *`,
-    [id, email, now, trialEnd, vpnKey, xrayUuid, subToken, subId, referralCode, referredByCode || null, telegramLinkToken, ip || null, fingerprint || null]
+    [id, email, now, trialEnd, vpnKey, xrayUuid, subToken, subId, referralCode, referredByCode || null, telegramLinkToken, ip || null, fingerprint || null, panelId]
   );
 
   // Credit referrer: +1 referral count (bonus given when friend pays)
