@@ -101,16 +101,28 @@ function makeUsername(): string {
 /** Create a Remnawave user with a 24h unlimited trial on the MainServer squad. */
 export async function createTrialUser(email: string): Promise<RemnawaveUser | null> {
   const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  return createUserWithExpire(email, expireAt, "site signup, trial 1d unlimited");
+}
+
+/**
+ * Create a Remnawave user with an arbitrary expireAt (used by admin bulk
+ * migration of legacy users and by admin grant-subscription).
+ */
+export async function createUserWithExpire(
+  email: string,
+  expireAtIso: string,
+  description?: string
+): Promise<RemnawaveUser | null> {
   const body = {
     username: makeUsername(),
     email,
     telegramId: null,
-    expireAt,
+    expireAt: expireAtIso,
     trafficLimitBytes: 0,
     trafficLimitStrategy: "NO_RESET",
     activeInternalSquads: [MAIN_SQUAD],
-    internalSquads: [MAIN_SQUAD], // some Remnawave versions use this field name
-    description: "site signup, trial 1d unlimited",
+    internalSquads: [MAIN_SQUAD],
+    description: description || "site admin issue",
   };
 
   const res = await rwFetch("/api/users", { method: "POST", body: JSON.stringify(body) });
