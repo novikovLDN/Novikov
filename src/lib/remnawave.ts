@@ -91,11 +91,28 @@ function parseUser(data: any): RemnawaveUser | null {
   };
 }
 
-/** Generate a unique username for a new site signup. */
-function makeUsername(): string {
-  // 8-char hex prefix, predictable: site_<hex>
-  const bytes = require("crypto").randomBytes(4) as Buffer;
-  return `site_${bytes.toString("hex")}`;
+/**
+ * Derive a Remnawave-compatible username from an email.
+ *
+ * Remnawave usernames are typically constrained to 6–32 chars of
+ * [a-z0-9._-]. We:
+ *  - lowercase the address
+ *  - keep only [a-z0-9._-], collapsing anything else (including @) to "_"
+ *  - cap at 32 chars
+ *  - if the truncated head would lose uniqueness on a long address, append
+ *    a short hex suffix derived from the full email to disambiguate
+ *
+ * Examples:
+ *   "Foo.Bar+spam@gmail.com" → "foo.bar_spam_gmail.com"
+ *   "long-customer-name+report@some-corp.example.org"
+ *     → "long-customer-name_report_so_<hex4>"
+ */
+function makeUsername(email: string): string {
+  const cleaned = email.trim().toLowerCase().replace(/[^a-z0-9._-]/g, "_");
+  if (cleaned.length <= 32) return cleaned;
+  const crypto = require("crypto") as typeof import("crypto");
+  const suffix = crypto.createHash("sha1").update(email.toLowerCase()).digest("hex").slice(0, 4);
+  return `${cleaned.slice(0, 27)}_${suffix}`;
 }
 
 /** Create a Remnawave user with a 24h unlimited trial on the MainServer squad. */
@@ -113,8 +130,12 @@ export async function createUserWithExpire(
   expireAtIso: string,
   description?: string
 ): Promise<RemnawaveUser | null> {
-  const body = {
-    username: makeUsername(),
+  // Build base body. On username collision (409), retry with a short hex
+  // suffix appended to the username so administrators can still recognize
+  // the owner from the panel.
+  const baseUsername = makeUsername(email);
+  const buildBody = (username: string) => ({
+    username,
     email,
     telegramId: null,
     expireAt: expireAtIso,
@@ -123,17 +144,35 @@ export async function createUserWithExpire(
     activeInternalSquads: [MAIN_SQUAD],
     internalSquads: [MAIN_SQUAD],
     description: description || "site admin issue",
-  };
+  });
 
-  const res = await rwFetch("/api/users", { method: "POST", body: JSON.stringify(body) });
-  if (!res) return null;
-  if (!res.ok) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const username =
+      attempt === 0
+        ? baseUsername
+        : `${baseUsername.slice(0, 27)}_${(require("crypto") as typeof import("crypto"))
+            .randomBytes(2)
+            .toString("hex")}`;
+    const res = await rwFetch("/api/users", {
+      method: "POST",
+      body: JSON.stringify(buildBody(username)),
+    });
+    if (!res) return null;
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      return parseUser(data);
+    }
+    if (res.status === 409 || res.status === 422) {
+      // Username (or email) already exists in panel — retry with a suffix.
+      console.warn(`[REMNAWAVE] createUser ${res.status} for ${username} — retrying with hex suffix`);
+      continue;
+    }
     const text = await res.text().catch(() => "");
     console.warn("[REMNAWAVE] createUser non-ok:", res.status, text.slice(0, 200));
     return null;
   }
-  const data = await res.json().catch(() => null);
-  return parseUser(data);
+  console.warn(`[REMNAWAVE] createUser exhausted retries for ${email}`);
+  return null;
 }
 
 /** Get a Remnawave user by UUID. */

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserById, getPaymentById, updatePaymentStatus, extendSubscription, creditReferrerOnPayment, updateUser } from "@/lib/store";
 import { getPaymentStatus, PaymentStatus } from "@/lib/yookassa";
 import { xrayAddUser } from "@/lib/xray";
+import { setUserExpire, createUserWithExpire, encryptHappLink } from "@/lib/remnawave";
+import { pool } from "@/lib/db";
 
 const PERIOD_DAYS: Record<number, number> = {
   1: 30,
@@ -52,8 +54,48 @@ export async function GET(request: NextRequest) {
           await extendSubscription(payment.userId, days);
           await updateUser(payment.userId, { subscriptionPlan: payment.plan });
 
-          // Regenerate key if needed
-          if (!user.xrayUuid) {
+          // Mirror to Remnawave (same logic as webhook): use the freshly
+          // computed subscription_end as the panel expireAt to keep both
+          // stores in lockstep. If the user has no panel UUID yet, create
+          // one with that exact expireAt.
+          const refreshed = await getUserById(payment.userId);
+          const targetExpireIso = refreshed?.subscriptionEnd
+            ? new Date(refreshed.subscriptionEnd).toISOString()
+            : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+          let remnawaveProvisioned = Boolean(refreshed?.remnawaveUserUuid);
+
+          if (refreshed?.remnawaveUserUuid) {
+            const updated = await setUserExpire(refreshed.remnawaveUserUuid, targetExpireIso);
+            if (updated) {
+              await pool.query(
+                "UPDATE payments SET applied_to_remnawave_at = NOW() WHERE id = $1",
+                [payment.id]
+              );
+            }
+          } else if (refreshed) {
+            const rwNew = await createUserWithExpire(refreshed.email, targetExpireIso, "payments/status reconcile after redirect");
+            if (rwNew) {
+              const happLink = await encryptHappLink(rwNew.subscriptionUrl);
+              await pool.query(
+                `UPDATE users SET
+                   remnawave_user_uuid = $1,
+                   remnawave_short_uuid = $2,
+                   subscription_url = $3,
+                   happ_crypto_link = $4,
+                   crypto_link_updated_at = $5
+                 WHERE id = $6`,
+                [rwNew.uuid, rwNew.shortUuid || null, rwNew.subscriptionUrl, happLink, happLink ? new Date() : null, refreshed.id]
+              );
+              await pool.query(
+                "UPDATE payments SET applied_to_remnawave_at = NOW() WHERE id = $1",
+                [payment.id]
+              );
+              remnawaveProvisioned = true;
+            }
+          }
+
+          // Legacy Xray fallback only if Remnawave provisioning failed
+          if (!remnawaveProvisioned && !user.xrayUuid) {
             const { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl } = await import("@/lib/xray");
             const newUuid = generateXrayUuid();
             const newSubToken = generateSubToken();
