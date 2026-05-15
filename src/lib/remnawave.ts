@@ -121,7 +121,15 @@ export async function getUser(uuid: string): Promise<RemnawaveUser | null> {
   return parseUser(data);
 }
 
-/** Look up by username — tries every observed path variant. */
+/**
+ * Look up by username — STRICT exact match only.
+ *
+ * Some Remnawave variants treat unknown query params as no-ops and
+ * happily return the full user list, which previously caused us to
+ * pick `list[0]` and assign every local user the same panel UUID.
+ * Now we only adopt when u.username === username exactly. If no exact
+ * match is found across all path variants, returns null.
+ */
 export async function getUserByUsername(username: string): Promise<RemnawaveUser | null> {
   for (const path of [
     `/api/users/by-username/${encodeURIComponent(username)}`,
@@ -133,14 +141,15 @@ export async function getUserByUsername(username: string): Promise<RemnawaveUser
     if (!res?.ok) continue;
     const data = await res.json().catch(() => null);
     const list = extractUserList(data);
-    const match = list.find((u) => u.username === username) || list[0];
-    if (match) return match;
+    const exact = list.find((u) => u.username === username);
+    if (exact) return exact;
   }
   return null;
 }
 
-/** Look up by email — first hit wins. */
+/** Look up by email — STRICT exact match only. */
 export async function getUserByEmail(email: string): Promise<RemnawaveUser | null> {
+  const target = email.toLowerCase();
   for (const path of [
     `/api/users/by-email/${encodeURIComponent(email)}`,
     `/api/users/email/${encodeURIComponent(email)}`,
@@ -151,14 +160,15 @@ export async function getUserByEmail(email: string): Promise<RemnawaveUser | nul
     if (!res?.ok) continue;
     const data = await res.json().catch(() => null);
     const list = extractUserList(data);
-    const match = list.find((u) => (u.email || "").toLowerCase() === email.toLowerCase()) || list[0];
-    if (match) return match;
+    const exact = list.find((u) => (u.email || "").toLowerCase() === target);
+    if (exact) return exact;
   }
   return null;
 }
 
-/** Return ALL panel users with matching email (dedup by uuid). */
+/** Return ALL panel users with matching email — STRICT exact match. */
 export async function getAllUsersByEmail(email: string): Promise<RemnawaveUser[]> {
+  const target = email.toLowerCase();
   const found: RemnawaveUser[] = [];
   const seen = new Set<string>();
   for (const path of [
@@ -172,7 +182,7 @@ export async function getAllUsersByEmail(email: string): Promise<RemnawaveUser[]
     const list = extractUserList(data);
     for (const u of list) {
       if (!u.uuid || seen.has(u.uuid)) continue;
-      if ((u.email || "").toLowerCase() === email.toLowerCase()) {
+      if ((u.email || "").toLowerCase() === target) {
         found.push(u);
         seen.add(u.uuid);
       }

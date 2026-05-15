@@ -60,27 +60,49 @@ export async function POST() {
       continue;
     }
 
+    // Refuse to write a UUID already owned by another local user —
+    // the unique constraint would throw and abort the entire loop.
+    const conflict = await pool.query<{ id: string }>(
+      `SELECT id FROM users WHERE remnawave_user_uuid = $1 AND id != $2`,
+      [rwUser.uuid, row.id]
+    );
+    if (conflict.rows.length > 0) {
+      result.failed += 1;
+      result.failures.push({
+        email: row.email,
+        reason: `uuid ${rwUser.uuid.slice(0, 8)}… already owned by another local user (use full reset)`,
+      });
+      continue;
+    }
+
     const happLink = await encryptHappLink(rwUser.subscriptionUrl);
 
-    await pool.query(
-      `UPDATE users SET
-         remnawave_user_uuid = $1,
-         remnawave_short_uuid = $2,
-         subscription_url = $3,
-         happ_crypto_link = $4,
-         crypto_link_updated_at = $5
-       WHERE id = $6 AND remnawave_user_uuid IS NULL`,
-      [
-        rwUser.uuid,
-        rwUser.shortUuid || null,
-        rwUser.subscriptionUrl,
-        happLink,
-        happLink ? new Date() : null,
-        row.id,
-      ]
-    );
-
-    result.migrated += 1;
+    try {
+      await pool.query(
+        `UPDATE users SET
+           remnawave_user_uuid = $1,
+           remnawave_short_uuid = $2,
+           subscription_url = $3,
+           happ_crypto_link = $4,
+           crypto_link_updated_at = $5
+         WHERE id = $6 AND remnawave_user_uuid IS NULL`,
+        [
+          rwUser.uuid,
+          rwUser.shortUuid || null,
+          rwUser.subscriptionUrl,
+          happLink,
+          happLink ? new Date() : null,
+          row.id,
+        ]
+      );
+      result.migrated += 1;
+    } catch (err) {
+      result.failed += 1;
+      result.failures.push({
+        email: row.email,
+        reason: `db write failed: ${(err as Error).message?.slice(0, 100) || "unknown"}`,
+      });
+    }
   }
 
   return NextResponse.json({ success: true, data: result });
