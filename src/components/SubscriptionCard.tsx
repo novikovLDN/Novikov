@@ -10,8 +10,21 @@ interface SubscriptionCardProps {
   isTrial: boolean;
 }
 
-function v2raytunDeepLink(plainUrl: string): string {
-  return `v2raytun://import-sub?url=${encodeURIComponent(plainUrl)}`;
+/**
+ * Resolve the deep link that opens Happ with the user's subscription
+ * pre-filled. Preference order:
+ *   1. happ://crypto/<encrypted>  — encrypted by Remnawave panel, hides
+ *      the plain URL from the user. This is what /api/system/encrypt-
+ *      happ-crypto-link returns.
+ *   2. happ://add/<base64url(url)> — Happ's plain-import scheme,
+ *      always works if subscriptionUrl is known.
+ */
+function happDeepLink(subscriptionUrl: string, happCryptoLink: string | null): string {
+  if (happCryptoLink) return happCryptoLink;
+  const b64 = typeof window !== "undefined"
+    ? btoa(subscriptionUrl).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")
+    : Buffer.from(subscriptionUrl).toString("base64url");
+  return `happ://add/${b64}`;
 }
 
 export default function SubscriptionCard({ subscriptionUrl, happCryptoLink, subscriptionEnd, isTrial }: SubscriptionCardProps) {
@@ -37,6 +50,13 @@ export default function SubscriptionCard({ subscriptionUrl, happCryptoLink, subs
     } catch {
       setShowFallback(true);
     }
+  };
+
+  const openHapp = () => {
+    const link = happDeepLink(subscriptionUrl, happCryptoLink);
+    // window.location.href is the most reliable way to trigger the OS
+    // deep-link handler on both iOS Safari and Android Chrome.
+    window.location.href = link;
   };
 
   const endDate = new Date(subscriptionEnd);
@@ -70,32 +90,20 @@ export default function SubscriptionCard({ subscriptionUrl, happCryptoLink, subs
       </div>
 
       <p className="text-muted text-[11px] sm:text-xs text-center mb-4 leading-snug">
-        Отсканируйте QR в приложении Happ или V2RayTun, либо нажмите кнопку ниже
+        Отсканируйте QR в приложении Happ или нажмите кнопку ниже — подписка добавится автоматически.
       </p>
 
       {/* Action buttons */}
       <div className="space-y-2">
-        {happCryptoLink && (
-          <a
-            href={happCryptoLink}
-            className="w-full h-12 rounded-xl bg-primary text-white font-semibold text-sm flex items-center justify-center gap-2 btn-press transition-all hover:bg-primary-hover"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
-            </svg>
-            Открыть в Happ
-          </a>
-        )}
-
-        <a
-          href={v2raytunDeepLink(subscriptionUrl)}
-          className="w-full h-12 rounded-xl bg-card-hover border border-border text-foreground font-semibold text-sm flex items-center justify-center gap-2 btn-press transition-all hover:bg-card-active"
+        <button
+          onClick={openHapp}
+          className="w-full h-12 rounded-xl bg-primary text-white font-semibold text-sm flex items-center justify-center gap-2 btn-press transition-all hover:bg-primary-hover"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="5 3 19 12 5 21 5 3" />
+            <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
           </svg>
-          Открыть в V2RayTun
-        </a>
+          Открыть в Happ
+        </button>
 
         <button
           onClick={handleCopy}
@@ -131,12 +139,10 @@ export default function SubscriptionCard({ subscriptionUrl, happCryptoLink, subs
 
       {/* App store links */}
       <div className="mt-4 pt-4 border-t border-border/30">
-        <p className="text-muted text-[11px] mb-2">Нет приложения?</p>
+        <p className="text-muted text-[11px] mb-2">Нет приложения Happ?</p>
         <div className="grid grid-cols-2 gap-2 text-[11px]">
-          <a href="https://apps.apple.com/app/happ-proxy-utility/id6504287215" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Happ · App Store</a>
-          <a href="https://play.google.com/store/apps/details?id=com.happproxy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Happ · Google Play</a>
-          <a href="https://apps.apple.com/app/v2raytun/id6476628951" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">V2RayTun · App Store</a>
-          <a href="https://play.google.com/store/apps/details?id=com.v2raytun.android" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">V2RayTun · Google Play</a>
+          <a href="https://apps.apple.com/app/happ-proxy-utility/id6504287215" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">App Store</a>
+          <a href="https://play.google.com/store/apps/details?id=com.happproxy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google Play</a>
         </div>
       </div>
     </div>
