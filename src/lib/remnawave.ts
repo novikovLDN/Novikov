@@ -4,6 +4,7 @@
  * Endpoints:
  *   POST   /api/users
  *   GET    /api/users/{uuid}
+ *   GET    /api/users (paginated list)
  *   PATCH  /api/users/{uuid}
  *   DELETE /api/users/{uuid}
  *   POST   /api/system/encrypt-happ-crypto-link
@@ -11,19 +12,17 @@
  * Auth: Bearer REMNAWAVE_API_TOKEN.
  * Squad UUID for MainServer: REMNAWAVE_MAINSERVER_SQUAD_UUID.
  *
- * All methods return Promise<T | null>. null means "Remnawave is unreachable
- * or returned a non-recoverable error" — callers should degrade gracefully
- * (show cached data, log a warning, do not crash).
- *
- * The last error from the most recent rwFetch call is stored in
- * lastRwError so admin diagnostics can read it without re-issuing a call.
+ * Stable identification: every local user has a unique 8-char hex
+ * `panel_id` column. We send it to the panel as `username`. The same
+ * panel_id is used for lookups, so a re-run of any provisioning flow
+ * adopts the existing panel user instead of creating a duplicate.
  */
 
 const API_URL = (process.env.REMNAWAVE_API_URL || "https://rmnw.atlassecure.ru").replace(/\/+$/, "");
 const API_TOKEN = process.env.REMNAWAVE_API_TOKEN || "";
 const MAIN_SQUAD = process.env.REMNAWAVE_MAINSERVER_SQUAD_UUID || "2c8eba36-6e74-45b1-af5e-54ea0e65e19d";
 
-const REQUEST_TIMEOUT_MS = 5000;
+const REQUEST_TIMEOUT_MS = 10000;
 const MAX_RETRIES = 2;
 
 let lastRwError: string | null = null;
@@ -42,7 +41,7 @@ export interface RemnawaveUser {
   vlessUuid?: string;
 }
 
-/** Minimal fetch with timeout + retry + exponential backoff. */
+/** Fetch with timeout + retry + exponential backoff. */
 async function rwFetch(path: string, init: RequestInit = {}): Promise<Response | null> {
   if (!API_TOKEN) {
     lastRwError = "REMNAWAVE_API_TOKEN is not set";
@@ -75,15 +74,15 @@ async function rwFetch(path: string, init: RequestInit = {}): Promise<Response |
       lastErr = err;
     }
     if (attempt < MAX_RETRIES) {
-      const backoff = 200 * Math.pow(2, attempt); // 200ms, 400ms
+      const backoff = 250 * Math.pow(2, attempt);
       await new Promise((r) => setTimeout(r, backoff));
     }
   }
-  console.warn(`[REMNAWAVE] ${init.method || "GET"} ${path} failed after ${MAX_RETRIES + 1} attempts:`, lastErr);
+  lastRwError = `${init.method || "GET"} ${path} failed after ${MAX_RETRIES + 1} attempts: ${lastErr}`;
+  console.warn(`[REMNAWAVE] ${lastRwError}`);
   return null;
 }
 
-/** Parse a Remnawave user payload (handles {user: {...}} and bare {...} shapes). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseUser(data: any): RemnawaveUser | null {
   const u = data?.user ?? data?.data ?? data;
@@ -102,144 +101,11 @@ function parseUser(data: any): RemnawaveUser | null {
   };
 }
 
-/**
- * Derive a Remnawave-compatible username from an email.
- *
- * Remnawave 2.7.4 validation: ^[a-zA-Z0-9_-]+$ — only letters, digits,
- * underscores and dashes. NO dots, NO @ signs. We:
- *  - lowercase the address
- *  - replace anything outside [a-z0-9_-] (including ".", "@", "+") with "_"
- *  - collapse repeated underscores to a single "_"
- *  - trim leading/trailing underscores
- *  - cap at 32 chars
- *  - if truncated, append a 4-char sha1 suffix of the full email so two
- *    very-long addresses with the same first 27 chars don't collide
- *
- * Examples:
- *   "Foo.Bar+spam@gmail.com" → "foo_bar_spam_gmail_com"
- *   "user@example.com"        → "user_example_com"
- *   "very-long-customer-name+report@some-corp.example.org"
- *                             → "very-long-customer-name_repo_a3f8"
- */
-function makeUsername(email: string): string {
-  const cleaned = email
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^[_-]+|[_-]+$/g, "");
-  if (cleaned.length === 0) return "user_unnamed";
-  if (cleaned.length <= 32) return cleaned;
-  const crypto = require("crypto") as typeof import("crypto");
-  const suffix = crypto.createHash("sha1").update(email.toLowerCase()).digest("hex").slice(0, 4);
-  return `${cleaned.slice(0, 27)}_${suffix}`;
-}
-
-/** Create a Remnawave user with a 24h unlimited trial on the MainServer squad. */
-export async function createTrialUser(email: string, panelId?: string | null): Promise<RemnawaveUser | null> {
-  const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-  return createUserWithExpire(email, expireAt, "site signup, trial 1d unlimited", panelId);
-}
-
-/**
- * Create a Remnawave user with an arbitrary expireAt (used by admin bulk
- * migration of legacy users and by admin grant-subscription).
- */
-/**
- * Idempotent create-or-adopt for a Remnawave user, keyed by a stable
- * 8-char panel_id we control on both sides. Email is metadata only —
- * the panel index is the username.
- *
- * Flow:
- *   1. GET /api/users/by-username/{panelId} — if the panel already has
- *      this user, PATCH its expireAt to the requested value and return.
- *      No POST is attempted, so no duplicate can be created.
- *   2. Else POST /api/users with username=panelId. On success — return.
- *   3. Else if the panel responds "already exists" (A019/409/422), one
- *      of the very rare concurrent calls beat us to it; re-run step 1
- *      and adopt.
- *
- * Because panelId is unique per local user, two concurrent provisions
- * of the same local user can only collide on the panel's unique
- * username constraint — they cannot produce two different panel users.
- */
-export async function createUserWithExpire(
-  email: string,
-  expireAtIso: string,
-  description?: string,
-  panelId?: string | null
-): Promise<RemnawaveUser | null> {
-  const username = (panelId && panelId.trim()) || makeUsername(email);
-
-  // Step 1: pre-check. If the panel has us already → adopt without POST.
-  const preExisting = await getUserByUsername(username);
-  if (preExisting?.uuid) {
-    const updated = await setUserExpire(preExisting.uuid, expireAtIso);
-    if (updated) {
-      console.log(`[REMNAWAVE] adopted ${username} (uuid=${preExisting.uuid.slice(0, 8)}…) without POST`);
-      return updated;
-    }
-    return preExisting;
-  }
-
-  // Step 2: POST.
-  const body = {
-    username,
-    email,
-    telegramId: null,
-    expireAt: expireAtIso,
-    trafficLimitBytes: 0,
-    trafficLimitStrategy: "NO_RESET",
-    activeInternalSquads: [MAIN_SQUAD],
-    internalSquads: [MAIN_SQUAD],
-    description: description || "site admin issue",
-  };
-
-  const res = await rwFetch("/api/users", { method: "POST", body: JSON.stringify(body) });
-  if (!res) return null;
-  if (res.ok) {
-    const data = await res.json().catch(() => null);
-    return parseUser(data);
-  }
-
-  const bodyText = await res.text().catch(() => "");
-  const alreadyExists =
-    bodyText.includes('"A019"') ||
-    bodyText.toLowerCase().includes("already exists") ||
-    res.status === 409 ||
-    res.status === 422;
-
-  if (alreadyExists) {
-    // Step 3: race-loser path — another worker created us a moment ago.
-    const existing = (await getUserByUsername(username)) || (await getUserByEmail(email));
-    if (existing?.uuid) {
-      const updated = await setUserExpire(existing.uuid, expireAtIso);
-      console.log(`[REMNAWAVE] race-loser adopted ${username} uuid=${existing.uuid.slice(0, 8)}…`);
-      return updated || existing;
-    }
-    lastRwError = `createUser ${res.status} (already exists) but lookup failed for username=${username}`;
-    console.warn(`[REMNAWAVE] ${lastRwError}`);
-    return null;
-  }
-
-  lastRwError = `createUser HTTP ${res.status}: ${bodyText.slice(0, 200)}`;
-  console.warn("[REMNAWAVE] createUser non-ok:", res.status, bodyText.slice(0, 200));
-  return null;
-}
-
-/** Get a Remnawave user by UUID. */
-export async function getUser(uuid: string): Promise<RemnawaveUser | null> {
-  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}`);
-  if (!res || !res.ok) return null;
-  const data = await res.json().catch(() => null);
-  return parseUser(data);
-}
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function extractUserList(data: any): RemnawaveUser[] {
   if (!data) return [];
   if (Array.isArray(data)) return data.map(parseUser).filter((u): u is RemnawaveUser => !!u);
-  const candidates = [data.users, data.data?.users, data.data, data.items, data.results];
+  const candidates = [data.users, data.data?.users, data.data, data.items, data.results, data.response?.users];
   for (const c of candidates) {
     if (Array.isArray(c)) return c.map(parseUser).filter((u): u is RemnawaveUser => !!u);
   }
@@ -247,14 +113,15 @@ function extractUserList(data: any): RemnawaveUser[] {
   return single ? [single] : [];
 }
 
-/**
- * Look up an existing Remnawave user by username, trying every path
- * variation observed across Remnawave builds:
- *   /api/users/by-username/{u}
- *   /api/users/username/{u}
- *   /api/users?username={u}
- *   /api/users?search={u}
- */
+/** GET /api/users/{uuid}. Returns null on 404 or unreachable panel. */
+export async function getUser(uuid: string): Promise<RemnawaveUser | null> {
+  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}`);
+  if (!res || !res.ok) return null;
+  const data = await res.json().catch(() => null);
+  return parseUser(data);
+}
+
+/** Look up by username — tries every observed path variant. */
 export async function getUserByUsername(username: string): Promise<RemnawaveUser | null> {
   for (const path of [
     `/api/users/by-username/${encodeURIComponent(username)}`,
@@ -272,7 +139,7 @@ export async function getUserByUsername(username: string): Promise<RemnawaveUser
   return null;
 }
 
-/** Look up an existing Remnawave user by email — same path variation set. */
+/** Look up by email — first hit wins. */
 export async function getUserByEmail(email: string): Promise<RemnawaveUser | null> {
   for (const path of [
     `/api/users/by-email/${encodeURIComponent(email)}`,
@@ -290,31 +157,31 @@ export async function getUserByEmail(email: string): Promise<RemnawaveUser | nul
   return null;
 }
 
-/**
- * Extend a Remnawave user's expireAt to max(current, now) + days.
- * Returns the updated user, or null on failure.
- */
-export async function extendUserExpire(uuid: string, days: number): Promise<RemnawaveUser | null> {
-  const current = await getUser(uuid);
-  if (!current) return null;
-
-  const currentEnd = new Date(current.expireAt || 0).getTime();
-  const base = Math.max(currentEnd, Date.now());
-  const newExpire = new Date(base + days * 24 * 60 * 60 * 1000).toISOString();
-
-  return setUserExpire(uuid, newExpire);
+/** Return ALL panel users with matching email (dedup by uuid). */
+export async function getAllUsersByEmail(email: string): Promise<RemnawaveUser[]> {
+  const found: RemnawaveUser[] = [];
+  const seen = new Set<string>();
+  for (const path of [
+    `/api/users/by-email/${encodeURIComponent(email)}`,
+    `/api/users?email=${encodeURIComponent(email)}`,
+    `/api/users?search=${encodeURIComponent(email)}`,
+  ]) {
+    const res = await rwFetch(path);
+    if (!res?.ok) continue;
+    const data = await res.json().catch(() => null);
+    const list = extractUserList(data);
+    for (const u of list) {
+      if (!u.uuid || seen.has(u.uuid)) continue;
+      if ((u.email || "").toLowerCase() === email.toLowerCase()) {
+        found.push(u);
+        seen.add(u.uuid);
+      }
+    }
+  }
+  return found;
 }
 
-/**
- * Set a Remnawave user's expireAt to an exact ISO timestamp.
- *
- * This is the preferred way to keep Remnawave in sync with the local DB
- * after the local subscription_end has already been computed: the caller
- * does the max(current, now) + duration math against its own
- * subscription_end and then mirrors the exact target here. Avoids drift
- * between the two stores caused by minute-vs-day rounding or by Remnawave
- * having a slightly different current expireAt.
- */
+/** PATCH /api/users/{uuid} with a literal expireAt. */
 export async function setUserExpire(uuid: string, expireAtIso: string): Promise<RemnawaveUser | null> {
   const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}`, {
     method: "PATCH",
@@ -325,16 +192,21 @@ export async function setUserExpire(uuid: string, expireAtIso: string): Promise<
   return parseUser(data);
 }
 
-/** Delete a Remnawave user. Use only from admin tools. */
+/** Convenience: max(current, now) + days, then setUserExpire. */
+export async function extendUserExpire(uuid: string, days: number): Promise<RemnawaveUser | null> {
+  const current = await getUser(uuid);
+  if (!current) return null;
+  const base = Math.max(new Date(current.expireAt || 0).getTime(), Date.now());
+  return setUserExpire(uuid, new Date(base + days * 24 * 60 * 60 * 1000).toISOString());
+}
+
+/** DELETE /api/users/{uuid}. */
 export async function deleteUser(uuid: string): Promise<boolean> {
   const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}`, { method: "DELETE" });
   return Boolean(res?.ok);
 }
 
-/**
- * Encrypt a plain subscription URL into a happ://crypto/... deep link.
- * Returns null if the endpoint is unavailable — callers should hide the Happ button.
- */
+/** POST /api/system/encrypt-happ-crypto-link. Returns null if unavailable. */
 export async function encryptHappLink(subscriptionUrl: string): Promise<string | null> {
   const res = await rwFetch("/api/system/encrypt-happ-crypto-link", {
     method: "POST",
@@ -347,8 +219,75 @@ export async function encryptHappLink(subscriptionUrl: string): Promise<string |
   return anyData?.cryptoLink || anyData?.link || anyData?.data?.cryptoLink || anyData?.data?.link || null;
 }
 
+/**
+ * Idempotent create-or-adopt keyed by panel_id (username).
+ *   1. GET by panel_id → adopt + PATCH expireAt.
+ *   2. POST with username=panel_id.
+ *   3. On A019 / "already exists": re-lookup by username, then by
+ *      email, and adopt.
+ */
+export async function createUserWithExpire(
+  email: string,
+  expireAtIso: string,
+  description?: string,
+  panelId?: string | null
+): Promise<RemnawaveUser | null> {
+  const username = (panelId && panelId.trim()) || email.replace(/[^a-z0-9_-]/gi, "_").slice(0, 32);
+
+  const existing = await getUserByUsername(username);
+  if (existing?.uuid) {
+    const updated = await setUserExpire(existing.uuid, expireAtIso);
+    return updated || existing;
+  }
+
+  const body = {
+    username,
+    email,
+    telegramId: null,
+    expireAt: expireAtIso,
+    trafficLimitBytes: 0,
+    trafficLimitStrategy: "NO_RESET",
+    activeInternalSquads: [MAIN_SQUAD],
+    internalSquads: [MAIN_SQUAD],
+    description: description || "atlas-secure site",
+  };
+
+  const res = await rwFetch("/api/users", { method: "POST", body: JSON.stringify(body) });
+  if (!res) return null;
+  if (res.ok) {
+    const data = await res.json().catch(() => null);
+    return parseUser(data);
+  }
+
+  const bodyText = await res.text().catch(() => "");
+  const alreadyExists =
+    bodyText.includes('"A019"') ||
+    bodyText.toLowerCase().includes("already exists") ||
+    res.status === 409 ||
+    res.status === 422;
+
+  if (alreadyExists) {
+    const raceWinner = (await getUserByUsername(username)) || (await getUserByEmail(email));
+    if (raceWinner?.uuid) {
+      const updated = await setUserExpire(raceWinner.uuid, expireAtIso);
+      return updated || raceWinner;
+    }
+  }
+
+  lastRwError = `createUser HTTP ${res.status}: ${bodyText.slice(0, 200)}`;
+  console.warn("[REMNAWAVE] createUser non-ok:", res.status, bodyText.slice(0, 200));
+  return null;
+}
+
+/** 24h unlimited trial wrapper. */
+export async function createTrialUser(email: string, panelId?: string | null): Promise<RemnawaveUser | null> {
+  const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  return createUserWithExpire(email, expireAt, "site signup, trial 1d unlimited", panelId);
+}
+
 export const REMNAWAVE_CONFIG = {
   apiUrl: API_URL,
   mainSquadUuid: MAIN_SQUAD,
   trialDurationMs: 24 * 60 * 60 * 1000,
+  isConfigured: Boolean(API_TOKEN),
 };
