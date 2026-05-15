@@ -145,14 +145,25 @@ export async function createTrialUser(email: string): Promise<RemnawaveUser | nu
  * Create a Remnawave user with an arbitrary expireAt (used by admin bulk
  * migration of legacy users and by admin grant-subscription).
  */
+/**
+ * Idempotent create-or-adopt for a Remnawave user.
+ *
+ * 1. Try POST /api/users with username derived from email.
+ * 2. On 400/A019/409/422 (panel says "already exists"): look the user up
+ *    by username, then by email. If found — adopt that uuid, PATCH the
+ *    expireAt to the requested value, and return the result.
+ * 3. If lookup endpoints aren't available in this Remnawave version, fall
+ *    back to retrying create with a short hex suffix on the username.
+ *
+ * This means re-running the bulk migration (or the lazy provisioner) for
+ * users that were left half-created by previous attempts will adopt them
+ * cleanly instead of failing with A019 forever.
+ */
 export async function createUserWithExpire(
   email: string,
   expireAtIso: string,
   description?: string
 ): Promise<RemnawaveUser | null> {
-  // Build base body. On username collision (409), retry with a short hex
-  // suffix appended to the username so administrators can still recognize
-  // the owner from the panel.
   const baseUsername = makeUsername(email);
   const buildBody = (username: string) => ({
     username,
@@ -166,13 +177,50 @@ export async function createUserWithExpire(
     description: description || "site admin issue",
   });
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const username =
-      attempt === 0
-        ? baseUsername
-        : `${baseUsername.slice(0, 27)}_${(require("crypto") as typeof import("crypto"))
-            .randomBytes(2)
-            .toString("hex")}`;
+  // Attempt 1: straight create
+  const firstRes = await rwFetch("/api/users", {
+    method: "POST",
+    body: JSON.stringify(buildBody(baseUsername)),
+  });
+  if (!firstRes) return null;
+  if (firstRes.ok) {
+    const data = await firstRes.json().catch(() => null);
+    return parseUser(data);
+  }
+
+  const bodyText = await firstRes.text().catch(() => "");
+  const alreadyExists =
+    bodyText.includes('"A019"') ||
+    bodyText.toLowerCase().includes("already exists") ||
+    firstRes.status === 409 ||
+    firstRes.status === 422;
+
+  if (!alreadyExists) {
+    lastRwError = `createUser HTTP ${firstRes.status}: ${bodyText.slice(0, 200)}`;
+    console.warn("[REMNAWAVE] createUser non-ok:", firstRes.status, bodyText.slice(0, 200));
+    return null;
+  }
+
+  // Attempt 2: adopt the existing panel user by username, then by email.
+  const existing =
+    (await getUserByUsername(baseUsername)) || (await getUserByEmail(email));
+  if (existing?.uuid) {
+    const updated = await setUserExpire(existing.uuid, expireAtIso);
+    if (updated) {
+      console.log(`[REMNAWAVE] adopted existing panel user ${existing.uuid.slice(0, 8)}… for ${email}`);
+      return updated;
+    }
+    // PATCH failed but we still have the existing user — return as-is.
+    console.warn(`[REMNAWAVE] adopted ${email} but PATCH expireAt failed; returning current state`);
+    return existing;
+  }
+
+  // Attempt 3: lookup endpoints unavailable — retry create with hex suffix.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const suffix = (require("crypto") as typeof import("crypto"))
+      .randomBytes(2)
+      .toString("hex");
+    const username = `${baseUsername.slice(0, 27)}_${suffix}`;
     const res = await rwFetch("/api/users", {
       method: "POST",
       body: JSON.stringify(buildBody(username)),
@@ -180,16 +228,18 @@ export async function createUserWithExpire(
     if (!res) return null;
     if (res.ok) {
       const data = await res.json().catch(() => null);
+      console.log(`[REMNAWAVE] created ${email} with suffixed username ${username}`);
       return parseUser(data);
     }
-    if (res.status === 409 || res.status === 422) {
-      // Username (or email) already exists — retry with a suffix.
-      console.warn(`[REMNAWAVE] createUser ${res.status} for ${username} — retrying with hex suffix`);
+    const t = await res.text().catch(() => "");
+    if (
+      attempt < 2 &&
+      (t.includes('"A019"') || t.toLowerCase().includes("already exists") || res.status === 409 || res.status === 422)
+    ) {
       continue;
     }
-    const text = await res.text().catch(() => "");
-    lastRwError = `createUser HTTP ${res.status}: ${text.slice(0, 200)}`;
-    console.warn("[REMNAWAVE] createUser non-ok:", res.status, text.slice(0, 200));
+    lastRwError = `createUser HTTP ${res.status}: ${t.slice(0, 200)}`;
+    console.warn("[REMNAWAVE] createUser suffix retry non-ok:", res.status, t.slice(0, 200));
     return null;
   }
   lastRwError = `createUser exhausted retries for ${email}`;
@@ -203,6 +253,61 @@ export async function getUser(uuid: string): Promise<RemnawaveUser | null> {
   if (!res || !res.ok) return null;
   const data = await res.json().catch(() => null);
   return parseUser(data);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function extractUserList(data: any): RemnawaveUser[] {
+  if (!data) return [];
+  if (Array.isArray(data)) return data.map(parseUser).filter((u): u is RemnawaveUser => !!u);
+  const candidates = [data.users, data.data?.users, data.data, data.items, data.results];
+  for (const c of candidates) {
+    if (Array.isArray(c)) return c.map(parseUser).filter((u): u is RemnawaveUser => !!u);
+  }
+  const single = parseUser(data);
+  return single ? [single] : [];
+}
+
+/**
+ * Look up an existing Remnawave user by username, trying every path
+ * variation observed across Remnawave builds:
+ *   /api/users/by-username/{u}
+ *   /api/users/username/{u}
+ *   /api/users?username={u}
+ *   /api/users?search={u}
+ */
+export async function getUserByUsername(username: string): Promise<RemnawaveUser | null> {
+  for (const path of [
+    `/api/users/by-username/${encodeURIComponent(username)}`,
+    `/api/users/username/${encodeURIComponent(username)}`,
+    `/api/users?username=${encodeURIComponent(username)}`,
+    `/api/users?search=${encodeURIComponent(username)}`,
+  ]) {
+    const res = await rwFetch(path);
+    if (!res?.ok) continue;
+    const data = await res.json().catch(() => null);
+    const list = extractUserList(data);
+    const match = list.find((u) => u.username === username) || list[0];
+    if (match) return match;
+  }
+  return null;
+}
+
+/** Look up an existing Remnawave user by email — same path variation set. */
+export async function getUserByEmail(email: string): Promise<RemnawaveUser | null> {
+  for (const path of [
+    `/api/users/by-email/${encodeURIComponent(email)}`,
+    `/api/users/email/${encodeURIComponent(email)}`,
+    `/api/users?email=${encodeURIComponent(email)}`,
+    `/api/users?search=${encodeURIComponent(email)}`,
+  ]) {
+    const res = await rwFetch(path);
+    if (!res?.ok) continue;
+    const data = await res.json().catch(() => null);
+    const list = extractUserList(data);
+    const match = list.find((u) => (u.email || "").toLowerCase() === email.toLowerCase()) || list[0];
+    if (match) return match;
+  }
+  return null;
 }
 
 /**
