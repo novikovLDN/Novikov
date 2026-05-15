@@ -173,6 +173,16 @@ export async function initDb(): Promise<void> {
 
     CREATE INDEX IF NOT EXISTS idx_referral_rewards_referrer ON referral_rewards(referrer_id);
     CREATE UNIQUE INDEX IF NOT EXISTS idx_referral_rewards_unique ON referral_rewards(buyer_id, purchase_id);
+
+    CREATE TABLE IF NOT EXISTS trial_blocklist (
+      email_normalized TEXT PRIMARY KEY,
+      ip TEXT,
+      device_fingerprint TEXT,
+      trial_count INTEGER NOT NULL DEFAULT 1,
+      first_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_trial_blocklist_ip ON trial_blocklist(ip, first_seen_at);
   `);
 
   // ─── Migrations: add columns that may be missing on older DBs ───
@@ -188,6 +198,20 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_plan TEXT NOT NULL DEFAULT 'trial'",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS balance INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE balance_transactions ADD COLUMN IF NOT EXISTS synced_to_bot BOOLEAN NOT NULL DEFAULT TRUE",
+    // ── Remnawave integration ──
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS remnawave_user_uuid TEXT UNIQUE",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS remnawave_short_uuid TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_url TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS happ_crypto_link TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS crypto_link_updated_at TIMESTAMPTZ",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used_at TIMESTAMPTZ",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ",
+    // ── Orders: extend payments table with Remnawave/YooKassa lifecycle fields ──
+    "ALTER TABLE payments ADD COLUMN IF NOT EXISTS applied_to_remnawave_at TIMESTAMPTZ",
+    "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_logged_at TIMESTAMPTZ",
+    "ALTER TABLE payments ADD COLUMN IF NOT EXISTS amount_kopeks INTEGER",
+    "ALTER TABLE payments ADD COLUMN IF NOT EXISTS plan_code TEXT",
   ];
 
   for (const sql of migrations) {
