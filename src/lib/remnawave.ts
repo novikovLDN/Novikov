@@ -226,7 +226,17 @@ export async function deleteUser(uuid: string): Promise<boolean> {
   return Boolean(res?.ok);
 }
 
-/** POST /api/system/encrypt-happ-crypto-link. Returns null if unavailable. */
+/**
+ * POST /api/system/encrypt-happ-crypto-link. Returns the full
+ * happ://crypto/<token> URL (Happ's encrypted-subscription deep link).
+ *
+ * Remnawave 2.7.x wraps the answer in {response: {...}}; older builds
+ * return the field at the top level. Some builds prefix the value
+ * with "happ://crypto/" themselves, others return just the token —
+ * we normalise to a complete happ:// URL.
+ *
+ * Returns null only when the panel is unreachable / returns no link.
+ */
 export async function encryptHappLink(subscriptionUrl: string): Promise<string | null> {
   const res = await rwFetch("/api/system/encrypt-happ-crypto-link", {
     method: "POST",
@@ -234,9 +244,28 @@ export async function encryptHappLink(subscriptionUrl: string): Promise<string |
   });
   if (!res || !res.ok) return null;
   const data = await res.json().catch(() => null);
+  if (!data) return null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const anyData = data as any;
-  return anyData?.cryptoLink || anyData?.link || anyData?.data?.cryptoLink || anyData?.data?.link || null;
+  const d = data as any;
+  const candidates = [
+    d.response?.subscriptionCryptoLink,
+    d.response?.cryptoLink,
+    d.response?.link,
+    d.subscriptionCryptoLink,
+    d.cryptoLink,
+    d.link,
+    d.data?.subscriptionCryptoLink,
+    d.data?.cryptoLink,
+    d.data?.link,
+  ];
+  let raw = candidates.find((v) => typeof v === "string" && v.length > 0) as string | undefined;
+  if (!raw) {
+    console.warn("[REMNAWAVE] encrypt-happ-crypto-link: no link field in response", JSON.stringify(data).slice(0, 300));
+    return null;
+  }
+  // Normalize: if panel returned just the token, prepend the scheme.
+  if (!raw.startsWith("happ://")) raw = `happ://crypto/${raw}`;
+  return raw;
 }
 
 /**

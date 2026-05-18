@@ -13,17 +13,16 @@ interface SubscriptionCardProps {
 /**
  * Resolve the deep link that opens Happ with the user's subscription
  * pre-filled. Preference order:
- *   1. happ://crypto/<encrypted>  — encrypted by Remnawave panel, hides
- *      the plain URL from the user. This is what /api/system/encrypt-
- *      happ-crypto-link returns.
- *   2. happ://add/<base64url(url)> — Happ's plain-import scheme,
- *      always works if subscriptionUrl is known.
+ *   1. happ://crypto/<encrypted>   — issued by Remnawave's encrypt-
+ *      happ-crypto-link endpoint. Hides the plain URL from the user.
+ *   2. happ://add/<base64(url)>    — Happ's standard plain-import
+ *      scheme. Uses regular base64 (NOT url-safe) because that's what
+ *      Happ's iOS / Android parsers expect.
  */
 function happDeepLink(subscriptionUrl: string, happCryptoLink: string | null): string {
-  if (happCryptoLink) return happCryptoLink;
-  const b64 = typeof window !== "undefined"
-    ? btoa(subscriptionUrl).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")
-    : Buffer.from(subscriptionUrl).toString("base64url");
+  if (happCryptoLink && happCryptoLink.startsWith("happ://")) return happCryptoLink;
+  const b64 =
+    typeof window !== "undefined" ? btoa(subscriptionUrl) : Buffer.from(subscriptionUrl).toString("base64");
   return `happ://add/${b64}`;
 }
 
