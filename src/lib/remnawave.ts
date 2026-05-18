@@ -85,11 +85,13 @@ async function rwFetch(path: string, init: RequestInit = {}): Promise<Response |
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseUser(data: any): RemnawaveUser | null {
-  const u = data?.user ?? data?.data ?? data;
+  // Remnawave 2.7.x wraps responses in {response: {...}}. Try that
+  // envelope first, then fall back to bare / data / user shapes.
+  const u = data?.response?.user ?? data?.response ?? data?.user ?? data?.data ?? data;
   if (!u || typeof u !== "object" || !u.uuid) return null;
   return {
     uuid: u.uuid,
-    shortUuid: u.shortUuid || u.short_uuid || "",
+    shortUuid: u.shortUuid || u.short_uuid || u.subscriptionUuid || "",
     username: u.username || "",
     email: u.email ?? null,
     subscriptionUrl: u.subscriptionUrl || u.subscription_url || "",
@@ -105,7 +107,15 @@ function parseUser(data: any): RemnawaveUser | null {
 function extractUserList(data: any): RemnawaveUser[] {
   if (!data) return [];
   if (Array.isArray(data)) return data.map(parseUser).filter((u): u is RemnawaveUser => !!u);
-  const candidates = [data.users, data.data?.users, data.data, data.items, data.results, data.response?.users];
+  const candidates = [
+    data.response?.users,
+    data.response,
+    data.users,
+    data.data?.users,
+    data.data,
+    data.items,
+    data.results,
+  ];
   for (const c of candidates) {
     if (Array.isArray(c)) return c.map(parseUser).filter((u): u is RemnawaveUser => !!u);
   }
