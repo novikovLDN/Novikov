@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === "revoke-subscription") {
-      // Remove from Xray server
+      // Remove from Xray server (legacy)
       if (user.xrayUuid) {
         try {
           await xrayRemoveUser(user.xrayUuid);
@@ -140,9 +140,22 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      // Push expireAt=now to Remnawave so the panel immediately stops
+      // serving this user. The panel user record is KEPT so a future
+      // grant-subscription can re-enable via setUserExpire to a future
+      // date — no need to re-create / re-issue subscriptionUrl.
+      const now = new Date();
+      if (user.remnawaveUserUuid) {
+        try {
+          await setUserExpire(user.remnawaveUserUuid, now.toISOString());
+        } catch (err) {
+          console.error(`[ADMIN] Remnawave setUserExpire(now) failed for ${user.email}`, err);
+        }
+      }
+
       // Set subscription to now (expired), clear VPN key, reset plan
       await updateUser(userId, {
-        subscriptionEnd: new Date().toISOString(),
+        subscriptionEnd: now.toISOString(),
         subscriptionPlan: "trial",
         xrayUuid: null,
         vpnKey: null,

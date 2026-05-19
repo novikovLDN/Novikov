@@ -98,7 +98,7 @@ export async function issueTrial(
        crypto_link_updated_at = $5,
        trial_used_at = NOW(),
        subscription_end = $6
-     WHERE id = $7`,
+     WHERE id = $7 AND remnawave_user_uuid IS NULL`,
     [
       rwUser.uuid,
       rwUser.shortUuid || null,

@@ -696,8 +696,13 @@ export async function userHasPassword(email: string): Promise<boolean> {
 // ─── Expired Subscription Cleanup ───────────────────────────────
 
 export async function getExpiredUsersWithKeys(): Promise<UserRecord[]> {
+  // Pick anyone whose subscription_end is in the past AND who still has
+  // an active key in either backend (Xray or Remnawave). Both backends
+  // are cleaned up in the same loop below.
   const result = await pool.query(
-    "SELECT * FROM users WHERE xray_uuid IS NOT NULL AND subscription_end <= NOW()"
+    `SELECT * FROM users
+     WHERE subscription_end <= NOW()
+       AND (xray_uuid IS NOT NULL OR remnawave_user_uuid IS NOT NULL)`
   );
   return result.rows.map(rowToUser);
 }
@@ -707,18 +712,36 @@ export async function cleanupExpiredUsers(): Promise<{ cleaned: number; errors: 
   let cleaned = 0;
   let errors = 0;
 
+  // Lazy import to avoid Remnawave being loaded into every db.ts consumer.
+  const { setUserExpire } = await import("./remnawave");
+
   for (const user of expired) {
     try {
+      // ── Xray legacy ──
       if (user.xrayUuid) {
         const removed = await xrayRemoveUser(user.xrayUuid);
         if (!removed) {
           console.error(`[CLEANUP] Failed to remove Xray user: ${user.xrayUuid} (${user.email})`);
-          errors++;
-          continue;
+          // continue anyway — Remnawave side may still need cleanup
         }
       }
+
+      // ── Remnawave: force panel expireAt = local subscription_end ──
+      // The panel auto-disables when expireAt is in the past, so this
+      // guarantees the user can no longer use the subscription. We keep
+      // the panel user (and remnawave_user_uuid locally) so a renewal
+      // can re-enable instantly via setUserExpire to a future date.
+      if (user.remnawaveUserUuid) {
+        const pushed = await setUserExpire(user.remnawaveUserUuid, new Date(user.subscriptionEnd).toISOString());
+        if (!pushed) {
+          console.warn(`[CLEANUP] Remnawave setUserExpire failed for ${user.email} (uuid=${user.remnawaveUserUuid.slice(0, 8)}…); panel may be stale`);
+        }
+      }
+
+      // Clear legacy Xray cache on the user row. Remnawave fields stay
+      // populated so renewals can re-enable without re-creating.
       await updateUser(user.id, { xrayUuid: null, vpnKey: null });
-      console.log(`[CLEANUP] Deactivated expired key for ${user.email}`);
+      console.log(`[CLEANUP] Deactivated expired keys for ${user.email}`);
       cleaned++;
     } catch (error) {
       console.error(`[CLEANUP] Error cleaning up user ${user.email}:`, error);
