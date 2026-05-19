@@ -32,6 +32,15 @@ interface ResetResult {
   }>;
 }
 
+interface ReconcileResult {
+  scanned: number;
+  applied: number;
+  canceled: number;
+  still_pending: number;
+  failed: number;
+  details: Array<{ payment_id: string; user_id: string; outcome: string }>;
+}
+
 /**
  * Admin-only utility card. Single-button trigger for the bulk
  * migration of every locally-active subscriber into Remnawave.
@@ -45,6 +54,8 @@ export default function RemnawaveMigrationCard() {
   const [result, setResult] = useState<MigrationResult | null>(null);
   const [cleanupResult, setCleanupResult] = useState<CleanupResult | null>(null);
   const [resetResult, setResetResult] = useState<ResetResult | null>(null);
+  const [reconciling, setReconciling] = useState(false);
+  const [reconcileResult, setReconcileResult] = useState<ReconcileResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const run = async () => {
@@ -63,6 +74,22 @@ export default function RemnawaveMigrationCard() {
       setError("Ошибка сети");
     } finally {
       setRunning(false);
+    }
+  };
+
+  const runReconcile = async () => {
+    setReconciling(true);
+    setReconcileResult(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/payments/reconcile-pending", { method: "POST" });
+      const data = await res.json();
+      if (data.success) setReconcileResult(data.data as ReconcileResult);
+      else setError(data.error || "Ошибка reconcile");
+    } catch {
+      setError("Ошибка сети");
+    } finally {
+      setReconciling(false);
     }
   };
 
@@ -177,6 +204,67 @@ export default function RemnawaveMigrationCard() {
           )}
         </div>
       )}
+
+      {/* ── Reconcile pending payments ── */}
+      <div className="mt-4 pt-4 border-t border-border/30">
+        <p className="text-xs text-muted mb-3 leading-relaxed">
+          Опросить YooKassa по всем pending-платежам за последние 7 дней. Если оплата прошла, но webhook не дошёл — подписка будет выдана сейчас.
+        </p>
+        <button
+          onClick={runReconcile}
+          disabled={reconciling}
+          className="w-full h-10 rounded-xl bg-success/10 border border-success/30 text-success font-semibold text-xs btn-press disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-success/15"
+        >
+          {reconciling ? (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="animate-spin">
+                <path d="M21 12a9 9 0 11-6.219-8.56" strokeLinecap="round" />
+              </svg>
+              Опрос YooKassa…
+            </>
+          ) : (
+            <>✓ Подтянуть оплаченные подписки</>
+          )}
+        </button>
+
+        {reconcileResult && (
+          <div className="mt-3 space-y-2">
+            <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
+              <div className="bg-card-hover rounded-lg p-2">
+                <div className="text-base font-bold tabular-nums">{reconcileResult.scanned}</div>
+                <div className="text-muted">Опрошено</div>
+              </div>
+              <div className="bg-success/10 rounded-lg p-2">
+                <div className="text-base font-bold tabular-nums text-success">{reconcileResult.applied}</div>
+                <div className="text-muted">Выдано</div>
+              </div>
+              <div className="bg-card-hover rounded-lg p-2">
+                <div className="text-base font-bold tabular-nums">{reconcileResult.still_pending}</div>
+                <div className="text-muted">В ожидании</div>
+              </div>
+              <div className="bg-danger/10 rounded-lg p-2">
+                <div className="text-base font-bold tabular-nums text-danger">{reconcileResult.failed}</div>
+                <div className="text-muted">Ошибки</div>
+              </div>
+            </div>
+            {reconcileResult.details.length > 0 && (
+              <details>
+                <summary className="text-xs text-muted cursor-pointer hover:text-foreground">
+                  Детали ({reconcileResult.details.length})
+                </summary>
+                <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                  {reconcileResult.details.map((d) => (
+                    <div key={d.payment_id} className="text-[11px] py-1 px-2 bg-card-hover rounded flex justify-between gap-2">
+                      <span className="truncate font-mono">{d.payment_id.slice(0, 8)}…</span>
+                      <span className="text-muted shrink-0">{d.outcome}</span>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ── NUCLEAR full reset ── */}
       <div className="mt-4 pt-4 border-t border-danger/30">
