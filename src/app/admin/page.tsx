@@ -19,6 +19,10 @@ interface UserInfo {
   referrals: number;
   paidReferrals: number;
   isActive: boolean;
+  panelId: string | null;
+  remnawaveUserUuid: string | null;
+  subscriptionUrl: string | null;
+  happCryptoLink: string | null;
 }
 
 interface Stats {
@@ -500,6 +504,8 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
   const [regenLoading, setRegenLoading] = useState(false);
   const [regenSuccess, setRegenSuccess] = useState(false);
 
+  const [keyCopied, setKeyCopied] = useState(false);
+
   const [notifTitle, setNotifTitle] = useState("");
   const [notifMessage, setNotifMessage] = useState("");
   const [notifSending, setNotifSending] = useState(false);
@@ -691,6 +697,70 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
               </span>
             </div>
           )}
+        </div>
+
+        {/* Remnawave subscription key */}
+        <div className="bg-background border border-border/50 rounded-xl p-4">
+          <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="8" cy="15" r="4" />
+              <path d="M10.85 12.15L19 4M18 5l2 2M15 8l2 2" />
+            </svg>
+            Ключ подписки (Remnawave)
+          </h4>
+
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] text-muted">panel_id</span>
+              <span className="text-[11px] font-mono text-foreground">{user.panelId || "—"}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] text-muted">remnawave uuid</span>
+              <span className="text-[11px] font-mono text-foreground truncate max-w-[180px]">{user.remnawaveUserUuid || "—"}</span>
+            </div>
+
+            {user.subscriptionUrl ? (
+              <div>
+                <span className="text-[11px] text-muted">subscription URL</span>
+                <div className="mt-1 flex items-stretch gap-2">
+                  <code className="flex-1 text-[10px] font-mono break-all bg-card-hover text-foreground/90 p-2 rounded-lg leading-snug">
+                    {user.subscriptionUrl}
+                  </code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard?.writeText(user.subscriptionUrl || "").catch(() => {});
+                      setKeyCopied(true);
+                      setTimeout(() => setKeyCopied(false), 2000);
+                    }}
+                    className="shrink-0 w-10 rounded-lg bg-primary text-white flex items-center justify-center btn-press hover:bg-primary-hover transition-colors"
+                    title="Скопировать ключ"
+                  >
+                    {keyCopied ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    ) : (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {user.happCryptoLink && (
+                  <a
+                    href={user.happCryptoLink}
+                    className="inline-flex items-center gap-1.5 mt-2 text-[11px] text-primary hover:underline"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+                    Открыть в Happ
+                  </a>
+                )}
+              </div>
+            ) : (
+              <p className="text-[11px] text-warning bg-warning/10 rounded-lg px-2.5 py-1.5">
+                Подписка ещё не выдана в Remnawave. Откроется при первом заходе юзера в кабинет либо через bulk-миграцию.
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Grant Subscription */}
