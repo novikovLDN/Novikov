@@ -9,7 +9,8 @@ export async function GET() {
   }
 
   const result = await pool.query(
-    `SELECT id, email, created_at, subscription_end, subscription_plan, telegram_linked, referrals, paid_referrals, registration_ip
+    `SELECT id, email, created_at, subscription_end, subscription_plan, telegram_linked, referrals, paid_referrals, registration_ip,
+            panel_id, remnawave_user_uuid, subscription_url, happ_crypto_link
      FROM users ORDER BY created_at DESC`
   );
 
@@ -32,6 +33,11 @@ export async function GET() {
     isActive: new Date(row.subscription_end) > new Date(),
     registrationIp: row.registration_ip || null,
     accountsOnIp: ipCounts[row.registration_ip || "unknown"] || 1,
+    // Remnawave subscription
+    panelId: row.panel_id || null,
+    remnawaveUserUuid: row.remnawave_user_uuid || null,
+    subscriptionUrl: row.subscription_url || null,
+    happCryptoLink: row.happ_crypto_link || null,
   }));
 
   const stats = {

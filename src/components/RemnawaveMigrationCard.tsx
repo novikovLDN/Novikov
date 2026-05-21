@@ -41,6 +41,15 @@ interface ReconcileResult {
   details: Array<{ payment_id: string; user_id: string; outcome: string }>;
 }
 
+interface VerifyResult {
+  checked: number;
+  ok: number;
+  missing_in_panel: number;
+  expire_drift: number;
+  no_sub_url: number;
+  issues: Array<{ email: string; problem: string; local_end?: string; panel_end?: string }>;
+}
+
 /**
  * Admin-only utility card. Single-button trigger for the bulk
  * migration of every locally-active subscriber into Remnawave.
@@ -56,7 +65,25 @@ export default function RemnawaveMigrationCard() {
   const [resetResult, setResetResult] = useState<ResetResult | null>(null);
   const [reconciling, setReconciling] = useState(false);
   const [reconcileResult, setReconcileResult] = useState<ReconcileResult | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const runVerify = async () => {
+    setVerifying(true);
+    setVerifyResult(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/remnawave/verify", { method: "POST" });
+      const data = await res.json();
+      if (data.success) setVerifyResult(data.data as VerifyResult);
+      else setError(data.error || "Ошибка проверки");
+    } catch {
+      setError("Ошибка сети");
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   const run = async () => {
     setRunning(true);
@@ -204,6 +231,76 @@ export default function RemnawaveMigrationCard() {
           )}
         </div>
       )}
+
+      {/* ── Verify sync ── */}
+      <div className="mt-4 pt-4 border-t border-border/30">
+        <p className="text-xs text-muted mb-3 leading-relaxed">
+          Сверить каждого юзера: создан ли в панели и совпадает ли срок подписки (expireAt) с локальной БД.
+        </p>
+        <button
+          onClick={runVerify}
+          disabled={verifying}
+          className="w-full h-10 rounded-xl bg-card-hover border border-border text-foreground font-medium text-xs btn-press disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {verifying ? (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="animate-spin">
+                <path d="M21 12a9 9 0 11-6.219-8.56" strokeLinecap="round" />
+              </svg>
+              Проверка синхронизации…
+            </>
+          ) : (
+            <>Проверить синхронизацию с панелью</>
+          )}
+        </button>
+
+        {verifyResult && (
+          <div className="mt-3 space-y-2">
+            <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
+              <div className="bg-success/10 rounded-lg p-2">
+                <div className="text-base font-bold tabular-nums text-success">{verifyResult.ok}</div>
+                <div className="text-muted">OK</div>
+              </div>
+              <div className="bg-danger/10 rounded-lg p-2">
+                <div className="text-base font-bold tabular-nums text-danger">{verifyResult.missing_in_panel}</div>
+                <div className="text-muted">Нет в панели</div>
+              </div>
+              <div className="bg-warning/10 rounded-lg p-2">
+                <div className="text-base font-bold tabular-nums text-warning">{verifyResult.expire_drift}</div>
+                <div className="text-muted">Расх. срок</div>
+              </div>
+              <div className="bg-warning/10 rounded-lg p-2">
+                <div className="text-base font-bold tabular-nums text-warning">{verifyResult.no_sub_url}</div>
+                <div className="text-muted">Нет URL</div>
+              </div>
+            </div>
+            {verifyResult.issues.length > 0 ? (
+              <details>
+                <summary className="text-xs text-muted cursor-pointer hover:text-foreground">
+                  Проблемы ({verifyResult.issues.length})
+                </summary>
+                <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
+                  {verifyResult.issues.map((iss, i) => (
+                    <div key={`${iss.email}-${i}`} className="text-[11px] p-2 bg-card-hover rounded">
+                      <div className="flex justify-between gap-2">
+                        <span className="truncate font-medium">{iss.email}</span>
+                        <span className="text-warning shrink-0">{iss.problem}</span>
+                      </div>
+                      {iss.local_end && (
+                        <div className="text-[10px] text-muted mt-0.5 font-mono">
+                          лок: {iss.local_end.slice(0, 16)} · панель: {iss.panel_end?.slice(0, 16)}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </details>
+            ) : (
+              <p className="text-xs text-success text-center">Все {verifyResult.checked} юзеров синхронизированы корректно.</p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ── Reconcile pending payments ── */}
       <div className="mt-4 pt-4 border-t border-border/30">
