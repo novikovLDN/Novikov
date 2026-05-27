@@ -850,4 +850,9 @@ export async function getAuditLogs(limit = 100, offset = 0): Promise<Array<{
 // Auto-start scheduler on module load (server-side only)
 if (typeof window === "undefined") {
   startCleanupScheduler();
+  // Background Remnawave reconciliation worker — re-pushes
+  // subscription_end → panel expireAt for every active user once an
+  // hour, catching any drift introduced by missed webhooks or panel
+  // restarts.
+  import("./sync-worker").then((m) => m.startSyncWorker()).catch(() => null);
 }

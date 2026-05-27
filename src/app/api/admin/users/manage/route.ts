@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById, updateUser, createNotificationForUser, createAuditLog, regenerateUserKey } from "@/lib/store";
-import { generateXrayUuid, generateSubToken, generateSubId, buildSubscriptionUrl, xrayRemoveUser, xrayAddUser } from "@/lib/xray";
+import { xrayRemoveUser, xrayAddUser } from "@/lib/xray";
 import { verifyAdmin } from "../../middleware";
-import { createUserWithExpire, setUserExpire, encryptHappLink } from "@/lib/remnawave";
-import { pool } from "@/lib/db";
+import { syncUserToRemnawave } from "@/lib/subscription-sync";
 
 // Duration presets in minutes
 const DURATION_MAP: Record<string, number> = {
@@ -58,64 +57,15 @@ export async function POST(request: NextRequest) {
       const base = currentEnd > now ? currentEnd : now;
       const newEnd = new Date(base.getTime() + minutes * 60 * 1000);
 
-      // If user has no VPN key, regenerate
-      const updates: Record<string, unknown> = {
+      // Write the new subscription end locally
+      await updateUser(userId, {
         subscriptionEnd: newEnd.toISOString(),
         subscriptionPlan: plan,
-      };
+      });
 
-      if (!user.xrayUuid) {
-        const newUuid = generateXrayUuid();
-        const newSubToken = generateSubToken();
-        const subId = user.subId || generateSubId(user.email);
-        const newKey = buildSubscriptionUrl(newSubToken, subId);
-        updates.xrayUuid = newUuid;
-        updates.vpnKey = newKey;
-        updates.subToken = newSubToken;
-        updates.subId = subId;
-
-        // Add UUID to Xray server
-        const added = await xrayAddUser(newUuid);
-        if (!added) {
-          console.error(`[ADMIN] Failed to add UUID to Xray: ${newUuid} for ${user.email}`);
-        }
-      }
-
-      await updateUser(userId, updates);
-
-      // Mirror to Remnawave: set the exact same expireAt that was just
-      // committed locally (newEnd above). This avoids drift from
-      // minute-vs-day rounding when admin issues short durations like
-      // 30m or 12h. Failures are non-blocking — local DB stays
-      // authoritative until bulk migration is run again.
-      if (user.remnawaveUserUuid) {
-        const rwUpdated = await setUserExpire(user.remnawaveUserUuid, newEnd.toISOString());
-        if (!rwUpdated) console.warn(`[ADMIN] Remnawave setExpire failed for ${user.email}`);
-      } else {
-        const rwNew = await createUserWithExpire(user.email, newEnd.toISOString(), "admin grant-subscription", user.panelId);
-        if (rwNew) {
-          const happLink = await encryptHappLink(rwNew.subscriptionUrl);
-          await pool.query(
-            `UPDATE users SET
-               remnawave_user_uuid = $1,
-               remnawave_short_uuid = $2,
-               subscription_url = $3,
-               happ_crypto_link = $4,
-               crypto_link_updated_at = $5
-             WHERE id = $6`,
-            [
-              rwNew.uuid,
-              rwNew.shortUuid || null,
-              rwNew.subscriptionUrl,
-              happLink,
-              happLink ? new Date() : null,
-              userId,
-            ]
-          );
-        } else {
-          console.warn(`[ADMIN] Remnawave createUser failed for ${user.email}`);
-        }
-      }
+      // Mirror to Remnawave (one call handles create-or-patch)
+      const sync = await syncUserToRemnawave(userId);
+      if (!sync.ok) console.warn(`[ADMIN] Remnawave sync failed for ${user.email}: ${sync.reason}`);
 
       // Send notification to user
       const planLabel = plan === "plus" ? "Plus" : "Basic";
@@ -133,33 +83,23 @@ export async function POST(request: NextRequest) {
     if (action === "revoke-subscription") {
       // Remove from Xray server (legacy)
       if (user.xrayUuid) {
-        try {
-          await xrayRemoveUser(user.xrayUuid);
-        } catch (err) {
-          console.error(`[ADMIN] Failed to remove user from Xray: ${user.xrayUuid}`, err);
+        try { await xrayRemoveUser(user.xrayUuid); } catch (err) {
+          console.error(`[ADMIN] xrayRemoveUser failed for ${user.email}`, err);
         }
       }
 
-      // Push expireAt=now to Remnawave so the panel immediately stops
-      // serving this user. The panel user record is KEPT so a future
-      // grant-subscription can re-enable via setUserExpire to a future
-      // date — no need to re-create / re-issue subscriptionUrl.
-      const now = new Date();
-      if (user.remnawaveUserUuid) {
-        try {
-          await setUserExpire(user.remnawaveUserUuid, now.toISOString());
-        } catch (err) {
-          console.error(`[ADMIN] Remnawave setUserExpire(now) failed for ${user.email}`, err);
-        }
-      }
-
-      // Set subscription to now (expired), clear VPN key, reset plan
+      // Set subscription to now (expired) locally — this is the source
+      // of truth. Then sync to Remnawave to push the expired date and
+      // disable the panel user. The panel record itself is kept so a
+      // future grant can re-enable instantly.
       await updateUser(userId, {
-        subscriptionEnd: now.toISOString(),
+        subscriptionEnd: new Date().toISOString(),
         subscriptionPlan: "trial",
         xrayUuid: null,
         vpnKey: null,
       });
+      const sync = await syncUserToRemnawave(userId);
+      if (!sync.ok) console.warn(`[ADMIN] Revoke sync failed for ${user.email}: ${sync.reason}`);
 
       await createNotificationForUser(
         userId,
@@ -203,6 +143,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Внутренняя ошибка" }, { status: 500 });
   }
 }
+
+// Reference pool is no longer used directly here — kept as a comment
+// in case future actions need raw SQL again.
 
 function formatDuration(key: string): string {
   const map: Record<string, string> = {

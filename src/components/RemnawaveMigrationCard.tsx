@@ -50,6 +50,12 @@ interface VerifyResult {
   issues: Array<{ email: string; problem: string; local_end?: string; panel_end?: string }>;
 }
 
+interface SyncAllResult {
+  scanned: number;
+  ok: number;
+  failed: number;
+}
+
 /**
  * Admin-only utility card. Single-button trigger for the bulk
  * migration of every locally-active subscriber into Remnawave.
@@ -67,7 +73,25 @@ export default function RemnawaveMigrationCard() {
   const [reconcileResult, setReconcileResult] = useState<ReconcileResult | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<SyncAllResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const runSyncAll = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/remnawave/sync-all", { method: "POST" });
+      const data = await res.json();
+      if (data.success) setSyncResult(data.data as SyncAllResult);
+      else setError(data.error || "Ошибка синхронизации");
+    } catch {
+      setError("Ошибка сети");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const runVerify = async () => {
     setVerifying(true);
@@ -231,6 +255,45 @@ export default function RemnawaveMigrationCard() {
           )}
         </div>
       )}
+
+      {/* ── Force sync-all NOW ── */}
+      <div className="mt-4 pt-4 border-t border-border/30">
+        <p className="text-xs text-muted mb-3 leading-relaxed">
+          Worker раз в час сам подравнивает всех. Эта кнопка — запустить тот же проход прямо сейчас (для каждого активного юзера: subscription_end → expireAt в панели).
+        </p>
+        <button
+          onClick={runSyncAll}
+          disabled={syncing}
+          className="w-full h-10 rounded-xl bg-primary/10 border border-primary/30 text-primary font-semibold text-xs btn-press disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-primary/15"
+        >
+          {syncing ? (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="animate-spin">
+                <path d="M21 12a9 9 0 11-6.219-8.56" strokeLinecap="round" />
+              </svg>
+              Синхронизация…
+            </>
+          ) : (
+            <>↻ Синхронизировать всех с панелью сейчас</>
+          )}
+        </button>
+        {syncResult && (
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[10px]">
+            <div className="bg-card-hover rounded-lg p-2">
+              <div className="text-base font-bold tabular-nums">{syncResult.scanned}</div>
+              <div className="text-muted">Просмотрено</div>
+            </div>
+            <div className="bg-success/10 rounded-lg p-2">
+              <div className="text-base font-bold tabular-nums text-success">{syncResult.ok}</div>
+              <div className="text-muted">OK</div>
+            </div>
+            <div className="bg-danger/10 rounded-lg p-2">
+              <div className="text-base font-bold tabular-nums text-danger">{syncResult.failed}</div>
+              <div className="text-muted">Ошибки</div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* ── Verify sync ── */}
       <div className="mt-4 pt-4 border-t border-border/30">
