@@ -10,9 +10,11 @@ interface HeaderProps {
   transparent?: boolean;
   onNotifications?: () => void;
   unreadCount?: number;
+  /** Widen the header to match a dashboard-style page on lg+ screens. */
+  wide?: boolean;
 }
 
-export default function Header({ showBack, showMenu, onBack, transparent, onNotifications, unreadCount = 0 }: HeaderProps) {
+export default function Header({ showBack, showMenu, onBack, transparent, onNotifications, unreadCount = 0, wide = false }: HeaderProps) {
   const router = useRouter();
   const [visible, setVisible] = useState(true);
   const lastScrollY = useRef(0);
@@ -39,7 +41,7 @@ export default function Header({ showBack, showMenu, onBack, transparent, onNoti
         visible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
       } ${transparent ? "" : "glass"}`}
     >
-      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 max-w-2xl mx-auto w-full">
+      <div className={`flex items-center justify-between px-4 sm:px-6 ${wide ? "lg:px-10" : ""} py-3 sm:py-4 ${wide ? "max-w-2xl lg:max-w-[1240px]" : "max-w-2xl"} mx-auto w-full`}>
         {/* Left side */}
         <div className="flex items-center gap-3 min-w-0">
           {showBack ? (

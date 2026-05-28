@@ -52,12 +52,12 @@ export default function QuickActionsRow({
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
+    <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-1 lg:grid-rows-3 lg:gap-3 lg:h-full">
       {actions.map((a) => (
         <button
           key={a.key}
           onClick={a.onClick}
-          className="group relative flex flex-col items-start text-left rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1] backdrop-blur p-3 sm:p-4 transition-all active:scale-[0.98] overflow-hidden"
+          className="dv2-card group relative flex flex-col items-start text-left rounded-2xl p-3 sm:p-4 lg:p-5 transition-all active:scale-[0.98] overflow-hidden lg:justify-between"
         >
           <div className="flex items-center justify-between w-full mb-3">
             <div className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-white/70 group-hover:text-white group-hover:border-white/[0.12] transition-colors">
