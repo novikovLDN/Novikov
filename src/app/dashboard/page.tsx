@@ -133,47 +133,54 @@ export default function Dashboard() {
     <>
     <div className="dashboard-v2 min-h-dvh flex flex-col">
       <CursorGlowTracker />
-      <Header showMenu onNotifications={() => setShowNotifications((prev) => !prev)} unreadCount={unreadCount} />
+      <Header wide showMenu onNotifications={() => setShowNotifications((prev) => !prev)} unreadCount={unreadCount} />
 
-      <PageContainer className="space-y-4 sm:space-y-5 pt-2 sm:pt-3">
-        {/* ═══ Subscription Hero ═══ */}
-        <div className="dv2-rise">
-        <SubscriptionHero
-          isExpired={isExpired}
-          subscriptionPlan={data.subscriptionPlan || "trial"}
-          subscriptionEnd={data.subscriptionEnd}
-          daysLeft={data.daysLeft}
-          hoursLeft={data.hoursLeft}
-          minutesLeft={data.minutesLeft}
-          isTrial={(data.subscriptionPlan || "trial") === "trial"}
-        />
-        </div>
+      <PageContainer wide className="pt-2 sm:pt-3 pb-10">
+        {/* ─── Mobile/tablet: single-column stack ───
+            ─── lg+: 12-col grid — primary (hero + key) on the left,
+                     supporting (quick actions + balance) on the right.
+                     Layout follows the F-pattern: most important info
+                     at the top-left, scannable actions on the right. */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-5">
 
-        {/* ═══ Quick actions ═══ */}
-        <div className="dv2-rise dv2-rise-1">
-        <QuickActionsRow
-          cashbackPercent={data.cashbackPercent}
-          paidReferrals={data.paidReferrals}
-          unread={unreadCount}
-          onNotifications={() => setShowNotifications(true)}
-        />
-        </div>
-
-        {/* ═══ Subscription key (Remnawave) ═══ */}
-        {!isExpired && data.subscriptionUrl && (
-          <div className="dv2-rise dv2-rise-2">
-          <SubscriptionCard
-            subscriptionUrl={data.subscriptionUrl}
-            happCryptoLink={data.happCryptoLink ?? null}
-            subscriptionEnd={data.subscriptionEnd}
-            isTrial={data.subscriptionPlan === "trial"}
-            publicId={null}
-          />
+          {/* ═══ Subscription Hero ═══ */}
+          <div className="dv2-rise lg:col-span-7 xl:col-span-8">
+            <SubscriptionHero
+              isExpired={isExpired}
+              subscriptionPlan={data.subscriptionPlan || "trial"}
+              subscriptionEnd={data.subscriptionEnd}
+              daysLeft={data.daysLeft}
+              hoursLeft={data.hoursLeft}
+              minutesLeft={data.minutesLeft}
+              isTrial={(data.subscriptionPlan || "trial") === "trial"}
+            />
           </div>
-        )}
+
+          {/* ═══ Quick actions ═══ */}
+          <div className="dv2-rise dv2-rise-1 lg:col-span-5 xl:col-span-4">
+            <QuickActionsRow
+              cashbackPercent={data.cashbackPercent}
+              paidReferrals={data.paidReferrals}
+              unread={unreadCount}
+              onNotifications={() => setShowNotifications(true)}
+            />
+          </div>
+
+          {/* ═══ Subscription key (Remnawave) ═══ */}
+          {!isExpired && data.subscriptionUrl && (
+            <div className="dv2-rise dv2-rise-2 lg:col-span-7 xl:col-span-8 lg:row-span-2">
+              <SubscriptionCard
+                subscriptionUrl={data.subscriptionUrl}
+                happCryptoLink={data.happCryptoLink ?? null}
+                subscriptionEnd={data.subscriptionEnd}
+                isTrial={data.subscriptionPlan === "trial"}
+                publicId={null}
+              />
+            </div>
+          )}
 
         {/* ═══ Balance ═══ */}
-        <div className="dv2-card p-5 sm:p-6">
+        <div className="dv2-rise dv2-rise-3 dv2-card p-5 sm:p-6 lg:col-span-5 xl:col-span-4">
           <div className="flex items-center justify-between mb-3">
             <div className="dv2-eyebrow">Баланс</div>
             <span className="text-[10px] font-mono text-white/30 tracking-wider">
@@ -199,18 +206,20 @@ export default function Dashboard() {
         </div>
 
         {/* ═══ Referral Program ═══ */}
-        <ReferralSection
-          referralCode={data.referralCode}
-          cashbackPercent={data.cashbackPercent}
-          loyaltyTier={data.loyaltyTier}
-          referrals={data.referrals}
-          paidReferrals={data.paidReferrals}
-          copiedRef={copiedRef}
-          onCopy={(url) => copyToClipboard(url)}
-        />
+        <div className="dv2-rise dv2-rise-4 lg:col-span-12">
+          <ReferralSection
+            referralCode={data.referralCode}
+            cashbackPercent={data.cashbackPercent}
+            loyaltyTier={data.loyaltyTier}
+            referrals={data.referrals}
+            paidReferrals={data.paidReferrals}
+            copiedRef={copiedRef}
+            onCopy={(url) => copyToClipboard(url)}
+          />
+        </div>
 
         {/* ═══ Telegram Bot ═══ */}
-        <div className="dv2-card p-5 sm:p-6">
+        <div className="dv2-rise dv2-rise-5 dv2-card p-5 sm:p-6 lg:col-span-6">
           <div className="flex items-start gap-3.5 mb-4">
             <div className="w-10 h-10 rounded-xl bg-[#2AABEE]/15 border border-[#2AABEE]/20 flex items-center justify-center shrink-0">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#2AABEE">
@@ -302,7 +311,7 @@ export default function Dashboard() {
         </div>
 
         {/* ═══ Settings + About + Admin ═══ */}
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="dv2-rise dv2-rise-6 grid grid-cols-2 gap-2.5 lg:col-span-6">
           <SettingsCard />
           <button
             onClick={() => router.push("/about")}
@@ -319,7 +328,7 @@ export default function Dashboard() {
         {data.isAdmin && (
           <button
             onClick={() => router.push("/admin")}
-            className="w-full h-12 rounded-2xl bg-[#5E6AD2]/10 border border-[#5E6AD2]/30 text-[#8F8FD9] font-medium text-[13px] hover:bg-[#5E6AD2]/15 transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+            className="dv2-rise w-full h-12 rounded-2xl bg-[#5E6AD2]/10 border border-[#5E6AD2]/30 text-[#8F8FD9] font-medium text-[13px] hover:bg-[#5E6AD2]/15 transition-all active:scale-[0.985] flex items-center justify-center gap-2 lg:col-span-12"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -332,7 +341,7 @@ export default function Dashboard() {
         {/* ═══ Logout ═══ */}
         <button
           onClick={() => setShowLogoutConfirm(true)}
-          className="w-full h-12 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-white/50 font-medium text-[13px] hover:bg-[#EF4444]/8 hover:border-[#EF4444]/30 hover:text-[#EF4444] backdrop-blur transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+          className="dv2-rise w-full h-12 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-white/50 font-medium text-[13px] hover:bg-[#EF4444]/8 hover:border-[#EF4444]/30 hover:text-[#EF4444] backdrop-blur transition-all active:scale-[0.985] flex items-center justify-center gap-2 lg:col-span-12 lg:max-w-md lg:mx-auto"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
@@ -341,6 +350,8 @@ export default function Dashboard() {
           </svg>
           Выйти из аккаунта
         </button>
+        </div>
+        {/* ↑ end of 12-col grid */}
 
         {/* ═══ Logout Confirm Modal ═══ */}
         {showLogoutConfirm && (
