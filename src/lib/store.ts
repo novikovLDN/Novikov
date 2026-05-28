@@ -37,6 +37,7 @@ export interface UserRecord {
   cryptoLinkUpdatedAt: string | null;
   trialUsedAt: string | null;
   panelId: string | null;
+  publicId: string | null;
 }
 
 export interface CodeRecord {
@@ -79,6 +80,7 @@ function rowToUser(row: any): UserRecord {
     cryptoLinkUpdatedAt: row.crypto_link_updated_at ? new Date(row.crypto_link_updated_at).toISOString() : null,
     trialUsedAt: row.trial_used_at ? new Date(row.trial_used_at).toISOString() : null,
     panelId: row.panel_id ?? null,
+    publicId: row.public_id ?? null,
   };
 }
 
@@ -153,11 +155,14 @@ export async function getOrCreateUser(email: string, referredByCode?: string, ip
   const vpnKey = buildSubscriptionUrl(subToken, subId);
   const id = uuidv4();
   const crypto = require("crypto") as typeof import("crypto");
-  const panelId = crypto.randomBytes(4).toString("hex"); // 8-char hex Remnawave username
+  const panelId = crypto.randomBytes(4).toString("hex"); // legacy field
 
+  // Use Postgres sequence inline so public_id stays unique even under
+  // concurrent inserts. Format: "ST" + 8-digit zero-padded.
   const result = await pool.query(
-    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, sub_token, sub_id, referral_code, referred_by, telegram_link_token, registration_ip, device_fingerprint, panel_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, sub_token, sub_id, referral_code, referred_by, telegram_link_token, registration_ip, device_fingerprint, panel_id, public_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
+       'ST' || LPAD(NEXTVAL('user_public_id_seq')::text, 8, '0'))
      RETURNING *`,
     [id, email, now, trialEnd, vpnKey, xrayUuid, subToken, subId, referralCode, referredByCode || null, telegramLinkToken, ip || null, fingerprint || null, panelId]
   );

@@ -19,6 +19,7 @@ interface UserInfo {
   referrals: number;
   paidReferrals: number;
   isActive: boolean;
+  publicId: string | null;
   panelId: string | null;
   remnawaveUserUuid: string | null;
   subscriptionUrl: string | null;
@@ -328,8 +329,15 @@ export default function AdminDashboard() {
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium truncate mr-2">{u.email}</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${PLAN_COLORS[planKey] || PLAN_COLORS.trial}`}>
+                      <div className="flex items-center gap-2 min-w-0">
+                        {u.publicId && (
+                          <span className="text-[10px] font-mono text-primary bg-primary/10 px-1.5 py-0.5 rounded shrink-0">
+                            {u.publicId}
+                          </span>
+                        )}
+                        <span className="text-sm font-medium truncate">{u.email}</span>
+                      </div>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ml-2 ${PLAN_COLORS[planKey] || PLAN_COLORS.trial}`}>
                         {PLAN_LABELS[planKey] || planKey}
                       </span>
                     </div>
@@ -711,8 +719,8 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
 
           <div className="space-y-2.5">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] text-muted">panel_id</span>
-              <span className="text-[11px] font-mono text-foreground">{user.panelId || "—"}</span>
+              <span className="text-[11px] text-muted">Public ID</span>
+              <span className="text-sm font-mono font-bold text-primary tracking-wide">{user.publicId || "—"}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] text-muted">remnawave uuid</span>
