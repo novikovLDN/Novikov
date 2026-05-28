@@ -162,14 +162,14 @@ export default function SubscriptionHero({
         {/* Countdown */}
         <div className="mb-2">
           {isExpired ? (
-            <div className="text-[64px] sm:text-[88px] font-light tracking-tight leading-none text-white/30 tabular-nums">
+            <div className="text-[56px] sm:text-[88px] font-light tracking-tight leading-none text-white/30 tabular-nums">
               0
             </div>
           ) : (
             <div className="flex items-baseline gap-3 flex-wrap">
               {showYears && (
                 <>
-                  <span className="text-[64px] sm:text-[88px] font-light tracking-tight leading-none text-white tabular-nums">
+                  <span className="text-[56px] sm:text-[88px] font-light tracking-tight leading-none text-white tabular-nums">
                     {Math.floor(totalMonths / 12)}
                   </span>
                   <span className="text-base sm:text-lg text-white/40 -ml-1">г</span>
@@ -185,7 +185,7 @@ export default function SubscriptionHero({
               )}
               {showDays && !showYears && (
                 <>
-                  <span className="text-[64px] sm:text-[88px] font-light tracking-tight leading-none text-white tabular-nums">
+                  <span className="text-[56px] sm:text-[88px] font-light tracking-tight leading-none text-white tabular-nums">
                     {daysLeft >= 30 ? daysLeft % 30 : daysLeft}
                   </span>
                   <span className="text-base sm:text-lg text-white/40 -ml-1">дн</span>
