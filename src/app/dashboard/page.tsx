@@ -15,6 +15,7 @@ import SubscriptionCard from "@/components/SubscriptionCard";
 import SubscriptionHero from "@/components/SubscriptionHero";
 import QuickActionsRow from "@/components/QuickActionsRow";
 import ReferralSection from "@/components/ReferralSection";
+import CursorGlowTracker from "@/components/CursorGlowTracker";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -131,6 +132,7 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-v2 min-h-dvh flex flex-col">
+      <CursorGlowTracker />
       <Header showMenu onNotifications={() => setShowNotifications((prev) => !prev)} unreadCount={unreadCount} />
 
       <PageContainer className="space-y-4 sm:space-y-5 pt-2 sm:pt-3">
@@ -295,9 +297,7 @@ export default function Dashboard() {
 
         {/* ═══ Settings + About + Admin ═══ */}
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="dv2-card overflow-hidden">
-            <SettingsCard />
-          </div>
+          <SettingsCard />
           <button
             onClick={() => router.push("/about")}
             className="h-[52px] rounded-2xl bg-white/[0.02] border border-white/[0.06] text-white/85 font-medium text-[13px] hover:bg-white/[0.04] hover:border-white/[0.1] backdrop-blur transition-all active:scale-[0.985] flex items-center justify-center gap-2"

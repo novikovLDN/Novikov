@@ -112,7 +112,7 @@ export default function NotificationsModal({ open, onClose, onUnreadCountChange 
     <>
       {/* Backdrop — click anywhere outside to close */}
       <div
-        className={`fixed inset-0 z-40 transition-opacity duration-200 ${
+        className={`fixed inset-0 z-[90] transition-opacity duration-200 ${
           visible && open ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={onClose}
@@ -122,7 +122,7 @@ export default function NotificationsModal({ open, onClose, onUnreadCountChange 
       {/* Panel */}
       <div
         ref={panelRef}
-        className={`fixed top-14 sm:top-16 right-[10%] sm:right-4 z-50 w-[80vw] sm:w-80 md:w-96 max-w-[24rem] transition-all duration-200 ease-out origin-top-right ${
+        className={`fixed top-14 sm:top-16 right-[10%] sm:right-4 z-[100] w-[80vw] sm:w-80 md:w-96 max-w-[24rem] transition-all duration-200 ease-out origin-top-right ${
           visible && open
             ? "opacity-100 scale-100 translate-y-0"
             : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
