@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-import { getAllUsersByEmail, deleteUser as rwDeleteUser } from "@/lib/remnawave";
+import { getAllUsersByEmail, deleteUser as rwDeleteUser, isOurPanelUser } from "@/lib/remnawave";
 import { syncSubscriptionToPanel } from "@/lib/subscription-sync";
 import { verifyAdmin } from "../../middleware";
 
@@ -61,10 +61,19 @@ export async function POST() {
       error: null,
     };
 
-    // 1. Delete every panel user matching this email
+    // 1. Delete ONLY panel users that belong to us.
+    //
+    // SAFETY: the panel is shared with the Telegram bot service. We
+    // refuse to delete any panel user whose username doesn't start
+    // with "ST" — even if the email matches, that record may belong
+    // to the other service.
     try {
       const existing = await getAllUsersByEmail(row.email);
       for (const e of existing) {
+        if (!isOurPanelUser(e)) {
+          console.log(`[FULL-RESET] skip non-ours: ${e.username} (uuid=${e.uuid.slice(0, 8)}…) for ${row.email}`);
+          continue;
+        }
         const ok = await rwDeleteUser(e.uuid);
         if (ok) record.deleted += 1;
       }
