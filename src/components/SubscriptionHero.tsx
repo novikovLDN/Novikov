@@ -14,6 +14,40 @@ interface SubscriptionHeroProps {
 }
 
 /**
+ * Russian-aware pluralization: 1 год / 2-4 года / 5+ лет, with
+ * special-case overrides for 11..14 (always "лет"). Returns the
+ * largest meaningful chunk: years if >= 1, else months if >= 1,
+ * else days, else hours.
+ */
+function plural(n: number, one: string, few: string, many: string): string {
+  const mod100 = n % 100;
+  const mod10 = n % 10;
+  if (mod100 >= 11 && mod100 <= 14) return many;
+  if (mod10 === 1) return one;
+  if (mod10 >= 2 && mod10 <= 4) return few;
+  return many;
+}
+
+function humanRemaining(totalDays: number): string {
+  if (totalDays <= 0) return "0 дней";
+  const years = Math.floor(totalDays / 365);
+  if (years >= 1) {
+    const months = Math.floor((totalDays - years * 365) / 30);
+    const yLabel = `${years} ${plural(years, "год", "года", "лет")}`;
+    if (months === 0) return yLabel;
+    return `${yLabel} ${months} ${plural(months, "месяц", "месяца", "месяцев")}`;
+  }
+  const months = Math.floor(totalDays / 30);
+  if (months >= 1) {
+    const days = totalDays - months * 30;
+    const mLabel = `${months} ${plural(months, "месяц", "месяца", "месяцев")}`;
+    if (days === 0) return mLabel;
+    return `${mLabel} ${days} ${plural(days, "день", "дня", "дней")}`;
+  }
+  return `${totalDays} ${plural(totalDays, "день", "дня", "дней")}`;
+}
+
+/**
  * Hero subscription card on the dashboard.
  *
  * Layered visual:
@@ -81,12 +115,10 @@ export default function SubscriptionHero({
     minute: "2-digit",
   });
 
-  // Countdown decomposition — bigger units first
-  const totalMonths = Math.floor(daysLeft / 30);
-  const showYears = totalMonths >= 12;
-  const showMonths = totalMonths > 0 && totalMonths < 12;
-  const showDays = daysLeft >= 1;
-  const showHours = daysLeft < 30; // hide hours when months are shown to keep clean
+  // hoursLeft / minutesLeft are read by humanRemaining via daysLeft;
+  // the inline countdown was replaced by the focal date + remaining label.
+  void hoursLeft;
+  void minutesLeft;
 
   return (
     <section
@@ -156,81 +188,49 @@ export default function SubscriptionHero({
           </div>
         </div>
 
-        {/* Countdown */}
-        <div className="mb-2">
-          {isExpired ? (
-            <div className="text-[56px] sm:text-[88px] font-light tracking-tight leading-none text-white/30 tabular-nums">
-              0
+        {/* Focal date — the new accent */}
+        {isExpired ? (
+          <div className="mb-6">
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40 mb-2">
+              Истекла
             </div>
-          ) : (
-            <div className="flex items-baseline gap-3 flex-wrap">
-              {showYears && (
-                <>
-                  <span className="text-[56px] sm:text-[88px] font-light tracking-tight leading-none text-white tabular-nums">
-                    {Math.floor(totalMonths / 12)}
-                  </span>
-                  <span className="text-base sm:text-lg text-white/40 -ml-1">г</span>
-                </>
-              )}
-              {(showMonths || showYears) && totalMonths % 12 > 0 && (
-                <>
-                  <span className="text-[40px] sm:text-[56px] font-light tracking-tight leading-none text-white/90 tabular-nums">
-                    {totalMonths % 12}
-                  </span>
-                  <span className="text-sm sm:text-base text-white/40 -ml-1">мес</span>
-                </>
-              )}
-              {showDays && !showYears && (
-                <>
-                  <span className="text-[56px] sm:text-[88px] font-light tracking-tight leading-none text-white tabular-nums">
-                    {daysLeft >= 30 ? daysLeft % 30 : daysLeft}
-                  </span>
-                  <span className="text-base sm:text-lg text-white/40 -ml-1">дн</span>
-                </>
-              )}
-              {showHours && (
-                <>
-                  <span className="text-[40px] sm:text-[56px] font-light tracking-tight leading-none text-white/90 tabular-nums">
-                    {hoursLeft}
-                  </span>
-                  <span className="text-sm sm:text-base text-white/40 -ml-1">ч</span>
-                </>
-              )}
-              {daysLeft < 1 && (
-                <>
-                  <span className="text-[40px] sm:text-[56px] font-light tracking-tight leading-none text-white/90 tabular-nums">
-                    {minutesLeft}
-                  </span>
-                  <span className="text-sm sm:text-base text-white/40 -ml-1">мин</span>
-                </>
-              )}
+            <div className="text-[34px] sm:text-[44px] font-light tracking-tight leading-[1.05] text-white/40">
+              Подписка<br /><span className="text-white/30">не активна</span>
             </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 mb-8 sm:mb-10">
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-white/40"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <path d="M16 2v4M8 2v4M3 10h18" />
-          </svg>
-          <span className="text-[13px] text-white/50">
-            {isExpired ? "Истекла " : "Действует до "}
-            <span className="text-white/80 font-medium">
+          </div>
+        ) : (
+          <div className="mb-6">
+            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40 mb-2">
+              Действует до
+            </div>
+            <div className="text-[34px] sm:text-[44px] font-light tracking-tight leading-[1.05] text-white">
               {endDateLabel}
-            </span>
-            <span className="text-white/40 ml-1">· {endTimeLabel}</span>
-          </span>
-        </div>
+            </div>
+            <div className="flex items-center gap-2 mt-2 text-[12px] text-white/45">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span>{endTimeLabel} · осталось {humanRemaining(daysLeft)}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Subscription perks strip */}
+        {!isExpired && (
+          <div className="grid grid-cols-3 gap-2 mb-6">
+            {[
+              { label: "Трафик", value: "Безлимит" },
+              { label: "Сервера", value: "5" },
+              { label: "AES", value: "256-GCM" },
+            ].map((p) => (
+              <div key={p.label} className="rounded-xl bg-white/[0.025] border border-white/[0.05] px-3 py-2.5">
+                <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-white/35 mb-0.5">{p.label}</div>
+                <div className="text-[12px] sm:text-[13px] font-medium text-white/90 truncate">{p.value}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-2.5">
@@ -238,33 +238,27 @@ export default function SubscriptionHero({
             <>
               <button
                 onClick={() => router.push("/devices")}
-                className="group relative flex-1 h-14 rounded-2xl bg-white text-black font-medium text-[15px] flex items-center justify-center gap-2 overflow-hidden transition-all hover:bg-white/95 active:scale-[0.985]"
+                className="group relative flex-1 h-[60px] sm:h-14 rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2.5 overflow-hidden transition-all active:scale-[0.985] text-white"
+                style={{
+                  background: "linear-gradient(135deg, #5E6AD2 0%, #8F8FD9 100%)",
+                  boxShadow: "0 10px 30px -10px rgba(94,106,210,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
+                }}
               >
-                <span
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{
-                    background:
-                      "linear-gradient(120deg, transparent 30%, rgba(94,106,210,0.15) 50%, transparent 70%)",
-                  }}
-                />
+                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ background: "linear-gradient(135deg, #6E7AE2 0%, #9F9FE9 100%)" }} />
+                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                  style={{ background: "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%)" }} />
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
                 <span className="relative">Подключить VPN</span>
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="relative transition-transform group-hover:translate-x-0.5"
-                >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:translate-x-0.5">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </button>
               <button
                 onClick={() => router.push("/subscribe")}
-                className="h-14 sm:w-[180px] rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[14px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.07] hover:border-white/[0.12] active:scale-[0.985]"
+                className="h-[52px] sm:h-14 sm:w-[160px] rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[14px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.07] hover:border-white/[0.14] active:scale-[0.985]"
               >
                 Продлить
               </button>
@@ -272,20 +266,14 @@ export default function SubscriptionHero({
           ) : (
             <button
               onClick={() => router.push("/subscribe")}
-              className="group relative flex-1 h-14 rounded-2xl bg-white text-black font-medium text-[15px] flex items-center justify-center gap-2 overflow-hidden transition-all hover:bg-white/95 active:scale-[0.985]"
+              className="group relative flex-1 h-[60px] sm:h-14 rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2 overflow-hidden transition-all active:scale-[0.985] text-white"
+              style={{
+                background: "linear-gradient(135deg, #5E6AD2 0%, #8F8FD9 100%)",
+                boxShadow: "0 10px 30px -10px rgba(94,106,210,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
+              }}
             >
               <span className="relative">Купить подписку</span>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="relative transition-transform group-hover:translate-x-0.5"
-              >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:translate-x-0.5">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </button>

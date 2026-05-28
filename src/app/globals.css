@@ -1885,3 +1885,9 @@ html.light .dv2-elevate-accent {
     0 30px 60px -20px rgba(94,106,210,0.22),
     0 0 0 1px rgba(94,106,210,0.10);
 }
+
+/* Notifications dropdown panel — light theme inner surface */
+html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
+  background: #ffffff !important;
+  border-color: rgba(0,0,0,0.08) !important;
+}
