@@ -103,71 +103,12 @@ export default function SettingsCard() {
         </svg>
       </button>
 
-      {/* Expandable panel — full-width below the grid */}
+      {/* Expandable panel — full-width below the grid (Theme + Push
+          are now top-level dashboard buttons; this panel only carries
+          the Passkey controls and any future advanced toggles). */}
       {open && (
-        <div className="col-span-2">
+        <div className="col-span-1 sm:col-span-3">
           <div className="dv2-card p-5 space-y-4">
-            {/* Theme */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 text-white/70">
-                  {theme === "dark" ? (
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                    </svg>
-                  ) : (
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="5" />
-                      <line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" />
-                      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                      <line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" />
-                      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                    </svg>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium text-white/90">Тема</p>
-                  <p className="text-[11px] text-white/40">{theme === "dark" ? "Тёмная" : "Светлая"}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-300 shrink-0 ${
-                  theme === "light" ? "bg-[#5E6AD2]" : "bg-white/[0.1]"
-                }`}
-              >
-                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-300 ${
-                  theme === "light" ? "translate-x-[22px]" : "translate-x-0.5"
-                }`} />
-              </button>
-            </div>
-
-            <div className="h-px bg-white/[0.06]" />
-
-            {/* Push */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 text-white/70">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.73 21a2 2 0 01-3.46 0" />
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium text-white/90">Push-уведомления</p>
-                  <p className="text-[11px] text-white/40">{pushSupported ? (pushEnabled ? "Включены" : "Выключены") : "Не поддерживается"}</p>
-                </div>
-              </div>
-              {pushSupported && (
-                <button onClick={togglePush} disabled={pushLoading}
-                  className={`relative w-11 h-6 rounded-full transition-colors duration-300 shrink-0 ${pushEnabled ? "bg-[#5E6AD2]" : "bg-white/[0.1]"} ${pushLoading ? "opacity-50" : ""}`}>
-                  <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-300 ${pushEnabled ? "translate-x-[22px]" : "translate-x-0.5"}`} />
-                </button>
-              )}
-            </div>
-
-            <div className="h-px bg-white/[0.06]" />
-
             {/* Passkey */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">

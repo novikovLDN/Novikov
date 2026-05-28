@@ -17,6 +17,8 @@ import QuickActionsRow from "@/components/QuickActionsRow";
 import ReferralSection from "@/components/ReferralSection";
 import CursorGlowTracker from "@/components/CursorGlowTracker";
 import ServerStatusCard from "@/components/ServerStatusCard";
+import ThemeToggleButton from "@/components/ThemeToggleButton";
+import PushToggleButton from "@/components/PushToggleButton";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -169,7 +171,7 @@ export default function Dashboard() {
             <ServerStatusCard />
           </div>
 
-          {/* ═══ Row 2: Subscription key · Quick actions ═══ */}
+          {/* ═══ Row 2: Subscription key · Balance ═══ */}
           {!isExpired && data.subscriptionUrl && (
             <div className="dv2-rise dv2-rise-2 lg:col-span-8">
               <SubscriptionCard
@@ -182,7 +184,36 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div className="dv2-rise dv2-rise-3 lg:col-span-4 lg:self-start">
+          {/* Balance now lives in the sidebar column under Hero */}
+          <div className="dv2-rise dv2-rise-3 dv2-card p-5 sm:p-6 lg:col-span-4 lg:self-stretch flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="dv2-eyebrow">Баланс</div>
+                <span className="text-[10px] font-mono text-white/30 tracking-wider">
+                  {data.balance > 0 ? "ACTIVE" : "EMPTY"}
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="text-[40px] sm:text-[48px] font-light tracking-tight leading-none text-white tabular-nums">
+                  {data.balance.toLocaleString("ru-RU", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+                <span className="text-lg text-white/40">₽</span>
+              </div>
+            </div>
+            <p className="text-[12px] text-white/40 mt-3 flex items-center gap-1.5">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v4M12 16h.01" />
+              </svg>
+              Пополнение и оплата — через Telegram-бот
+            </p>
+          </div>
+
+          {/* ═══ Row 3: Quick actions, full-width horizontal ═══ */}
+          <div className="dv2-rise dv2-rise-4 lg:col-span-12">
             <QuickActionsRow
               cashbackPercent={data.cashbackPercent}
               paidReferrals={data.paidReferrals}
@@ -190,32 +221,6 @@ export default function Dashboard() {
               onNotifications={() => setShowNotifications(true)}
             />
           </div>
-
-        {/* ═══ Row 3 · Balance ═══ */}
-        <div className="dv2-rise dv2-rise-4 dv2-card p-5 sm:p-6 lg:col-span-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="dv2-eyebrow">Баланс</div>
-            <span className="text-[10px] font-mono text-white/30 tracking-wider">
-              {data.balance > 0 ? "ACTIVE" : "EMPTY"}
-            </span>
-          </div>
-          <div className="flex items-baseline gap-2 mb-1">
-            <span className="text-[40px] sm:text-[48px] font-light tracking-tight leading-none text-white tabular-nums">
-              {data.balance.toLocaleString("ru-RU", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-            <span className="text-lg text-white/40">₽</span>
-          </div>
-          <p className="text-[12px] text-white/40 mt-3 flex items-center gap-1.5">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 8v4M12 16h.01" />
-            </svg>
-            Пополнение и оплата — через Telegram-бот
-          </p>
-        </div>
 
         {/* ═══ Referral Program ═══ */}
         <div className="dv2-rise dv2-rise-4 lg:col-span-12">
@@ -230,8 +235,8 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* ═══ Row 3 · Telegram Bot ═══ */}
-        <div className="dv2-rise dv2-rise-5 dv2-card p-5 sm:p-6 lg:col-span-4">
+        {/* ═══ Telegram Bot — stretched to centered ~+50% width ═══ */}
+        <div className="dv2-rise dv2-rise-5 dv2-card p-5 sm:p-6 lg:col-span-8 lg:col-start-3">
           <div className="flex items-start gap-3.5 mb-4">
             <div className="w-10 h-10 rounded-xl bg-[#2AABEE]/15 border border-[#2AABEE]/20 flex items-center justify-center shrink-0">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#2AABEE">
@@ -322,13 +327,18 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* ═══ Row 3 · Settings + About — grid-cell with self-start so
-              its expansion doesn't stretch Balance/Telegram on lg+ ═══ */}
-        <div className="dv2-rise dv2-rise-6 grid grid-cols-2 gap-2.5 lg:col-span-4 lg:self-start">
+        {/* ═══ Settings + Theme + Push — row of standalone controls ═══ */}
+        <div className="dv2-rise dv2-rise-6 grid grid-cols-1 sm:grid-cols-3 gap-2.5 lg:col-span-12 lg:self-start">
+          <ThemeToggleButton />
+          <PushToggleButton />
           <SettingsCard />
+        </div>
+
+        {/* ═══ About — single row below ═══ */}
+        <div className="dv2-rise dv2-rise-6 lg:col-span-12">
           <button
             onClick={() => router.push("/about")}
-            className="h-[52px] rounded-2xl bg-white/[0.02] border border-white/[0.06] text-white/85 font-medium text-[13px] hover:bg-white/[0.04] hover:border-white/[0.1] backdrop-blur transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+            className="h-[52px] w-full rounded-2xl bg-white/[0.02] border border-white/[0.06] text-white/85 font-medium text-[13px] hover:bg-white/[0.04] hover:border-white/[0.1] backdrop-blur transition-all active:scale-[0.985] flex items-center justify-center gap-2"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
