@@ -112,15 +112,14 @@ export default function Dashboard() {
   // ─── Loading State ─────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-dvh flex flex-col">
+      <div className="dashboard-v2 min-h-dvh flex flex-col">
         <Header showMenu onNotifications={() => setShowNotifications((prev) => !prev)} unreadCount={unreadCount} />
         <PageContainer className="flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <LoadingSpinner size="lg" className="text-primary" />
-            <p className="text-muted text-sm">Загрузка...</p>
+            <p className="text-white/40 text-sm">Загрузка…</p>
           </div>
         </PageContainer>
-        <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
       </div>
     );
   }
