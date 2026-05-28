@@ -52,7 +52,7 @@ export default function QuickActionsRow({
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-1 lg:grid-rows-3 lg:gap-3 lg:h-full">
+    <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-1 lg:gap-3">
       {actions.map((a) => (
         <button
           key={a.key}

@@ -16,6 +16,7 @@ import SubscriptionHero from "@/components/SubscriptionHero";
 import QuickActionsRow from "@/components/QuickActionsRow";
 import ReferralSection from "@/components/ReferralSection";
 import CursorGlowTracker from "@/components/CursorGlowTracker";
+import ServerStatusCard from "@/components/ServerStatusCard";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -136,15 +137,23 @@ export default function Dashboard() {
       <Header wide showMenu onNotifications={() => setShowNotifications((prev) => !prev)} unreadCount={unreadCount} />
 
       <PageContainer wide className="pt-2 sm:pt-3 pb-10">
-        {/* ─── Mobile/tablet: single-column stack ───
-            ─── lg+: 12-col grid — primary (hero + key) on the left,
-                     supporting (quick actions + balance) on the right.
-                     Layout follows the F-pattern: most important info
-                     at the top-left, scannable actions on the right. */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-5">
+        {/*
+          Mobile: single-column stack (default).
 
-          {/* ═══ Subscription Hero ═══ */}
-          <div className="dv2-rise lg:col-span-7 xl:col-span-8">
+          lg+: 12-col grid laid out by F-pattern priority —
+            row 1  Hero (8) · Server status (4)
+            row 2  Subscription key (8) · Quick actions (4)
+            row 3  Balance (4) · Telegram (4) · Settings (4)
+            row 4  Referral (12, full width)
+            row 5  Admin (12) + Logout (centered narrow)
+
+          items-start on the grid so when Settings expands its panel
+          the row's other cells (Balance, Telegram) don't stretch.
+        */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 lg:items-start gap-3 sm:gap-4 lg:gap-5">
+
+          {/* ═══ Row 1: Hero · Server Status ═══ */}
+          <div className="dv2-rise lg:col-span-8">
             <SubscriptionHero
               isExpired={isExpired}
               subscriptionPlan={data.subscriptionPlan || "trial"}
@@ -156,19 +165,13 @@ export default function Dashboard() {
             />
           </div>
 
-          {/* ═══ Quick actions ═══ */}
-          <div className="dv2-rise dv2-rise-1 lg:col-span-5 xl:col-span-4">
-            <QuickActionsRow
-              cashbackPercent={data.cashbackPercent}
-              paidReferrals={data.paidReferrals}
-              unread={unreadCount}
-              onNotifications={() => setShowNotifications(true)}
-            />
+          <div className="dv2-rise dv2-rise-1 lg:col-span-4 lg:self-stretch">
+            <ServerStatusCard />
           </div>
 
-          {/* ═══ Subscription key (Remnawave) ═══ */}
+          {/* ═══ Row 2: Subscription key · Quick actions ═══ */}
           {!isExpired && data.subscriptionUrl && (
-            <div className="dv2-rise dv2-rise-2 lg:col-span-7 xl:col-span-8 lg:row-span-2">
+            <div className="dv2-rise dv2-rise-2 lg:col-span-8">
               <SubscriptionCard
                 subscriptionUrl={data.subscriptionUrl}
                 happCryptoLink={data.happCryptoLink ?? null}
@@ -179,8 +182,17 @@ export default function Dashboard() {
             </div>
           )}
 
-        {/* ═══ Balance ═══ */}
-        <div className="dv2-rise dv2-rise-3 dv2-card p-5 sm:p-6 lg:col-span-5 xl:col-span-4">
+          <div className="dv2-rise dv2-rise-3 lg:col-span-4 lg:self-start">
+            <QuickActionsRow
+              cashbackPercent={data.cashbackPercent}
+              paidReferrals={data.paidReferrals}
+              unread={unreadCount}
+              onNotifications={() => setShowNotifications(true)}
+            />
+          </div>
+
+        {/* ═══ Row 3 · Balance ═══ */}
+        <div className="dv2-rise dv2-rise-4 dv2-card p-5 sm:p-6 lg:col-span-4">
           <div className="flex items-center justify-between mb-3">
             <div className="dv2-eyebrow">Баланс</div>
             <span className="text-[10px] font-mono text-white/30 tracking-wider">
@@ -218,8 +230,8 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* ═══ Telegram Bot ═══ */}
-        <div className="dv2-rise dv2-rise-5 dv2-card p-5 sm:p-6 lg:col-span-6">
+        {/* ═══ Row 3 · Telegram Bot ═══ */}
+        <div className="dv2-rise dv2-rise-5 dv2-card p-5 sm:p-6 lg:col-span-4">
           <div className="flex items-start gap-3.5 mb-4">
             <div className="w-10 h-10 rounded-xl bg-[#2AABEE]/15 border border-[#2AABEE]/20 flex items-center justify-center shrink-0">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="#2AABEE">
@@ -310,8 +322,9 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* ═══ Settings + About + Admin ═══ */}
-        <div className="dv2-rise dv2-rise-6 grid grid-cols-2 gap-2.5 lg:col-span-6">
+        {/* ═══ Row 3 · Settings + About — grid-cell with self-start so
+              its expansion doesn't stretch Balance/Telegram on lg+ ═══ */}
+        <div className="dv2-rise dv2-rise-6 grid grid-cols-2 gap-2.5 lg:col-span-4 lg:self-start">
           <SettingsCard />
           <button
             onClick={() => router.push("/about")}
