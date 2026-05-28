@@ -119,19 +119,28 @@ export default function NotificationsModal({ open, onClose, onUnreadCountChange 
         aria-hidden="true"
       />
 
-      {/* Panel */}
+      {/* Panel — anchored under the bell on the top-right.
+          On mobile: full-width minus 16px margin each side; on
+          tablet+: fixed 380px panel aligned to the header's right
+          padding. Animates from the top-right origin (where the
+          bell sits) for a natural pop-out. */}
       <div
         ref={panelRef}
-        className={`fixed top-14 sm:top-16 right-[10%] sm:right-4 z-[100] w-[80vw] sm:w-80 md:w-96 max-w-[24rem] transition-all duration-200 ease-out origin-top-right ${
-          visible && open
-            ? "opacity-100 scale-100 translate-y-0"
-            : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
-        }`}
+        className={`fixed z-[100] transition-all duration-200 ease-out origin-top-right
+          top-[64px] sm:top-[72px]
+          right-3 sm:right-5
+          left-3 sm:left-auto
+          sm:w-[380px]
+          ${
+            visible && open
+              ? "opacity-100 scale-100 translate-y-0"
+              : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+          }`}
       >
-        <div className="bg-card border border-border/50 rounded-2xl shadow-xl shadow-black/20 overflow-hidden">
+        <div className="rounded-[20px] border border-white/[0.08] bg-[#111114] shadow-2xl shadow-black/40 overflow-hidden backdrop-blur-xl">
           {/* Header */}
-          <div className="flex items-center justify-between px-3.5 sm:px-4 py-2.5 sm:py-3 border-b border-border/30">
-            <h3 className="font-bold text-xs sm:text-sm">Уведомления</h3>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+            <h3 className="font-medium text-[13px] text-white">Уведомления</h3>
             <div className="flex items-center gap-2">
               {hasNotifications && (
                 <span className="text-[9px] sm:text-[10px] text-muted bg-background px-1.5 sm:px-2 py-0.5 rounded-full">
