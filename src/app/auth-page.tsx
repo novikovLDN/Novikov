@@ -8,6 +8,7 @@ import FeatureCard from "@/components/FeatureCard";
 import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PasswordInput from "@/components/PasswordInput";
+import CursorGlowTracker from "@/components/CursorGlowTracker";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { sendCodeAction, verifyCodeAction } from "./actions";
 
@@ -477,15 +478,20 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   const codeError = verifyState.error || null;
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="dashboard-v2 min-h-dvh flex flex-col">
+      <CursorGlowTracker />
       <Header transparent={step === "email"} />
 
       <PageContainer>
         {step === "email" && (
           <div className="animate-fade-in-up pt-2 sm:pt-6">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Введите почту</h1>
-            <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
-              Чтобы войти или зарегистрироваться
+            <div className="dv2-eyebrow mb-2">ВХОД ИЛИ РЕГИСТРАЦИЯ</div>
+            <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+              Введите<br />
+              <span className="text-white/50">почту</span>
+            </h1>
+            <p className="text-[13px] text-white/45 mb-6 sm:mb-8">
+              Отправим одноразовый код для подтверждения
             </p>
 
             <form action={sendAction} className="space-y-3 sm:space-y-4">
@@ -497,13 +503,9 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                   ref={emailRef}
                   name="email"
                   type="email"
-                  placeholder="Email"
+                  placeholder="email@example.com"
                   defaultValue={initialEmail}
-                  className={`w-full h-13 sm:h-14 px-4 rounded-2xl bg-card border text-foreground placeholder-muted focus:outline-none transition-all text-base sm:text-lg ${
-                    emailError
-                      ? "border-danger/50 focus:border-danger"
-                      : "border-border focus:border-primary"
-                  }`}
+                  className={`auth-input ${emailError ? "auth-input-error" : ""}`}
                   autoComplete="email"
                   inputMode="email"
                   enterKeyHint="go"
@@ -513,37 +515,30 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
               {emailError && <ErrorMessage error={emailError} />}
 
-              <button
-                type="submit"
-                disabled={sendPending}
-                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
-              >
+              <button type="submit" disabled={sendPending} className="auth-primary">
                 {sendPending ? (
-                  <span className="inline-flex items-center gap-2">
-                    <LoadingSpinner size="sm" />
-                    Отправка...
-                  </span>
+                  <><LoadingSpinner size="sm" /> Отправка…</>
                 ) : (
-                  "Далее"
+                  <>Далее <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg></>
                 )}
               </button>
             </form>
 
-            <div className="relative my-5 sm:my-6">
+            <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
+                <div className="w-full border-t border-white/[0.06]" />
               </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-background px-3 text-muted">или</span>
+              <div className="relative flex justify-center">
+                <span className="px-3 text-[10px] font-mono tracking-wider uppercase text-white/30 bg-[#0A0A0B]">или</span>
               </div>
             </div>
 
             <div className="space-y-2.5">
               <button
                 onClick={() => { setStep("login"); setLoginError(""); }}
-                className="w-full h-12 sm:h-13 rounded-2xl border border-border text-foreground font-medium text-sm sm:text-base hover:bg-card active:bg-card-hover transition-colors flex items-center justify-center gap-2 btn-press"
+                className="auth-ghost"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
@@ -553,17 +548,18 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 onClick={handlePasskeyLogin}
                 disabled={passkeyLoading}
-                className="w-full h-12 sm:h-13 rounded-2xl border border-primary/30 text-primary font-medium text-sm sm:text-base hover:bg-primary/10 transition-colors flex items-center justify-center gap-2 btn-press disabled:opacity-50"
+                className="auth-ghost"
+                style={{ borderColor: "rgba(94,106,210,0.3)", color: "#8F8FD9" }}
               >
                 {passkeyLoading ? (
-                  <><LoadingSpinner size="sm" /> Проверка...</>
+                  <><LoadingSpinner size="sm" /> Проверка…</>
                 ) : (
                   <>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 10a3 3 0 100-6 3 3 0 000 6z" />
                       <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
                     </svg>
-                    Быстрый вход
+                    Быстрый вход через Passkey
                   </>
                 )}
               </button>
@@ -611,14 +607,18 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <BackButton onClick={() => setStep("email")} />
 
-            <div className="text-center sm:text-left">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Введи код</h1>
-              <p className="text-muted text-sm sm:text-base mb-1">
-                Мы отправили код на{" "}
-                <span className="text-foreground font-medium break-all">{email}</span>
+            <div>
+              <div className="dv2-eyebrow mb-2">ШАГ 2 — КОД</div>
+              <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+                Введите<br />
+                <span className="text-white/50">код из письма</span>
+              </h1>
+              <p className="text-[13px] text-white/45 mb-1">
+                Отправили на{" "}
+                <span className="text-white/85 font-medium break-all">{email}</span>
               </p>
-              <p className="text-muted/70 text-xs sm:text-sm mb-8">
-                Проверь папку «Спам», если не видишь письмо
+              <p className="text-[11px] text-white/30 mb-6">
+                Проверьте папку «Спам», если письмо не пришло
               </p>
             </div>
 
@@ -643,10 +643,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                     onKeyDown={(e) => handleCodeKeyDown(i, e)}
                     onFocus={(e) => e.target.select()}
                     aria-label={`Цифра ${i + 1}`}
-                    className={`flex-1 min-w-0 aspect-square max-w-13 text-center text-[16px] sm:text-2xl font-bold bg-card border rounded-xl sm:rounded-2xl focus:outline-none transition-all appearance-none ${
-                      codeError ? "border-danger/50" : "border-border focus:border-primary"
-                    }`}
-                    style={{ fontSize: "max(16px, 1.25rem)" }}
+                    className={`auth-code-cell ${codeError ? "auth-code-cell-error" : ""}`}
+                    style={{ fontSize: "max(16px, 1.5rem)" }}
                   />
                 ))}
               </div>
@@ -665,7 +663,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={verifyPending}
-                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press mb-5"
+                className="auth-primary mb-5"
               >
                 {verifyPending ? (
                   <span className="inline-flex items-center gap-2">
@@ -712,7 +710,10 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             </div>
 
             <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Создайте пароль</h1>
+              <div className="dv2-eyebrow mb-2">ШАГ 3 — ПАРОЛЬ</div>
+              <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+                Создайте<br /><span className="text-white/50">пароль</span>
+              </h1>
               <p className="text-muted text-sm sm:text-base mb-8">
                 Придумайте пароль для входа в личный кабинет. В дальнейшем вы сможете войти по почте и паролю.
               </p>
@@ -743,7 +744,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={setPasswordLoading}
-                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
+                className="auth-primary"
               >
                 {setPasswordLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -769,7 +770,10 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <BackButton onClick={() => setStep("email")} />
 
-            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Вход в аккаунт</h1>
+            <div className="dv2-eyebrow mb-2">ВХОД</div>
+            <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+              С возвращением
+            </h1>
             <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
               Введите почту и пароль
             </p>
@@ -783,9 +787,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                 autoComplete="email"
                 inputMode="email"
                 autoFocus
-                className={`w-full h-13 sm:h-14 px-4 rounded-2xl bg-card border text-foreground placeholder-muted focus:outline-none transition-all text-base sm:text-lg ${
-                  loginError ? "border-danger/50 focus:border-danger" : "border-border focus:border-primary"
-                }`}
+                className={`auth-input ${loginError ? "auth-input-error" : ""}`}
                 required
               />
 
@@ -818,7 +820,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
+                className="auth-primary"
               >
                 {loginLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -851,7 +853,10 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <BackButton onClick={() => setStep("login")} />
 
-            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Восстановление пароля</h1>
+            <div className="dv2-eyebrow mb-2">ВОССТАНОВЛЕНИЕ</div>
+            <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+              Восстановление<br /><span className="text-white/50">пароля</span>
+            </h1>
             <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
               Введите почту, привязанную к аккаунту
             </p>
@@ -865,9 +870,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                 autoComplete="email"
                 inputMode="email"
                 autoFocus
-                className={`w-full h-13 sm:h-14 px-4 rounded-2xl bg-card border text-foreground placeholder-muted focus:outline-none transition-all text-base sm:text-lg ${
-                  resetError ? "border-danger/50 focus:border-danger" : "border-border focus:border-primary"
-                }`}
+                className={`auth-input ${resetError ? "auth-input-error" : ""}`}
                 required
               />
 
@@ -876,7 +879,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
+                className="auth-primary"
               >
                 {resetLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -896,7 +899,10 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             <BackButton onClick={() => setStep("reset-email")} />
 
             <div className="text-center sm:text-left">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Введи код</h1>
+              <div className="dv2-eyebrow mb-2">КОД ИЗ ПИСЬМА</div>
+              <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+                Введите код
+              </h1>
               <p className="text-muted text-sm sm:text-base mb-1">
                 Мы отправили код на{" "}
                 <span className="text-foreground font-medium break-all">{resetEmail}</span>
@@ -921,9 +927,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                     onChange={(e) => handleResetCodeInput(i, e)}
                     onKeyDown={(e) => handleResetCodeKeyDown(i, e)}
                     aria-label={`Цифра ${i + 1}`}
-                    className={`w-11 h-13 sm:w-13 sm:h-15 text-center text-xl sm:text-2xl font-bold bg-card border rounded-xl sm:rounded-2xl focus:outline-none transition-all ${
-                      resetError ? "border-danger/50" : "border-border focus:border-primary"
-                    }`}
+                    className={`auth-code-cell ${resetError ? "auth-code-cell-error" : ""}`}
+                    style={{ fontSize: "max(16px, 1.5rem)" }}
                   />
                 ))}
               </div>
@@ -979,7 +984,10 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             </div>
 
             <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Новый пароль</h1>
+              <div className="dv2-eyebrow mb-2">НОВЫЙ ПАРОЛЬ</div>
+              <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+                Придумайте<br /><span className="text-white/50">новый пароль</span>
+              </h1>
               <p className="text-muted text-sm sm:text-base mb-8">
                 Придумайте новый пароль для аккаунта
               </p>
@@ -1010,7 +1018,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all btn-press"
+                className="auth-primary"
               >
                 {resetLoading ? (
                   <span className="inline-flex items-center gap-2">

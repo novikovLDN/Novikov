@@ -27,15 +27,13 @@ export default function PasswordInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoFocus={autoFocus}
-        className={`w-full h-13 sm:h-14 px-4 pr-12 rounded-2xl bg-card border text-foreground placeholder-muted focus:outline-none transition-all text-base sm:text-lg ${
-          hasError ? "border-danger/50 focus:border-danger" : "border-border focus:border-primary"
-        }`}
+        className={`auth-input pr-12 ${hasError ? "auth-input-error" : ""}`}
         required
       />
       <button
         type="button"
         onClick={onToggle}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors p-1"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors p-1"
         tabIndex={-1}
       >
         {show ? (

@@ -131,6 +131,7 @@ export default function Dashboard() {
   const isExpiring = !isExpired && data.daysLeft <= 1;
 
   return (
+    <>
     <div className="dashboard-v2 min-h-dvh flex flex-col">
       <CursorGlowTracker />
       <Header showMenu onNotifications={() => setShowNotifications((prev) => !prev)} unreadCount={unreadCount} />
@@ -389,11 +390,15 @@ export default function Dashboard() {
 
       <Footer />
 
-      <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
       <WelcomeToast telegramLinkToken={data?.telegramLinkToken} subscriptionEnd={data?.subscriptionEnd} />
       <TelegramLinkBanner telegramLinked={data?.telegramLinked ?? false} telegramLinkToken={data?.telegramLinkToken} />
       <PasskeyPrompt />
-    </div>
+      </div>
+      {/* Notifications modal rendered OUTSIDE the dashboard-v2 wrapper
+          so its fixed positioning isn't constrained by the wrapper's
+          stacking context. */}
+      <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
+    </>
   );
 }
 
