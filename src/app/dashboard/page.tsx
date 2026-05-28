@@ -137,6 +137,7 @@ export default function Dashboard() {
 
       <PageContainer className="space-y-4 sm:space-y-5 pt-2 sm:pt-3">
         {/* ═══ Subscription Hero ═══ */}
+        <div className="dv2-rise">
         <SubscriptionHero
           isExpired={isExpired}
           subscriptionPlan={data.subscriptionPlan || "trial"}
@@ -146,17 +147,21 @@ export default function Dashboard() {
           minutesLeft={data.minutesLeft}
           isTrial={(data.subscriptionPlan || "trial") === "trial"}
         />
+        </div>
 
         {/* ═══ Quick actions ═══ */}
+        <div className="dv2-rise dv2-rise-1">
         <QuickActionsRow
           cashbackPercent={data.cashbackPercent}
           paidReferrals={data.paidReferrals}
           unread={unreadCount}
           onNotifications={() => setShowNotifications(true)}
         />
+        </div>
 
         {/* ═══ Subscription key (Remnawave) ═══ */}
         {!isExpired && data.subscriptionUrl && (
+          <div className="dv2-rise dv2-rise-2">
           <SubscriptionCard
             subscriptionUrl={data.subscriptionUrl}
             happCryptoLink={data.happCryptoLink ?? null}
@@ -164,6 +169,7 @@ export default function Dashboard() {
             isTrial={data.subscriptionPlan === "trial"}
             publicId={null}
           />
+          </div>
         )}
 
         {/* ═══ Balance ═══ */}

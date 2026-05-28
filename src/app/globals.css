@@ -1809,3 +1809,79 @@ html.light .auth-ghost {
   color: rgba(0,0,0,0.80);
 }
 html.light .auth-ghost:hover:not(:disabled) { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.14); color: #0F0F12; }
+
+/* ─── Motion utilities (subtle "alive" page-load) ──────────────── */
+
+@keyframes dv2Rise {
+  from { opacity: 0; transform: translateY(12px) scale(0.985); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dv2-rise {
+  opacity: 0;
+  animation: dv2Rise 0.55s cubic-bezier(0.2, 0.9, 0.25, 1) forwards;
+}
+.dv2-rise-1 { animation-delay: 60ms; }
+.dv2-rise-2 { animation-delay: 120ms; }
+.dv2-rise-3 { animation-delay: 180ms; }
+.dv2-rise-4 { animation-delay: 240ms; }
+.dv2-rise-5 { animation-delay: 300ms; }
+.dv2-rise-6 { animation-delay: 360ms; }
+
+/* Depth elevation — for "featured" cards that should pop off the page */
+.dv2-elevate {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 30px 60px -25px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.04);
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.25, 1),
+              box-shadow 0.35s cubic-bezier(0.2, 0.9, 0.25, 1),
+              border-color 0.25s ease;
+}
+.dv2-elevate:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 40px 80px -30px rgba(0,0,0,0.6),
+    0 0 0 1px rgba(255,255,255,0.06);
+}
+
+html.light .dv2-elevate {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.8) inset,
+    0 20px 50px -20px rgba(20,20,40,0.18),
+    0 0 0 1px rgba(0,0,0,0.04);
+}
+html.light .dv2-elevate:hover {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,1) inset,
+    0 30px 70px -25px rgba(20,20,40,0.25),
+    0 0 0 1px rgba(0,0,0,0.06);
+}
+
+/* Indigo-tinted variant — featured plans, special cards */
+.dv2-elevate-accent {
+  background: linear-gradient(180deg, rgba(94,106,210,0.10), rgba(94,106,210,0.02));
+  border: 1px solid rgba(94,106,210,0.22);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.05) inset,
+    0 30px 60px -20px rgba(94,106,210,0.25),
+    0 0 0 1px rgba(94,106,210,0.10);
+}
+.dv2-elevate-accent:hover {
+  transform: translateY(-2px);
+  border-color: rgba(94,106,210,0.32);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.08) inset,
+    0 40px 80px -25px rgba(94,106,210,0.35),
+    0 0 0 1px rgba(94,106,210,0.18);
+}
+
+html.light .dv2-elevate-accent {
+  background: linear-gradient(180deg, rgba(94,106,210,0.08), rgba(255,255,255,0.85));
+  border-color: rgba(94,106,210,0.20);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,1) inset,
+    0 30px 60px -20px rgba(94,106,210,0.22),
+    0 0 0 1px rgba(94,106,210,0.10);
+}
