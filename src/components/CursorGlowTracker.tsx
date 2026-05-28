@@ -21,7 +21,7 @@ export default function CursorGlowTracker() {
         rafId.current = null;
         const target = e.target as HTMLElement | null;
         if (!target) return;
-        const card = target.closest<HTMLElement>(".dv2-card");
+        const card = target.closest<HTMLElement>(".dv2-card, .dv2-glow");
         if (!card) return;
         const rect = card.getBoundingClientRect();
         const mx = ((e.clientX - rect.left) / rect.width) * 100;
