@@ -68,12 +68,9 @@ export default function SubscriptionCard({
 
   return (
     <section
-      className={`dv2-glow relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0F0F12] transition-all duration-700 ease-out ${
+      className={`dv2-glow dv2-elevate relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0F0F12] transition-all duration-700 ease-out ${
         mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
       }`}
-      style={{
-        boxShadow: "0 20px 60px -20px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03)",
-      }}
     >
       {/* Backdrop */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
