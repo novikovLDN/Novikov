@@ -567,14 +567,12 @@ export default function Devices() {
             >
               Вернуться в кабинет
             </button>
-            <a
-              href="https://t.me/Atlas_SupportSecurity"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => router.push("/support")}
               className="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[13px] hover:bg-white/[0.06] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
             >
               Нужна помощь?
-            </a>
+            </button>
           </div>
         </div>
       </div>
