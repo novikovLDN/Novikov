@@ -202,80 +202,77 @@ export default function Dashboard() {
         />
 
         {/* ═══ Telegram Bot ═══ */}
-        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-4">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-telegram/15 flex items-center justify-center shrink-0">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="#2AABEE">
+        <div className="dv2-card p-5 sm:p-6">
+          <div className="flex items-start gap-3.5 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-[#2AABEE]/15 border border-[#2AABEE]/20 flex items-center justify-center shrink-0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#2AABEE">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
               </svg>
             </div>
-            <div className="min-w-0">
-              <h3 className="font-semibold text-sm sm:text-base leading-tight">
-                Telegram-бот Atlas Secure
-              </h3>
-              <p className="text-xs sm:text-sm text-muted mt-1 leading-snug">
+            <div className="min-w-0 flex-1">
+              <div className="dv2-eyebrow mb-1">Telegram-бот</div>
+              <h3 className="text-[15px] font-medium text-white leading-tight">Atlas Secure Bot</h3>
+              <p className="text-[12px] text-white/40 mt-1 leading-snug">
                 {data.telegramLinked
-                  ? "Telegram привязан. Подписка синхронизирована."
-                  : "Привяжите Telegram для синхронизации подписки."
-                }
+                  ? "Подписка синхронизирована с ботом"
+                  : "Управление подпиской с любого устройства"}
               </p>
             </div>
+            {data.telegramLinked && (
+              <span className="relative h-2 w-2 rounded-full bg-[#34D399] shrink-0 mt-1.5" style={{ boxShadow: "0 0 8px #34D399" }} />
+            )}
           </div>
 
           {data.telegramLinked ? (
             <div className="space-y-2">
-              <div className="flex items-center gap-2 bg-success-light rounded-xl px-4 py-3">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                <span className="text-sm text-success font-medium">Telegram привязан</span>
-              </div>
-
-              {/* Double confirmation unlink */}
               {unlinkStep === 0 && (
                 <button
                   onClick={() => setUnlinkStep(1)}
-                  className="w-full h-8 text-[11px] text-muted hover:text-danger transition-colors flex items-center justify-center gap-1"
+                  className="w-full h-9 text-[11px] text-white/40 hover:text-white/70 transition-colors"
                 >
                   Отвязать Telegram
                 </button>
               )}
               {unlinkStep === 1 && (
-                <div className="bg-danger/5 border border-danger/20 rounded-xl p-3 animate-fade-in">
-                  <p className="text-xs text-muted mb-2.5 text-center">Синхронизация подписки с ботом будет остановлена. Продолжить?</p>
+                <div className="rounded-xl bg-white/[0.03] border border-white/[0.08] p-3">
+                  <p className="text-[12px] text-white/70 mb-3 text-center">
+                    Синхронизация с ботом будет остановлена. Продолжить?
+                  </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setUnlinkStep(0)}
-                      className="flex-1 h-9 rounded-lg text-xs font-medium border border-border hover:bg-card-hover transition-all btn-press"
+                      className="flex-1 h-9 rounded-lg text-[12px] font-medium border border-white/[0.08] text-white/85 hover:bg-white/[0.05] transition-all"
                     >
                       Отмена
                     </button>
                     <button
                       onClick={() => setUnlinkStep(2)}
-                      className="flex-1 h-9 rounded-lg text-xs font-medium text-danger border border-danger/30 hover:bg-danger/10 transition-all btn-press"
+                      className="flex-1 h-9 rounded-lg text-[12px] font-medium bg-[#EF4444]/15 border border-[#EF4444]/30 text-[#EF4444] hover:bg-[#EF4444]/20 transition-all"
                     >
-                      Да, отвязать
+                      Отвязать
                     </button>
                   </div>
                 </div>
               )}
               {unlinkStep === 2 && (
-                <div className="bg-danger/10 border border-danger/30 rounded-xl p-3 animate-fade-in">
-                  <p className="text-xs text-danger font-medium mb-2.5 text-center">Вы уверены? Это действие нельзя отменить мгновенно.</p>
+                <div className="rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 p-3">
+                  <p className="text-[12px] text-[#EF4444] mb-3 text-center font-medium">
+                    Подтвердите отвязку Telegram
+                  </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setUnlinkStep(0)}
                       disabled={unlinking}
-                      className="flex-1 h-9 rounded-lg text-xs font-medium border border-border hover:bg-card-hover transition-all btn-press disabled:opacity-40"
+                      className="flex-1 h-9 rounded-lg text-[12px] font-medium border border-white/[0.08] text-white/85 hover:bg-white/[0.05] transition-all disabled:opacity-50"
                     >
-                      Нет, оставить
+                      Оставить
                     </button>
                     <button
                       onClick={handleUnlinkTelegram}
                       disabled={unlinking}
-                      className="flex-1 h-9 rounded-lg text-xs font-medium bg-danger text-white hover:bg-danger-hover transition-all btn-press disabled:opacity-40 flex items-center justify-center gap-1"
+                      className="flex-1 h-9 rounded-lg text-[12px] font-medium bg-[#EF4444] text-white hover:bg-[#EF4444]/90 transition-all disabled:opacity-50"
                     >
-                      {unlinking ? "Отвязка..." : "Подтвердить отвязку"}
+                      {unlinking ? "..." : "Подтвердить"}
                     </button>
                   </div>
                 </div>
@@ -286,9 +283,9 @@ export default function Dashboard() {
               href={`https://t.me/atlassecure_bot?start=${data.telegramLinkToken || ""}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full h-11 sm:h-12 rounded-xl bg-telegram text-white font-medium text-sm sm:text-base hover:bg-telegram-hover transition-all btn-press flex items-center justify-center gap-2"
+              className="w-full h-12 rounded-2xl bg-[#2AABEE] text-white font-medium text-[14px] hover:bg-[#2AABEE]/90 transition-all active:scale-[0.985] flex items-center justify-center gap-2"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
               </svg>
               Привязать Telegram
@@ -296,31 +293,31 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* ═══ Settings + About ═══ */}
-        <div className="grid grid-cols-2 gap-2.5 animate-fade-in-up animate-delay-4">
-          <SettingsCard />
+        {/* ═══ Settings + About + Admin ═══ */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="dv2-card overflow-hidden">
+            <SettingsCard />
+          </div>
           <button
             onClick={() => router.push("/about")}
-            className="h-11 sm:h-12 rounded-2xl bg-card border border-border/50 text-foreground font-medium text-sm sm:text-base hover:bg-card-hover transition-all btn-press flex items-center justify-center gap-2"
+            className="h-[52px] rounded-2xl bg-white/[0.02] border border-white/[0.06] text-white/85 font-medium text-[13px] hover:bg-white/[0.04] hover:border-white/[0.1] backdrop-blur transition-all active:scale-[0.985] flex items-center justify-center gap-2"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M12 7.5v0m0 9V11" stroke="currentColor" strokeWidth="2" />
-              <circle cx="12" cy="7.5" r="0.5" fill="currentColor" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 17V11M12 7h.01" />
             </svg>
             О нас
           </button>
         </div>
 
-        {/* ═══ Admin ═══ */}
         {data.isAdmin && (
           <button
             onClick={() => router.push("/admin")}
-            className="w-full h-11 sm:h-12 rounded-2xl bg-card border border-primary/30 text-primary font-medium text-sm sm:text-base hover:bg-primary/10 transition-all btn-press flex items-center justify-center gap-2 animate-fade-in-up animate-delay-4"
+            className="w-full h-12 rounded-2xl bg-[#5E6AD2]/10 border border-[#5E6AD2]/30 text-[#8F8FD9] font-medium text-[13px] hover:bg-[#5E6AD2]/15 transition-all active:scale-[0.985] flex items-center justify-center gap-2"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
-              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M9 12l2 2 4-4" />
             </svg>
             Админ-панель
           </button>
@@ -329,9 +326,9 @@ export default function Dashboard() {
         {/* ═══ Logout ═══ */}
         <button
           onClick={() => setShowLogoutConfirm(true)}
-          className="w-full h-11 sm:h-12 rounded-2xl bg-card border border-border/50 text-muted font-medium text-sm sm:text-base hover:bg-card-hover hover:text-danger transition-all btn-press flex items-center justify-center gap-2 animate-fade-in-up animate-delay-4"
+          className="w-full h-12 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-white/50 font-medium text-[13px] hover:bg-[#EF4444]/8 hover:border-[#EF4444]/30 hover:text-[#EF4444] backdrop-blur transition-all active:scale-[0.985] flex items-center justify-center gap-2"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
