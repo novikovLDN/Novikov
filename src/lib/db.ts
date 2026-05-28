@@ -211,6 +211,11 @@ export async function initDb(): Promise<void> {
     // generated at insert time. Lets us look up the panel user by a key
     // we control on both sides without depending on email format quirks.
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_id TEXT UNIQUE",
+    // Human-readable Remnawave username: "ST" + 8-digit sequence number.
+    // Stable per user, never reused. Visible to admin so they can spot
+    // a site-issued user in the panel at a glance.
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS public_id TEXT UNIQUE",
+    "CREATE SEQUENCE IF NOT EXISTS user_public_id_seq START 1",
     // ── Orders: extend payments table with Remnawave/YooKassa lifecycle fields ──
     "ALTER TABLE payments ADD COLUMN IF NOT EXISTS applied_to_remnawave_at TIMESTAMPTZ",
     "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_logged_at TIMESTAMPTZ",
@@ -245,8 +250,7 @@ export async function initDb(): Promise<void> {
     console.error("[DB] Failed to generate tokens:", err);
   }
 
-  // Generate panel_id for existing users who don't have one. 8 hex chars,
-  // unique. Retried on the (extremely unlikely) collision case.
+  // Generate panel_id for existing users who don't have one (legacy field).
   try {
     const crypto = require("crypto");
     const usersWithoutPanel = await pool.query(
@@ -254,7 +258,7 @@ export async function initDb(): Promise<void> {
     );
     for (const row of usersWithoutPanel.rows) {
       for (let attempt = 0; attempt < 5; attempt++) {
-        const pid = crypto.randomBytes(4).toString("hex"); // 8 chars
+        const pid = crypto.randomBytes(4).toString("hex");
         try {
           await pool.query("UPDATE users SET panel_id = $1 WHERE id = $2", [pid, row.id]);
           break;
@@ -264,10 +268,31 @@ export async function initDb(): Promise<void> {
       }
     }
     if (usersWithoutPanel.rows.length > 0) {
-      console.log(`[DB] Generated panel_id for ${usersWithoutPanel.rows.length} existing users`);
+      console.log(`[DB] Backfilled panel_id for ${usersWithoutPanel.rows.length} existing users`);
     }
   } catch (err) {
     console.error("[DB] Failed to backfill panel_id:", err);
+  }
+
+  // Generate public_id (ST + 8-digit sequence) for users who don't
+  // have one. Format: "ST00000001". Deterministic per insert order
+  // — admin can use it as a stable reference.
+  try {
+    const usersWithoutPublicId = await pool.query<{ id: string }>(
+      "SELECT id FROM users WHERE public_id IS NULL ORDER BY created_at ASC"
+    );
+    for (const row of usersWithoutPublicId.rows) {
+      await pool.query(
+        `UPDATE users SET public_id = 'ST' || LPAD(NEXTVAL('user_public_id_seq')::text, 8, '0')
+         WHERE id = $1 AND public_id IS NULL`,
+        [row.id]
+      );
+    }
+    if (usersWithoutPublicId.rows.length > 0) {
+      console.log(`[DB] Backfilled public_id (ST...) for ${usersWithoutPublicId.rows.length} existing users`);
+    }
+  } catch (err) {
+    console.error("[DB] Failed to backfill public_id:", err);
   }
 
   // Generate sub_token and sub_id for existing users who don't have them

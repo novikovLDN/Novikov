@@ -316,7 +316,11 @@ export async function createUserWithExpire(
     res.status === 422;
 
   if (alreadyExists) {
-    const raceWinner = (await getUserByUsername(username)) || (await getUserByEmail(email));
+    // SAFETY: race-loser adoption looks up ONLY by username (our own
+    // ST-prefixed public_id). We never adopt by email, because the
+    // panel is shared with another service and an email-match could
+    // be that other service's user — which we must not modify.
+    const raceWinner = await getUserByUsername(username);
     if (raceWinner?.uuid) {
       const updated = await setUserExpire(raceWinner.uuid, expireAtIso);
       return updated || raceWinner;
@@ -340,3 +344,19 @@ export const REMNAWAVE_CONFIG = {
   trialDurationMs: 24 * 60 * 60 * 1000,
   isConfigured: Boolean(API_TOKEN),
 };
+
+/**
+ * Strict ownership check.
+ *
+ * The Remnawave panel is shared with another service (the Telegram
+ * bot). We must NEVER delete or modify panel users that don't belong
+ * to us. A panel user is OURS only if its username starts with the
+ * "ST" prefix — that's the format syncSubscriptionToPanel assigns to
+ * every user it creates from the site (`public_id`).
+ *
+ * Use this guard before any DELETE or destructive PATCH that targets
+ * a panel user the site code didn't itself just create.
+ */
+export function isOurPanelUser(u: { username?: string | null }): boolean {
+  return typeof u.username === "string" && /^ST\d+$/.test(u.username);
+}

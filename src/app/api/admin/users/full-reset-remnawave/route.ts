@@ -1,29 +1,23 @@
 import { NextResponse } from "next/server";
 import { pool } from "@/lib/db";
-import {
-  getAllUsersByEmail,
-  deleteUser as rwDeleteUser,
-  createUserWithExpire,
-  encryptHappLink,
-  getLastRwError,
-} from "@/lib/remnawave";
+import { getAllUsersByEmail, deleteUser as rwDeleteUser, isOurPanelUser } from "@/lib/remnawave";
+import { syncSubscriptionToPanel } from "@/lib/subscription-sync";
 import { verifyAdmin } from "../../middleware";
-import crypto from "crypto";
 
 /**
- * NUCLEAR: for every locally-active user
- *   1. Find every panel user that matches their email — DELETE all of them.
- *   2. Reset local Remnawave columns (uuid, subscription_url, happ link).
- *   3. Ensure panel_id exists.
- *   4. Create a fresh panel user with username = panel_id and
- *      expireAt = subscription_end.
- *   5. Persist uuid + subscription_url + happ_crypto_link.
+ * Full reset for every locally-active user.
  *
- * Returns per-user records: email, panel_id, deleted (count of duplicates
- * removed), uuid (new), subscription_url (new), error.
+ * Step 1: list all panel users that match each local user's email,
+ *         and DELETE them (any stale records from earlier integration
+ *         attempts).
+ * Step 2: clear local Remnawave cache columns.
+ * Step 3: call syncSubscriptionToPanel(id) — that creates a fresh
+ *         panel user with username = public_id (ST00000xxx) and
+ *         expireAt = subscription_end, then caches uuid +
+ *         subscription_url + happ_crypto_link.
  *
- * This is the recovery tool for installations that ended up with
- * inconsistent panel state from earlier integration bugs.
+ * Returns per-user details: email, public_id, deleted (count),
+ * new uuid, new subscription_url, error.
  */
 export async function POST() {
   const auth = await verifyAdmin();
@@ -32,8 +26,8 @@ export async function POST() {
   }
 
   const rows = (
-    await pool.query<{ id: string; email: string; subscription_end: Date; panel_id: string | null }>(
-      `SELECT id, email, subscription_end, panel_id FROM users
+    await pool.query<{ id: string; email: string }>(
+      `SELECT id, email FROM users
        WHERE subscription_end > NOW()
        ORDER BY subscription_end DESC`
     )
@@ -41,7 +35,7 @@ export async function POST() {
 
   type Row = {
     email: string;
-    panel_id: string | null;
+    public_id: string | null;
     deleted: number;
     uuid: string | null;
     subscription_url: string | null;
@@ -55,24 +49,39 @@ export async function POST() {
     users: [],
   };
 
+  console.log(`[FULL-RESET] starting for ${rows.length} active users`);
+
   for (const row of rows) {
     const record: Row = {
       email: row.email,
-      panel_id: row.panel_id,
+      public_id: null,
       deleted: 0,
       uuid: null,
       subscription_url: null,
       error: null,
     };
 
-    // 1. Wipe panel users matching this email
-    const existing = await getAllUsersByEmail(row.email);
-    for (const e of existing) {
-      const ok = await rwDeleteUser(e.uuid);
-      if (ok) record.deleted += 1;
+    // 1. Delete ONLY panel users that belong to us.
+    //
+    // SAFETY: the panel is shared with the Telegram bot service. We
+    // refuse to delete any panel user whose username doesn't start
+    // with "ST" — even if the email matches, that record may belong
+    // to the other service.
+    try {
+      const existing = await getAllUsersByEmail(row.email);
+      for (const e of existing) {
+        if (!isOurPanelUser(e)) {
+          console.log(`[FULL-RESET] skip non-ours: ${e.username} (uuid=${e.uuid.slice(0, 8)}…) for ${row.email}`);
+          continue;
+        }
+        const ok = await rwDeleteUser(e.uuid);
+        if (ok) record.deleted += 1;
+      }
+    } catch (err) {
+      console.warn(`[FULL-RESET] ${row.email} delete-existing exception:`, err);
     }
 
-    // 2. Wipe local Remnawave columns for clean state
+    // 2. Wipe local cache
     await pool.query(
       `UPDATE users SET
          remnawave_user_uuid = NULL,
@@ -84,49 +93,21 @@ export async function POST() {
       [row.id]
     );
 
-    // 3. Ensure panel_id
-    let panelId = row.panel_id;
-    if (!panelId) {
-      panelId = crypto.randomBytes(4).toString("hex");
-      await pool.query(`UPDATE users SET panel_id = $1 WHERE id = $2`, [panelId, row.id]);
-      record.panel_id = panelId;
-    }
+    // 3. Run the standard sync flow (creates panel user with public_id)
+    const sync = await syncSubscriptionToPanel(row.id);
+    record.public_id = sync.publicId;
+    record.uuid = sync.uuid;
+    record.subscription_url = sync.subscriptionUrl;
 
-    // 4. Create fresh in panel
-    const expireIso = new Date(row.subscription_end).toISOString();
-    const rwUser = await createUserWithExpire(row.email, expireIso, "admin full-reset", panelId);
-    if (!rwUser) {
-      record.error = getLastRwError() || "create failed";
+    if (sync.ok) {
+      result.created += 1;
+    } else {
       result.failed += 1;
-      result.users.push(record);
-      continue;
+      record.error = sync.reason || sync.action;
     }
-
-    // 5. Persist
-    const happLink = await encryptHappLink(rwUser.subscriptionUrl);
-    await pool.query(
-      `UPDATE users SET
-         remnawave_user_uuid = $1,
-         remnawave_short_uuid = $2,
-         subscription_url = $3,
-         happ_crypto_link = $4,
-         crypto_link_updated_at = $5
-       WHERE id = $6`,
-      [
-        rwUser.uuid,
-        rwUser.shortUuid || null,
-        rwUser.subscriptionUrl,
-        happLink,
-        happLink ? new Date() : null,
-        row.id,
-      ]
-    );
-
-    record.uuid = rwUser.uuid;
-    record.subscription_url = rwUser.subscriptionUrl;
-    result.created += 1;
     result.users.push(record);
   }
 
+  console.log(`[FULL-RESET] done — created=${result.created} failed=${result.failed}`);
   return NextResponse.json({ success: true, data: result });
 }

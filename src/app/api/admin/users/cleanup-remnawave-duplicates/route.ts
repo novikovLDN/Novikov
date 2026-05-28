@@ -6,6 +6,7 @@ import {
   deleteUser as rwDeleteUser,
   setUserExpire,
   getLastRwError,
+  isOurPanelUser,
 } from "@/lib/remnawave";
 import { verifyAdmin } from "../../middleware";
 
@@ -71,9 +72,16 @@ export async function POST() {
       continue;
     }
 
-    // Delete every other panel user that maps to this email
+    // Delete every other panel user that maps to this email — but
+    // ONLY if its username starts with "ST" (our prefix). Panel users
+    // from the shared Telegram bot service must be left alone even if
+    // they share an email.
     for (const entry of seen.values()) {
       if (entry.uuid === chosen) continue;
+      if (!isOurPanelUser({ username: entry.username })) {
+        console.log(`[CLEANUP] skip non-ours: ${entry.username} (uuid=${entry.uuid.slice(0, 8)}…) for ${row.email}`);
+        continue;
+      }
       const ok = await rwDeleteUser(entry.uuid);
       if (ok) {
         result.duplicates_deleted += 1;
