@@ -14,6 +14,7 @@ import TelegramLinkBanner from "@/components/TelegramLinkBanner";
 import SubscriptionCard from "@/components/SubscriptionCard";
 import SubscriptionHero from "@/components/SubscriptionHero";
 import QuickActionsRow from "@/components/QuickActionsRow";
+import ReferralSection from "@/components/ReferralSection";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -132,7 +133,7 @@ export default function Dashboard() {
     <div className="dashboard-v2 min-h-dvh flex flex-col">
       <Header showMenu onNotifications={() => setShowNotifications((prev) => !prev)} unreadCount={unreadCount} />
 
-      <PageContainer className="space-y-3 sm:space-y-4">
+      <PageContainer className="space-y-4 sm:space-y-5 pt-2 sm:pt-3">
         {/* ═══ Subscription Hero ═══ */}
         <SubscriptionHero
           isExpired={isExpired}
@@ -146,9 +147,7 @@ export default function Dashboard() {
 
         {/* ═══ Quick actions ═══ */}
         <QuickActionsRow
-          balance={data.balance}
           cashbackPercent={data.cashbackPercent}
-          referrals={data.referrals}
           paidReferrals={data.paidReferrals}
           unread={unreadCount}
           onNotifications={() => setShowNotifications(true)}
@@ -166,132 +165,41 @@ export default function Dashboard() {
         )}
 
         {/* ═══ Balance ═══ */}
-        <div className="dv2-card p-5">
-          <div className="flex items-center justify-between mb-2">
+        <div className="dv2-card p-5 sm:p-6">
+          <div className="flex items-center justify-between mb-3">
             <div className="dv2-eyebrow">Баланс</div>
-            <span className="text-[10px] font-mono text-white/30">{data.balance > 0 ? "ACTIVE" : "EMPTY"}</span>
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-3xl sm:text-4xl font-light tracking-tight text-white tabular-nums">
-              {data.balance.toFixed(2)}
+            <span className="text-[10px] font-mono text-white/30 tracking-wider">
+              {data.balance > 0 ? "ACTIVE" : "EMPTY"}
             </span>
-            <span className="text-base text-white/40">₽</span>
           </div>
-          <p className="text-[11px] text-white/40 mt-2">Пополнение и оплата — через Telegram-бот</p>
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="text-[40px] sm:text-[48px] font-light tracking-tight leading-none text-white tabular-nums">
+              {data.balance.toLocaleString("ru-RU", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+            <span className="text-lg text-white/40">₽</span>
+          </div>
+          <p className="text-[12px] text-white/40 mt-3 flex items-center gap-1.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 8v4M12 16h.01" />
+            </svg>
+            Пополнение и оплата — через Telegram-бот
+          </p>
         </div>
 
         {/* ═══ Referral Program ═══ */}
-        <div id="referral-section" className="dv2-card p-5">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-warning-light flex items-center justify-center shrink-0">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6" />
-                <polyline points="12 15 12 3" />
-                <path d="M4 8l4-4 4 4" />
-                <path d="M12 8l4-4 4 4" />
-              </svg>
-            </div>
-            <div className="min-w-0">
-              <h3 className="font-semibold text-sm sm:text-base leading-tight">
-                Кешбэк {data.cashbackPercent}% с покупок друзей
-              </h3>
-              <p className="text-xs sm:text-sm text-muted mt-1 leading-snug">
-                Приглашай друзей — получай кешбэк на баланс с каждой их покупки
-              </p>
-            </div>
-          </div>
-
-          {/* Loyalty Tier */}
-          <div className="bg-background rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 mb-3">
-            <div className="flex items-center justify-between text-xs sm:text-sm mb-2">
-              <span className="text-muted">Уровень:</span>
-              <span className="font-semibold text-foreground">{data.loyaltyTier}</span>
-            </div>
-            <div className="flex items-center gap-3 text-[10px] sm:text-xs text-muted">
-              <div className={`px-2 py-0.5 rounded-full font-medium ${
-                data.cashbackPercent >= 45 ? "bg-success/20 text-success" :
-                data.cashbackPercent >= 25 ? "bg-warning/20 text-warning" :
-                "bg-primary/20 text-primary"
-              }`}>
-                {data.cashbackPercent}%
-              </div>
-              <div className="flex-1 h-1 bg-border rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-primary rounded-full transition-all"
-                  style={{ width: `${Math.min(100, (data.paidReferrals / 50) * 100)}%` }}
-                />
-              </div>
-              <div className={`px-2 py-0.5 rounded-full font-medium ${data.cashbackPercent >= 25 ? "bg-warning/20 text-warning" : "bg-card-hover text-muted"}`}>
-                25%
-              </div>
-              <div className={`px-2 py-0.5 rounded-full font-medium ${data.cashbackPercent >= 45 ? "bg-success/20 text-success" : "bg-card-hover text-muted"}`}>
-                45%
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted mb-4 bg-background rounded-xl px-3 sm:px-4 py-2.5 sm:py-3">
-            <div className="flex items-center gap-1.5">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted/60">
-                <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
-                <circle cx="8.5" cy="7" r="4" />
-                <line x1="20" y1="8" x2="20" y2="14" />
-                <line x1="23" y1="11" x2="17" y2="11" />
-              </svg>
-              <span>Приглашено: <b className="text-foreground">{data.referrals}</b></span>
-            </div>
-            <div className="w-px h-4 bg-border" />
-            <div className="flex items-center gap-1.5">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted/60">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              <span>Оплатили: <b className="text-foreground">{data.paidReferrals}</b></span>
-            </div>
-          </div>
-
-          <div className="flex gap-2 sm:gap-3">
-            <button
-              onClick={() =>
-                copyToClipboard(`${window.location.origin}?ref=${data.referralCode}`)
-              }
-              className="flex-1 h-11 sm:h-12 rounded-xl bg-foreground text-background font-medium text-sm sm:text-base hover:bg-foreground/90 transition-all btn-press flex items-center justify-center gap-2"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
-                <polyline points="16 6 12 2 8 6" />
-                <line x1="12" y1="2" x2="12" y2="15" />
-              </svg>
-              Поделиться
-            </button>
-            <button
-              onClick={() =>
-                copyToClipboard(`${window.location.origin}?ref=${data.referralCode}`)
-              }
-              className={`flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
-                copiedRef
-                  ? "bg-success/20 text-success border border-success/30"
-                  : "bg-card-hover border border-border hover:bg-card-active"
-              }`}
-            >
-              {copiedRef ? (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  Скопировано!
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                  </svg>
-                  Скопировать
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+        <ReferralSection
+          referralCode={data.referralCode}
+          cashbackPercent={data.cashbackPercent}
+          loyaltyTier={data.loyaltyTier}
+          referrals={data.referrals}
+          paidReferrals={data.paidReferrals}
+          copiedRef={copiedRef}
+          onCopy={(url) => copyToClipboard(url)}
+        />
 
         {/* ═══ Telegram Bot ═══ */}
         <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-4">

@@ -3,9 +3,7 @@
 import { useRouter } from "next/navigation";
 
 interface QuickActionsRowProps {
-  balance: number;
   cashbackPercent: number;
-  referrals: number;
   paidReferrals: number;
   unread: number;
   onNotifications: () => void;
@@ -15,12 +13,9 @@ interface QuickActionsRowProps {
  * Three compact glass cards below the hero:
  *   - Devices (route /devices)
  *   - Notifications (opens modal)
- *   - Referrals (route /support?ref ... — for now goes to bottom of dashboard)
- *
- * Mobile: horizontal scroll. Desktop: 3-column grid.
+ *   - Referrals (jumps to referral section)
  */
 export default function QuickActionsRow({
-  balance,
   cashbackPercent,
   paidReferrals,
   unread,
@@ -34,9 +29,7 @@ export default function QuickActionsRow({
       label: "Устройства",
       hint: "Настройка подключений",
       onClick: () => router.push("/devices"),
-      icon: (
-        <path d="M4 6h16v10H4zM2 20h20M9 16v4M15 16v4" />
-      ),
+      icon: <path d="M4 6h16v10H4zM2 20h20M9 16v4M15 16v4" />,
     },
     {
       key: "notifications",
@@ -49,7 +42,7 @@ export default function QuickActionsRow({
     {
       key: "referrals",
       label: `Кешбэк ${cashbackPercent}%`,
-      hint: paidReferrals > 0 ? `${paidReferrals} приглашено` : "Пригласить друга",
+      hint: paidReferrals > 0 ? `Приглашено: ${paidReferrals}` : "Пригласить друга",
       onClick: () => {
         const el = document.getElementById("referral-section");
         if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -84,11 +77,6 @@ export default function QuickActionsRow({
           <div className="text-[10px] sm:text-[11px] text-white/40 mt-0.5 leading-tight truncate w-full">
             {a.hint}
           </div>
-          {balance > 0 && a.key === "referrals" && (
-            <div className="absolute top-2 right-2 text-[9px] font-mono text-success/70">
-              {balance.toFixed(0)}₽
-            </div>
-          )}
         </button>
       ))}
     </div>
