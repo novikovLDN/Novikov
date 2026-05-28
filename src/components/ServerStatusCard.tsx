@@ -20,6 +20,7 @@ import { onlineAt } from "@/lib/online-counter";
  */
 
 const TICK_MS = 10_000;
+const HISTORY_TICKS = 90; // 90 × 10s = 15 minutes of history
 const SERVER_REGIONS = [
   { code: "NL", label: "Нидерланды" },
   { code: "DE", label: "Германия" },
@@ -32,12 +33,11 @@ function formatNumber(n: number): string {
   return n.toLocaleString("ru-RU");
 }
 
-/** Snapshot of the last N ticks for the sparkline. */
+/** Snapshot of the last 15 minutes — 90 points sampled every 10s. */
 function initialHistory(): number[] {
   const now = Math.floor(Date.now() / 1000);
-  // Walk back 24 ticks (one every 10s) — total 4 minutes of history.
-  return Array.from({ length: 24 }, (_, i) => {
-    const t = now - (23 - i) * 10;
+  return Array.from({ length: HISTORY_TICKS }, (_, i) => {
+    const t = now - (HISTORY_TICKS - 1 - i) * 10;
     return onlineAt(t);
   });
 }
@@ -72,16 +72,17 @@ export default function ServerStatusCard() {
   const range = Math.max(1, hMax - hMin);
 
   // SVG geometry — use viewBox stretched along the card width.
-  // The path is rendered into a tall area that fills the negative space
-  // between the counter and the server pills.
-  const W = 200;
+  // Line is constrained to the central band of the viewbox so the
+  // stroke never grazes the top of its container (preventing visual
+  // overlap with the "человек подключены прямо сейчас" hint text).
+  const W = 240;
   const H = 100;
+  const TOP_PAD = 28; // line cannot rise above this y
+  const BOT_PAD = 24; // line cannot fall below this y
   const pathPoints = history.map((v, i) => {
     const x = (i / (history.length - 1)) * W;
-    // Map value into bottom-third of viewbox so the line "lives" higher
-    // up and fades down to the pills row.
     const norm = (v - hMin) / range; // 0..1
-    const y = H - 20 - norm * (H - 30); // line band sits in y=10..H-20
+    const y = (H - BOT_PAD) - norm * (H - TOP_PAD - BOT_PAD);
     return { x, y };
   });
   const linePath = pathPoints
@@ -106,18 +107,23 @@ export default function ServerStatusCard() {
         />
       </div>
 
-      {/* Background sparkline fills the empty middle. */}
-      <div className="pointer-events-none absolute inset-x-0 top-[120px] bottom-[80px]" aria-hidden>
+      {/* Background sparkline fills the empty middle.
+          Inset positioning leaves a generous gap above the chart so
+          its top stroke never collides with the "человек подключены
+          прямо сейчас" hint text, and a gap below for the server
+          pills. The negative-space gradient fades both ends. */}
+      <div className="pointer-events-none absolute left-0 right-0 top-[180px] bottom-[110px] sm:top-[200px] sm:bottom-[120px]" aria-hidden>
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
           <defs>
             <linearGradient id="sparkArea" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#34D399" stopOpacity="0.32" />
-              <stop offset="60%" stopColor="#34D399" stopOpacity="0.10" />
+              <stop offset="0%" stopColor="#34D399" stopOpacity="0" />
+              <stop offset="22%" stopColor="#34D399" stopOpacity="0.22" />
+              <stop offset="70%" stopColor="#34D399" stopOpacity="0.08" />
               <stop offset="100%" stopColor="#34D399" stopOpacity="0" />
             </linearGradient>
             <linearGradient id="sparkLine" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#34D399" stopOpacity="0.85" />
-              <stop offset="100%" stopColor="#34D399" stopOpacity="0.25" />
+              <stop offset="0%" stopColor="#34D399" stopOpacity="0.75" />
+              <stop offset="100%" stopColor="#34D399" stopOpacity="0.2" />
             </linearGradient>
           </defs>
           <path d={areaPath} fill="url(#sparkArea)" className="transition-[d] duration-700 ease-out" />
@@ -125,7 +131,7 @@ export default function ServerStatusCard() {
             d={linePath}
             fill="none"
             stroke="url(#sparkLine)"
-            strokeWidth="1.6"
+            strokeWidth="1.4"
             strokeLinecap="round"
             strokeLinejoin="round"
             className="transition-[d] duration-700 ease-out"

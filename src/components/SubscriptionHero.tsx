@@ -238,7 +238,7 @@ export default function SubscriptionHero({
             <>
               <button
                 onClick={() => router.push("/devices")}
-                className="group relative flex-1 h-[72px] sm:h-[60px] rounded-2xl font-semibold text-[17px] sm:text-[15px] flex items-center justify-center gap-2.5 overflow-hidden transition-all active:scale-[0.985] text-white"
+                className="group relative flex-1 h-[84px] sm:h-[60px] rounded-2xl font-semibold text-[18px] sm:text-[15px] flex items-center justify-center gap-2.5 overflow-hidden transition-all active:scale-[0.985] text-white"
                 style={{
                   background: "linear-gradient(135deg, #5E6AD2 0%, #8F8FD9 100%)",
                   boxShadow: "0 12px 32px -10px rgba(94,106,210,0.60), inset 0 1px 0 rgba(255,255,255,0.20)",
@@ -258,7 +258,7 @@ export default function SubscriptionHero({
               </button>
               <button
                 onClick={() => router.push("/subscribe")}
-                className="h-[56px] sm:h-[60px] sm:w-[160px] rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[14px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.07] hover:border-white/[0.14] active:scale-[0.985]"
+                className="h-[64px] sm:h-[60px] sm:w-[160px] rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[15px] sm:text-[14px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.07] hover:border-white/[0.14] active:scale-[0.985]"
               >
                 Продлить
               </button>
@@ -266,7 +266,7 @@ export default function SubscriptionHero({
           ) : (
             <button
               onClick={() => router.push("/subscribe")}
-              className="group relative flex-1 h-[72px] sm:h-[60px] rounded-2xl font-semibold text-[17px] sm:text-[15px] flex items-center justify-center gap-2 overflow-hidden transition-all active:scale-[0.985] text-white"
+              className="group relative flex-1 h-[84px] sm:h-[60px] rounded-2xl font-semibold text-[18px] sm:text-[15px] flex items-center justify-center gap-2 overflow-hidden transition-all active:scale-[0.985] text-white"
               style={{
                 background: "linear-gradient(135deg, #5E6AD2 0%, #8F8FD9 100%)",
                 boxShadow: "0 12px 32px -10px rgba(94,106,210,0.60), inset 0 1px 0 rgba(255,255,255,0.20)",
