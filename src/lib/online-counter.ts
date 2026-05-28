@@ -2,45 +2,70 @@
  * Deterministic, time-based global online counter.
  *
  * Returns the SAME value to every client that calls within the same
- * 10-second window — so two users open the dashboard side by side and
- * see identical numbers, with no shared server state to maintain.
+ * 10-second window. Designed to feel alive without ever producing
+ * the abrupt vertical lines a naïve per-bucket RNG creates:
  *
- * The value is composed from multiple time-scale hashes:
- *   day-of-epoch       30k..60k baseline (rolls daily)
- *   hour-of-epoch      ±4k drift (sub-daily ebb)
- *   5-min-of-epoch     ±100
- *   minute-of-epoch    ±20
- *   10-sec-of-epoch    ±10
- * The combined result is clamped to [23_000, 70_000].
+ *   • Daily baseline 30..60k changes once per day.
+ *   • Hour-to-hour modulation (±8k) lerps smoothly across the hour
+ *     using minute-of-hour as t, so neighbouring hours blend in.
+ *   • 10-min modulation (±300) lerps the same way.
+ *   • Per-10s tick adds ±10 jitter.
  *
- * Used by /api/network/online so the frontend just polls a JSON
- * endpoint instead of running its own RNG.
+ * Result: a continuous curve that drifts naturally up and down over
+ * the course of the day with no step changes.
+ *
+ * Bounded to [23_000, 70_000].
+ *
+ * Synchronized across users because every visitor's onlineAt(now)
+ * computes the same value given the same wall-clock second.
  */
 
 const MIN = 23_000;
 const MAX = 70_000;
 
 function hashSeed(seed: number): number {
-  // Mulberry32 — fast, deterministic 0..1 float.
+  // Mulberry32 — deterministic 0..1.
   let t = (seed + 0x6d2b79f5) | 0;
   t = Math.imul(t ^ (t >>> 15), t | 1);
   t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
+/** Smooth, easing-friendly interpolation. */
+function smoothstep(t: number): number {
+  return t * t * (3 - 2 * t);
+}
+
+/** Continuous modulation between adjacent buckets, smoothed by easing. */
+function lerpBucket(bucket: number, fraction: number, salt: number, range: number): number {
+  const a = (hashSeed(bucket * salt + 31) - 0.5) * range;
+  const b = (hashSeed((bucket + 1) * salt + 31) - 0.5) * range;
+  const t = smoothstep(fraction);
+  return a + (b - a) * t;
+}
+
 export function onlineAt(unixSeconds: number = Math.floor(Date.now() / 1000)): number {
   const day = Math.floor(unixSeconds / 86400);
+
+  // Daily baseline (changes once per day, 30..60k).
+  const dayBase = 30_000 + hashSeed(day * 1009 + 17) * 30_000;
+
+  // Hourly modulation — current hour and next hour blended by
+  // minute-of-hour. This is what makes the curve drift smoothly
+  // through ±8k over the course of an hour instead of jumping.
   const hour = Math.floor(unixSeconds / 3600);
-  const fiveMin = Math.floor(unixSeconds / 300);
-  const minute = Math.floor(unixSeconds / 60);
+  const hourFrac = (unixSeconds % 3600) / 3600;
+  const hourMod = lerpBucket(hour, hourFrac, 5009, 16_000);
+
+  // Ten-minute modulation — adds slower-than-hour wiggle (±300).
+  const tenMin = Math.floor(unixSeconds / 600);
+  const tenMinFrac = (unixSeconds % 600) / 600;
+  const tenMinMod = lerpBucket(tenMin, tenMinFrac, 7919, 600);
+
+  // Per-tick (10s) jitter — small ±10 so the latest digit moves.
   const tick = Math.floor(unixSeconds / 10);
+  const tickJitter = (hashSeed(tick * 953 + 13) - 0.5) * 20;
 
-  const dayBase = 30_000 + Math.floor(hashSeed(day * 1009 + 17) * 30_000);
-  const hourMod = Math.floor((hashSeed(hour * 5009 + 31) - 0.5) * 8_000);
-  const fiveMinMod = Math.floor((hashSeed(fiveMin * 7919 + 47) - 0.5) * 200);
-  const minMod = Math.floor((hashSeed(minute * 1259 + 89) - 0.5) * 40);
-  const tickMod = Math.floor((hashSeed(tick * 953 + 13) - 0.5) * 20);
-
-  const value = dayBase + hourMod + fiveMinMod + minMod + tickMod;
-  return Math.max(MIN, Math.min(MAX, value));
+  const value = dayBase + hourMod + tenMinMod + tickJitter;
+  return Math.max(MIN, Math.min(MAX, Math.round(value)));
 }
