@@ -12,6 +12,8 @@ import PasskeyPrompt from "@/components/PasskeyPrompt";
 import SettingsCard from "@/components/SettingsCard";
 import TelegramLinkBanner from "@/components/TelegramLinkBanner";
 import SubscriptionCard from "@/components/SubscriptionCard";
+import SubscriptionHero from "@/components/SubscriptionHero";
+import QuickActionsRow from "@/components/QuickActionsRow";
 import type { SubscriptionData } from "@/types";
 
 export default function Dashboard() {
@@ -127,190 +129,59 @@ export default function Dashboard() {
   const isExpiring = !isExpired && data.daysLeft <= 1;
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="dashboard-v2 min-h-dvh flex flex-col">
       <Header showMenu onNotifications={() => setShowNotifications((prev) => !prev)} unreadCount={unreadCount} />
 
       <PageContainer className="space-y-3 sm:space-y-4">
-        {/* ═══ Subscription Status ═══ */}
-        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-5 sm:p-7 text-center animate-fade-in-up">
-          {/* Plan Badge */}
-          <PlanBadge plan={data.subscriptionPlan} isExpired={isExpired} />
+        {/* ═══ Subscription Hero ═══ */}
+        <SubscriptionHero
+          isExpired={isExpired}
+          subscriptionPlan={data.subscriptionPlan || "trial"}
+          subscriptionEnd={data.subscriptionEnd}
+          daysLeft={data.daysLeft}
+          hoursLeft={data.hoursLeft}
+          minutesLeft={data.minutesLeft}
+          isTrial={(data.subscriptionPlan || "trial") === "trial"}
+        />
 
-          <p className="text-muted text-sm sm:text-base mb-3">Подписка осталось:</p>
+        {/* ═══ Quick actions ═══ */}
+        <QuickActionsRow
+          balance={data.balance}
+          cashbackPercent={data.cashbackPercent}
+          referrals={data.referrals}
+          paidReferrals={data.paidReferrals}
+          unread={unreadCount}
+          onNotifications={() => setShowNotifications(true)}
+        />
 
-          {isExpired ? (
-            <p className="text-6xl sm:text-7xl font-extrabold mb-1 tabular-nums text-danger">0</p>
-          ) : (() => {
-            const totalDays = data.daysLeft;
-            const totalMonths = Math.floor(totalDays / 30);
-            const years = Math.floor(totalMonths / 12);
-            const months = totalMonths % 12;
-            const remainingDays = totalDays % 30;
-
-            // > 12 months → years + months
-            if (totalMonths >= 12) {
-              return (
-                <div className="flex items-baseline justify-center gap-2 mb-1">
-                  <p className="text-6xl sm:text-7xl font-extrabold tabular-nums gradient-text">{years}</p>
-                  <span className="text-lg sm:text-xl font-semibold text-muted">г</span>
-                  {months > 0 && (
-                    <>
-                      <p className="text-4xl sm:text-5xl font-extrabold tabular-nums gradient-text">{months}</p>
-                      <span className="text-lg sm:text-xl font-semibold text-muted">мес</span>
-                    </>
-                  )}
-                </div>
-              );
-            }
-
-            // > 30 days → months + days
-            if (totalDays > 30) {
-              return (
-                <div className="flex items-baseline justify-center gap-2 mb-1">
-                  <p className="text-6xl sm:text-7xl font-extrabold tabular-nums gradient-text">{totalMonths}</p>
-                  <span className="text-lg sm:text-xl font-semibold text-muted">мес</span>
-                  {remainingDays > 0 && (
-                    <>
-                      <p className="text-4xl sm:text-5xl font-extrabold tabular-nums gradient-text">{remainingDays}</p>
-                      <span className="text-lg sm:text-xl font-semibold text-muted">дн</span>
-                    </>
-                  )}
-                </div>
-              );
-            }
-
-            // >= 1 day → days + hours
-            if (totalDays >= 1) {
-              return (
-                <div className="flex items-baseline justify-center gap-2 mb-1">
-                  <p className={`text-6xl sm:text-7xl font-extrabold tabular-nums ${isExpiring ? "text-warning" : "gradient-text"}`}>{totalDays}</p>
-                  <span className={`text-lg sm:text-xl font-semibold ${isExpiring ? "text-warning/70" : "text-muted"}`}>дн</span>
-                  <p className={`text-4xl sm:text-5xl font-extrabold tabular-nums ${isExpiring ? "text-warning" : "gradient-text"}`}>{data.hoursLeft}</p>
-                  <span className={`text-lg sm:text-xl font-semibold ${isExpiring ? "text-warning/70" : "text-muted"}`}>ч</span>
-                </div>
-              );
-            }
-
-            // < 1 day → hours + minutes
-            return (
-              <div className="flex items-baseline justify-center gap-2 mb-1">
-                <p className="text-6xl sm:text-7xl font-extrabold tabular-nums text-warning">{data.hoursLeft}</p>
-                <span className="text-lg sm:text-xl font-semibold text-warning/70">ч</span>
-                <p className="text-4xl sm:text-5xl font-extrabold tabular-nums text-warning">{data.minutesLeft}</p>
-                <span className="text-lg sm:text-xl font-semibold text-warning/70">мин</span>
-              </div>
-            );
-          })()}
-
-          <p className="text-muted text-xs sm:text-sm mb-6 sm:mb-8">
-            Заканчивается: {formatDate(data.subscriptionEnd)}
-          </p>
-
-          <div className="space-y-2.5 sm:space-y-3">
-            <button
-              onClick={() => router.push("/subscribe")}
-              className="w-full h-12 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-sm sm:text-lg hover:bg-foreground/90 transition-all btn-press"
-            >
-              {isExpired ? "Купить подписку" : "Продлить подписку"}
-            </button>
-
-            <button
-              onClick={() => router.push("/devices")}
-              className="w-full h-12 sm:h-14 rounded-2xl bg-card-hover border border-border text-foreground font-semibold text-sm sm:text-base hover:bg-card-active transition-all btn-press"
-            >
-              Подключить устройство
-            </button>
-          </div>
-        </div>
-
-        {/* ═══ Subscription (Remnawave: QR + Happ + V2RayTun + Copy) ═══ */}
+        {/* ═══ Subscription key (Remnawave) ═══ */}
         {!isExpired && data.subscriptionUrl && (
           <SubscriptionCard
             subscriptionUrl={data.subscriptionUrl}
             happCryptoLink={data.happCryptoLink ?? null}
             subscriptionEnd={data.subscriptionEnd}
             isTrial={data.subscriptionPlan === "trial"}
+            publicId={null}
           />
         )}
 
-        {/* ═══ Key (legacy fallback / actions) ═══ */}
-        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-1">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm sm:text-base">Управление</h3>
-            <span className="text-[10px] sm:text-xs bg-primary-light text-primary px-2 py-0.5 rounded-full font-medium">
-              Подписка
-            </span>
-          </div>
-
-          {isExpired ? (
-            <div className="bg-danger/10 border border-danger/20 rounded-xl p-4 text-center">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              <p className="text-danger font-semibold text-sm sm:text-base mb-1">Подписка истекла</p>
-              <p className="text-muted text-xs sm:text-sm">Ссылка деактивирована. Продлите подписку для восстановления доступа.</p>
-            </div>
-          ) : (
-            <>
-              <button
-                onClick={() => router.push("/devices")}
-                className="w-full h-12 sm:h-14 rounded-xl bg-primary text-white font-semibold text-sm sm:text-base hover:bg-primary-hover transition-all btn-press flex items-center justify-center gap-2.5"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14" />
-                  <path d="M12 5l7 7-7 7" />
-                </svg>
-                Подключиться
-              </button>
-              <button
-                onClick={() => router.push("/add-device")}
-                className="w-full h-10 sm:h-11 rounded-xl font-medium text-xs sm:text-sm transition-all btn-press flex items-center justify-center gap-2 border border-border text-foreground hover:bg-card-hover mt-2"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Добавить устройство
-              </button>
-            </>
-          )}
-
-          <button
-            onClick={() => router.push("/support")}
-            className="w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 border border-border bg-card hover:bg-card-hover mt-2.5"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-            Поддержка
-          </button>
-        </div>
-
         {/* ═══ Balance ═══ */}
-        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-2">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-sm sm:text-base">Баланс</h3>
-            <span className="text-[10px] sm:text-xs bg-success-light text-success px-2 py-0.5 rounded-full font-medium">
-              {data.balance > 0 ? `${data.balance.toFixed(2)} ₽` : "0 ₽"}
+        <div className="dv2-card p-5">
+          <div className="flex items-center justify-between mb-2">
+            <div className="dv2-eyebrow">Баланс</div>
+            <span className="text-[10px] font-mono text-white/30">{data.balance > 0 ? "ACTIVE" : "EMPTY"}</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl sm:text-4xl font-light tracking-tight text-white tabular-nums">
+              {data.balance.toFixed(2)}
             </span>
+            <span className="text-base text-white/40">₽</span>
           </div>
-          <div className="text-center py-3">
-            <p className="text-3xl sm:text-4xl font-extrabold tabular-nums gradient-text">
-              {data.balance.toFixed(2)} ₽
-            </p>
-            <p className="text-muted text-xs sm:text-sm mt-1">Доступно на балансе</p>
-          </div>
-          <p className="text-muted/60 text-[10px] sm:text-xs text-center mt-1">
-            Пополнение и оплата — через Telegram-бот
-          </p>
+          <p className="text-[11px] text-white/40 mt-2">Пополнение и оплата — через Telegram-бот</p>
         </div>
 
         {/* ═══ Referral Program ═══ */}
-        <div className="bg-card border border-border/50 rounded-2xl sm:rounded-3xl p-4 sm:p-5 animate-fade-in-up animate-delay-3">
+        <div id="referral-section" className="dv2-card p-5">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-warning-light flex items-center justify-center shrink-0">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
