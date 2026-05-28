@@ -1491,3 +1491,47 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 /* HERO V3 — fullscreen video hero (Securify-style) */
 .hero-title { font-family: 'Readex Pro', system-ui, -apple-system, sans-serif; letter-spacing: -0.04em; line-height: 0.95; }
 .hero-readex { font-family: 'Readex Pro', system-ui, -apple-system, sans-serif; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Dashboard v2 — futuristic dark glass cards
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.dashboard-v2 {
+  background: #0A0A0B;
+  position: relative;
+}
+
+.dashboard-v2::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 800px 600px at 50% -10%, rgba(94,106,210,0.06), transparent 60%),
+    radial-gradient(ellipse 600px 400px at 100% 100%, rgba(94,106,210,0.04), transparent 60%);
+  z-index: 0;
+}
+
+.dashboard-v2 > * { position: relative; z-index: 1; }
+
+.dv2-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 24px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.dv2-card:hover {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.08);
+}
+
+.dv2-eyebrow {
+  font-family: var(--pl-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+}
