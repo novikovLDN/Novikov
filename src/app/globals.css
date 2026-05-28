@@ -1535,3 +1535,35 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   text-transform: uppercase;
   color: rgba(255,255,255,0.4);
 }
+
+/* Cursor-tracking glow on .dv2-card and any opt-in element.
+   The :hover layer mirrors the pointer position via CSS variables
+   (--mx, --my) set inline by the React component. Falls back to a
+   centered radial highlight if the variables aren't set. */
+.dv2-card {
+  position: relative;
+}
+.dv2-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    220px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255,255,255,0.05),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.dv2-card:hover::before { opacity: 1; }
+
+/* Accent variant — slightly tinted glass for primary actions */
+.dv2-card-accent {
+  background: linear-gradient(180deg, rgba(94,106,210,0.05), rgba(255,255,255,0.02));
+  border-color: rgba(94,106,210,0.18);
+}
+.dv2-card-accent:hover {
+  border-color: rgba(94,106,210,0.28);
+}
