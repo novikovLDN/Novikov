@@ -20,7 +20,7 @@ import { onlineAt } from "@/lib/online-counter";
  */
 
 const TICK_MS = 10_000;
-const HISTORY_TICKS = 90; // 90 × 10s = 15 minutes of history
+const HISTORY_TICKS = 360; // 360 × 10s = 1 hour of history
 const SERVER_REGIONS = [
   { code: "NL", label: "Нидерланды" },
   { code: "DE", label: "Германия" },

@@ -1725,15 +1725,19 @@ html.light .dashboard-v2 .text-white\/75 { color: rgba(0,0,0,0.68) !important; }
 html.light .dashboard-v2 .text-white\/70 { color: rgba(0,0,0,0.62) !important; }
 html.light .dashboard-v2 .text-white\/60 { color: rgba(0,0,0,0.55) !important; }
 html.light .dashboard-v2 .text-white\/50 { color: rgba(0,0,0,0.48) !important; }
+html.light .dashboard-v2 .text-white\/65 { color: rgba(0,0,0,0.60) !important; }
+html.light .dashboard-v2 .text-white\/55 { color: rgba(0,0,0,0.52) !important; }
 html.light .dashboard-v2 .text-white\/45 { color: rgba(0,0,0,0.44) !important; }
 html.light .dashboard-v2 .text-white\/40 { color: rgba(0,0,0,0.40) !important; }
-html.light .dashboard-v2 .text-white\/30 { color: rgba(0,0,0,0.32) !important; }
-html.light .dashboard-v2 .text-white\/25 { color: rgba(0,0,0,0.28) !important; }
-html.light .dashboard-v2 .text-white\/20 { color: rgba(0,0,0,0.24) !important; }
-html.light .dashboard-v2 .text-white\/15 { color: rgba(0,0,0,0.18) !important; }
+html.light .dashboard-v2 .text-white\/35 { color: rgba(0,0,0,0.40) !important; }
+html.light .dashboard-v2 .text-white\/30 { color: rgba(0,0,0,0.38) !important; }
+html.light .dashboard-v2 .text-white\/25 { color: rgba(0,0,0,0.34) !important; }
+html.light .dashboard-v2 .text-white\/20 { color: rgba(0,0,0,0.30) !important; }
+html.light .dashboard-v2 .text-white\/15 { color: rgba(0,0,0,0.24) !important; }
 
 /* White-tint backgrounds → black-tint */
 html.light .dashboard-v2 .bg-white\/\[0\.02\] { background-color: rgba(0,0,0,0.02) !important; }
+html.light .dashboard-v2 .bg-white\/\[0\.025\] { background-color: rgba(0,0,0,0.025) !important; }
 html.light .dashboard-v2 .bg-white\/\[0\.03\] { background-color: rgba(0,0,0,0.03) !important; }
 html.light .dashboard-v2 .bg-white\/\[0\.04\] { background-color: rgba(0,0,0,0.04) !important; }
 html.light .dashboard-v2 .bg-white\/\[0\.05\] { background-color: rgba(0,0,0,0.05) !important; }
@@ -1747,6 +1751,7 @@ html.light .dashboard-v2 .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.0
 html.light .dashboard-v2 .border-white\/\[0\.05\] { border-color: rgba(0,0,0,0.07) !important; }
 html.light .dashboard-v2 .border-white\/\[0\.06\] { border-color: rgba(0,0,0,0.08) !important; }
 html.light .dashboard-v2 .border-white\/\[0\.08\] { border-color: rgba(0,0,0,0.10) !important; }
+html.light .dashboard-v2 .border-white\/\[0\.1\] { border-color: rgba(0,0,0,0.12) !important; }
 html.light .dashboard-v2 .border-white\/\[0\.10\] { border-color: rgba(0,0,0,0.12) !important; }
 html.light .dashboard-v2 .border-white\/\[0\.12\] { border-color: rgba(0,0,0,0.14) !important; }
 html.light .dashboard-v2 .border-white\/\[0\.14\] { border-color: rgba(0,0,0,0.16) !important; }

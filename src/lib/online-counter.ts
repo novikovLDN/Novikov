@@ -2,22 +2,21 @@
  * Deterministic, time-based global online counter.
  *
  * Returns the SAME value to every client that calls within the same
- * 10-second window. Designed to feel alive without ever producing
- * the abrupt vertical lines a naïve per-bucket RNG creates:
+ * 10-second window. Designed to feel alive without producing the
+ * abrupt vertical lines a naïve per-bucket RNG creates.
  *
- *   • Daily baseline 30..60k changes once per day.
- *   • Hour-to-hour modulation (±8k) lerps smoothly across the hour
- *     using minute-of-hour as t, so neighbouring hours blend in.
- *   • 10-min modulation (±300) lerps the same way.
- *   • Per-10s tick adds ±10 jitter.
+ * Modulation layers, summed:
  *
- * Result: a continuous curve that drifts naturally up and down over
- * the course of the day with no step changes.
+ *   slow daily baseline               30..60k  (changes once a day)
+ *   hourly drift                       ±8 000  (lerp across the hour)
+ *   five-minute wiggle                 ±500    (lerp every 5 min)
+ *   per-minute fluctuation             ±120    (lerp every minute)
+ *   per-10s tick jitter                ±35     (raw per-tick)
  *
- * Bounded to [23_000, 70_000].
- *
- * Synchronized across users because every visitor's onlineAt(now)
- * computes the same value given the same wall-clock second.
+ * Each layer uses smoothstep-eased interpolation between adjacent
+ * buckets, so there are no step changes — the curve drifts. The
+ * sub-minute layers add enough motion that the chart actually
+ * looks alive instead of flat. Bounded to [23_000, 70_000].
  */
 
 const MIN = 23_000;
@@ -46,26 +45,27 @@ function lerpBucket(bucket: number, fraction: number, salt: number, range: numbe
 
 export function onlineAt(unixSeconds: number = Math.floor(Date.now() / 1000)): number {
   const day = Math.floor(unixSeconds / 86400);
-
-  // Daily baseline (changes once per day, 30..60k).
   const dayBase = 30_000 + hashSeed(day * 1009 + 17) * 30_000;
 
-  // Hourly modulation — current hour and next hour blended by
-  // minute-of-hour. This is what makes the curve drift smoothly
-  // through ±8k over the course of an hour instead of jumping.
+  // Hourly modulation ±8k (lerped through the hour by minute frac).
   const hour = Math.floor(unixSeconds / 3600);
   const hourFrac = (unixSeconds % 3600) / 3600;
   const hourMod = lerpBucket(hour, hourFrac, 5009, 16_000);
 
-  // Ten-minute modulation — adds slower-than-hour wiggle (±300).
-  const tenMin = Math.floor(unixSeconds / 600);
-  const tenMinFrac = (unixSeconds % 600) / 600;
-  const tenMinMod = lerpBucket(tenMin, tenMinFrac, 7919, 600);
+  // Five-minute modulation ±500.
+  const fiveMin = Math.floor(unixSeconds / 300);
+  const fiveMinFrac = (unixSeconds % 300) / 300;
+  const fiveMinMod = lerpBucket(fiveMin, fiveMinFrac, 7919, 1_000);
 
-  // Per-tick (10s) jitter — small ±10 so the latest digit moves.
+  // Per-minute fluctuation ±120 — gives the line its frequent wiggle.
+  const minute = Math.floor(unixSeconds / 60);
+  const minuteFrac = (unixSeconds % 60) / 60;
+  const minuteMod = lerpBucket(minute, minuteFrac, 3187, 240);
+
+  // Per-10s tick jitter ±35 — fast surface texture.
   const tick = Math.floor(unixSeconds / 10);
-  const tickJitter = (hashSeed(tick * 953 + 13) - 0.5) * 20;
+  const tickJitter = (hashSeed(tick * 953 + 13) - 0.5) * 70;
 
-  const value = dayBase + hourMod + tenMinMod + tickJitter;
+  const value = dayBase + hourMod + fiveMinMod + minuteMod + tickJitter;
   return Math.max(MIN, Math.min(MAX, Math.round(value)));
 }
