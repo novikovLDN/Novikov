@@ -216,49 +216,49 @@ export default function SubscriptionHero({
           </div>
         )}
 
-        {/* Subscription perks strip */}
+        {/* Subscription perks strip — only verifiable facts */}
         {!isExpired && (
           <div className="grid grid-cols-3 gap-2 mb-6">
             {[
               { label: "Трафик", value: "Безлимит" },
-              { label: "Сервера", value: "5" },
-              { label: "AES", value: "256-GCM" },
+              { label: "Порт", value: "до 75 Гбит/с" },
+              { label: "Шифрование", value: "AES-256" },
             ].map((p) => (
               <div key={p.label} className="rounded-xl bg-white/[0.025] border border-white/[0.05] px-3 py-2.5">
-                <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-white/35 mb-0.5">{p.label}</div>
+                <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-white/35 mb-0.5 truncate">{p.label}</div>
                 <div className="text-[12px] sm:text-[13px] font-medium text-white/90 truncate">{p.value}</div>
               </div>
             ))}
           </div>
         )}
 
-        {/* CTAs */}
+        {/* CTAs — chunky on mobile for easy tapping, refined on desktop */}
         <div className="flex flex-col sm:flex-row gap-2.5">
           {!isExpired ? (
             <>
               <button
                 onClick={() => router.push("/devices")}
-                className="group relative flex-1 h-[60px] sm:h-14 rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2.5 overflow-hidden transition-all active:scale-[0.985] text-white"
+                className="group relative flex-1 h-[72px] sm:h-[60px] rounded-2xl font-semibold text-[17px] sm:text-[15px] flex items-center justify-center gap-2.5 overflow-hidden transition-all active:scale-[0.985] text-white"
                 style={{
                   background: "linear-gradient(135deg, #5E6AD2 0%, #8F8FD9 100%)",
-                  boxShadow: "0 10px 30px -10px rgba(94,106,210,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
+                  boxShadow: "0 12px 32px -10px rgba(94,106,210,0.60), inset 0 1px 0 rgba(255,255,255,0.20)",
                 }}
               >
                 <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   style={{ background: "linear-gradient(135deg, #6E7AE2 0%, #9F9FE9 100%)" }} />
                 <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                   style={{ background: "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%)" }} />
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative sm:w-[18px] sm:h-[18px]">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                 </svg>
                 <span className="relative">Подключить VPN</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:translate-x-0.5">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:translate-x-0.5 sm:w-4 sm:h-4">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </button>
               <button
                 onClick={() => router.push("/subscribe")}
-                className="h-[52px] sm:h-14 sm:w-[160px] rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[14px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.07] hover:border-white/[0.14] active:scale-[0.985]"
+                className="h-[56px] sm:h-[60px] sm:w-[160px] rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[14px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.07] hover:border-white/[0.14] active:scale-[0.985]"
               >
                 Продлить
               </button>
@@ -266,14 +266,14 @@ export default function SubscriptionHero({
           ) : (
             <button
               onClick={() => router.push("/subscribe")}
-              className="group relative flex-1 h-[60px] sm:h-14 rounded-2xl font-semibold text-[15px] flex items-center justify-center gap-2 overflow-hidden transition-all active:scale-[0.985] text-white"
+              className="group relative flex-1 h-[72px] sm:h-[60px] rounded-2xl font-semibold text-[17px] sm:text-[15px] flex items-center justify-center gap-2 overflow-hidden transition-all active:scale-[0.985] text-white"
               style={{
                 background: "linear-gradient(135deg, #5E6AD2 0%, #8F8FD9 100%)",
-                boxShadow: "0 10px 30px -10px rgba(94,106,210,0.55), inset 0 1px 0 rgba(255,255,255,0.18)",
+                boxShadow: "0 12px 32px -10px rgba(94,106,210,0.60), inset 0 1px 0 rgba(255,255,255,0.20)",
               }}
             >
               <span className="relative">Купить подписку</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:translate-x-0.5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:translate-x-0.5 sm:w-4 sm:h-4">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </button>
