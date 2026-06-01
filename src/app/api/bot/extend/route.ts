@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { botExtendSubscription, getUserByTelegramId, creditReferrerOnPayment, updateUser, createNotificationForUser } from "@/lib/store";
 import { xrayAddUser } from "@/lib/xray";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
+import { botSyncDisabledResponse } from "../sync-guard";
 
 // POST /api/bot/extend — bot extends subscription after payment
 export async function POST(request: NextRequest) {
   if (!verifyBotApiKey(request)) return unauthorizedResponse();
+  const disabled = await botSyncDisabledResponse();
+  if (disabled) return disabled;
 
   try {
     const { telegramId, days, plan, amount, paymentId } = await request.json();

@@ -183,6 +183,13 @@ export async function initDb(): Promise<void> {
     );
 
     CREATE INDEX IF NOT EXISTS idx_trial_blocklist_ip ON trial_blocklist(ip, first_seen_at);
+
+    CREATE TABLE IF NOT EXISTS kv_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_by TEXT
+    );
   `);
 
   // ─── Migrations: add columns that may be missing on older DBs ───

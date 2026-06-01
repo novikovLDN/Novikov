@@ -169,7 +169,9 @@ export async function runReconciliation(): Promise<ReconciliationReport> {
         if (issue.fixed) report.fixed += 1;
         else {
           report.failed += 1;
-          issue.fixError = result.reason || "unknown";
+          issue.fixError = result.panelError
+            ? `${result.reason || "unknown"}: ${result.panelError}`
+            : result.reason || "unknown";
         }
       } catch (err) {
         report.failed += 1;

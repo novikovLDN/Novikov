@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserByTelegramId, getOrCreateUser, updateUser } from "@/lib/store";
 import { xrayAddUser } from "@/lib/xray";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
+import { botSyncDisabledResponse } from "../sync-guard";
 
 /**
  * POST /api/bot/register
@@ -16,6 +17,8 @@ import { verifyBotApiKey, unauthorizedResponse } from "../auth";
  */
 export async function POST(request: NextRequest) {
   if (!verifyBotApiKey(request)) return unauthorizedResponse();
+  const disabled = await botSyncDisabledResponse();
+  if (disabled) return disabled;
 
   try {
     const { telegramId, email, referralCode } = await request.json();

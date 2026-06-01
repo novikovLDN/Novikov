@@ -207,7 +207,13 @@ export async function setUserExpire(uuid: string, expireAtIso: string): Promise<
     method: "PATCH",
     body: JSON.stringify({ expireAt: expireAtIso }),
   });
-  if (!res || !res.ok) return null;
+  if (!res) return null;
+  if (!res.ok) {
+    const bodyText = await res.text().catch(() => "");
+    lastRwError = `PATCH /api/users/${uuid.slice(0, 8)}… → HTTP ${res.status} ${bodyText.slice(0, 200)}`;
+    console.warn("[REMNAWAVE] setUserExpire non-ok:", res.status, "expireAt=", expireAtIso, bodyText.slice(0, 300));
+    return null;
+  }
   const data = await res.json().catch(() => null);
   return parseUser(data);
 }
