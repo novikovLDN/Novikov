@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { linkTelegramByToken, createAuditLog } from "@/lib/store";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
+import { botSyncDisabledResponse } from "../sync-guard";
 
 // POST /api/bot/link — bot links telegram_id to user by token
 export async function POST(request: NextRequest) {
   if (!verifyBotApiKey(request)) return unauthorizedResponse();
+  const disabled = await botSyncDisabledResponse();
+  if (disabled) return disabled;
 
   try {
     const { token, telegramId } = await request.json();

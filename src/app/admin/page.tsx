@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import RemnawaveMigrationCard from "@/components/RemnawaveMigrationCard";
+import BotSyncToggleCard from "@/components/BotSyncToggleCard";
 
 interface UserInfo {
   id: string;
@@ -286,6 +287,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            <BotSyncToggleCard />
             <RemnawaveMigrationCard />
           </div>
         )}

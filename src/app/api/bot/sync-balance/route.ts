@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserByTelegramId, updateUser, createAuditLog, getUnsyncedCashback, markCashbackSynced } from "@/lib/store";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
+import { botSyncDisabledResponse } from "../sync-guard";
 
 /**
  * POST /api/bot/sync-balance
@@ -26,6 +27,8 @@ import { verifyBotApiKey, unauthorizedResponse } from "../auth";
  */
 export async function POST(request: NextRequest) {
   if (!verifyBotApiKey(request)) return unauthorizedResponse();
+  const disabled = await botSyncDisabledResponse();
+  if (disabled) return disabled;
 
   try {
     const { telegramId, balance } = await request.json();
