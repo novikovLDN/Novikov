@@ -5,8 +5,8 @@ import { createPayment } from "@/lib/yookassa";
 
 // Plan pricing configuration (RUB)
 const PLANS: Record<string, Record<number, number>> = {
-  basic: { 1: 149, 3: 399, 6: 749, 12: 1399 },
-  plus: { 1: 299, 3: 699, 6: 1199, 12: 2299 },
+  basic: { 1: 199, 3: 499, 6: 899, 12: 1599 },
+  plus: { 1: 349, 3: 899, 6: 1499, 12: 2599 },
 };
 
 const PAYMENT_LIFETIME_MS = 15 * 60 * 1000; // 15 minutes

@@ -42,16 +42,16 @@ const PLANS: Record<Plan, { name: string; features: { icon: string; text: string
 
 const PRICES: Record<Plan, PeriodOption[]> = {
   basic: [
-    { months: 1, label: "1 месяц", price: 149, perMonth: 149 },
-    { months: 3, label: "3 месяца", price: 399, perMonth: 133, discount: "-11%" },
-    { months: 6, label: "6 месяцев", price: 749, perMonth: 125, discount: "-16%" },
-    { months: 12, label: "12 месяцев", price: 1399, perMonth: 117, discount: "-22%" },
+    { months: 1, label: "1 месяц", price: 199, perMonth: 199 },
+    { months: 3, label: "3 месяца", price: 499, perMonth: 166, discount: "-16%" },
+    { months: 6, label: "6 месяцев", price: 899, perMonth: 150, discount: "-25%" },
+    { months: 12, label: "12 месяцев", price: 1599, perMonth: 133, discount: "-33%" },
   ],
   plus: [
-    { months: 1, label: "1 месяц", price: 299, perMonth: 299 },
-    { months: 3, label: "3 месяца", price: 699, perMonth: 233, discount: "-22%" },
-    { months: 6, label: "6 месяцев", price: 1199, perMonth: 200, discount: "-33%" },
-    { months: 12, label: "12 месяцев", price: 2299, perMonth: 192, discount: "-36%" },
+    { months: 1, label: "1 месяц", price: 349, perMonth: 349 },
+    { months: 3, label: "3 месяца", price: 899, perMonth: 300, discount: "-14%" },
+    { months: 6, label: "6 месяцев", price: 1499, perMonth: 250, discount: "-28%" },
+    { months: 12, label: "12 месяцев", price: 2599, perMonth: 217, discount: "-38%" },
   ],
 };
 
@@ -232,7 +232,7 @@ function PricingContent() {
                 </div>
                 <div>
                   <div className="text-[20px] sm:text-[22px] font-medium text-white">Plus</div>
-                  <div className="text-[12px] text-white/50">от 192 ₽/мес</div>
+                  <div className="text-[12px] text-white/50">от 217 ₽/мес</div>
                 </div>
               </div>
 
@@ -268,7 +268,7 @@ function PricingContent() {
                 </div>
                 <div>
                   <div className="text-[20px] sm:text-[22px] font-medium text-white">Basic</div>
-                  <div className="text-[12px] text-white/50">от 117 ₽/мес</div>
+                  <div className="text-[12px] text-white/50">от 133 ₽/мес</div>
                 </div>
               </div>
 
