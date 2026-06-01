@@ -28,6 +28,7 @@ import {
   encryptHappLink,
   getUser,
   getUserByUsername,
+  getLastRwError,
   RemnawaveUser,
 } from "./remnawave";
 
@@ -47,6 +48,8 @@ export interface SyncResult {
   expireAt: string | null;
   action: "skip" | "patched" | "created" | "adopted" | "failed";
   reason?: SyncReason;
+  /** Raw panel error message for the most recent failed call, when known. */
+  panelError?: string;
 }
 
 function log(level: "info" | "warn" | "error", userId: string, msg: string, extra?: object) {
@@ -156,7 +159,8 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
           action: "patched",
         };
       }
-      log("warn", userId, "PATCH failed");
+      const panelError = getLastRwError() || undefined;
+      log("warn", userId, "PATCH failed", panelError ? { panelError } : undefined);
       return {
         ok: false,
         publicId,
@@ -165,6 +169,7 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
         expireAt: null,
         action: "failed",
         reason: "patch_failed",
+        panelError,
       };
     }
     // UUID is stale — clear and fall through to create
@@ -216,8 +221,9 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
   log("info", userId, `creating new panel user with username=${publicId}`);
   const rwUser = await createUserWithExpire(user.email, expireIso, `atlas-secure site (${publicId})`, publicId);
   if (!rwUser) {
-    log("error", userId, "createUser failed (see [REMNAWAVE] log lines above)");
-    return { ok: false, publicId, uuid: null, subscriptionUrl: null, expireAt: null, action: "failed", reason: "create_failed" };
+    const panelError = getLastRwError() || undefined;
+    log("error", userId, "createUser failed", panelError ? { panelError } : undefined);
+    return { ok: false, publicId, uuid: null, subscriptionUrl: null, expireAt: null, action: "failed", reason: "create_failed", panelError };
   }
 
   // Conflict check
