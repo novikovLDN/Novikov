@@ -212,11 +212,22 @@ export async function getAllUsersByEmail(email: string): Promise<RemnawaveUser[]
  * panel says "no such route" (404 / 405). Any other HTTP error (auth,
  * validation, server) is propagated as-is — retrying with a different
  * URL would just hide it.
+ *
+ * Past-date guard: Remnawave validates expireAt and rejects anything
+ * strictly in the past ("Expiration date cannot be in the past").
+ * Pushing a date that's already expired locally is still useful as
+ * an immediate revoke, so we clamp to `now + 30s` rather than skip —
+ * the panel auto-disables once it ticks past.
  */
 export async function setUserExpire(uuid: string, expireAtIso: string): Promise<RemnawaveUser | null> {
+  const safeExpireAt = clampToFuture(expireAtIso);
+  if (safeExpireAt !== expireAtIso) {
+    console.log("[REMNAWAVE] setUserExpire: clamped past expireAt", expireAtIso, "→", safeExpireAt);
+  }
+
   const variants: Array<{ path: string; body: Record<string, unknown> }> = [
-    { path: "/api/users", body: { uuid, expireAt: expireAtIso } },
-    { path: `/api/users/${encodeURIComponent(uuid)}`, body: { expireAt: expireAtIso } },
+    { path: "/api/users", body: { uuid, expireAt: safeExpireAt } },
+    { path: `/api/users/${encodeURIComponent(uuid)}`, body: { expireAt: safeExpireAt } },
   ];
 
   let lastStatus = 0;
@@ -242,10 +253,17 @@ export async function setUserExpire(uuid: string, expireAtIso: string): Promise<
     "[REMNAWAVE] setUserExpire failed:",
     lastStatus,
     "expireAt=",
-    expireAtIso,
+    safeExpireAt,
     lastBodyText.slice(0, 300)
   );
   return null;
+}
+
+/** Returns the input if it's already in the future, otherwise now + 30s. */
+function clampToFuture(expireAtIso: string): string {
+  const target = new Date(expireAtIso).getTime();
+  const min = Date.now() + 30_000;
+  return target >= min ? expireAtIso : new Date(min).toISOString();
 }
 
 /** Convenience: max(current, now) + days, then setUserExpire. */
@@ -319,9 +337,18 @@ export async function createUserWithExpire(
 ): Promise<RemnawaveUser | null> {
   const username = (panelId && panelId.trim()) || email.replace(/[^a-z0-9_-]/gi, "_").slice(0, 32);
 
+  // Remnawave rejects POST with expireAt in the past — clamp so we
+  // never get stuck unable to create a panel profile for a user whose
+  // subscription_end has already elapsed (the profile lives but is
+  // immediately disabled by the panel, which is the correct state).
+  const safeExpireAt = clampToFuture(expireAtIso);
+  if (safeExpireAt !== expireAtIso) {
+    console.log("[REMNAWAVE] createUserWithExpire: clamped past expireAt", expireAtIso, "→", safeExpireAt);
+  }
+
   const existing = await getUserByUsername(username);
   if (existing?.uuid) {
-    const updated = await setUserExpire(existing.uuid, expireAtIso);
+    const updated = await setUserExpire(existing.uuid, safeExpireAt);
     return updated || existing;
   }
 
@@ -329,7 +356,7 @@ export async function createUserWithExpire(
     username,
     email,
     telegramId: null,
-    expireAt: expireAtIso,
+    expireAt: safeExpireAt,
     trafficLimitBytes: 0,
     trafficLimitStrategy: "NO_RESET",
     activeInternalSquads: [MAIN_SQUAD],
@@ -358,7 +385,7 @@ export async function createUserWithExpire(
     // be that other service's user — which we must not modify.
     const raceWinner = await getUserByUsername(username);
     if (raceWinner?.uuid) {
-      const updated = await setUserExpire(raceWinner.uuid, expireAtIso);
+      const updated = await setUserExpire(raceWinner.uuid, safeExpireAt);
       return updated || raceWinner;
     }
   }

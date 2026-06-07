@@ -82,20 +82,35 @@ let running = false;
 /**
  * Classify a single user's panel state before any fix is attempted.
  * Returns null if everything is in order.
+ *
+ * Already-expired users (subscription_end in the past) are deliberately
+ * skipped — Remnawave auto-disables on expireAt, so once both sides
+ * are past there's nothing to reconcile and any PATCH would just hit
+ * the panel's "Expiration date cannot be in the past" validator.
  */
 async function classify(row: UserRow): Promise<{ kind: IssueKind; panelEnd: string | null } | null> {
+  const now = Date.now();
+  const localMs = new Date(row.subscription_end).getTime();
+  const localExpired = localMs <= now;
+
   if (!row.remnawave_user_uuid) {
+    // Expired sub without panel profile — leave alone; creating an
+    // immediately-disabled user is noise.
+    if (localExpired) return null;
     return { kind: "missing_panel_user", panelEnd: null };
   }
   const panel = await getUser(row.remnawave_user_uuid);
   if (!panel) {
+    // Expired sub whose panel profile is also gone — nothing to do.
+    if (localExpired) return null;
     return { kind: "stale_uuid", panelEnd: null };
   }
   if (!panel.subscriptionUrl || !row.subscription_url) {
     return { kind: "no_sub_url", panelEnd: panel.expireAt || null };
   }
-  const localMs = new Date(row.subscription_end).getTime();
   const panelMs = panel.expireAt ? new Date(panel.expireAt).getTime() : 0;
+  // Both sides already expired — panel handles disable on its own.
+  if (localExpired && panelMs <= now) return null;
   if (Math.abs(localMs - panelMs) > EXPIRE_TOLERANCE_MS) {
     return { kind: "expire_drift", panelEnd: panel.expireAt || null };
   }
