@@ -41,7 +41,8 @@ export type IssueKind =
   | "missing_panel_user"
   | "stale_uuid"
   | "expire_drift"
-  | "no_sub_url";
+  | "no_sub_url"
+  | "username_mismatch";
 
 export interface UserIssue {
   userId: string;
@@ -51,6 +52,7 @@ export interface UserIssue {
   kind: IssueKind;
   localEnd: string;
   panelEnd: string | null;
+  panelUsername?: string | null;
   fixed: boolean;
   fixAction: "skip" | "patched" | "created" | "adopted" | "failed" | null;
   fixError?: string;
@@ -77,6 +79,12 @@ interface UserRow {
   subscription_url: string | null;
 }
 
+interface ClassifyVerdict {
+  kind: IssueKind;
+  panelEnd: string | null;
+  panelUsername?: string | null;
+}
+
 let running = false;
 
 /**
@@ -88,31 +96,33 @@ let running = false;
  * are past there's nothing to reconcile and any PATCH would just hit
  * the panel's "Expiration date cannot be in the past" validator.
  */
-async function classify(row: UserRow): Promise<{ kind: IssueKind; panelEnd: string | null } | null> {
+async function classify(row: UserRow): Promise<ClassifyVerdict | null> {
   const now = Date.now();
   const localMs = new Date(row.subscription_end).getTime();
   const localExpired = localMs <= now;
 
   if (!row.remnawave_user_uuid) {
-    // Expired sub without panel profile — leave alone; creating an
-    // immediately-disabled user is noise.
     if (localExpired) return null;
     return { kind: "missing_panel_user", panelEnd: null };
   }
   const panel = await getUser(row.remnawave_user_uuid);
   if (!panel) {
-    // Expired sub whose panel profile is also gone — nothing to do.
     if (localExpired) return null;
     return { kind: "stale_uuid", panelEnd: null };
   }
   if (!panel.subscriptionUrl || !row.subscription_url) {
-    return { kind: "no_sub_url", panelEnd: panel.expireAt || null };
+    return { kind: "no_sub_url", panelEnd: panel.expireAt || null, panelUsername: panel.username || null };
   }
   const panelMs = panel.expireAt ? new Date(panel.expireAt).getTime() : 0;
-  // Both sides already expired — panel handles disable on its own.
   if (localExpired && panelMs <= now) return null;
   if (Math.abs(localMs - panelMs) > EXPIRE_TOLERANCE_MS) {
-    return { kind: "expire_drift", panelEnd: panel.expireAt || null };
+    return { kind: "expire_drift", panelEnd: panel.expireAt || null, panelUsername: panel.username || null };
+  }
+  // expireAt matches — but is the panel storing the right username?
+  // Legacy trial users had panel_id (hex) as username; site searches
+  // for public_id (ST00000NNN). Sync auto-renames when called.
+  if (row.public_id && panel.username && panel.username !== row.public_id) {
+    return { kind: "username_mismatch", panelEnd: panel.expireAt || null, panelUsername: panel.username };
   }
   return null;
 }
@@ -130,7 +140,7 @@ export async function runReconciliation(): Promise<ReconciliationReport> {
     needed_fix: 0,
     fixed: 0,
     failed: 0,
-    by_kind: { missing_panel_user: 0, stale_uuid: 0, expire_drift: 0, no_sub_url: 0 },
+    by_kind: { missing_panel_user: 0, stale_uuid: 0, expire_drift: 0, no_sub_url: 0, username_mismatch: 0 },
     issues: [],
     durationMs: 0,
   };
@@ -173,6 +183,7 @@ export async function runReconciliation(): Promise<ReconciliationReport> {
         kind: verdict.kind,
         localEnd: new Date(row.subscription_end).toISOString(),
         panelEnd: verdict.panelEnd,
+        panelUsername: verdict.panelUsername ?? null,
         fixed: false,
         fixAction: null,
       };
