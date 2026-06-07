@@ -516,6 +516,15 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
 
   const [keyCopied, setKeyCopied] = useState(false);
 
+  const [resyncing, setResyncing] = useState(false);
+  interface ResyncResult {
+    after: { publicId: string | null; remnawaveUserUuid: string | null; subscriptionUrl: string | null };
+    sync: { action: string; ok: boolean; reason?: string; panelError?: string };
+    probes: Array<{ path: string; status: number | null; ok: boolean; body: unknown; error?: string }>;
+  }
+  const [resyncResult, setResyncResult] = useState<ResyncResult | null>(null);
+  const [resyncError, setResyncError] = useState<string | null>(null);
+
   const [notifTitle, setNotifTitle] = useState("");
   const [notifMessage, setNotifMessage] = useState("");
   const [notifSending, setNotifSending] = useState(false);
@@ -770,6 +779,86 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
                 Подписка ещё не выдана в Remnawave. Откроется при первом заходе юзера в кабинет либо через bulk-миграцию.
               </p>
             )}
+
+            {/* Force resync + diagnose this single user */}
+            <div className="pt-3 border-t border-border/40">
+              <button
+                onClick={async () => {
+                  setResyncing(true);
+                  setResyncResult(null);
+                  setResyncError(null);
+                  try {
+                    const res = await fetch(`/api/admin/users/${user.id}/resync`, { method: "POST" });
+                    const data = await res.json();
+                    if (data.success) {
+                      setResyncResult(data.data as ResyncResult);
+                      onRefresh();
+                    } else {
+                      setResyncError(data.error || "Ошибка");
+                    }
+                  } catch {
+                    setResyncError("Ошибка сети");
+                  } finally {
+                    setResyncing(false);
+                  }
+                }}
+                disabled={resyncing}
+                className="w-full h-9 rounded-lg bg-primary/10 border border-primary/30 text-primary font-medium text-[12px] btn-press disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-primary/15"
+              >
+                {resyncing ? "Синхронизация…" : "⟳ Принудительно синхронизировать с панелью"}
+              </button>
+
+              {resyncError && (
+                <p className="mt-2 text-[11px] text-danger">{resyncError}</p>
+              )}
+
+              {resyncResult && (
+                <div className="mt-3 space-y-2">
+                  <div className="text-[11px] p-2 rounded-lg bg-card-hover">
+                    <div className="flex justify-between gap-2 mb-1">
+                      <span className="font-medium">Результат sync</span>
+                      <span className={resyncResult.sync.ok ? "text-success" : "text-danger"}>
+                        {resyncResult.sync.action}
+                      </span>
+                    </div>
+                    {resyncResult.sync.reason && (
+                      <div className="text-[10px] text-muted">reason: {resyncResult.sync.reason}</div>
+                    )}
+                    {resyncResult.sync.panelError && (
+                      <div className="text-[10px] text-danger mt-1 break-all">{resyncResult.sync.panelError}</div>
+                    )}
+                    <div className="text-[10px] text-muted mt-1 font-mono break-all">
+                      uuid: {resyncResult.after.remnawaveUserUuid || "—"}
+                    </div>
+                  </div>
+
+                  <details>
+                    <summary className="text-[11px] text-muted cursor-pointer hover:text-foreground">
+                      Ответы панели ({resyncResult.probes.length})
+                    </summary>
+                    <div className="mt-1.5 space-y-1">
+                      {resyncResult.probes.map((p, i) => (
+                        <div key={`${p.path}-${i}`} className="text-[10px] p-2 bg-card-hover rounded font-mono">
+                          <div className="flex justify-between gap-2 mb-1">
+                            <span className="break-all">{p.path}</span>
+                            <span className={p.ok ? "text-success" : "text-danger"}>
+                              {p.status ?? "—"}
+                            </span>
+                          </div>
+                          <div className="text-muted break-all">
+                            {p.error
+                              ? `error: ${p.error}`
+                              : typeof p.body === "string"
+                                ? p.body.slice(0, 200)
+                                : JSON.stringify(p.body).slice(0, 200)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
