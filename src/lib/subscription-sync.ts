@@ -51,6 +51,8 @@ export interface SyncResult {
   reason?: SyncReason;
   /** Raw panel error message for the most recent failed call, when known. */
   panelError?: string;
+  /** Actual username the panel has the user under, after the sync ran. */
+  panelUsername?: string | null;
 }
 
 function log(level: "info" | "warn" | "error", userId: string, msg: string, extra?: object) {
@@ -189,6 +191,7 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
           subscriptionUrl: finalUser.subscriptionUrl,
           expireAt: finalUser.expireAt,
           action: "patched",
+          panelUsername: finalUser.username || null,
         };
       }
       const panelError = getLastRwError() || undefined;
@@ -235,7 +238,8 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
       return { ok: false, publicId, uuid: existing.uuid, subscriptionUrl: existing.subscriptionUrl, expireAt: null, action: "failed", reason: "persist_conflict" };
     }
     const patched = await setUserExpire(existing.uuid, expireIso);
-    const finalUser = patched || existing;
+    let finalUser = patched || existing;
+    finalUser = await maybeRenameToPublicId(finalUser, publicId, userId);
     const happLink = await encryptHappLink(finalUser.subscriptionUrl).catch(() => null);
     await persistPanelUser(userId, finalUser, happLink);
     log("info", userId, `adopted in ${Date.now() - t0}ms`);
@@ -246,6 +250,7 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
       subscriptionUrl: finalUser.subscriptionUrl,
       expireAt: finalUser.expireAt,
       action: "adopted",
+      panelUsername: finalUser.username || null,
     };
   }
 
@@ -278,6 +283,7 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
     subscriptionUrl: rwUser.subscriptionUrl,
     expireAt: rwUser.expireAt,
     action: "created",
+    panelUsername: rwUser.username || null,
   };
 }
 

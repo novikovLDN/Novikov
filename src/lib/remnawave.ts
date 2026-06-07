@@ -272,9 +272,13 @@ function clampToFuture(expireAtIso: string): string {
  * Used to migrate legacy hex panel_id usernames over to the canonical
  * ST00000NNN public_id format so admins can find users in the panel
  * UI by the same identifier shown on the site. Same endpoint shape as
- * setUserExpire (modern PATCH /api/users + legacy fallback); we don't
- * fail loudly if the panel refuses — wrong username is a UX nuisance,
- * not a correctness issue.
+ * setUserExpire (modern PATCH /api/users + legacy fallback).
+ *
+ * IMPORTANT: Remnawave 2.x's PATCH /api/users accepts a username field
+ * but in some builds silently ignores it (returns 200 OK with the user
+ * still on the OLD name). We verify the response actually carries the
+ * new username before reporting success, so the sync log doesn't lie
+ * to admins about renames that never took.
  */
 export async function setUserUsername(uuid: string, username: string): Promise<RemnawaveUser | null> {
   const variants: Array<{ path: string; body: Record<string, unknown> }> = [
@@ -293,14 +297,20 @@ export async function setUserUsername(uuid: string, username: string): Promise<R
     if (!res) continue;
     if (res.ok) {
       const data = await res.json().catch(() => null);
-      return parseUser(data);
+      const parsed = parseUser(data);
+      if (parsed && parsed.username === username) return parsed;
+      // 200 OK but the panel ignored our username — try the next URL
+      // shape rather than declaring victory.
+      lastStatus = 200;
+      lastBodyText = `username unchanged (panel returned "${parsed?.username ?? ""}")`;
+      continue;
     }
     lastStatus = res.status;
     lastBodyText = await res.text().catch(() => "");
     if (res.status !== 404 && res.status !== 405) break;
   }
 
-  lastRwError = `PATCH username ${uuid.slice(0, 8)}… → HTTP ${lastStatus} ${lastBodyText.slice(0, 200)}`;
+  lastRwError = `PATCH username ${uuid.slice(0, 8)}… → ${lastStatus} ${lastBodyText.slice(0, 200)}`;
   console.warn("[REMNAWAVE] setUserUsername failed:", lastStatus, lastBodyText.slice(0, 300));
   return null;
 }

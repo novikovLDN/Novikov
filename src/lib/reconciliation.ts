@@ -191,13 +191,32 @@ export async function runReconciliation(): Promise<ReconciliationReport> {
       try {
         const result = await syncSubscriptionToPanel(row.id);
         issue.fixAction = result.action;
-        issue.fixed = result.ok && result.action !== "failed";
-        if (issue.fixed) report.fixed += 1;
+        let fixed = result.ok && result.action !== "failed";
+
+        // For username_mismatch we don't trust action=patched alone:
+        // the panel may have accepted PATCH but ignored the username
+        // field (silent no-op). Verify by comparing the panel's
+        // actual post-sync username with our expected public_id.
+        if (
+          fixed &&
+          verdict.kind === "username_mismatch" &&
+          row.public_id &&
+          result.panelUsername &&
+          result.panelUsername !== row.public_id
+        ) {
+          fixed = false;
+          issue.fixError = `панель не переименовала: остался "${result.panelUsername}", ждали "${row.public_id}"`;
+        }
+
+        issue.fixed = fixed;
+        if (fixed) report.fixed += 1;
         else {
           report.failed += 1;
-          issue.fixError = result.panelError
-            ? `${result.reason || "unknown"}: ${result.panelError}`
-            : result.reason || "unknown";
+          if (!issue.fixError) {
+            issue.fixError = result.panelError
+              ? `${result.reason || "unknown"}: ${result.panelError}`
+              : result.reason || "unknown";
+          }
         }
       } catch (err) {
         report.failed += 1;
