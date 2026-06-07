@@ -41,8 +41,7 @@ export type IssueKind =
   | "missing_panel_user"
   | "stale_uuid"
   | "expire_drift"
-  | "no_sub_url"
-  | "username_mismatch";
+  | "no_sub_url";
 
 export interface UserIssue {
   userId: string;
@@ -118,12 +117,11 @@ async function classify(row: UserRow): Promise<ClassifyVerdict | null> {
   if (Math.abs(localMs - panelMs) > EXPIRE_TOLERANCE_MS) {
     return { kind: "expire_drift", panelEnd: panel.expireAt || null, panelUsername: panel.username || null };
   }
-  // expireAt matches — but is the panel storing the right username?
-  // Legacy trial users had panel_id (hex) as username; site searches
-  // for public_id (ST00000NNN). Sync auto-renames when called.
-  if (row.public_id && panel.username && panel.username !== row.public_id) {
-    return { kind: "username_mismatch", panelEnd: panel.expireAt || null, panelUsername: panel.username };
-  }
+  // panel.username may legitimately differ from public_id for legacy
+  // users — Remnawave's PATCH silently ignores the username field, so
+  // those users live in the panel under the old hex panel_id forever.
+  // We cache panel.username and show it in the admin profile card
+  // instead of treating this as something to "fix".
   return null;
 }
 
@@ -140,7 +138,7 @@ export async function runReconciliation(): Promise<ReconciliationReport> {
     needed_fix: 0,
     fixed: 0,
     failed: 0,
-    by_kind: { missing_panel_user: 0, stale_uuid: 0, expire_drift: 0, no_sub_url: 0, username_mismatch: 0 },
+    by_kind: { missing_panel_user: 0, stale_uuid: 0, expire_drift: 0, no_sub_url: 0 },
     issues: [],
     durationMs: 0,
   };
@@ -191,32 +189,13 @@ export async function runReconciliation(): Promise<ReconciliationReport> {
       try {
         const result = await syncSubscriptionToPanel(row.id);
         issue.fixAction = result.action;
-        let fixed = result.ok && result.action !== "failed";
-
-        // For username_mismatch we don't trust action=patched alone:
-        // the panel may have accepted PATCH but ignored the username
-        // field (silent no-op). Verify by comparing the panel's
-        // actual post-sync username with our expected public_id.
-        if (
-          fixed &&
-          verdict.kind === "username_mismatch" &&
-          row.public_id &&
-          result.panelUsername &&
-          result.panelUsername !== row.public_id
-        ) {
-          fixed = false;
-          issue.fixError = `панель не переименовала: остался "${result.panelUsername}", ждали "${row.public_id}"`;
-        }
-
-        issue.fixed = fixed;
-        if (fixed) report.fixed += 1;
+        issue.fixed = result.ok && result.action !== "failed";
+        if (issue.fixed) report.fixed += 1;
         else {
           report.failed += 1;
-          if (!issue.fixError) {
-            issue.fixError = result.panelError
-              ? `${result.reason || "unknown"}: ${result.panelError}`
-              : result.reason || "unknown";
-          }
+          issue.fixError = result.panelError
+            ? `${result.reason || "unknown"}: ${result.panelError}`
+            : result.reason || "unknown";
         }
       } catch (err) {
         report.failed += 1;

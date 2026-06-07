@@ -101,8 +101,9 @@ export async function issueTrial(
        happ_crypto_link = $4,
        crypto_link_updated_at = $5,
        trial_used_at = NOW(),
-       subscription_end = $6
-     WHERE id = $7 AND remnawave_user_uuid IS NULL`,
+       subscription_end = $6,
+       panel_username = $7
+     WHERE id = $8 AND remnawave_user_uuid IS NULL`,
     [
       rwUser.uuid,
       rwUser.shortUuid || null,
@@ -110,6 +111,7 @@ export async function issueTrial(
       happLink,
       happLink ? new Date() : null,
       rwUser.expireAt ? new Date(rwUser.expireAt) : new Date(Date.now() + 24 * 60 * 60 * 1000),
+      rwUser.username || null,
       userId,
     ]
   );

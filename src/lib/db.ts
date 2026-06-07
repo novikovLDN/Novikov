@@ -218,6 +218,12 @@ export async function initDb(): Promise<void> {
     // generated at insert time. Lets us look up the panel user by a key
     // we control on both sides without depending on email format quirks.
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_id TEXT UNIQUE",
+    // Cache of the Remnawave panel's current `username` field for
+    // this user. Lets admins see — without an extra panel hit — which
+    // identifier to type into the Remnawave UI search. For new users
+    // this equals public_id (ST00000NNN); for legacy users it may be
+    // the older hex panel_id since the panel ignores rename PATCHes.
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_username TEXT",
     // Human-readable Remnawave username: "ST" + 8-digit sequence number.
     // Stable per user, never reused. Visible to admin so they can spot
     // a site-issued user in the panel at a glance.
