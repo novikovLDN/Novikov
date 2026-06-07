@@ -519,7 +519,7 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
   const [resyncing, setResyncing] = useState(false);
   interface ResyncResult {
     after: { publicId: string | null; remnawaveUserUuid: string | null; subscriptionUrl: string | null };
-    sync: { action: string; ok: boolean; reason?: string; panelError?: string };
+    sync: { action: string; ok: boolean; reason?: string; panelError?: string; panelUsername?: string | null };
     probes: Array<{ path: string; status: number | null; ok: boolean; body: unknown; error?: string }>;
   }
   const [resyncResult, setResyncResult] = useState<ResyncResult | null>(null);
@@ -826,6 +826,11 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
                     )}
                     {resyncResult.sync.panelError && (
                       <div className="text-[10px] text-danger mt-1 break-all">{resyncResult.sync.panelError}</div>
+                    )}
+                    {resyncResult.sync.panelUsername !== undefined && (
+                      <div className="text-[10px] text-muted mt-1 font-mono">
+                        панель видит юзера как: <span className={resyncResult.sync.panelUsername === resyncResult.after.publicId ? "text-success" : "text-warning"}>{resyncResult.sync.panelUsername || "—"}</span>
+                      </div>
                     )}
                     <div className="text-[10px] text-muted mt-1 font-mono break-all">
                       uuid: {resyncResult.after.remnawaveUserUuid || "—"}
