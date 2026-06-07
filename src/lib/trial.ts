@@ -84,7 +84,11 @@ export async function issueTrial(
   if (block) return { success: false, reason: block };
 
   const local = await getUserById(userId);
-  const rwUser = await createTrialUser(email, local?.panelId || null);
+  // Use public_id (ST00000NNN) as the panel username — that's what
+  // admins copy from the dashboard and search for. The legacy
+  // panel_id (8-char hex) is kept as a column for backwards compat
+  // but is NOT a useful identifier in the Remnawave UI.
+  const rwUser = await createTrialUser(email, local?.publicId || local?.panelId || null);
   if (!rwUser) return { success: false, reason: "remnawave_unavailable" };
 
   const happLink = await encryptHappLink(rwUser.subscriptionUrl);

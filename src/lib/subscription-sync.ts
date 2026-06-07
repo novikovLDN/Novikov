@@ -25,6 +25,7 @@ import { getUserById, UserRecord } from "./store";
 import {
   createUserWithExpire,
   setUserExpire,
+  setUserUsername,
   encryptHappLink,
   getUser,
   getUserByUsername,
@@ -58,6 +59,32 @@ function log(level: "info" | "warn" | "error", userId: string, msg: string, extr
   if (level === "error") console.error(line);
   else if (level === "warn") console.warn(line);
   else console.log(line);
+}
+
+/**
+ * Migrate a panel user's username to the canonical ST00000NNN form.
+ *
+ * Legacy users were created via trial flow with the 8-char hex
+ * `panel_id` as the panel username, so admins searching the panel UI
+ * for the ST**** shown on the site couldn't find them. We try a rename
+ * via PATCH; if the panel refuses (validation, unsupported field) we
+ * just keep going — the subscription still works, only the lookup-by-
+ * username UX is degraded.
+ */
+async function maybeRenameToPublicId(
+  panelUser: RemnawaveUser,
+  publicId: string,
+  userId: string
+): Promise<RemnawaveUser> {
+  if (!panelUser.username || panelUser.username === publicId) return panelUser;
+  log("info", userId, `panel username "${panelUser.username}" ≠ public_id "${publicId}", renaming`);
+  const renamed = await setUserUsername(panelUser.uuid, publicId);
+  if (renamed) {
+    log("info", userId, "panel username renamed successfully");
+    return renamed;
+  }
+  log("warn", userId, "panel username rename failed, leaving panel as-is");
+  return panelUser;
 }
 
 /**
@@ -149,13 +176,18 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
           );
           log("info", userId, "refreshed subscription_url from panel");
         }
+        // Legacy users had `panel_id` (8-char hex) as their panel
+        // username. Migrate them on the fly to the ST00000NNN form
+        // so admins can find them by the same identifier the site
+        // shows. Best-effort: a failed rename doesn't fail the sync.
+        const finalUser = await maybeRenameToPublicId(updated, publicId, userId);
         log("info", userId, `done patched in ${Date.now() - t0}ms`);
         return {
           ok: true,
           publicId,
-          uuid: updated.uuid,
-          subscriptionUrl: updated.subscriptionUrl,
-          expireAt: updated.expireAt,
+          uuid: finalUser.uuid,
+          subscriptionUrl: finalUser.subscriptionUrl,
+          expireAt: finalUser.expireAt,
           action: "patched",
         };
       }

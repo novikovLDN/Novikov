@@ -266,6 +266,45 @@ function clampToFuture(expireAtIso: string): string {
   return target >= min ? expireAtIso : new Date(min).toISOString();
 }
 
+/**
+ * Rename a panel user's username.
+ *
+ * Used to migrate legacy hex panel_id usernames over to the canonical
+ * ST00000NNN public_id format so admins can find users in the panel
+ * UI by the same identifier shown on the site. Same endpoint shape as
+ * setUserExpire (modern PATCH /api/users + legacy fallback); we don't
+ * fail loudly if the panel refuses — wrong username is a UX nuisance,
+ * not a correctness issue.
+ */
+export async function setUserUsername(uuid: string, username: string): Promise<RemnawaveUser | null> {
+  const variants: Array<{ path: string; body: Record<string, unknown> }> = [
+    { path: "/api/users", body: { uuid, username } },
+    { path: `/api/users/${encodeURIComponent(uuid)}`, body: { username } },
+  ];
+
+  let lastStatus = 0;
+  let lastBodyText = "";
+
+  for (const variant of variants) {
+    const res = await rwFetch(variant.path, {
+      method: "PATCH",
+      body: JSON.stringify(variant.body),
+    });
+    if (!res) continue;
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      return parseUser(data);
+    }
+    lastStatus = res.status;
+    lastBodyText = await res.text().catch(() => "");
+    if (res.status !== 404 && res.status !== 405) break;
+  }
+
+  lastRwError = `PATCH username ${uuid.slice(0, 8)}… → HTTP ${lastStatus} ${lastBodyText.slice(0, 200)}`;
+  console.warn("[REMNAWAVE] setUserUsername failed:", lastStatus, lastBodyText.slice(0, 300));
+  return null;
+}
+
 /** Convenience: max(current, now) + days, then setUserExpire. */
 export async function extendUserExpire(uuid: string, days: number): Promise<RemnawaveUser | null> {
   const current = await getUser(uuid);
