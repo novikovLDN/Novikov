@@ -10,7 +10,7 @@ export async function GET() {
 
   const result = await pool.query(
     `SELECT id, email, created_at, subscription_end, subscription_plan, telegram_linked, referrals, paid_referrals, registration_ip,
-            panel_id, public_id, remnawave_user_uuid, subscription_url, happ_crypto_link
+            panel_id, public_id, panel_username, remnawave_user_uuid, subscription_url, happ_crypto_link
      FROM users ORDER BY created_at DESC`
   );
 
@@ -36,6 +36,7 @@ export async function GET() {
     // Remnawave subscription
     publicId: row.public_id || null,
     panelId: row.panel_id || null,
+    panelUsername: row.panel_username || null,
     remnawaveUserUuid: row.remnawave_user_uuid || null,
     subscriptionUrl: row.subscription_url || null,
     happCryptoLink: row.happ_crypto_link || null,

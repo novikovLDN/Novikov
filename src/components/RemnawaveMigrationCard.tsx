@@ -67,14 +67,13 @@ interface ReconciliationResult {
     stale_uuid: number;
     expire_drift: number;
     no_sub_url: number;
-    username_mismatch: number;
   };
   issues: Array<{
     userId: string;
     email: string;
     publicId: string | null;
     telegramId: string | null;
-    kind: "missing_panel_user" | "stale_uuid" | "expire_drift" | "no_sub_url" | "username_mismatch";
+    kind: "missing_panel_user" | "stale_uuid" | "expire_drift" | "no_sub_url";
     localEnd: string;
     panelEnd: string | null;
     panelUsername?: string | null;
@@ -90,7 +89,6 @@ const KIND_LABEL: Record<ReconciliationResult["issues"][number]["kind"], string>
   stale_uuid: "uuid протух",
   expire_drift: "расх. срок",
   no_sub_url: "нет URL",
-  username_mismatch: "username не ST",
 };
 
 const ACTION_LABEL: Record<NonNullable<ReconciliationResult["issues"][number]["fixAction"]>, string> = {
@@ -476,7 +474,7 @@ export default function RemnawaveMigrationCard() {
             </div>
 
             {panelReconcileResult.needed_fix > 0 && (
-              <div className="grid grid-cols-5 gap-1.5 text-center text-[10px]">
+              <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
                 <div className="bg-card-hover rounded-lg p-2">
                   <div className="text-sm font-bold tabular-nums">{panelReconcileResult.by_kind.missing_panel_user}</div>
                   <div className="text-muted">нет в панели</div>
@@ -492,10 +490,6 @@ export default function RemnawaveMigrationCard() {
                 <div className="bg-card-hover rounded-lg p-2">
                   <div className="text-sm font-bold tabular-nums">{panelReconcileResult.by_kind.no_sub_url}</div>
                   <div className="text-muted">нет URL</div>
-                </div>
-                <div className="bg-card-hover rounded-lg p-2">
-                  <div className="text-sm font-bold tabular-nums">{panelReconcileResult.by_kind.username_mismatch}</div>
-                  <div className="text-muted">не ST</div>
                 </div>
               </div>
             )}
@@ -521,12 +515,7 @@ export default function RemnawaveMigrationCard() {
                         </span>
                         <span>{KIND_LABEL[iss.kind]}</span>
                       </div>
-                      {iss.kind === "username_mismatch" && (
-                        <div className="text-[10px] text-muted mt-0.5 font-mono">
-                          панель: <span className="text-warning">{iss.panelUsername || "—"}</span> → ожидаем {iss.publicId}
-                        </div>
-                      )}
-                      {(iss.kind === "expire_drift" || (iss.panelEnd && iss.kind !== "username_mismatch")) && (
+                      {(iss.kind === "expire_drift" || iss.panelEnd) && (
                         <div className="text-[10px] text-muted mt-0.5 font-mono">
                           лок: {iss.localEnd.slice(0, 16)} · панель: {iss.panelEnd?.slice(0, 16) || "—"}
                         </div>

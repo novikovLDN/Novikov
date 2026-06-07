@@ -25,7 +25,6 @@ import { getUserById, UserRecord } from "./store";
 import {
   createUserWithExpire,
   setUserExpire,
-  setUserUsername,
   encryptHappLink,
   getUser,
   getUserByUsername,
@@ -64,32 +63,6 @@ function log(level: "info" | "warn" | "error", userId: string, msg: string, extr
 }
 
 /**
- * Migrate a panel user's username to the canonical ST00000NNN form.
- *
- * Legacy users were created via trial flow with the 8-char hex
- * `panel_id` as the panel username, so admins searching the panel UI
- * for the ST**** shown on the site couldn't find them. We try a rename
- * via PATCH; if the panel refuses (validation, unsupported field) we
- * just keep going — the subscription still works, only the lookup-by-
- * username UX is degraded.
- */
-async function maybeRenameToPublicId(
-  panelUser: RemnawaveUser,
-  publicId: string,
-  userId: string
-): Promise<RemnawaveUser> {
-  if (!panelUser.username || panelUser.username === publicId) return panelUser;
-  log("info", userId, `panel username "${panelUser.username}" ≠ public_id "${publicId}", renaming`);
-  const renamed = await setUserUsername(panelUser.uuid, publicId);
-  if (renamed) {
-    log("info", userId, "panel username renamed successfully");
-    return renamed;
-  }
-  log("warn", userId, "panel username rename failed, leaving panel as-is");
-  return panelUser;
-}
-
-/**
  * Ensure the user has a public_id. Generates one inline using the
  * postgres sequence if missing (defensive — startup backfill should
  * have already covered every row).
@@ -118,14 +91,16 @@ async function persistPanelUser(userId: string, rwUser: RemnawaveUser, happLink:
        remnawave_short_uuid = $2,
        subscription_url = $3,
        happ_crypto_link = $4,
-       crypto_link_updated_at = $5
-     WHERE id = $6`,
+       crypto_link_updated_at = $5,
+       panel_username = $6
+     WHERE id = $7`,
     [
       rwUser.uuid,
       rwUser.shortUuid || null,
       rwUser.subscriptionUrl,
       happLink,
       happLink ? new Date() : null,
+      rwUser.username || null,
       userId,
     ]
   );
@@ -170,19 +145,27 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
       log("info", userId, "panel user exists, patching expireAt");
       const updated = await setUserExpire(user.remnawaveUserUuid, expireIso);
       if (updated) {
-        // Refresh cached subscriptionUrl in case panel rotated it
-        if (updated.subscriptionUrl && updated.subscriptionUrl !== user.subscriptionUrl) {
+        // Refresh cached subscriptionUrl + panel_username in case
+        // either changed since last sync.
+        if (
+          (updated.subscriptionUrl && updated.subscriptionUrl !== user.subscriptionUrl) ||
+          (updated.username && updated.username !== user.panelUsername)
+        ) {
           await pool.query(
-            `UPDATE users SET subscription_url = $1, remnawave_short_uuid = $2 WHERE id = $3`,
-            [updated.subscriptionUrl, updated.shortUuid || null, userId]
+            `UPDATE users SET
+               subscription_url = COALESCE($1, subscription_url),
+               remnawave_short_uuid = COALESCE($2, remnawave_short_uuid),
+               panel_username = COALESCE($3, panel_username)
+             WHERE id = $4`,
+            [updated.subscriptionUrl || null, updated.shortUuid || null, updated.username || null, userId]
           );
-          log("info", userId, "refreshed subscription_url from panel");
+          log("info", userId, "refreshed cached panel fields");
         }
         // Legacy users had `panel_id` (8-char hex) as their panel
         // username. Migrate them on the fly to the ST00000NNN form
         // so admins can find them by the same identifier the site
         // shows. Best-effort: a failed rename doesn't fail the sync.
-        const finalUser = await maybeRenameToPublicId(updated, publicId, userId);
+        const finalUser = updated;
         log("info", userId, `done patched in ${Date.now() - t0}ms`);
         return {
           ok: true,
@@ -238,8 +221,7 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
       return { ok: false, publicId, uuid: existing.uuid, subscriptionUrl: existing.subscriptionUrl, expireAt: null, action: "failed", reason: "persist_conflict" };
     }
     const patched = await setUserExpire(existing.uuid, expireIso);
-    let finalUser = patched || existing;
-    finalUser = await maybeRenameToPublicId(finalUser, publicId, userId);
+    const finalUser = patched || existing;
     const happLink = await encryptHappLink(finalUser.subscriptionUrl).catch(() => null);
     await persistPanelUser(userId, finalUser, happLink);
     log("info", userId, `adopted in ${Date.now() - t0}ms`);

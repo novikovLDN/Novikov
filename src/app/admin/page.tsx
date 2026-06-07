@@ -22,6 +22,7 @@ interface UserInfo {
   isActive: boolean;
   publicId: string | null;
   panelId: string | null;
+  panelUsername: string | null;
   remnawaveUserUuid: string | null;
   subscriptionUrl: string | null;
   happCryptoLink: string | null;
@@ -732,6 +733,27 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] text-muted">Public ID</span>
               <span className="text-sm font-mono font-bold text-primary tracking-wide">{user.publicId || "—"}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] text-muted">username в панели</span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!user.panelUsername) return;
+                  navigator.clipboard?.writeText(user.panelUsername).catch(() => {});
+                }}
+                disabled={!user.panelUsername}
+                title={user.panelUsername ? "Копировать" : ""}
+                className={`text-sm font-mono tracking-wide ${
+                  user.panelUsername && user.panelUsername === user.publicId
+                    ? "text-success"
+                    : user.panelUsername
+                      ? "text-warning hover:underline"
+                      : "text-muted"
+                }`}
+              >
+                {user.panelUsername || "—"}
+              </button>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] text-muted">remnawave uuid</span>

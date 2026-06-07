@@ -38,6 +38,7 @@ export interface UserRecord {
   trialUsedAt: string | null;
   panelId: string | null;
   publicId: string | null;
+  panelUsername: string | null;
 }
 
 export interface CodeRecord {
@@ -81,6 +82,7 @@ function rowToUser(row: any): UserRecord {
     trialUsedAt: row.trial_used_at ? new Date(row.trial_used_at).toISOString() : null,
     panelId: row.panel_id ?? null,
     publicId: row.public_id ?? null,
+    panelUsername: row.panel_username ?? null,
   };
 }
 
