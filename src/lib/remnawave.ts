@@ -5,7 +5,8 @@
  *   POST   /api/users
  *   GET    /api/users/{uuid}
  *   GET    /api/users (paginated list)
- *   PATCH  /api/users/{uuid}
+ *   PATCH  /api/users           — v2.x: body carries { uuid, ... }
+ *   PATCH  /api/users/{uuid}    — pre-v2.x fallback
  *   DELETE /api/users/{uuid}
  *   POST   /api/system/encrypt-happ-crypto-link
  *
@@ -201,21 +202,50 @@ export async function getAllUsersByEmail(email: string): Promise<RemnawaveUser[]
   return found;
 }
 
-/** PATCH /api/users/{uuid} with a literal expireAt. */
+/**
+ * Update a panel user's expireAt.
+ *
+ * Remnawave 2.x took the uuid out of the URL — the canonical endpoint
+ * is `PATCH /api/users` with `{ uuid, expireAt, ... }` in the body.
+ * Some older builds still use `PATCH /api/users/{uuid}`. We try the
+ * modern shape first and fall back to the legacy one ONLY when the
+ * panel says "no such route" (404 / 405). Any other HTTP error (auth,
+ * validation, server) is propagated as-is — retrying with a different
+ * URL would just hide it.
+ */
 export async function setUserExpire(uuid: string, expireAtIso: string): Promise<RemnawaveUser | null> {
-  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}`, {
-    method: "PATCH",
-    body: JSON.stringify({ expireAt: expireAtIso }),
-  });
-  if (!res) return null;
-  if (!res.ok) {
-    const bodyText = await res.text().catch(() => "");
-    lastRwError = `PATCH /api/users/${uuid.slice(0, 8)}… → HTTP ${res.status} ${bodyText.slice(0, 200)}`;
-    console.warn("[REMNAWAVE] setUserExpire non-ok:", res.status, "expireAt=", expireAtIso, bodyText.slice(0, 300));
-    return null;
+  const variants: Array<{ path: string; body: Record<string, unknown> }> = [
+    { path: "/api/users", body: { uuid, expireAt: expireAtIso } },
+    { path: `/api/users/${encodeURIComponent(uuid)}`, body: { expireAt: expireAtIso } },
+  ];
+
+  let lastStatus = 0;
+  let lastBodyText = "";
+
+  for (const variant of variants) {
+    const res = await rwFetch(variant.path, {
+      method: "PATCH",
+      body: JSON.stringify(variant.body),
+    });
+    if (!res) continue;
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      return parseUser(data);
+    }
+    lastStatus = res.status;
+    lastBodyText = await res.text().catch(() => "");
+    if (res.status !== 404 && res.status !== 405) break;
   }
-  const data = await res.json().catch(() => null);
-  return parseUser(data);
+
+  lastRwError = `PATCH user ${uuid.slice(0, 8)}… → HTTP ${lastStatus} ${lastBodyText.slice(0, 200)}`;
+  console.warn(
+    "[REMNAWAVE] setUserExpire failed:",
+    lastStatus,
+    "expireAt=",
+    expireAtIso,
+    lastBodyText.slice(0, 300)
+  );
+  return null;
 }
 
 /** Convenience: max(current, now) + days, then setUserExpire. */
