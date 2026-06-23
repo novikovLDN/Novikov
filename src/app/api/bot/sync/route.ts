@@ -3,6 +3,12 @@ import { getUserByTelegramId, updateUser, createNotificationForUser, createAudit
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
 import { botSyncDisabledResponse } from "../sync-guard";
 
+// Hard cap on how far in the future a subscriptionEnd may land. Anything
+// beyond ~13 months is almost certainly a bug on the caller side (we had
+// users silently given 10-year "lifetime" subs because the bot pushed
+// 2036 dates and we accepted them). Reject loudly so the source surfaces.
+const MAX_SUB_END_MS_AHEAD = 400 * 24 * 60 * 60 * 1000;
+
 /**
  * POST /api/bot/sync
  *
@@ -42,6 +48,16 @@ export async function POST(request: NextRequest) {
 
       // Check revocation (plan=none or epoch date)
       const isRevocation = plan === "none" || subscriptionEnd.getTime() <= 0;
+
+      // Reject implausibly-far-future dates from the bot. Revocation
+      // (epoch / past date) is exempt because it's legitimately "set to past".
+      if (!isRevocation && subscriptionEnd.getTime() > Date.now() + MAX_SUB_END_MS_AHEAD) {
+        console.warn(`[SYNC] REJECTED overwrite: ${user.email} end=${subscriptionEnd.toISOString()} > now+400d`);
+        return NextResponse.json(
+          { success: false, error: "subscriptionEnd must be within 400 days from now", code: "sub_end_too_far" },
+          { status: 400 }
+        );
+      }
 
       const updates: Record<string, unknown> = {
         subscriptionEnd: subscriptionEnd.toISOString(),

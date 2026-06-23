@@ -4,6 +4,11 @@ import { xrayAddUser } from "@/lib/xray";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
 import { botSyncDisabledResponse } from "../sync-guard";
 
+// Hard cap: anything beyond ~13 months is almost certainly a bug on the
+// caller side (10-year "lifetime" tariffs were silently nuking trial
+// users' subscriptions). Reject loudly so we see who's sending bad data.
+const MAX_DAYS = 400;
+
 // POST /api/bot/extend — bot extends subscription after payment
 export async function POST(request: NextRequest) {
   if (!verifyBotApiKey(request)) return unauthorizedResponse();
@@ -16,6 +21,14 @@ export async function POST(request: NextRequest) {
     if (!telegramId || !days) {
       return NextResponse.json(
         { success: false, error: "telegramId and days required" },
+        { status: 400 }
+      );
+    }
+
+    if (typeof days !== "number" || days <= 0 || days > MAX_DAYS) {
+      console.warn(`[BOT] REJECTED extend: telegramId=${telegramId} days=${days} (must be 1..${MAX_DAYS})`);
+      return NextResponse.json(
+        { success: false, error: `days must be a positive number ≤ ${MAX_DAYS}`, code: "days_out_of_range" },
         { status: 400 }
       );
     }

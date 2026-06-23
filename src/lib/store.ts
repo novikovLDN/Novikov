@@ -353,6 +353,9 @@ export async function botExtendSubscription(
   days: number,
   plan?: string
 ): Promise<UserRecord | null> {
+  if (typeof days !== "number" || !Number.isFinite(days) || days <= 0 || days > MAX_EXTEND_DAYS) {
+    throw new Error(`botExtendSubscription: days out of range (got ${days}, max ${MAX_EXTEND_DAYS})`);
+  }
   const user = await getUserByTelegramId(telegramId);
   if (!user) return null;
 
@@ -460,7 +463,15 @@ export async function updatePaymentStatus(id: string, status: string, paidAt?: D
   return rowToPayment(result.rows[0]);
 }
 
+// Hard ceiling. Beyond ~13 months is always a bug (we had users given
+// 10-year subs because callers passed bad day counts). Crash early so
+// bad data doesn't make it into the DB.
+const MAX_EXTEND_DAYS = 400;
+
 export async function extendSubscription(userId: string, days: number): Promise<UserRecord | null> {
+  if (typeof days !== "number" || !Number.isFinite(days) || days <= 0 || days > MAX_EXTEND_DAYS) {
+    throw new Error(`extendSubscription: days out of range (got ${days}, max ${MAX_EXTEND_DAYS})`);
+  }
   const user = await getUserById(userId);
   if (!user) return null;
 
