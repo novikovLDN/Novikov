@@ -93,6 +93,12 @@ export async function issueTrial(
 
   const happLink = await encryptHappLink(rwUser.subscriptionUrl);
 
+  // Trial duration is OUR contract — exactly 24 h from now. Don't trust
+  // the panel echo for this field; some Remnawave templates / squads
+  // override expireAt to far-future values and we'd silently grant
+  // multi-year "trials" otherwise.
+  const trialEnd = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
   await pool.query(
     `UPDATE users SET
        remnawave_user_uuid = $1,
@@ -110,7 +116,7 @@ export async function issueTrial(
       rwUser.subscriptionUrl,
       happLink,
       happLink ? new Date() : null,
-      rwUser.expireAt ? new Date(rwUser.expireAt) : new Date(Date.now() + 24 * 60 * 60 * 1000),
+      trialEnd,
       rwUser.username || null,
       userId,
     ]
