@@ -6,6 +6,12 @@ import bcrypt from "bcryptjs";
 import { pool } from "./db";
 import { generateXrayUuid, buildConnectionUri, xrayRemoveUser, generateSubToken, generateSubId, buildSubscriptionUrl } from "./xray";
 
+// Hard ceiling on subscription_end mutations. Anything beyond ~13 months
+// from now is a caller-side bug (10-year "lifetime" datapoints from the
+// bot were silently nuking users' real subscriptions). Every mutator
+// funnels through updateUser, which throws when this is exceeded.
+const MAX_EXTEND_DAYS = 400;
+
 // ─── Types ───────────────────────────────────────────────────────
 
 export interface UserRecord {
@@ -193,6 +199,23 @@ export async function getUserById(id: string): Promise<UserRecord | null> {
 }
 
 export async function updateUser(id: string, updates: Partial<UserRecord>): Promise<UserRecord | null> {
+  // Sanity guard: nothing should ever write a future subscription_end
+  // beyond MAX_EXTEND_DAYS from now. We had a long-running bug where
+  // bot- and Telegram-link flows wrote 2036 dates, silently giving
+  // users 10-year subs. Defense-in-depth — every mutator funnels
+  // through here, so a single guard catches every path.
+  if (updates.subscriptionEnd !== undefined && updates.subscriptionEnd !== null) {
+    const ts = new Date(updates.subscriptionEnd).getTime();
+    if (Number.isFinite(ts)) {
+      const maxAhead = Date.now() + MAX_EXTEND_DAYS * 24 * 60 * 60 * 1000;
+      if (ts > maxAhead) {
+        throw new Error(
+          `updateUser: subscriptionEnd ${updates.subscriptionEnd} exceeds NOW+${MAX_EXTEND_DAYS}d (caller bug)`
+        );
+      }
+    }
+  }
+
   // Map UserRecord fields to DB columns
   const fieldMap: Record<string, string> = {
     email: "email",
@@ -462,11 +485,6 @@ export async function updatePaymentStatus(id: string, status: string, paidAt?: D
   if (result.rows.length === 0) return null;
   return rowToPayment(result.rows[0]);
 }
-
-// Hard ceiling. Beyond ~13 months is always a bug (we had users given
-// 10-year subs because callers passed bad day counts). Crash early so
-// bad data doesn't make it into the DB.
-const MAX_EXTEND_DAYS = 400;
 
 export async function extendSubscription(userId: string, days: number): Promise<UserRecord | null> {
   if (typeof days !== "number" || !Number.isFinite(days) || days <= 0 || days > MAX_EXTEND_DAYS) {
