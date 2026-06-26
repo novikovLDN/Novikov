@@ -52,7 +52,16 @@ export async function POST(request: NextRequest) {
         await xrayAddUser(telegramXrayUuid).catch(() => {});
       }
       if (telegramSubscriptionEnd) {
-        updates.subscriptionEnd = new Date(telegramSubscriptionEnd).toISOString();
+        const ts = new Date(telegramSubscriptionEnd).getTime();
+        const maxAhead = Date.now() + 400 * 24 * 60 * 60 * 1000;
+        if (!Number.isFinite(ts) || ts > maxAhead) {
+          console.warn(`[SYNC-CHOICE] REJECTED: ${user.email} telegramSubscriptionEnd=${telegramSubscriptionEnd}`);
+          return NextResponse.json(
+            { success: false, error: "telegramSubscriptionEnd out of range", code: "sub_end_too_far" },
+            { status: 400 }
+          );
+        }
+        updates.subscriptionEnd = new Date(ts).toISOString();
       }
       if (telegramPlan) updates.subscriptionPlan = telegramPlan;
 

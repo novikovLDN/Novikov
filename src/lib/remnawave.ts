@@ -220,7 +220,7 @@ export async function getAllUsersByEmail(email: string): Promise<RemnawaveUser[]
  * the panel auto-disables once it ticks past.
  */
 export async function setUserExpire(uuid: string, expireAtIso: string): Promise<RemnawaveUser | null> {
-  const safeExpireAt = clampToFuture(expireAtIso);
+  const safeExpireAt = clampExpireAt(expireAtIso);
   if (safeExpireAt !== expireAtIso) {
     console.log("[REMNAWAVE] setUserExpire: clamped past expireAt", expireAtIso, "→", safeExpireAt);
   }
@@ -259,11 +259,30 @@ export async function setUserExpire(uuid: string, expireAtIso: string): Promise<
   return null;
 }
 
-/** Returns the input if it's already in the future, otherwise now + 30s. */
-function clampToFuture(expireAtIso: string): string {
+/**
+ * Clamp expireAt into the band [NOW + 30s, NOW + 400d].
+ *
+ * Lower bound — Remnawave validates expireAt and rejects strictly-past
+ * dates ("Expiration date cannot be in the past"); a 30-second floor
+ * lets revoke/expired states still create a profile that the panel
+ * disables on its own.
+ *
+ * Upper bound — last-line defence against the 10-year ghost-date bug
+ * that has been overwriting admin-fixed expireAts. If anything still
+ * tries to push 2036 to the panel after our higher-level skip in
+ * syncSubscriptionToPanel, we cap it at NOW+400d and emit a loud log
+ * line so we can chase down the slipping path.
+ */
+function clampExpireAt(expireAtIso: string): string {
   const target = new Date(expireAtIso).getTime();
   const min = Date.now() + 30_000;
-  return target >= min ? expireAtIso : new Date(min).toISOString();
+  const max = Date.now() + 400 * 24 * 60 * 60 * 1000;
+  if (target > max) {
+    console.warn(`[REMNAWAVE] clampExpireAt: requested ${expireAtIso} > NOW+400d, clamping to ${new Date(max).toISOString()}`);
+    return new Date(max).toISOString();
+  }
+  if (target < min) return new Date(min).toISOString();
+  return expireAtIso;
 }
 
 /**
@@ -390,7 +409,7 @@ export async function createUserWithExpire(
   // never get stuck unable to create a panel profile for a user whose
   // subscription_end has already elapsed (the profile lives but is
   // immediately disabled by the panel, which is the correct state).
-  const safeExpireAt = clampToFuture(expireAtIso);
+  const safeExpireAt = clampExpireAt(expireAtIso);
   if (safeExpireAt !== expireAtIso) {
     console.log("[REMNAWAVE] createUserWithExpire: clamped past expireAt", expireAtIso, "→", safeExpireAt);
   }

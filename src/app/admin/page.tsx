@@ -7,6 +7,7 @@ import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import RemnawaveMigrationCard from "@/components/RemnawaveMigrationCard";
 import BotSyncToggleCard from "@/components/BotSyncToggleCard";
+import GhostDateCleanupCard from "@/components/GhostDateCleanupCard";
 
 interface UserInfo {
   id: string;
@@ -289,6 +290,7 @@ export default function AdminDashboard() {
             </div>
 
             <BotSyncToggleCard />
+            <GhostDateCleanupCard />
             <RemnawaveMigrationCard />
           </div>
         )}
