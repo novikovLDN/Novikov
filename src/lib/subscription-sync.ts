@@ -134,6 +134,32 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
   }
   log("info", userId, `public_id=${publicId} email=${user.email}`);
 
+  // ─── Refuse to push corrupted ghost dates to the panel ───
+  // If a manual operator fixed expireAt in the Remnawave UI for a user
+  // whose local subscription_end is still the legacy 10-year ghost,
+  // any sync triggered after that (hourly worker, dashboard load,
+  // reconcile, payment) would silently overwrite the manual fix with
+  // 2036 again. Skip sync entirely until the local value is clamped
+  // (paid renewal resets it via extendSubscription) or fixed by SQL.
+  const MAX_LOCAL_AHEAD_MS = 400 * 24 * 60 * 60 * 1000;
+  const localEndMs = new Date(user.subscriptionEnd).getTime();
+  if (localEndMs > Date.now() + MAX_LOCAL_AHEAD_MS) {
+    log(
+      "warn",
+      userId,
+      `SKIP sync: local subscription_end=${user.subscriptionEnd} is past NOW+400d (ghost date) — panel left alone`
+    );
+    return {
+      ok: true,
+      publicId,
+      uuid: user.remnawaveUserUuid,
+      subscriptionUrl: user.subscriptionUrl,
+      expireAt: null,
+      action: "skip",
+      panelUsername: null,
+    };
+  }
+
   const expireIso = new Date(user.subscriptionEnd).toISOString();
   log("info", userId, `target expireAt=${expireIso} (subscription_end)`);
 
