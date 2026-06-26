@@ -51,10 +51,22 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: "Неверный тариф" }, { status: 400 });
       }
 
-      // Extend subscription from now or from current end (whichever is later)
+      // Extend subscription from now or from current end (whichever is later).
+      // Defensive: if currentEnd is corrupted (legacy 10y bug),
+      // reset to NOW so the admin grant gives exactly the chosen
+      // duration and the universal updateUser guard doesn't throw.
       const now = new Date();
       const currentEnd = new Date(user.subscriptionEnd);
-      const base = currentEnd > now ? currentEnd : now;
+      const MAX_AHEAD_MS = 400 * 24 * 60 * 60 * 1000;
+      let base: Date;
+      if (currentEnd.getTime() > now.getTime() + MAX_AHEAD_MS) {
+        console.warn(`[ADMIN-GRANT] ${user.email}: currentEnd ${currentEnd.toISOString()} corrupted, resetting base to NOW`);
+        base = now;
+      } else if (currentEnd > now) {
+        base = currentEnd;
+      } else {
+        base = now;
+      }
       const newEnd = new Date(base.getTime() + minutes * 60 * 1000);
 
       // Write the new subscription end locally

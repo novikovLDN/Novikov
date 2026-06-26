@@ -384,7 +384,21 @@ export async function botExtendSubscription(
 
   const currentEnd = new Date(user.subscriptionEnd);
   const now = new Date();
-  const base = currentEnd > now ? currentEnd : now;
+  const maxBase = new Date(now.getTime() + MAX_EXTEND_DAYS * 24 * 60 * 60 * 1000);
+
+  // Same "corrupted ghost date" guard as extendSubscription: if the
+  // record already sits past +400d (legacy bug), reset to NOW so the
+  // user gets exactly the days they paid for and the universal
+  // updateUser guard doesn't throw.
+  let base: Date;
+  if (currentEnd > maxBase) {
+    console.warn(`[BOT-EXTEND] ${user.email}: currentEnd ${currentEnd.toISOString()} is past +${MAX_EXTEND_DAYS}d, resetting base to NOW`);
+    base = now;
+  } else if (currentEnd > now) {
+    base = currentEnd;
+  } else {
+    base = now;
+  }
   const newEnd = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
 
   // If user has no VPN key (expired and cleaned up), regenerate
@@ -495,8 +509,21 @@ export async function extendSubscription(userId: string, days: number): Promise<
 
   const currentEnd = new Date(user.subscriptionEnd);
   const now = new Date();
-  // If subscription already expired, extend from now; otherwise extend from current end
-  const base = currentEnd > now ? currentEnd : now;
+  const maxBase = new Date(now.getTime() + MAX_EXTEND_DAYS * 24 * 60 * 60 * 1000);
+
+  // Treat already-corrupted future dates as expired so legitimate
+  // extensions (paid renewals) reset from NOW instead of piling +30d
+  // on top of a 10-year ghost date. Without this, the universal
+  // updateUser guard would throw and webhook would 500.
+  let base: Date;
+  if (currentEnd > maxBase) {
+    console.warn(`[EXTEND] ${user.email}: currentEnd ${currentEnd.toISOString()} is past +${MAX_EXTEND_DAYS}d, resetting base to NOW (was a corrupted record)`);
+    base = now;
+  } else if (currentEnd > now) {
+    base = currentEnd;
+  } else {
+    base = now;
+  }
   const newEnd = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
 
   return updateUser(userId, { subscriptionEnd: newEnd.toISOString() });
