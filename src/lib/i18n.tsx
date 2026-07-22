@@ -82,8 +82,8 @@ const t = {
   // Service cards
   "srv1.t": { en: "Secure Tunneling", ru: "Защищённое туннелирование" },
   "srv1.d": {
-    en: "WireGuard, IKEv2/IPSec with AES-256-GCM. Traffic obfuscation, HTTPS masking, DPI protection.",
-    ru: "WireGuard, IKEv2/IPSec с AES-256-GCM. Обфускация трафика, маскировка под HTTPS, защита от DPI.",
+    en: "WireGuard, IKEv2/IPSec with AES-256-GCM. Traffic obfuscation, HTTPS masking, advanced traffic protection.",
+    ru: "WireGuard, IKEv2/IPSec с AES-256-GCM. Обфускация трафика, маскировка под HTTPS, продвинутая защита трафика.",
   },
   "srv2.t": { en: "Zero Trust Network", ru: "Сеть нулевого доверия" },
   "srv2.d": {
@@ -222,21 +222,23 @@ interface I18nContextValue {
 }
 
 const I18nContext = createContext<I18nContextValue>({
-  locale: "en",
+  locale: "ru",
   setLocale: () => {},
-  t: (key) => t[key]?.en || key,
+  t: (key) => t[key]?.ru || t[key]?.en || key,
 });
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("en");
+  const [locale, setLocaleState] = useState<Locale>("ru");
 
   useEffect(() => {
     const saved = localStorage.getItem("atlas-locale") as Locale | null;
     if (saved && (saved === "en" || saved === "ru")) {
       setLocaleState(saved);
     } else {
+      // No saved preference: keep the Russian default unless the
+      // browser is explicitly non-Russian AND non-CIS.
       const browserLang = navigator.language.toLowerCase();
-      if (browserLang.startsWith("ru")) setLocaleState("ru");
+      if (browserLang.startsWith("en")) setLocaleState("en");
     }
   }, []);
 
@@ -248,7 +250,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const translate = (key: TranslationKey): string => {
     const entry = t[key];
     if (!entry) return key;
-    return entry[locale] || entry.en;
+    return entry[locale] || entry["ru"] || entry["en"] || key;
   };
 
   return (

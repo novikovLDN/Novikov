@@ -45,26 +45,58 @@ function AnimatedPrice({ value, duration = 600 }: { value: number; duration?: nu
   return <>{display.toFixed(2)}</>;
 }
 
-const VPN_PLANS = [
+type Bi = { en: string; ru: string };
+type BiList = { en: string[]; ru: string[] };
+interface Plan {
+  name: Bi;
+  price: number;
+  priceYearly?: number;
+  period: Bi;
+  sub: string;
+  features: BiList;
+  cta: Bi;
+  ctaStyle: "ghost" | "primary";
+  highlighted?: boolean;
+}
+
+const PER_MONTH: Bi = { en: "per month", ru: "в месяц" };
+
+const VPN_PLANS: Plan[] = [
   {
-    name: "Personal", price: 4.99, priceYearly: 3.99, period: "per month", sub: "",
-    features: ["AES-256 encryption", "3 devices", "3 server locations", "WireGuard protocol", "Kill Switch", "DNS protection"],
-    cta: "Request", ctaStyle: "ghost" as const,
+    name: { en: "Personal", ru: "Личный" },
+    price: 4.99, priceYearly: 3.99, period: PER_MONTH, sub: "",
+    features: {
+      en: ["AES-256 encryption", "3 devices", "3 server locations", "WireGuard protocol", "Kill Switch", "DNS protection"],
+      ru: ["Шифрование AES-256", "3 устройства", "3 локации серверов", "Протокол WireGuard", "Kill Switch", "Защита DNS"],
+    },
+    cta: { en: "Request", ru: "Запросить" }, ctaStyle: "ghost",
   },
   {
-    name: "Business", price: 9.99, priceYearly: 7.99, period: "per month", sub: "",
-    features: ["All Personal features +", "10 devices", "All server locations", "Dedicated IP", "Traffic obfuscation", "DDoS protection", "99.9% SLA"],
-    cta: "Request", ctaStyle: "primary" as const, highlighted: true,
+    name: { en: "Business", ru: "Бизнес" },
+    price: 9.99, priceYearly: 7.99, period: PER_MONTH, sub: "",
+    features: {
+      en: ["All Personal features +", "10 devices", "All server locations", "Dedicated IP", "Traffic obfuscation", "DDoS protection", "99.9% SLA"],
+      ru: ["Всё из Личного +", "10 устройств", "Все локации серверов", "Выделенный IP", "Обфускация трафика", "Защита от DDoS", "SLA 99,9%"],
+    },
+    cta: { en: "Request", ru: "Запросить" }, ctaStyle: "primary", highlighted: true,
   },
   {
-    name: "Enterprise", price: 24.99, priceYearly: 19.99, period: "per month", sub: "",
-    features: ["All Business features +", "Unlimited devices", "Dedicated infrastructure", "Custom protocols", "99.98% SLA", "Priority support", "Account manager"],
-    cta: "Request", ctaStyle: "ghost" as const,
+    name: { en: "Enterprise", ru: "Enterprise" },
+    price: 24.99, priceYearly: 19.99, period: PER_MONTH, sub: "",
+    features: {
+      en: ["All Business features +", "Unlimited devices", "Dedicated infrastructure", "Custom protocols", "99.98% SLA", "Priority support", "Account manager"],
+      ru: ["Всё из Бизнес +", "Устройств без лимита", "Выделенная инфраструктура", "Кастомные протоколы", "SLA 99,98%", "Приоритетная поддержка", "Персональный менеджер"],
+    },
+    cta: { en: "Request", ru: "Запросить" }, ctaStyle: "ghost",
   },
   {
-    name: "Custom", price: 0, period: "", sub: "CUSTOM_SUB",
-    features: ["Tailored infrastructure", "Custom bandwidth", "Custom server locations", "Invoice billing", "SAML / SSO", "Dedicated account team"],
-    cta: "Contact sales", ctaStyle: "ghost" as const,
+    name: { en: "Custom", ru: "Индивидуальный" },
+    price: 0, period: { en: "", ru: "" }, sub: "CUSTOM_SUB",
+    features: {
+      en: ["Tailored infrastructure", "Custom bandwidth", "Custom server locations", "Invoice billing", "SAML / SSO", "Dedicated account team"],
+      ru: ["Индивидуальная инфраструктура", "Своя пропускная способность", "Свои локации серверов", "Оплата по счёту", "SAML / SSO", "Выделенная команда сопровождения"],
+    },
+    cta: { en: "Contact sales", ru: "Связаться с отделом продаж" }, ctaStyle: "ghost",
   },
 ];
 
@@ -112,7 +144,7 @@ function CrossIcon() {
 }
 
 export default function PricingPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [tab, setTab] = useState<Tab>("vpn");
   const [yearly, setYearly] = useState(true);
   const [showConfig, setShowConfig] = useState(false);
@@ -204,13 +236,13 @@ export default function PricingPage() {
 
             <div className="pl-plans-grid">
               {VPN_PLANS.map((p) => (
-                <div key={p.name} className={`pl-plan-card${p.highlighted ? " pl-plan-hl" : ""}`}>
-                  <h3 className="pl-plan-name">{p.name}</h3>
+                <div key={p.name.en} className={`pl-plan-card${p.highlighted ? " pl-plan-hl" : ""}`}>
+                  <h3 className="pl-plan-name">{p.name[locale]}</h3>
                   <div className="pl-plan-price">
                     {p.price > 0 ? (
                       <>
                         <span className="pl-price-amount"><AnimatedPrice value={yearly && p.priceYearly ? p.priceYearly : p.price} /> $</span>
-                        <span className="pl-price-period">{p.period}</span>
+                        <span className="pl-price-period">{p.period[locale]}</span>
                       </>
                     ) : (
                       <span className="pl-price-amount">{p.sub === "CUSTOM_SUB" ? t("pricing.custom.sub") : (p.sub || "$0")}</span>
@@ -227,12 +259,12 @@ export default function PricingPage() {
                   {p.sub && <p className="pl-plan-sub">{p.sub === "CUSTOM_SUB" ? t("pricing.custom.sub") : p.sub}</p>}
                   <div className="pl-plan-divider" />
                   <ul className="pl-plan-features">
-                    {p.features.map((f) => (
+                    {p.features[locale].map((f) => (
                       <li key={f}><CheckIcon /> {f}</li>
                     ))}
                   </ul>
                   <div className="pl-plan-cta">
-                    <Link href="/contact" className={`pl-plan-btn ${p.ctaStyle}`}>{p.cta}</Link>
+                    <Link href="/contact" className={`pl-plan-btn ${p.ctaStyle}`}>{p.cta[locale]}</Link>
                   </div>
                 </div>
               ))}
@@ -259,21 +291,21 @@ export default function PricingPage() {
                   <h3 className="pl-plan-name">{p.name}</h3>
                   <div className="pl-plan-price">
                     <span className="pl-price-amount"><AnimatedPrice value={yearly ? p.priceYearly : p.price} /> $</span>
-                    <span className="pl-price-period">per month</span>
+                    <span className="pl-price-period">{PER_MONTH[locale]}</span>
                   </div>
                   <div className="pl-plan-divider" />
                   <ul className="pl-plan-features">
-                    <li><CheckIcon /> {p.cpu} {tab === "vds" ? "dedicated" : "v"}CPU{p.cpu > 1 ? "s" : ""}</li>
-                    <li><CheckIcon /> {p.ram} GB RAM</li>
-                    <li><CheckIcon /> {p.ssd} GB NVMe SSD</li>
-                    <li><CheckIcon /> {p.port} Gbps port</li>
+                    <li><CheckIcon /> {p.cpu} {locale === "ru" ? (tab === "vds" ? "выделенных" : "v") + "CPU" : (tab === "vds" ? "dedicated " : "v") + "CPU" + (p.cpu > 1 ? "s" : "")}</li>
+                    <li><CheckIcon /> {p.ram} {locale === "ru" ? "ГБ ОЗУ" : "GB RAM"}</li>
+                    <li><CheckIcon /> {p.ssd} {locale === "ru" ? "ГБ NVMe SSD" : "GB NVMe SSD"}</li>
+                    <li><CheckIcon /> {p.port} {locale === "ru" ? "Гбит/с порт" : "Gbps port"}</li>
                     <li><CheckIcon /> {t("pricing.unlimited")}</li>
-                    <li><CheckIcon /> AES-256 encryption</li>
-                    <li><CheckIcon /> DDoS protection</li>
-                    {tab === "vds" && <li><CheckIcon /> Full root access</li>}
+                    <li><CheckIcon /> {locale === "ru" ? "Шифрование AES-256" : "AES-256 encryption"}</li>
+                    <li><CheckIcon /> {locale === "ru" ? "Защита от DDoS" : "DDoS protection"}</li>
+                    {tab === "vds" && <li><CheckIcon /> {locale === "ru" ? "Полный root-доступ" : "Full root access"}</li>}
                   </ul>
                   <div className="pl-plan-cta">
-                    <Link href="/contact" className="pl-plan-btn ghost">Request</Link>
+                    <Link href="/contact" className="pl-plan-btn ghost">{locale === "ru" ? "Запросить" : "Request"}</Link>
                   </div>
                 </div>
               ))}
@@ -359,12 +391,27 @@ export default function PricingPage() {
           <div className="pl-comparison-inner">
             <div className="pl-comp-header">
               <div className="pl-comp-label">{t("pricing.features")}</div>
-              <div>Trial</div>
-              <div>Personal</div>
-              <div>Business</div>
+              <div>{locale === "ru" ? "Пробный" : "Trial"}</div>
+              <div>{locale === "ru" ? "Личный" : "Personal"}</div>
+              <div>{locale === "ru" ? "Бизнес" : "Business"}</div>
               <div>Enterprise</div>
             </div>
-            {[
+            {(locale === "ru" ? [
+              ["Шифрование", "AES-256", "AES-256", "AES-256", "AES-256"],
+              ["Протоколы", "VLESS", "VLESS, WG", "Все", "Все + кастом"],
+              ["Устройств", "1", "3", "10", "Без лимита"],
+              ["Локации серверов", "1", "3", "Все", "Все + выделенные"],
+              ["Пропускная способность", "75 Гбит/с", "75 Гбит/с", "100 Гбит/с", "200 Гбит/с"],
+              ["Kill Switch", "check", "check", "check", "check"],
+              ["Защита DNS", "check", "check", "check", "check"],
+              ["Обфускация трафика", "cross", "check", "check", "check"],
+              ["Выделенный IP", "cross", "cross", "check", "check"],
+              ["Защита от DDoS", "cross", "cross", "check", "check"],
+              ["Приоритетная поддержка", "cross", "cross", "check", "check"],
+              ["SLA", "cross", "cross", "99,9%", "99,98%"],
+              ["Персональный менеджер", "cross", "cross", "cross", "check"],
+              ["Оплата по счёту", "cross", "cross", "cross", "check"],
+            ] : [
               ["Encryption", "AES-256", "AES-256", "AES-256", "AES-256"],
               ["Protocols", "VLESS", "VLESS, WG", "All", "All + Custom"],
               ["Devices", "1", "3", "10", "Unlimited"],
@@ -379,7 +426,7 @@ export default function PricingPage() {
               ["SLA guarantee", "cross", "cross", "99.9%", "99.98%"],
               ["Account manager", "cross", "cross", "cross", "check"],
               ["Invoice billing", "cross", "cross", "cross", "check"],
-            ].map(([feature, ...vals]) => (
+            ]).map(([feature, ...vals]) => (
               <div key={feature} className="pl-comp-row">
                 <div className="pl-comp-feature">{feature}</div>
                 {vals.map((v, i) => (

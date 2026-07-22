@@ -43,8 +43,8 @@ export default function VpnPage() {
             </h1>
             <p className="plx-hero-desc">
               {en
-                ? "Military-grade AES-256-GCM encryption with traffic obfuscation that bypasses DPI firewalls. Kill switch, DNS leak protection, and IPv6 tunneling across all platforms."
-                : "Шифрование военного класса AES-256-GCM с обфускацией трафика, обходящей DPI-файрволы. Kill switch, защита от утечек DNS и туннелирование IPv6 на всех платформах."}
+                ? "Military-grade AES-256-GCM encryption with advanced traffic obfuscation. Kill switch, DNS leak protection, and IPv6 tunneling across all platforms."
+                : "Шифрование военного класса AES-256-GCM с продвинутой обфускацией трафика. Kill switch, защита от утечек DNS и туннелирование IPv6 на всех платформах."}
             </p>
             <div className="plx-hero-actions">
               <Link href="/auth" className="pl-cta-btn-light">{en ? "Start 3-day trial" : "Пробные 3 дня"} <span className="pl-arrow">→</span></Link>
@@ -98,7 +98,7 @@ export default function VpnPage() {
           <div className="plx-fgrid">
             {[
               { i: "lock", t: en ? "AES-256-GCM" : "AES-256-GCM", d: en ? "Symmetric encryption approved by NSA for TOP SECRET data. 2^256 possible keys." : "Симметричное шифрование, одобренное NSA для TOP SECRET. 2^256 возможных ключей." },
-              { i: "eye", t: en ? "Traffic obfuscation" : "Обфускация трафика", d: en ? "Reality protocol masks tunnelled traffic as regular HTTPS. Undetectable by DPI." : "Протокол Reality маскирует туннелированный трафик под обычный HTTPS. DPI не обнаруживает." },
+              { i: "eye", t: en ? "Traffic obfuscation" : "Обфускация трафика", d: en ? "Reality protocol masks tunnelled traffic as regular HTTPS. Advanced traffic masking." : "Протокол Reality маскирует туннелированный трафик под обычный HTTPS. Продвинутая маскировка трафика." },
               { i: "shield", t: "Kill Switch", d: en ? "Blocks all traffic instantly on disconnect. No packet leaks to the ISP." : "Мгновенно блокирует весь трафик при разрыве соединения. Ни одного пакета к провайдеру." },
               { i: "key", t: "Perfect Forward Secrecy", d: en ? "X25519 ECDHE rekey every session. Compromise of one key cannot decrypt past sessions." : "Смена ключа X25519 ECDHE каждую сессию. Утечка ключа не расшифровывает прошлое." },
               { i: "globe", t: en ? "DNS & IPv6 protection" : "Защита DNS и IPv6", d: en ? "All DNS queries routed through encrypted resolvers. IPv6 tunneled or blocked." : "Все DNS-запросы через зашифрованные резолверы. IPv6 туннелируется или блокируется." },
@@ -179,7 +179,7 @@ export default function VpnPage() {
             {[
               { t: en ? "Remote work" : "Удалённая работа", d: en ? "Secure access to corporate resources from anywhere. No SOCKS proxy pain." : "Защищённый доступ к корпоративным ресурсам из любой точки. Без боли с SOCKS." },
               { t: en ? "Public Wi-Fi" : "Публичный Wi-Fi", d: en ? "Full-tunnel encryption on cafés, airports, hotels. Kill switch prevents any leaks." : "Полное туннелирование в кафе, аэропортах, отелях. Kill switch предотвращает утечки." },
-              { t: en ? "Bypass DPI" : "Обход DPI", d: en ? "Reality protocol makes the tunnel indistinguishable from real HTTPS traffic." : "Reality-протокол делает туннель неотличимым от обычного HTTPS." },
+              { t: en ? "TLS Masking" : "Маскировка TLS", d: en ? "Reality protocol makes the tunnel indistinguishable from real HTTPS traffic." : "Reality-протокол делает туннель неотличимым от обычного HTTPS." },
               { t: en ? "Privacy research" : "Приватность", d: en ? "Zero-logs guarantee. What we don't store, we cannot be compelled to disclose." : "Нулевые логи. Чего нет — того нельзя раскрыть по запросу." },
               { t: en ? "Travel" : "В путешествии", d: en ? "Access your home-region services abroad. Pick any of 3 continental jurisdictions." : "Доступ к своему региону за границей. 3 континентальные юрисдикции на выбор." },
               { t: en ? "Household" : "Для семьи", d: en ? "Up to 10 devices on one plan. Protect phones, laptops, and smart TVs alike." : "До 10 устройств на один план. Защитите телефоны, ноутбуки и ТВ сразу." },
@@ -205,7 +205,7 @@ export default function VpnPage() {
             {[
               { q: en ? "Do you keep logs?" : "Ведёте ли вы логи?", a: en ? "No. We operate on a strict no-logs policy. We do not record connection times, IP addresses, DNS queries, or bandwidth per user." : "Нет. Строгая no-logs политика: не храним времена подключений, IP-адреса, DNS-запросы и трафик по пользователю." },
               { q: en ? "How fast is the service?" : "Насколько быстрый сервис?", a: en ? "Each server offers up to 200 Gb/s. Regional latency is under 5ms. Reality protocol adds negligible overhead (~1-2% vs direct HTTPS)." : "До 200 Гб/с на сервер. Задержка в регионе < 5мс. Reality добавляет ~1-2% оверхеда относительно прямого HTTPS." },
-              { q: en ? "Can it bypass my country's firewall?" : "Обходит ли файрвол моей страны?", a: en ? "Yes. Reality protocol mimics TLS handshakes of major CDNs, making traffic indistinguishable from regular HTTPS even under DPI inspection." : "Да. Reality имитирует TLS-рукопожатия крупных CDN, делая трафик неотличимым от обычного HTTPS даже при DPI-инспекции." },
+              { q: en ? "How does the traffic look on the network?" : "Как выглядит трафик в сети?", a: en ? "Reality protocol mimics TLS handshakes of major CDNs, making traffic indistinguishable from regular HTTPS." : "Reality имитирует TLS-рукопожатия крупных CDN, делая трафик неотличимым от обычного HTTPS." },
               { q: en ? "What happens if connection drops?" : "Что если соединение упадёт?", a: en ? "Kill Switch instantly blocks all traffic. Not a single packet leaks to your ISP or apps until it reconnects." : "Kill Switch мгновенно блокирует весь трафик. Ни один пакет не утечёт к провайдеру до восстановления соединения." },
               { q: en ? "Is there a free trial?" : "Есть ли пробный период?", a: en ? "Yes. 3 days free, no card required. Telegram bonus gives +7 days, referrals +20 days per paid friend." : "Да. 3 дня бесплатно, без карты. Telegram-бонус даёт +7 дней, рефералы +20 дней за каждого оплаченного друга." },
             ].map((f, i) => (
