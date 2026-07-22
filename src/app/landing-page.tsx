@@ -712,7 +712,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
           </div>
           <div className="pl-footer-col">
             <h4>Product</h4>
-            <Link href="/vpn">Secure</Link>
+            <Link href="/vpn">Pro</Link>
             <Link href="/vps">VPS</Link>
             <Link href="/vds">VDS</Link>
             <Link href="/pricing">{t("nav.pricing")}</Link>
