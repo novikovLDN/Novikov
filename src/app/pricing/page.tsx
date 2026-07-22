@@ -183,7 +183,7 @@ export default function PricingPage() {
         <div className="pl-pricing-tabs">
           {(["vpn", "vps", "vds"] as Tab[]).map((t) => (
             <button key={t} className={`pl-pricing-tab${tab === t ? " active" : ""}`} onClick={() => { setTab(t); setShowConfig(false); }}>
-              {t.toUpperCase()}
+              {t === "vpn" ? "SECURE" : t.toUpperCase()}
             </button>
           ))}
         </div>
