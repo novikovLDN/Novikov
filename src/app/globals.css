@@ -133,6 +133,17 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
 
+/* Text-caret color: on the dark theme the browser default is often
+ * near-black, making the blinking cursor invisible on ~#0a0a0a
+ * backgrounds. Force it to the foreground colour for every editable
+ * element. */
+input,
+textarea,
+select,
+[contenteditable="true"] {
+  caret-color: var(--color-foreground);
+}
+
 /* Autofill fix */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
