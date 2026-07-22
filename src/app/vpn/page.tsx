@@ -36,7 +36,7 @@ export default function VpnPage() {
         <div className="plx-hero-grid" />
         <div className="plx-wrap plx-hero-inner">
           <div className="pl-entrance pl-ed1">
-            <div className="plx-eyebrow">VPN · VLESS + REALITY</div>
+            <div className="plx-eyebrow">Secure · VLESS + REALITY</div>
             <h1 className="plx-hero-title">
               {en ? "Encrypted tunnels.\n" : "Зашифрованные\nтуннели.\n"}
               <span className="plx-grad">{en ? "Invisible traffic." : "Невидимый трафик."}</span>
@@ -92,14 +92,14 @@ export default function VpnPage() {
         <div className="plx-wrap">
           <div className="plx-section-head">
             <div className="plx-section-label">{en ? "Capabilities" : "Возможности"}</div>
-            <h2 className="plx-section-title">{en ? "Everything a modern VPN should be" : "Всё, чем должен быть современный VPN"}</h2>
+            <h2 className="plx-section-title">{en ? "Everything a modern secure connection should be" : "Всё, чем должно быть современное защищённое соединение"}</h2>
             <p className="plx-section-desc">{en ? "Built on open-source standards. Hardened with our operational security stack." : "Построено на open-source стандартах. Укреплено нашим стеком операционной безопасности."}</p>
           </div>
           <div className="plx-fgrid">
             {[
               { i: "lock", t: en ? "AES-256-GCM" : "AES-256-GCM", d: en ? "Symmetric encryption approved by NSA for TOP SECRET data. 2^256 possible keys." : "Симметричное шифрование, одобренное NSA для TOP SECRET. 2^256 возможных ключей." },
-              { i: "eye", t: en ? "Traffic obfuscation" : "Обфускация трафика", d: en ? "Reality protocol masks VPN traffic as regular HTTPS. Undetectable by DPI." : "Протокол Reality маскирует VPN-трафик под обычный HTTPS. DPI не обнаруживает." },
-              { i: "shield", t: "Kill Switch", d: en ? "Blocks all traffic instantly on VPN disconnect. No packet leaks to the ISP." : "Мгновенно блокирует весь трафик при разрыве VPN. Ни одного пакета к провайдеру." },
+              { i: "eye", t: en ? "Traffic obfuscation" : "Обфускация трафика", d: en ? "Reality protocol masks tunnelled traffic as regular HTTPS. Undetectable by DPI." : "Протокол Reality маскирует туннелированный трафик под обычный HTTPS. DPI не обнаруживает." },
+              { i: "shield", t: "Kill Switch", d: en ? "Blocks all traffic instantly on disconnect. No packet leaks to the ISP." : "Мгновенно блокирует весь трафик при разрыве соединения. Ни одного пакета к провайдеру." },
               { i: "key", t: "Perfect Forward Secrecy", d: en ? "X25519 ECDHE rekey every session. Compromise of one key cannot decrypt past sessions." : "Смена ключа X25519 ECDHE каждую сессию. Утечка ключа не расшифровывает прошлое." },
               { i: "globe", t: en ? "DNS & IPv6 protection" : "Защита DNS и IPv6", d: en ? "All DNS queries routed through encrypted resolvers. IPv6 tunneled or blocked." : "Все DNS-запросы через зашифрованные резолверы. IPv6 туннелируется или блокируется." },
               { i: "devices", t: en ? "Multi-device" : "Мульти-устройства", d: en ? "Connect up to 10 devices simultaneously. iOS, Android, macOS, Windows, Linux." : "Подключайте до 10 устройств одновременно. iOS, Android, macOS, Windows, Linux." },
@@ -179,7 +179,7 @@ export default function VpnPage() {
             {[
               { t: en ? "Remote work" : "Удалённая работа", d: en ? "Secure access to corporate resources from anywhere. No SOCKS proxy pain." : "Защищённый доступ к корпоративным ресурсам из любой точки. Без боли с SOCKS." },
               { t: en ? "Public Wi-Fi" : "Публичный Wi-Fi", d: en ? "Full-tunnel encryption on cafés, airports, hotels. Kill switch prevents any leaks." : "Полное туннелирование в кафе, аэропортах, отелях. Kill switch предотвращает утечки." },
-              { t: en ? "Bypass DPI" : "Обход DPI", d: en ? "Reality protocol makes VPN indistinguishable from real HTTPS traffic." : "Reality-протокол делает VPN неотличимым от обычного HTTPS." },
+              { t: en ? "Bypass DPI" : "Обход DPI", d: en ? "Reality protocol makes the tunnel indistinguishable from real HTTPS traffic." : "Reality-протокол делает туннель неотличимым от обычного HTTPS." },
               { t: en ? "Privacy research" : "Приватность", d: en ? "Zero-logs guarantee. What we don't store, we cannot be compelled to disclose." : "Нулевые логи. Чего нет — того нельзя раскрыть по запросу." },
               { t: en ? "Travel" : "В путешествии", d: en ? "Access your home-region services abroad. Pick any of 3 continental jurisdictions." : "Доступ к своему региону за границей. 3 континентальные юрисдикции на выбор." },
               { t: en ? "Household" : "Для семьи", d: en ? "Up to 10 devices on one plan. Protect phones, laptops, and smart TVs alike." : "До 10 устройств на один план. Защитите телефоны, ноутбуки и ТВ сразу." },
@@ -204,9 +204,9 @@ export default function VpnPage() {
           <div className="plx-faq">
             {[
               { q: en ? "Do you keep logs?" : "Ведёте ли вы логи?", a: en ? "No. We operate on a strict no-logs policy. We do not record connection times, IP addresses, DNS queries, or bandwidth per user." : "Нет. Строгая no-logs политика: не храним времена подключений, IP-адреса, DNS-запросы и трафик по пользователю." },
-              { q: en ? "How fast is the VPN?" : "Насколько быстрый VPN?", a: en ? "Each server offers up to 200 Gb/s. Regional latency is under 5ms. Reality protocol adds negligible overhead (~1-2% vs direct HTTPS)." : "До 200 Гб/с на сервер. Задержка в регионе < 5мс. Reality добавляет ~1-2% оверхеда относительно прямого HTTPS." },
+              { q: en ? "How fast is the service?" : "Насколько быстрый сервис?", a: en ? "Each server offers up to 200 Gb/s. Regional latency is under 5ms. Reality protocol adds negligible overhead (~1-2% vs direct HTTPS)." : "До 200 Гб/с на сервер. Задержка в регионе < 5мс. Reality добавляет ~1-2% оверхеда относительно прямого HTTPS." },
               { q: en ? "Can it bypass my country's firewall?" : "Обходит ли файрвол моей страны?", a: en ? "Yes. Reality protocol mimics TLS handshakes of major CDNs, making traffic indistinguishable from regular HTTPS even under DPI inspection." : "Да. Reality имитирует TLS-рукопожатия крупных CDN, делая трафик неотличимым от обычного HTTPS даже при DPI-инспекции." },
-              { q: en ? "What happens if connection drops?" : "Что если соединение упадёт?", a: en ? "Kill Switch instantly blocks all traffic. Not a single packet leaks to your ISP or apps until VPN reconnects." : "Kill Switch мгновенно блокирует весь трафик. Ни один пакет не утечёт к провайдеру до восстановления VPN." },
+              { q: en ? "What happens if connection drops?" : "Что если соединение упадёт?", a: en ? "Kill Switch instantly blocks all traffic. Not a single packet leaks to your ISP or apps until it reconnects." : "Kill Switch мгновенно блокирует весь трафик. Ни один пакет не утечёт к провайдеру до восстановления соединения." },
               { q: en ? "Is there a free trial?" : "Есть ли пробный период?", a: en ? "Yes. 3 days free, no card required. Telegram bonus gives +7 days, referrals +20 days per paid friend." : "Да. 3 дня бесплатно, без карты. Telegram-бонус даёт +7 дней, рефералы +20 дней за каждого оплаченного друга." },
             ].map((f, i) => (
               <div key={f.q} className={`plx-faq-item${openFaq === i ? " open" : ""}`}>
@@ -228,7 +228,7 @@ export default function VpnPage() {
             <h2>{en ? "Start your 3-day trial" : "Начните пробный период"}</h2>
             <p>{en ? "No credit card. Cancel anytime." : "Без карты. Отмена в любой момент."}</p>
             <div className="pl-cta-buttons">
-              <Link href="/auth" className="pl-cta-btn-light">{en ? "Connect to VPN" : "Подключиться"} <span className="pl-arrow">→</span></Link>
+              <Link href="/auth" className="pl-cta-btn-light">{en ? "Connect" : "Подключиться"} <span className="pl-arrow">→</span></Link>
               <Link href="/pricing" className="pl-cta-btn-dark">{en ? "View pricing" : "Тарифы"}</Link>
             </div>
           </div>

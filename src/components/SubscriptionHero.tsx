@@ -251,7 +251,7 @@ export default function SubscriptionHero({
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative sm:w-[18px] sm:h-[18px]">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                 </svg>
-                <span className="relative">Подключить VPN</span>
+                <span className="relative">Подключить</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:translate-x-0.5 sm:w-4 sm:h-4">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>

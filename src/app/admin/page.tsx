@@ -1012,7 +1012,7 @@ function UserDetailPanel({ user, onClose, onRefresh, formatDateTime }: UserDetai
               </button>
             ) : (
               <div className="space-y-2">
-                <p className="text-xs text-muted">Подписка будет деактивирована, VPN-ключ удалён с сервера и у пользователя.</p>
+                <p className="text-xs text-muted">Подписка будет деактивирована, ключ удалён с сервера и у пользователя.</p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setRevokeConfirm(false)}

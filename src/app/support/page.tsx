@@ -32,7 +32,7 @@ export default function Support() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold mb-3 animate-fade-in-up">Нужна помощь?</h1>
           <p className="text-muted text-sm sm:text-base leading-relaxed max-w-xs mx-auto animate-fade-in-up animate-delay-1">
-            Мы всегда на связи и готовы помочь с любыми вопросами по настройке и работе VPN
+            Мы всегда на связи и готовы помочь с любыми вопросами по настройке и работе сервиса
           </p>
         </div>
 

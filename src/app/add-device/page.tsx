@@ -43,7 +43,7 @@ const APPS: Record<Platform, AppConfig[]> = {
           "Выберите «Сканировать QR-код»",
           "Наведите камеру на QR-код ниже",
           "Конфигурация импортируется автоматически",
-          "Нажмите кнопку подключения и разрешите VPN при запросе",
+          "Нажмите кнопку подключения и разрешите системное подключение при запросе",
         ],
       },
     },
@@ -65,7 +65,7 @@ const APPS: Record<Platform, AppConfig[]> = {
           "Выберите «Сканировать QR-код»",
           "Наведите камеру на QR-код ниже",
           "Конфигурация импортируется автоматически",
-          "Нажмите кнопку подключения и разрешите VPN при запросе",
+          "Нажмите кнопку подключения и разрешите системное подключение при запросе",
         ],
       },
     },
@@ -271,7 +271,7 @@ export default function AddDevice() {
               </svg>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold mb-2 animate-fade-in-up">Добавить устройство</h1>
-            <p className="text-muted text-sm sm:text-base animate-fade-in-up animate-delay-1">На каком устройстве подключаем VPN?</p>
+            <p className="text-muted text-sm sm:text-base animate-fade-in-up animate-delay-1">На каком устройстве подключаемся?</p>
           </div>
           <div className="space-y-2.5">
             {PLATFORMS.map((p, i) => (
@@ -303,7 +303,7 @@ export default function AddDevice() {
         <div className="flex-1 px-4 sm:px-6 pb-8 max-w-lg mx-auto w-full">
           <div className="text-center mt-6 sm:mt-10 mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">В какое приложение?</h1>
-            <p className="text-muted text-sm sm:text-base">Выберите VPN-клиент, в который добавляем подписку</p>
+            <p className="text-muted text-sm sm:text-base">Выберите клиент, в который добавляем подписку</p>
           </div>
           <div className="space-y-3">
             {apps.map((app, i) => (
