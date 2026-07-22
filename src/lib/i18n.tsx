@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useEffect, ReactNode } from "react";
 
 export type Locale = "en" | "ru";
 
@@ -231,29 +231,23 @@ const I18nContext = createContext<I18nContextValue>({
 });
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("ru");
+  // The site is Russian-only. No browser detection, no localStorage,
+  // no in-memory toggle — every request renders in ru. Users landing
+  // with a saved "en" preference from earlier builds also get ru.
+  const locale: Locale = "ru";
 
+  // Blow away any legacy "atlas-locale=en" left in localStorage so
+  // the switcher can't resurrect it.
   useEffect(() => {
-    const saved = localStorage.getItem("atlas-locale") as Locale | null;
-    if (saved && (saved === "en" || saved === "ru")) {
-      setLocaleState(saved);
-    } else {
-      // No saved preference: keep the Russian default unless the
-      // browser is explicitly non-Russian AND non-CIS.
-      const browserLang = navigator.language.toLowerCase();
-      if (browserLang.startsWith("en")) setLocaleState("en");
-    }
+    try { localStorage.removeItem("atlas-locale"); } catch { /* ignore */ }
   }, []);
 
-  const setLocale = (l: Locale) => {
-    setLocaleState(l);
-    localStorage.setItem("atlas-locale", l);
-  };
+  const setLocale = () => { /* no-op — Russian only */ };
 
   const translate = (key: TranslationKey): string => {
     const entry = t[key];
     if (!entry) return key;
-    return entry[locale] || entry["ru"] || entry["en"] || key;
+    return entry["ru"] || entry["en"] || key;
   };
 
   return (
@@ -268,14 +262,7 @@ export function useI18n() {
 }
 
 export function LanguageSwitcher() {
-  const { locale, setLocale } = useI18n();
-  return (
-    <button
-      className="pl-lang-switch"
-      onClick={() => setLocale(locale === "en" ? "ru" : "en")}
-      aria-label="Switch language"
-    >
-      {locale === "en" ? "RU" : "EN"}
-    </button>
-  );
+  // Russian-only site — switcher hidden. Kept as an exported
+  // component so existing imports don't break.
+  return null;
 }
