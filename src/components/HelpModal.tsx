@@ -65,7 +65,7 @@ const instructions: Record<string, { title: string; apps: AppInfo[] }> = {
     apps: [
       {
         name: "Streisand",
-        desc: "Лучший клиент для iOS",
+        desc: "Лучшее приложение для iOS",
         url: "https://apps.apple.com/app/streisand/id6450534064",
         urlLabel: "Скачать из App Store",
         steps: [
@@ -80,7 +80,7 @@ const instructions: Record<string, { title: string; apps: AppInfo[] }> = {
       },
       {
         name: "V2RayTun",
-        desc: "Альтернативный клиент для iOS",
+        desc: "Альтернативное приложение для iOS",
         url: "https://apps.apple.com/app/v2raytun/id6476628951",
         urlLabel: "Скачать из App Store",
         steps: [
@@ -99,7 +99,7 @@ const instructions: Record<string, { title: string; apps: AppInfo[] }> = {
     apps: [
       {
         name: "Hiddify",
-        desc: "Рекомендуемый клиент для Windows",
+        desc: "Рекомендуемое приложение для Windows",
         url: "https://github.com/hiddify/hiddify-app/releases/latest",
         urlLabel: "Скачать с GitHub",
         steps: [
@@ -114,7 +114,7 @@ const instructions: Record<string, { title: string; apps: AppInfo[] }> = {
       },
       {
         name: "V2RayN",
-        desc: "Лёгкий клиент для продвинутых пользователей",
+        desc: "Лёгкое приложение для продвинутых пользователей",
         url: "https://github.com/2dust/v2rayN/releases/latest",
         urlLabel: "Скачать с GitHub",
         steps: [
@@ -133,7 +133,7 @@ const instructions: Record<string, { title: string; apps: AppInfo[] }> = {
     apps: [
       {
         name: "Hiddify",
-        desc: "Рекомендуемый клиент для macOS",
+        desc: "Рекомендуемое приложение для macOS",
         url: "https://github.com/hiddify/hiddify-app/releases/latest",
         urlLabel: "Скачать с GitHub",
         steps: [
@@ -166,7 +166,7 @@ const instructions: Record<string, { title: string; apps: AppInfo[] }> = {
     apps: [
       {
         name: "V2RayTun",
-        desc: "Рекомендуемый клиент для ТВ",
+        desc: "Рекомендуемое приложение для ТВ",
         url: "https://play.google.com/store/apps/details?id=com.v2raytun.android",
         urlLabel: "Скачать из Google Play на ТВ",
         steps: [

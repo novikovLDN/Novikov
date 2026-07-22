@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   title: "Atlas Secure — Платформа безопасного доступа в интернет",
   description:
     "Atlas Secure — сервис защиты интернет-соединения корпоративного класса. Enterprise Spectrum Protection, выделенные серверы до 75 Гбит/с, шифрование военного класса. Непрерывная работа 24/7 с 99.9% аптаймом.",
-  keywords: ["Atlas Secure", "безопасный интернет", "защита соединения", "приватность", "VPN", "Enterprise", "шифрование"],
+  keywords: ["Atlas Secure", "безопасный интернет", "защита соединения", "приватность", "Enterprise", "шифрование"],
   icons: {
     icon: [
       { url: "/icon", type: "image/png", sizes: "32x32" },

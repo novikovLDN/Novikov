@@ -117,7 +117,7 @@ export default function AboutPage() {
             {[
               [en ? "Headquarters" : "Штаб-квартира", en ? "Hong Kong SAR" : "Гонконг, КНР (SAR)"],
               [en ? "Business type" : "Деятельность", en ? "B2B / B2C · Information Security" : "B2B / B2C · Информационная безопасность"],
-              [en ? "Specialization" : "Специализация", en ? "Encrypted network solutions, VPN/VPS/VDS, cybersecurity" : "Защищённые сетевые решения, VPN/VPS/VDS, кибербезопасность"],
+              [en ? "Specialization" : "Специализация", en ? "Encrypted network solutions, VPS/VDS, cybersecurity" : "Защищённые сетевые решения, VPS/VDS, кибербезопасность"],
               [en ? "Partner DCs" : "Партнёрские ЦОД", en ? "Germany · Russia · Australia" : "Германия · Россия · Австралия"],
               [en ? "Protection class" : "Класс защиты", "Military-Grade · NSA Suite B · FIPS 140-3"],
               [en ? "Standards" : "Стандарты", "ISO/IEC 27001 · SOC 2 Type II · GDPR · 152-FZ"],

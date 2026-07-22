@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
       await createNotificationForUser(
         userId,
         "Подписка деактивирована",
-        "Ваша подписка была деактивирована администратором. VPN-ключ удалён."
+        "Ваша подписка была деактивирована администратором. Ключ удалён."
       );
 
       await createAuditLog("admin.revoke", "Подписка отозвана", userId, user.email);

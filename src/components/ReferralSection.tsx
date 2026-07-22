@@ -52,7 +52,7 @@ export default function ReferralSection({
         try {
           await navigator.share({
             title: "Atlas Secure",
-            text: `Присоединяйся к Atlas Secure — VPN с кешбэком ${cashbackPercent}% за приглашения.`,
+            text: `Присоединяйся к Atlas Secure — защищённое соединение с кешбэком ${cashbackPercent}% за приглашения.`,
             url: shareUrl,
           });
         } catch {

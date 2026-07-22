@@ -36,7 +36,7 @@ const APPS: Record<Platform, AppInfo[]> = {
     {
       id: "happ",
       name: "Happ",
-      description: "Быстрый и простой VPN-клиент",
+      description: "Быстрое и простое приложение",
       storeLabel: "App Store",
       downloadUrl: "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973",
       searchHint: "Найдите «Happ» в App Store или нажмите кнопку ниже",
@@ -46,7 +46,7 @@ const APPS: Record<Platform, AppInfo[]> = {
         "Откройте Happ и нажмите «+» внизу экрана",
         "Выберите «Добавить подписку» или «Из буфера обмена»",
         "Конфигурация импортируется автоматически",
-        "Нажмите кнопку подключения и разрешите VPN",
+        "Нажмите кнопку подключения и разрешите системное подключение",
       ],
     },
   ],
@@ -63,13 +63,13 @@ const APPS: Record<Platform, AppInfo[]> = {
         "Откройте V2RayTun и нажмите «+» вверху",
         "Выберите «Импорт из буфера обмена»",
         "Сервер добавится автоматически",
-        "Нажмите кнопку подключения и разрешите VPN",
+        "Нажмите кнопку подключения и разрешите системное подключение",
       ],
     },
     {
       id: "happ",
       name: "Happ",
-      description: "Быстрый VPN-клиент",
+      description: "Быстрое приложение",
       storeLabel: "Google Play",
       downloadUrl: "https://play.google.com/store/apps/details?id=com.happproxy",
       searchHint: "Найдите «Happ» в Google Play или нажмите кнопку ниже",
@@ -79,7 +79,7 @@ const APPS: Record<Platform, AppInfo[]> = {
         "Откройте Happ и нажмите «+» внизу экрана",
         "Выберите «Добавить подписку» или «Из буфера обмена»",
         "Конфигурация импортируется автоматически",
-        "Нажмите кнопку подключения и разрешите VPN",
+        "Нажмите кнопку подключения и разрешите системное подключение",
       ],
     },
   ],
@@ -87,7 +87,7 @@ const APPS: Record<Platform, AppInfo[]> = {
     {
       id: "happ",
       name: "Happ",
-      description: "Быстрый VPN-клиент для Mac",
+      description: "Быстрое приложение для Mac",
       storeLabel: "App Store",
       downloadUrl: "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973",
       searchHint: "Найдите «Happ» в App Store на Mac или нажмите кнопку ниже",
@@ -105,7 +105,7 @@ const APPS: Record<Platform, AppInfo[]> = {
     {
       id: "happ",
       name: "Happ",
-      description: "VPN-клиент для Windows",
+      description: "Приложение для Windows",
       storeLabel: "Скачать с сайта",
       downloadUrl: "https://www.happ.su/main",
       searchHint: "Скачайте Happ с официального сайта и установите",
@@ -328,13 +328,13 @@ export default function Devices() {
     return (
       <div className="dashboard-v2 min-h-dvh flex flex-col">
         <CursorGlowTracker />
-        <WizardHeader onBack={() => router.push("/dashboard")} title="Подключение VPN" step={1} total={2} />
+        <WizardHeader onBack={() => router.push("/dashboard")} title="Подключение" step={1} total={2} />
         <div className="flex-1 px-4 sm:px-6 pb-10 max-w-2xl mx-auto w-full">
           <div className="pt-6 sm:pt-10 pb-8">
             <div className="dv2-eyebrow mb-3">ШАГ 1 — УСТРОЙСТВО</div>
             <h1 className="text-[32px] sm:text-[40px] font-light leading-[1.1] tracking-tight text-white">
               На каком устройстве<br />
-              <span className="text-white/50">настроить VPN?</span>
+              <span className="text-white/50">подключаемся?</span>
             </h1>
           </div>
 
@@ -376,7 +376,7 @@ export default function Devices() {
             <div className="dv2-eyebrow mb-3">ШАГ 2 — ПРИЛОЖЕНИЕ</div>
             <h1 className="text-[32px] sm:text-[40px] font-light leading-[1.1] tracking-tight text-white">
               Выберите<br />
-              <span className="text-white/50">VPN-клиент</span>
+              <span className="text-white/50">приложение</span>
             </h1>
           </div>
 
@@ -554,7 +554,7 @@ export default function Devices() {
               </div>
             </div>
             <h1 className="text-[36px] sm:text-[44px] font-light tracking-tight leading-[1.05] text-white">
-              VPN подключён
+              Подключено
             </h1>
             <p className="text-[14px] text-white/50 mt-4 leading-relaxed max-w-sm">
               Соединение защищено. Откройте приложение чтобы убедиться что оно установило подписку.

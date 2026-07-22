@@ -20,11 +20,11 @@ const t = {
     ru: "Защищённая инфраструктура для бизнеса",
   },
   "hero.desc": {
-    en: "Enterprise-grade VPN, VPS and VDS solutions with military-class encryption. Headquartered in Hong Kong with data centers across three continental jurisdictions.",
-    ru: "VPN, VPS и VDS решения корпоративного класса с шифрованием военного уровня. Штаб-квартира в Гонконге, дата-центры в трёх континентальных юрисдикциях.",
+    en: "Enterprise-grade secure connectivity, VPS and VDS solutions with military-class encryption. Headquartered in Hong Kong with data centers across three continental jurisdictions.",
+    ru: "Защищённое соединение, VPS и VDS решения корпоративного класса с шифрованием военного уровня. Штаб-квартира в Гонконге, дата-центры в трёх континентальных юрисдикциях.",
   },
   "hero.cta": { en: "Request access", ru: "Запросить доступ" },
-  "hero.vpn": { en: "Connect to VPN", ru: "Подключиться к VPN" },
+  "hero.vpn": { en: "Connect", ru: "Подключиться" },
 
   // ═══ STATS ═══
   "stats.dc": { en: "Data centers", ru: "Дата-центра" },
@@ -80,10 +80,10 @@ const t = {
   "sol.link": { en: "Get started", ru: "Начать" },
 
   // Service cards
-  "srv1.t": { en: "Secure VPN & Tunneling", ru: "Защищённый VPN и туннелирование" },
+  "srv1.t": { en: "Secure Tunneling", ru: "Защищённое туннелирование" },
   "srv1.d": {
-    en: "WireGuard, IKEv2/IPSec, OpenVPN with AES-256-GCM. Traffic obfuscation, HTTPS masking, DPI protection.",
-    ru: "WireGuard, IKEv2/IPSec, OpenVPN с AES-256-GCM. Обфускация трафика, маскировка под HTTPS, защита от DPI.",
+    en: "WireGuard, IKEv2/IPSec with AES-256-GCM. Traffic obfuscation, HTTPS masking, DPI protection.",
+    ru: "WireGuard, IKEv2/IPSec с AES-256-GCM. Обфускация трафика, маскировка под HTTPS, защита от DPI.",
   },
   "srv2.t": { en: "Zero Trust Network", ru: "Сеть нулевого доверия" },
   "srv2.d": {
