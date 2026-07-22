@@ -36,7 +36,7 @@ const APPS: Record<Platform, AppInfo[]> = {
     {
       id: "happ",
       name: "Happ",
-      description: "Быстрый и простой клиент",
+      description: "Быстрое и простое приложение",
       storeLabel: "App Store",
       downloadUrl: "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973",
       searchHint: "Найдите «Happ» в App Store или нажмите кнопку ниже",
@@ -69,7 +69,7 @@ const APPS: Record<Platform, AppInfo[]> = {
     {
       id: "happ",
       name: "Happ",
-      description: "Быстрый клиент",
+      description: "Быстрое приложение",
       storeLabel: "Google Play",
       downloadUrl: "https://play.google.com/store/apps/details?id=com.happproxy",
       searchHint: "Найдите «Happ» в Google Play или нажмите кнопку ниже",
@@ -87,7 +87,7 @@ const APPS: Record<Platform, AppInfo[]> = {
     {
       id: "happ",
       name: "Happ",
-      description: "Быстрый клиент для Mac",
+      description: "Быстрое приложение для Mac",
       storeLabel: "App Store",
       downloadUrl: "https://apps.apple.com/ru/app/happ-proxy-utility-plus/id6746188973",
       searchHint: "Найдите «Happ» в App Store на Mac или нажмите кнопку ниже",
@@ -105,7 +105,7 @@ const APPS: Record<Platform, AppInfo[]> = {
     {
       id: "happ",
       name: "Happ",
-      description: "Клиент для Windows",
+      description: "Приложение для Windows",
       storeLabel: "Скачать с сайта",
       downloadUrl: "https://www.happ.su/main",
       searchHint: "Скачайте Happ с официального сайта и установите",
@@ -334,7 +334,7 @@ export default function Devices() {
             <div className="dv2-eyebrow mb-3">ШАГ 1 — УСТРОЙСТВО</div>
             <h1 className="text-[32px] sm:text-[40px] font-light leading-[1.1] tracking-tight text-white">
               На каком устройстве<br />
-              <span className="text-white/50">настроить?</span>
+              <span className="text-white/50">подключаемся?</span>
             </h1>
           </div>
 
@@ -376,7 +376,7 @@ export default function Devices() {
             <div className="dv2-eyebrow mb-3">ШАГ 2 — ПРИЛОЖЕНИЕ</div>
             <h1 className="text-[32px] sm:text-[40px] font-light leading-[1.1] tracking-tight text-white">
               Выберите<br />
-              <span className="text-white/50">клиент</span>
+              <span className="text-white/50">приложение</span>
             </h1>
           </div>
 

@@ -303,7 +303,7 @@ export default function AddDevice() {
         <div className="flex-1 px-4 sm:px-6 pb-8 max-w-lg mx-auto w-full">
           <div className="text-center mt-6 sm:mt-10 mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold mb-2">В какое приложение?</h1>
-            <p className="text-muted text-sm sm:text-base">Выберите клиент, в который добавляем подписку</p>
+            <p className="text-muted text-sm sm:text-base">Выберите приложение, в которое добавляем подписку</p>
           </div>
           <div className="space-y-3">
             {apps.map((app, i) => (

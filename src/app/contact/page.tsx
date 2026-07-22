@@ -16,7 +16,7 @@ function AtlasLogo({ size = 24 }: { size?: number }) {
 }
 
 const INTERESTS = [
-  { value: "vpn", label: { en: "Service", ru: "Сервис" } },
+  { value: "vpn", label: { en: "Secure", ru: "Secure" } },
   { value: "vps", label: { en: "VPS", ru: "VPS" } },
   { value: "vds", label: { en: "VDS", ru: "VDS" } },
   { value: "enterprise", label: { en: "Enterprise", ru: "Enterprise" } },
@@ -226,7 +226,7 @@ export default function ContactPage() {
           </div>
           <div className="pl-footer-col">
             <h4>Product</h4>
-            <Link href="/vpn">Сервис</Link>
+            <Link href="/vpn">Secure</Link>
             <Link href="/vps">VPS</Link>
             <Link href="/vds">VDS</Link>
             <Link href="/pricing">{t("nav.pricing")}</Link>

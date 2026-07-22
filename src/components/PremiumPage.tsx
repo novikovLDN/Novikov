@@ -70,7 +70,7 @@ export default function PremiumPage({ children, title }: { children: ReactNode; 
           </div>
           <div className="pl-footer-col">
             <h4>Product</h4>
-            <Link href="/vpn">Сервис</Link>
+            <Link href="/vpn">Secure</Link>
             <Link href="/vps">VPS</Link>
             <Link href="/vds">VDS</Link>
             <Link href="/pricing">{t("nav.pricing")}</Link>
