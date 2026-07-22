@@ -224,7 +224,10 @@ interface I18nContextValue {
 const I18nContext = createContext<I18nContextValue>({
   locale: "ru",
   setLocale: () => {},
-  t: (key) => t[key]?.ru || t[key]?.en || key,
+  t: (key) => {
+    const entry = t[key];
+    return entry?.["ru"] || entry?.["en"] || key;
+  },
 });
 
 export function I18nProvider({ children }: { children: ReactNode }) {
