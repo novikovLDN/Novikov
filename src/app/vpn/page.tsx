@@ -36,7 +36,7 @@ export default function VpnPage() {
         <div className="plx-hero-grid" />
         <div className="plx-wrap plx-hero-inner">
           <div className="pl-entrance pl-ed1">
-            <div className="plx-eyebrow">Secure · VLESS + REALITY</div>
+            <div className="plx-eyebrow">Pro · VLESS + REALITY</div>
             <h1 className="plx-hero-title">
               {en ? "Encrypted tunnels.\n" : "Зашифрованные\nтуннели.\n"}
               <span className="plx-grad">{en ? "Invisible traffic." : "Невидимый трафик."}</span>
