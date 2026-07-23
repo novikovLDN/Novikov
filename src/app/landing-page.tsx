@@ -635,7 +635,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
             { title: locale === "ru" ? "AES-256-GCM" : "AES-256-GCM", desc: locale === "ru" ? "Шифрование военного класса, одобренное NSA для данных TOP SECRET." : "Military-grade encryption approved by NSA for TOP SECRET data." },
             { title: "Perfect Forward Secrecy", desc: locale === "ru" ? "Компрометация одного сеанса не раскрывает предыдущие или будущие." : "Compromise of one session cannot reveal previous or future sessions." },
             { title: locale === "ru" ? "Нулевые логи" : "Zero logs", desc: locale === "ru" ? "Политика строгого No-Log. Никакие данные о действиях не регистрируются." : "Strict No-Log policy. No activity data is recorded or can be disclosed." },
-            { title: locale === "ru" ? "Kill Switch" : "Kill Switch", desc: locale === "ru" ? "Автоматическая блокировка трафика при разрыве защищённого соединения." : "Automatic traffic blocking if the secure connection drops." },
+            { title: locale === "ru" ? "Kill Switch" : "Kill Switch", desc: locale === "ru" ? "Автоматическая остановка трафика при разрыве защищённого соединения." : "Automatic traffic halt if the secure connection drops." },
             { title: locale === "ru" ? "Аудит безопасности" : "Security audit", desc: locale === "ru" ? "Открытый аудит криптографических решений независимыми исследователями." : "Open audit of cryptographic solutions by independent researchers." },
             { title: locale === "ru" ? "DNS защита" : "DNS protection", desc: locale === "ru" ? "Полная защита от утечек DNS и IPv6 на всех устройствах." : "Full DNS and IPv6 leak protection on all devices." },
           ].map((item) => (
