@@ -156,9 +156,9 @@ export default function SecurityPage() {
           <div className="plx-fgrid">
             {[
               { t: en ? "Zero logs" : "Нулевые логи", d: en ? "We do not record connection times, IP addresses, DNS queries, or per-user bandwidth. What we don't have cannot be disclosed." : "Мы не записываем время подключений, IP, DNS-запросы и трафик по пользователю. Чего нет — того нельзя раскрыть." },
-              { t: "Kill Switch", d: en ? "System-level firewall rules drop all traffic on disconnect. Not a single packet leaks." : "Системные правила файрвола блокируют весь трафик при разрыве соединения. Ни один пакет не утечёт." },
+              { t: "Kill Switch", d: en ? "System-level firewall rules drop all traffic on disconnect. Not a single packet leaks." : "Системные правила файрвола останавливают весь трафик при разрыве соединения. Ни один пакет не утечёт." },
               { t: en ? "DNS over HTTPS" : "DNS over HTTPS", d: en ? "Every DNS query encrypted and routed through our own resolvers. No ISP-level tracking." : "Каждый DNS-запрос зашифрован и маршрутизируется через наши резолверы. Без отслеживания на уровне провайдера." },
-              { t: en ? "IPv6 leak protection" : "Защита от IPv6-утечек", d: en ? "IPv6 traffic is either tunneled or blocked. No dual-stack leak paths." : "IPv6-трафик либо туннелируется, либо блокируется. Без dual-stack утечек." },
+              { t: en ? "IPv6 leak protection" : "Защита от IPv6-утечек", d: en ? "IPv6 traffic is either tunneled or dropped. No dual-stack leak paths." : "IPv6-трафик либо туннелируется, либо отбрасывается. Без dual-stack утечек." },
               { t: en ? "DDoS scrubbing" : "DDoS фильтрация", d: en ? "Global scrubbing centers filter L3/4/7 attacks. Sub-10s mitigation." : "Глобальные центры фильтрации L3/4/7. Митигация менее 10с." },
               { t: en ? "WebAuthn / Passkeys" : "WebAuthn / Passkeys", d: en ? "Passwordless authentication with hardware-backed keys. Phishing-resistant." : "Аутентификация без паролей через hardware-ключи. Устойчиво к фишингу." },
             ].map((f) => (
