@@ -137,7 +137,7 @@ export default function PrivacyPage() {
             <h2><span className="plx-legal-num">09</span>{en ? "Contact" : "Контакты"}</h2>
             <p>
               {en ? "For data processing inquiries or to exercise your rights, contact us via " : "По вопросам обработки данных и реализации прав обращайтесь через "}
-              <a href="https://t.me/atlassecure_bot" target="_blank" rel="noopener noreferrer">@atlassecure_bot</a>
+              <a href="https://t.me/atlas_suppbot" target="_blank" rel="noopener noreferrer">@atlas_suppbot</a>
               {en ? " or email " : " или по email "}
               <a href="mailto:privacy@atlas.secure">privacy@atlas.secure</a>.
             </p>

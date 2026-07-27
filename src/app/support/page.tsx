@@ -38,7 +38,7 @@ export default function Support() {
 
         {/* Telegram Support */}
         <a
-          href="https://t.me/Atlas_SupportSecurity"
+          href="https://t.me/atlas_suppbot"
           target="_blank"
           rel="noopener noreferrer"
           className="w-full bg-card border border-border/50 rounded-2xl p-5 sm:p-6 flex items-center gap-4 transition-all hover:border-telegram/40 hover:bg-card-hover active:scale-[0.98] btn-press mb-3 animate-fade-in-up animate-delay-1"
