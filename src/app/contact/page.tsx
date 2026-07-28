@@ -116,13 +116,13 @@ export default function ContactPage() {
             </p>
 
             <div className="plx-contact-channels">
-              <a href="https://t.me/atlassecure_bot" target="_blank" rel="noopener noreferrer" className="plx-contact-ch">
+              <a href="https://t.me/atlas_suppbot" target="_blank" rel="noopener noreferrer" className="plx-contact-ch">
                 <div className="plx-contact-ch-icon">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.5 10.5c-.8.3-.8 1.5 0 1.8l4.7 1.8 2 6.3c.3.8 1.2 1 1.8.4l2.7-2.5 4.6 3.3c.8.6 1.9.2 2.1-.8l2.5-14.8c.3-1.1-.8-2-1.9-1.5zM10 15l-1 3-1-4 11-8-9 9z" /></svg>
                 </div>
                 <div>
                   <div className="plx-contact-ch-name">{en ? "Telegram support" : "Telegram поддержка"}</div>
-                  <div className="plx-contact-ch-val">@atlassecure_bot</div>
+                  <div className="plx-contact-ch-val">@atlas_suppbot</div>
                 </div>
               </a>
               <a href="mailto:sales@atlas.secure" className="plx-contact-ch">

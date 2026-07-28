@@ -84,7 +84,7 @@ async function handleSubscription(
       "subscription-userinfo": `upload=0; download=0; total=0; expire=${expireTs}`,
       "profile-title": "Atlas Secure",
       "profile-update-interval": "3",
-      "Support-Url": "https://t.me/Atlas_SupportSecurity",
+      "Support-Url": "https://t.me/atlas_suppbot",
     };
 
     // JSON format — full Xray configs with routing (for Happ)
