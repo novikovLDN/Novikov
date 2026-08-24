@@ -86,19 +86,36 @@ async function rwFetch(path: string, init: RequestInit = {}): Promise<Response |
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseUser(data: any): RemnawaveUser | null {
-  // Remnawave 2.7.x wraps responses in {response: {...}}. Try that
-  // envelope first, then fall back to bare / data / user shapes.
+  // Remnawave 3.x envelope: { response: ExtendedUsersSchema }.
+  // 2.7.x envelope: { response: { user: {...} } } or { response: {...} }.
+  // Both handled here with a fallback chain.
   const u = data?.response?.user ?? data?.response ?? data?.user ?? data?.data ?? data;
-  if (!u || typeof u !== "object" || !u.uuid) return null;
+  if (!u || typeof u !== "object") return null;
+  // v3 dropped the `uuid` column and renamed it to `id` (drop user uuid,
+  // rename user id column — v3.0 release note). Accept both so we can
+  // parse responses from either version without crashing.
+  const rawId = u.id ?? u.uuid;
+  if (rawId == null) return null;
+  const id = String(rawId);
   return {
-    uuid: u.uuid,
+    // Legacy alias — most of our callers still say `.uuid` and store the
+    // value in `users.remnawave_user_uuid`. Keep them working; the string
+    // stored is now the v3 numeric-ish id, not a UUID, but treated the
+    // same by our code (opaque handle).
+    uuid: id,
     shortUuid: u.shortUuid || u.short_uuid || u.subscriptionUuid || "",
     username: u.username || "",
     email: u.email ?? null,
     subscriptionUrl: u.subscriptionUrl || u.subscription_url || "",
     expireAt: u.expireAt || u.expire_at || "",
     trafficLimitBytes: Number(u.trafficLimitBytes || u.traffic_limit_bytes || 0),
-    usedTrafficBytes: Number(u.usedTrafficBytes || u.used_traffic_bytes || 0),
+    usedTrafficBytes: Number(
+      u.usedTrafficBytes ||
+        u.used_traffic_bytes ||
+        u.userTraffic?.usedBytes ||
+        u.userTraffic?.used_bytes ||
+        0
+    ),
     status: u.status || "ACTIVE",
     vlessUuid: u.vlessUuid || u.vless_uuid,
   };
@@ -225,7 +242,15 @@ export async function setUserExpire(uuid: string, expireAtIso: string): Promise<
     console.log("[REMNAWAVE] setUserExpire: clamped past expireAt", expireAtIso, "→", safeExpireAt);
   }
 
+  // Remnawave 3.x renamed the identifier column from `uuid` to `id`.
+  // We keep `uuid` as our internal alias but must send `id` on the
+  // wire for v3. Try `{id,...}` first; fall back to `{uuid,...}` for
+  // panels still on 2.x; final fallback to the URL-in-path shape for
+  // pre-2.x. Only route-not-found (404/405) and bad-request (400,
+  // which fires when the panel rejects an unknown field) trigger the
+  // next variant — real errors surface as-is.
   const variants: Array<{ path: string; body: Record<string, unknown> }> = [
+    { path: "/api/users", body: { id: uuid, expireAt: safeExpireAt } },
     { path: "/api/users", body: { uuid, expireAt: safeExpireAt } },
     { path: `/api/users/${encodeURIComponent(uuid)}`, body: { expireAt: safeExpireAt } },
   ];
@@ -241,11 +266,14 @@ export async function setUserExpire(uuid: string, expireAtIso: string): Promise<
     if (!res) continue;
     if (res.ok) {
       const data = await res.json().catch(() => null);
-      return parseUser(data);
+      const parsed = parseUser(data);
+      if (parsed) return parsed;
     }
-    lastStatus = res.status;
+    lastStatus = res?.status || 0;
     lastBodyText = await res.text().catch(() => "");
-    if (res.status !== 404 && res.status !== 405) break;
+    // 404/405 = wrong endpoint, 400 = unknown-field rejection —
+    // both merit trying the next variant. Anything else is real.
+    if (res.status !== 404 && res.status !== 405 && res.status !== 400) break;
   }
 
   lastRwError = `PATCH user ${uuid.slice(0, 8)}… → HTTP ${lastStatus} ${lastBodyText.slice(0, 200)}`;
@@ -357,14 +385,19 @@ export async function deleteUser(uuid: string): Promise<boolean> {
  * with "happ://crypto/" themselves, others return just the token —
  * we normalise to a complete happ:// URL.
  *
- * Returns null only when the panel is unreachable / returns no link.
+ * Remnawave 3.x removed this endpoint entirely. On 404 we return null
+ * silently; Happ accepts the raw subscription URL just fine, so the
+ * user's connection continues to work — they just don't get the
+ * shorter one-tap crypto deep link.
  */
 export async function encryptHappLink(subscriptionUrl: string): Promise<string | null> {
   const res = await rwFetch("/api/system/encrypt-happ-crypto-link", {
     method: "POST",
     body: JSON.stringify({ data: subscriptionUrl }),
   });
-  if (!res || !res.ok) return null;
+  if (!res) return null;
+  if (res.status === 404) return null;
+  if (!res.ok) return null;
   const data = await res.json().catch(() => null);
   if (!data) return null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -427,8 +460,11 @@ export async function createUserWithExpire(
     expireAt: safeExpireAt,
     trafficLimitBytes: 0,
     trafficLimitStrategy: "NO_RESET",
+    // v3 dropped `internalSquads` — validator rejects unknown fields
+    // with 400 and the whole create fails, which is why users lost
+    // their keys after the panel upgrade. Only `activeInternalSquads`
+    // is accepted now.
     activeInternalSquads: [MAIN_SQUAD],
-    internalSquads: [MAIN_SQUAD],
     description: description || "atlas-secure site",
   };
 
