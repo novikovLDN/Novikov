@@ -84,8 +84,9 @@ async function rwFetch(path: string, init: RequestInit = {}): Promise<Response |
   return null;
 }
 
+/** @internal exported only for unit tests. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function parseUser(data: any): RemnawaveUser | null {
+export function parseUser(data: any): RemnawaveUser | null {
   // Remnawave 3.x envelope: { response: ExtendedUsersSchema }.
   // 2.7.x envelope: { response: { user: {...} } } or { response: {...} }.
   // Both handled here with a fallback chain.
@@ -121,8 +122,9 @@ function parseUser(data: any): RemnawaveUser | null {
   };
 }
 
+/** @internal exported only for unit tests. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function extractUserList(data: any): RemnawaveUser[] {
+export function extractUserList(data: any): RemnawaveUser[] {
   if (!data) return [];
   if (Array.isArray(data)) return data.map(parseUser).filter((u): u is RemnawaveUser => !!u);
   const candidates = [
@@ -301,7 +303,8 @@ export async function setUserExpire(uuid: string, expireAtIso: string): Promise<
  * syncSubscriptionToPanel, we cap it at NOW+400d and emit a loud log
  * line so we can chase down the slipping path.
  */
-function clampExpireAt(expireAtIso: string): string {
+/** @internal exported only for unit tests. */
+export function clampExpireAt(expireAtIso: string): string {
   const target = new Date(expireAtIso).getTime();
   const min = Date.now() + 30_000;
   const max = Date.now() + 400 * 24 * 60 * 60 * 1000;
