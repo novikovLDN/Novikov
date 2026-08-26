@@ -7,6 +7,7 @@ import { pool } from "./db";
 import { normalizeEmail } from "./email-normalize";
 import { createTrialUser, encryptHappLink } from "./remnawave";
 import { getUserById } from "./store";
+import { startFlow, endFlow, info, warn } from "./panel-log";
 
 export interface TrialActivationResult {
   success: boolean;
@@ -80,18 +81,34 @@ export async function issueTrial(
   ip: string | null,
   fingerprint?: string | null
 ): Promise<TrialActivationResult> {
+  const ctx = startFlow("trial", { userId, email });
   const block = await checkTrialEligibility(email, ip);
-  if (block) return { success: false, reason: block };
+  if (block) {
+    endFlow(ctx, "skipped", { reason: block });
+    return { success: false, reason: block };
+  }
 
   const local = await getUserById(userId);
+  const panelId = local?.publicId || local?.panelId || null;
+  info(ctx, "trial.panel_create.start", { panelId });
   // Use public_id (ST00000NNN) as the panel username — that's what
   // admins copy from the dashboard and search for. The legacy
   // panel_id (8-char hex) is kept as a column for backwards compat
   // but is NOT a useful identifier in the Remnawave UI.
-  const rwUser = await createTrialUser(email, local?.publicId || local?.panelId || null);
-  if (!rwUser) return { success: false, reason: "remnawave_unavailable" };
+  const rwUser = await createTrialUser(email, panelId);
+  if (!rwUser) {
+    warn(ctx, "trial.panel_create.failed", { reason: "remnawave_unavailable" });
+    endFlow(ctx, "failed", { reason: "remnawave_unavailable" });
+    return { success: false, reason: "remnawave_unavailable" };
+  }
+  info(ctx, "trial.panel_create.ok", {
+    panelUuid: rwUser.uuid,
+    shortUuid: rwUser.shortUuid,
+    subscriptionUrl: rwUser.subscriptionUrl,
+  });
 
   const happLink = await encryptHappLink(rwUser.subscriptionUrl);
+  info(ctx, "trial.happ_link", { present: Boolean(happLink) });
 
   // Trial duration is OUR contract — exactly 24 h from now. Don't trust
   // the panel echo for this field; some Remnawave templates / squads
@@ -123,6 +140,7 @@ export async function issueTrial(
   );
 
   await recordTrialUsage(email, ip, fingerprint);
+  endFlow(ctx, "ok", { trialEnd: trialEnd.toISOString(), panelUuid: rwUser.uuid });
 
   return {
     success: true,

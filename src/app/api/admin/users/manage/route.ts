@@ -3,6 +3,7 @@ import { getUserById, updateUser, createNotificationForUser, createAuditLog, reg
 import { xrayRemoveUser, xrayAddUser } from "@/lib/xray";
 import { verifyAdmin } from "../../middleware";
 import { syncUserToRemnawave } from "@/lib/subscription-sync";
+import { startFlow, endFlow, info, warn } from "@/lib/panel-log";
 
 // Duration presets in minutes
 const DURATION_MAP: Record<string, number> = {
@@ -69,15 +70,29 @@ export async function POST(request: NextRequest) {
       }
       const newEnd = new Date(base.getTime() + minutes * 60 * 1000);
 
+      const ctx = startFlow("admin-grant", { userId, email: user.email });
+      info(ctx, "admin-grant.received", { plan, duration, minutes, newEnd: newEnd.toISOString() });
+
       // Write the new subscription end locally
       await updateUser(userId, {
         subscriptionEnd: newEnd.toISOString(),
         subscriptionPlan: plan,
       });
+      info(ctx, "admin-grant.local_write.ok");
 
       // Mirror to Remnawave (one call handles create-or-patch)
+      info(ctx, "admin-grant.panel_sync.start");
       const sync = await syncUserToRemnawave(userId);
-      if (!sync.ok) console.warn(`[ADMIN] Remnawave sync failed for ${user.email}: ${sync.reason}`);
+      if (sync.ok) {
+        info(ctx, "admin-grant.panel_sync.ok", {
+          action: sync.action,
+          panelUuid: sync.uuid,
+          subscriptionUrl: sync.subscriptionUrl,
+        });
+      } else {
+        warn(ctx, "admin-grant.panel_sync.failed", { reason: sync.reason, panelError: sync.panelError });
+      }
+      endFlow(ctx, sync.ok ? "ok" : "failed", { plan });
 
       // Send notification to user
       const planLabel = plan === "plus" ? "Plus" : "Basic";
@@ -104,14 +119,21 @@ export async function POST(request: NextRequest) {
       // of truth. Then sync to Remnawave to push the expired date and
       // disable the panel user. The panel record itself is kept so a
       // future grant can re-enable instantly.
+      const ctx = startFlow("admin-revoke", { userId, email: user.email });
+      info(ctx, "admin-revoke.received");
       await updateUser(userId, {
         subscriptionEnd: new Date().toISOString(),
         subscriptionPlan: "trial",
         xrayUuid: null,
         vpnKey: null,
       });
+      info(ctx, "admin-revoke.panel_sync.start");
       const sync = await syncUserToRemnawave(userId);
-      if (!sync.ok) console.warn(`[ADMIN] Revoke sync failed for ${user.email}: ${sync.reason}`);
+      if (sync.ok) {
+        info(ctx, "admin-revoke.panel_sync.ok", { action: sync.action });
+      } else {
+        warn(ctx, "admin-revoke.panel_sync.failed", { reason: sync.reason, panelError: sync.panelError });
+      }
 
       await createNotificationForUser(
         userId,
@@ -120,7 +142,7 @@ export async function POST(request: NextRequest) {
       );
 
       await createAuditLog("admin.revoke", "Подписка отозвана", userId, user.email);
-      console.log(`[ADMIN] Revoked subscription for ${user.email}`);
+      endFlow(ctx, sync.ok ? "ok" : "failed");
       return NextResponse.json({ success: true });
     }
 
