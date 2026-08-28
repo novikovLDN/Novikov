@@ -1,252 +1,383 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { useI18n, LanguageSwitcher } from "@/lib/i18n";
+import { useState } from "react";
+import LandingFooter from "@/components/LandingFooter";
 
-function AtlasLogo({ size = 24 }: { size?: number }) {
+/**
+ * /contact — support & sales page in the v4 light shell.
+ *
+ * Top bar → hero → contact channels (Telegram + emails) →
+ * response-time card → contact form → orange CTA → LandingFooter.
+ * Preserves the POST /api/contact submit and the Telegram handle
+ * @atlas_suppbot exactly.
+ */
+
+const INTERESTS: Array<{ value: string; label: string }> = [
+  { value: "vpn",        label: "Pro" },
+  { value: "vps",        label: "VPS" },
+  { value: "vds",        label: "VDS" },
+  { value: "enterprise", label: "Enterprise" },
+  { value: "security",   label: "Безопасность" },
+  { value: "other",      label: "Другое" },
+];
+
+const CHANNELS = [
+  {
+    kind: "telegram",
+    label: "Telegram поддержка",
+    value: "@atlas_suppbot",
+    href:  "https://t.me/atlas_suppbot",
+    sla:   "менее 30 минут",
+  },
+  {
+    kind: "email",
+    label: "Продажи",
+    value: "sales@atlas.secure",
+    href:  "mailto:sales@atlas.secure",
+    sla:   "менее 4 часов",
+  },
+  {
+    kind: "shield",
+    label: "Безопасность и уязвимости",
+    value: "security@atlas.secure",
+    href:  "mailto:security@atlas.secure",
+    sla:   "менее 24 часов",
+  },
+  {
+    kind: "lock",
+    label: "Приватность и DPO",
+    value: "privacy@atlas.secure",
+    href:  "mailto:privacy@atlas.secure",
+    sla:   "менее 48 часов",
+  },
+];
+
+function ChannelIcon({ kind }: { kind: string }) {
+  const stroke = "#111";
+  if (kind === "telegram") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill={stroke}>
+        <path d="M21.5 3.5L2.5 10.5c-.8.3-.8 1.5 0 1.8l4.7 1.8 2 6.3c.3.8 1.2 1 1.8.4l2.7-2.5 4.6 3.3c.8.6 1.9.2 2.1-.8l2.5-14.8c.3-1.1-.8-2-1.9-1.5zM10 15l-1 3-1-4 11-8-9 9z" />
+      </svg>
+    );
+  }
+  if (kind === "shield") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-3z" />
+      </svg>
+    );
+  }
+  if (kind === "lock") {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="10" width="16" height="11" rx="2" />
+        <path d="M8 10V7a4 4 0 018 0v3" />
+      </svg>
+    );
+  }
+  // default: email
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <path d="M5,5 L1,1 M5,5 L5,1 M5,5 L1,5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M19,5 L23,1 M19,5 L19,1 M19,5 L23,5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M5,19 L1,23 M5,19 L5,23 M5,19 L1,19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M19,19 L23,23 M19,19 L19,23 M19,19 L23,19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={stroke} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 7l9 6 9-6" />
     </svg>
   );
 }
 
-const INTERESTS = [
-  { value: "vpn", label: { en: "Pro", ru: "Pro" } },
-  { value: "vps", label: { en: "VPS", ru: "VPS" } },
-  { value: "vds", label: { en: "VDS", ru: "VDS" } },
-  { value: "enterprise", label: { en: "Enterprise", ru: "Enterprise" } },
-  { value: "security", label: { en: "Security inquiry", ru: "Безопасность" } },
-  { value: "other", label: { en: "Other", ru: "Другое" } },
-];
-
 export default function ContactPage() {
-  const { t, locale } = useI18n();
-  const en = locale === "en";
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName]         = useState("");
+  const [email, setEmail]       = useState("");
   const [interest, setInterest] = useState("");
-  const [message, setMessage] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
-  const [mobileMenu, setMobileMenu] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.classList.add("premium-page");
-    return () => document.documentElement.classList.remove("premium-page");
-  }, []);
+  const [message, setMessage]   = useState("");
+  const [sending, setSending]   = useState(false);
+  const [sent, setSent]         = useState(false);
+  const [error, setError]       = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!name || !email || !interest) {
-      setError(en ? "Please fill in all required fields" : "Заполните все обязательные поля");
+      setError("Заполните все обязательные поля");
       return;
     }
     setSending(true);
     try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
+      const res  = await fetch("/api/contact", {
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, interest, message }),
+        body:    JSON.stringify({ name, email, interest, message }),
       });
       const data = await res.json();
-      if (data.success) setSent(true); else setError(data.error || "Error");
+      if (data.success) setSent(true);
+      else setError(data.error || "Ошибка отправки");
     } catch {
-      setError(en ? "Network error" : "Ошибка сети");
+      setError("Ошибка сети");
     } finally {
       setSending(false);
     }
   };
 
   return (
-    <div className="premium-landing">
-      <header className="pl-header pl-header-solid" style={{ position: "sticky" }}>
-        <div className="pl-header-inner">
-          <Link href="/" className="pl-logo"><AtlasLogo size={22} /><span>Atlas Secure</span></Link>
-          <nav className="pl-nav">
-            <Link href="/#about">{t("nav.product")}</Link>
-            <Link href="/#services">{t("nav.solutions")}</Link>
-            <Link href="/pricing">{t("nav.pricing")}</Link>
-          </nav>
-          <div className="pl-header-actions">
-            <LanguageSwitcher />
-            <span className="pl-header-sep" />
-            <Link href="/auth" className="pl-header-login">{t("nav.login")}</Link>
-            <Link href="/auth" className="pl-header-signup">{t("nav.signup")}</Link>
-          </div>
-          <button className="pl-burger" onClick={() => setMobileMenu(true)} aria-label="Menu"><span /><span /><span /></button>
+    <div className="bg-[#f5f5f0] min-h-dvh flex flex-col text-black">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
+        <Link href="/" className="flex items-center gap-2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-black/60">
+          <Link href="/pricing"  className="hover:text-black transition-colors">Тарифы</Link>
+          <Link href="/security" className="hover:text-black transition-colors">Безопасность</Link>
+          <Link href="/contact"  className="hover:text-black transition-colors">Поддержка</Link>
+          <Link href="/about"    className="hover:text-black transition-colors">О нас</Link>
+          <Link href="/auth"     className="ml-3 px-4 py-2 rounded-full bg-black text-white hover:bg-neutral-800 transition-colors">Войти</Link>
+        </nav>
+      </div>
+
+      {/* Hero */}
+      <section className="px-5 sm:px-8 pt-16 pb-16 sm:pt-24 sm:pb-20 max-w-[1200px] mx-auto w-full">
+        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-5">
+          Контакты
         </div>
-      </header>
+        <h1 className="font-mts-wide text-[40px] sm:text-[56px] lg:text-[80px] leading-[1.02] tracking-tight font-bold max-w-[14ch]">
+          Свяжитесь<br />с нами
+        </h1>
+        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-black/55 mt-8 max-w-[58ch]">
+          Продажи, техподдержка, юридические вопросы, безопасность — выберите подходящий канал. На большинство запросов отвечаем в течение 4 рабочих часов.
+        </p>
+      </section>
 
-      {mobileMenu && (
-        <div className="pl-mobile-overlay" onClick={() => setMobileMenu(false)}>
-          <nav className="pl-mobile-nav" onClick={(e) => e.stopPropagation()}>
-            <button className="pl-mobile-close" onClick={() => setMobileMenu(false)} aria-label="Close">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
-            </button>
-            <Link href="/" onClick={() => setMobileMenu(false)}>{t("nav.product")}</Link>
-            <Link href="/pricing" onClick={() => setMobileMenu(false)}>{t("nav.pricing")}</Link>
-            <Link href="/auth" className="pl-mobile-cta" onClick={() => setMobileMenu(false)}>{t("nav.signup")}</Link>
-            <LanguageSwitcher />
-          </nav>
+      {/* Contact channels */}
+      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {CHANNELS.map((c) => (
+            <a
+              key={c.value}
+              href={c.href}
+              target={c.kind === "telegram" ? "_blank" : undefined}
+              rel={c.kind === "telegram" ? "noopener noreferrer" : undefined}
+              className="group bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 hover:border-black/[0.15] transition-colors flex items-start gap-5"
+            >
+              <div className="shrink-0 w-11 h-11 rounded-full bg-black/[0.04] flex items-center justify-center">
+                <ChannelIcon kind={c.kind} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mb-2">
+                  {c.label}
+                </div>
+                <div className="font-mts-wide text-[18px] sm:text-[20px] font-bold leading-tight tracking-tight break-all">
+                  {c.value}
+                </div>
+                <div className="font-mts-wide text-[13px] text-black/50 mt-3">
+                  Ответ {c.sla}
+                </div>
+              </div>
+              <svg
+                width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                className="mt-1 text-black/40 group-hover:text-black transition-colors"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </a>
+          ))}
         </div>
-      )}
+      </section>
 
-      <section style={{ position: "relative", overflow: "hidden" }}>
-        <div className="plx-hero-bg" />
-        <div className="plx-hero-grid" />
-        <div className="plx-contact-wrap pl-entrance pl-ed1" style={{ position: "relative", zIndex: 1 }}>
-          {/* LEFT — INFO */}
-          <div className="plx-contact-info">
-            <div className="plx-eyebrow">{en ? "CONTACT" : "КОНТАКТЫ"}</div>
-            <h1>
-              {en ? "Talk to us." : "Напишите нам."}<br />
-              <span className="plx-grad">{en ? "We read everything." : "Мы читаем всё."}</span>
-            </h1>
-            <p>
-              {en
-                ? "Sales, technical, legal, security — pick the channel that fits your question. Most requests are answered within 4 business hours."
-                : "Продажи, техподдержка, юридические вопросы, безопасность — выберите подходящий канал. На большинство запросов отвечаем в течение 4 рабочих часов."}
-            </p>
-
-            <div className="plx-contact-channels">
-              <a href="https://t.me/atlas_suppbot" target="_blank" rel="noopener noreferrer" className="plx-contact-ch">
-                <div className="plx-contact-ch-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.5 10.5c-.8.3-.8 1.5 0 1.8l4.7 1.8 2 6.3c.3.8 1.2 1 1.8.4l2.7-2.5 4.6 3.3c.8.6 1.9.2 2.1-.8l2.5-14.8c.3-1.1-.8-2-1.9-1.5zM10 15l-1 3-1-4 11-8-9 9z" /></svg>
-                </div>
-                <div>
-                  <div className="plx-contact-ch-name">{en ? "Telegram support" : "Telegram поддержка"}</div>
-                  <div className="plx-contact-ch-val">@atlas_suppbot</div>
-                </div>
-              </a>
-              <a href="mailto:sales@atlas.secure" className="plx-contact-ch">
-                <div className="plx-contact-ch-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg>
-                </div>
-                <div>
-                  <div className="plx-contact-ch-name">{en ? "Sales" : "Продажи"}</div>
-                  <div className="plx-contact-ch-val">sales@atlas.secure</div>
-                </div>
-              </a>
-              <a href="mailto:security@atlas.secure" className="plx-contact-ch">
-                <div className="plx-contact-ch-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-3z" /></svg>
-                </div>
-                <div>
-                  <div className="plx-contact-ch-name">{en ? "Security disclosure" : "Безопасность / уязвимости"}</div>
-                  <div className="plx-contact-ch-val">security@atlas.secure</div>
-                </div>
-              </a>
-              <a href="mailto:privacy@atlas.secure" className="plx-contact-ch">
-                <div className="plx-contact-ch-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 018 0v3" /></svg>
-                </div>
-                <div>
-                  <div className="plx-contact-ch-name">{en ? "Privacy / DPO" : "Приватность / DPO"}</div>
-                  <div className="plx-contact-ch-val">privacy@atlas.secure</div>
-                </div>
-              </a>
+      {/* Response-time SLA card */}
+      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[900px] mx-auto w-full">
+        <div className="mb-8 sm:mb-10">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Время ответа</div>
+          <h2 className="font-mts-wide text-[28px] sm:text-[36px] leading-[1.05] tracking-tight font-bold">
+            Гарантированный SLA
+          </h2>
+        </div>
+        <div className="bg-white border border-black/[0.06] rounded-3xl overflow-hidden">
+          {[
+            ["Telegram",           "менее 30 минут"],
+            ["Email продажи",      "менее 4 часов"],
+            ["Безопасность",       "менее 24 часов"],
+            ["DPO и приватность",  "менее 48 часов"],
+          ].map(([k, v], i) => (
+            <div
+              key={k}
+              className={`flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 px-5 sm:px-8 py-4 sm:py-5 ${i > 0 ? "border-t border-black/[0.06]" : ""}`}
+            >
+              <div className="font-mts-wide text-[13px] text-black/45 sm:w-[220px] shrink-0">{k}</div>
+              <div className="font-mts-wide text-[14px] sm:text-[15px] text-black/85 font-medium tabular-nums">{v}</div>
             </div>
+          ))}
+        </div>
+      </section>
 
-            <div style={{ marginTop: 32, padding: 20, border: "1px solid var(--pl-border)", borderRadius: 12, background: "var(--pl-surface)" }}>
-              <div style={{ fontFamily: "var(--pl-mono)", fontSize: 10, letterSpacing: "0.14em", color: "var(--pl-accent)", marginBottom: 10, textTransform: "uppercase" }}>{en ? "Response times" : "Время ответа"}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "6px 12px", fontSize: 13 }}>
-                <span style={{ color: "var(--pl-t3)" }}>{en ? "Telegram" : "Telegram"}</span><span style={{ color: "var(--pl-t1)" }}>&lt; 30 {en ? "min" : "мин"}</span>
-                <span style={{ color: "var(--pl-t3)" }}>{en ? "Sales email" : "Email продажи"}</span><span style={{ color: "var(--pl-t1)" }}>&lt; 4 {en ? "hrs" : "ч"}</span>
-                <span style={{ color: "var(--pl-t3)" }}>{en ? "Security" : "Безопасность"}</span><span style={{ color: "var(--pl-t1)" }}>&lt; 24 {en ? "hrs" : "ч"}</span>
-                <span style={{ color: "var(--pl-t3)" }}>{en ? "DPO / Privacy" : "DPO / приватность"}</span><span style={{ color: "var(--pl-t1)" }}>&lt; 48 {en ? "hrs" : "ч"}</span>
+      {/* Contact form */}
+      <section className="px-5 sm:px-8 pb-20 sm:pb-28 max-w-[900px] mx-auto w-full">
+        <div className="mb-8 sm:mb-10">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Форма запроса</div>
+          <h2 className="font-mts-wide text-[28px] sm:text-[36px] leading-[1.05] tracking-tight font-bold">
+            Запросить доступ
+          </h2>
+          <p className="font-mts-wide text-[15px] sm:text-[16px] text-black/55 mt-4 max-w-[52ch]">
+            Заполните форму — подберём оптимальное решение под задачу.
+          </p>
+        </div>
+
+        <div className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-10">
+          {sent ? (
+            <div className="text-center py-10 sm:py-14">
+              <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-black flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
               </div>
+              <h3 className="font-mts-wide text-[22px] sm:text-[26px] font-bold tracking-tight mb-3">
+                Запрос отправлен
+              </h3>
+              <p className="font-mts-wide text-[15px] text-black/55 mb-8 max-w-[46ch] mx-auto">
+                Ответим в течение 4 рабочих часов. Проверьте, пожалуйста, входящие и папку «Спам».
+              </p>
+              <Link
+                href="/"
+                className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors"
+              >
+                На главную
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+              </Link>
             </div>
-          </div>
-
-          {/* RIGHT — FORM */}
-          <div className="plx-contact-form-card">
-            {sent ? (
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
-                <div style={{ width: 64, height: 64, borderRadius: "50%", margin: "0 auto 24px", background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-                </div>
-                <h2 style={{ fontSize: 22, fontWeight: 500, marginBottom: 8 }}>{en ? "Request submitted" : "Запрос отправлен"}</h2>
-                <p style={{ fontSize: 14, color: "var(--pl-t2)", marginBottom: 28 }}>{en ? "We'll get back within 4 business hours." : "Ответим в течение 4 рабочих часов."}</p>
-                <Link href="/" className="pl-cta-btn-light" style={{ display: "inline-flex" }}>{en ? "Back to home" : "На главную"} <span className="pl-arrow">→</span></Link>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Name */}
+              <div>
+                <label className="font-mts-wide block text-[12px] tracking-[0.10em] uppercase text-black/45 mb-2">
+                  Как к вам обращаться? *
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Имя, например Александр"
+                  className="font-mts-wide w-full bg-[#f5f5f0] border border-black/[0.08] rounded-2xl px-5 py-4 text-[15px] text-black placeholder:text-black/35 focus:outline-none focus:border-black/50 transition-colors"
+                />
               </div>
-            ) : (
-              <>
-                <h2>{en ? "Request access" : "Запросить доступ"}</h2>
-                <p className="plx-sub">{en ? "Fill out the form and we'll tailor a plan for you." : "Заполните форму — подберём оптимальное решение."}</p>
-                <form className="pl-form" onSubmit={handleSubmit}>
-                  <div className="pl-form-group">
-                    <label className="pl-form-label">{en ? "How should we address you?" : "Как к вам обращаться?"} *</label>
-                    <input type="text" className="pl-form-input" placeholder={en ? "Name or Mr./Ms., name" : "Имя, например Александр"} value={name} onChange={(e) => setName(e.target.value)} />
-                  </div>
-                  <div className="pl-form-group">
-                    <label className="pl-form-label">Email *</label>
-                    <input type="email" className="pl-form-input" placeholder="email@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-                  </div>
-                  <div className="pl-form-group">
-                    <label className="pl-form-label">{en ? "What interests you?" : "Что интересует?"} *</label>
-                    <div className="pl-form-options">
-                      {INTERESTS.map((opt) => (
-                        <button key={opt.value} type="button" className={`pl-form-option${interest === opt.value ? " active" : ""}`} onClick={() => setInterest(opt.value)}>
-                          {opt.label[locale]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="pl-form-group">
-                    <label className="pl-form-label">{en ? "Message" : "Сообщение"} <span style={{ color: "var(--pl-t3)", fontWeight: 400 }}>({en ? "optional" : "опционально"})</span></label>
-                    <textarea className="pl-form-input pl-form-textarea" placeholder={en ? "Tell us about your needs..." : "Расскажите о задачах..."} value={message} onChange={(e) => setMessage(e.target.value)} rows={4} />
-                  </div>
-                  {error && <p className="pl-form-error">{error}</p>}
-                  <button type="submit" className="pl-cta-primary pl-form-submit" disabled={sending}>
-                    {sending ? (en ? "Sending..." : "Отправка...") : (en ? "Submit request" : "Отправить запрос")}
-                    {!sending && <span className="pl-arrow">→</span>}
-                  </button>
-                  <p style={{ fontSize: 11, color: "var(--pl-t3)", textAlign: "center", marginTop: 4, lineHeight: 1.5 }}>
-                    {en ? "By submitting you agree to our " : "Отправляя запрос, вы соглашаетесь с "}
-                    <Link href="/privacy" style={{ color: "var(--pl-t2)" }}>{en ? "Privacy Policy" : "Политикой конфиденциальности"}</Link>.
-                  </p>
-                </form>
-              </>
-            )}
+
+              {/* Email */}
+              <div>
+                <label className="font-mts-wide block text-[12px] tracking-[0.10em] uppercase text-black/45 mb-2">
+                  Email *
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="email@company.com"
+                  className="font-mts-wide w-full bg-[#f5f5f0] border border-black/[0.08] rounded-2xl px-5 py-4 text-[15px] text-black placeholder:text-black/35 focus:outline-none focus:border-black/50 transition-colors"
+                />
+              </div>
+
+              {/* Interest */}
+              <div>
+                <label className="font-mts-wide block text-[12px] tracking-[0.10em] uppercase text-black/45 mb-3">
+                  Что интересует? *
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {INTERESTS.map((opt) => {
+                    const active = interest === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setInterest(opt.value)}
+                        className={`font-mts-wide text-[14px] px-4 py-2.5 rounded-full border transition-colors ${
+                          active
+                            ? "bg-black border-black text-white"
+                            : "bg-transparent border-black/15 text-black/70 hover:border-black/40"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="font-mts-wide block text-[12px] tracking-[0.10em] uppercase text-black/45 mb-2">
+                  Сообщение <span className="text-black/35">(опционально)</span>
+                </label>
+                <textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Расскажите о задачах..."
+                  rows={4}
+                  className="font-mts-wide w-full bg-[#f5f5f0] border border-black/[0.08] rounded-2xl px-5 py-4 text-[15px] text-black placeholder:text-black/35 focus:outline-none focus:border-black/50 transition-colors resize-none"
+                />
+              </div>
+
+              {error && (
+                <p className="font-mts-wide text-[13px] text-[#DC2626]">{error}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={sending}
+                className="font-mts-wide w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98] disabled:opacity-60"
+              >
+                {sending ? "Отправка..." : "Отправить запрос"}
+                {!sending && (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                )}
+              </button>
+
+              <p className="font-mts-wide text-[12px] text-black/45 leading-[1.55]">
+                Отправляя запрос, вы соглашаетесь с{" "}
+                <Link href="/privacy" className="text-black/70 underline underline-offset-2 hover:text-black">
+                  Политикой конфиденциальности
+                </Link>
+                .
+              </p>
+            </form>
+          )}
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="bg-[#F97316] text-black px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
+        <div className="max-w-[900px] mx-auto text-center">
+          <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
+            Готовы начать?
+          </h2>
+          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-black/70 mt-6 max-w-[46ch] mx-auto">
+            Три дня бесплатно. Без карты, без ограничений скорости.
+          </p>
+          <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
+            <Link
+              href="/pricing"
+              className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]"
+            >
+              Тарифы
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </Link>
+            <Link
+              href="/auth"
+              className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-black/30 text-black font-semibold text-[15px] hover:bg-black/5 transition-colors"
+            >
+              Войти
+            </Link>
           </div>
         </div>
       </section>
 
-      <footer className="pl-footer-big">
-        <div className="pl-footer-big-inner">
-          <div className="pl-footer-logo-col">
-            <Link href="/" className="pl-footer-brand"><AtlasLogo size={20} /></Link>
-          </div>
-          <div className="pl-footer-col">
-            <h4>Product</h4>
-            <Link href="/vpn">Pro</Link>
-            <Link href="/vps">VPS</Link>
-            <Link href="/vds">VDS</Link>
-            <Link href="/pricing">{t("nav.pricing")}</Link>
-          </div>
-          <div className="pl-footer-col">
-            <h4>{en ? "Company" : "Компания"}</h4>
-            <Link href="/about">{en ? "About" : "О нас"}</Link>
-            <Link href="/infrastructure">{t("nav.infrastructure")}</Link>
-            <Link href="/contact">{en ? "Contact us" : "Контакты"}</Link>
-          </div>
-          <div className="pl-footer-col">
-            <h4>{en ? "Legal" : "Юридическое"}</h4>
-            <Link href="/privacy">{t("footer.privacy")}</Link>
-            <Link href="/terms">{t("footer.terms")}</Link>
-          </div>
-        </div>
-        <div className="pl-footer-bottom">
-          <span>&copy; {new Date().getFullYear()} Atlas Secure</span>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }
