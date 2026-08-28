@@ -5,10 +5,11 @@ import Link from "next/link";
 /**
  * "Работает везде" — dark section right after the hero.
  *
- * Reference (provod.ai screen 2) is an image-gallery. Our product is
- * VPS + accelerator, so we swap the gallery for a device-support
- * showcase: iPhone / Android / macOS / Windows / Linux / Router, each
- * a big outlined icon-card. Same dark aesthetic, same font.
+ * Reference (provod.ai screen 2) is an image gallery. Our public
+ * product is an internet accelerator — this section shows every
+ * supported platform. Technically we're a VPN under the hood
+ * (Xray + Remnawave), but the site never says that word — RF ad
+ * regulations require the "ускоритель интернета" framing.
  */
 export default function DeviceGallerySection() {
   const devices = [

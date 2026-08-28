@@ -23,14 +23,14 @@ import { useState } from "react";
 export default function HeroV4({
   brand = "atlas.secure",
   statusText = "Доступ без ограничений",
-  headlineTop = "VPS и ускоритель",
+  headlineTop = "Ускоритель",
   headlineBottom = "интернета",
-  lede = "Свой сервер за минуту, ускорение соединения и стабильность 24/7. Работает на любом устройстве.",
+  lede = "Стабильное соединение и низкий пинг на любом устройстве. Настройка за минуту, дальше работает автоматически.",
   primaryCta = "Создать аккаунт",
   primaryHref = "/auth",
   secondaryCta = "Посмотреть тарифы",
   secondaryHref = "/pricing",
-  pills = ["VPS", "Ускоритель", "Игры", "Стриминг"],
+  pills = ["Игры", "Стриминг", "Работа", "Учёба"],
   navLinks = [
     { label: "Тарифы", href: "/pricing" },
     { label: "Безопасность", href: "/security" },

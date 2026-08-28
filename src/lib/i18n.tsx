@@ -16,12 +16,12 @@ const t = {
 
   // ═══ HERO ═══
   "hero.title": {
-    en: "VPS and internet accelerator, all in one",
-    ru: "VPS и ускоритель интернета — в одном сервисе",
+    en: "Internet accelerator — set up in a minute",
+    ru: "Ускоритель интернета — за минуту",
   },
   "hero.desc": {
-    en: "Own server in a minute, faster connection, stable 24/7. Dedicated infrastructure up to 75 Gbps with data centers across three continental jurisdictions.",
-    ru: "Свой сервер за минуту, ускорение соединения и стабильность 24/7. Выделенная инфраструктура до 75 Гбит/с, дата-центры в трёх континентальных юрисдикциях.",
+    en: "Stable connection and low ping on any device. 24/7 with 99.98% SLA. Backbone routing up to 200 Gbps across three continental data centers.",
+    ru: "Стабильное соединение и низкий пинг на любом устройстве. Магистральная маршрутизация до 200 Гбит/с, дата-центры в трёх юрисдикциях. SLA 99,98%.",
   },
   "hero.cta": { en: "Request access", ru: "Запросить доступ" },
   "hero.vpn": { en: "Connect", ru: "Подключиться" },
