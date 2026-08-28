@@ -3,31 +3,29 @@
 /**
  * "Три причины" — light section, three feature cards.
  *
- * Reference (provod.ai screen 3) has multiple light cards on a warm
- * off-white bg with sample previews. We keep the aesthetic (light bg,
- * generous white space, small icon in a rounded chip, big title,
- * muted body copy) and swap the content for our value proposition:
- * VPS instance / accelerator / privacy.
+ * Reference (provod.ai screen 3) uses warm off-white cards on light bg.
+ * Content focuses on the three concrete accelerator value props:
+ * low latency, stable uptime, one-minute setup.
  */
 export default function ThreePillarsSection() {
   const pillars = [
     {
       chip: "01",
-      title: "Свой VPS за минуту",
-      body: "Выделенный виртуальный сервер с гарантированным ресурсом. Полный root-доступ, любой стек — Docker, Node, Python, Nginx.",
-      metric: "от 199 ₽/мес",
-    },
-    {
-      chip: "02",
-      title: "Ускоритель интернета",
-      body: "Маршрут через магистраль до 200 Гбит/с. Стабильный пинг в игры и стримы, работа с зарубежными сервисами без просадок.",
+      title: "Меньше задержек",
+      body: "Магистральная маршрутизация до 200 Гбит/с. Пинг в регионе меньше 5 мс — без микрофризов в играх и созвонах.",
       metric: "< 5 мс регион",
     },
     {
+      chip: "02",
+      title: "Никаких просадок",
+      body: "Соединение стабильно 24/7. SLA 99,98% прописан в договоре, а не подмигивает мелким шрифтом под кнопкой.",
+      metric: "SLA 99,98%",
+    },
+    {
       chip: "03",
-      title: "Приватность и стабильность",
-      body: "Никаких логов трафика. Шифрование на транспорте. 99.98% аптайма — SLA прописан в договоре, а не в подписи под кнопкой.",
-      metric: "SLA 99.98%",
+      title: "Настройка за минуту",
+      body: "Скачал приложение, вошёл — готово. Дальше работает автоматически на всех устройствах: iPhone, Android, Mac, Windows, Linux, роутер.",
+      metric: "6 платформ",
     },
   ];
 
