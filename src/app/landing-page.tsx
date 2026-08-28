@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useI18n } from "@/lib/i18n";
 import HeroV4 from "@/components/HeroV4";
+import DeviceGallerySection from "@/components/DeviceGallerySection";
+import ThreePillarsSection from "@/components/ThreePillarsSection";
 
 function AtlasLogo({ size = 24 }: { size?: number }) {
   return (
@@ -40,7 +42,13 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
     <div className="premium-landing">
       {/* ═══ HERO v4 — new design (provod.ai-inspired) ═══ */}
       <HeroV4 />
-      {/* End hero v4 */}
+
+      {/* ═══ Section 2 — Device support (dark) ═══ */}
+      <DeviceGallerySection />
+
+      {/* ═══ Section 3 — Three pillars (light) ═══ */}
+      <ThreePillarsSection />
+      {/* End of v4 redesign block — old marketing sections continue below */}
 
       {/* ═══ LOGOS / STATS strip ═══ */}
       <section className="pl-strip pl-reveal">
