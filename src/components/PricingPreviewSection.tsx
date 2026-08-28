@@ -65,15 +65,15 @@ export default function PricingPreviewSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
           <PlanCard
             name="Basic"
+            tagline="Стабильное соединение для повседневного использования"
             price={basicPrice}
             yearlyTotal={yearly ? PLANS.basic.yearly : null}
             save={yearly ? basicSave : null}
             features={[
-              "3 устройства одновременно",
-              "3 локации серверов",
-              "Стабильное соединение 24/7",
-              "Автопереподключение при обрыве",
-              "Приоритет обычный",
+              "Стабильная скорость",
+              "Надёжное шифрование",
+              "Безлимит устройств",
+              "Всегда доступен сайт",
             ]}
             cta="Выбрать Basic"
             href="/auth?plan=basic"
@@ -81,16 +81,15 @@ export default function PricingPreviewSection() {
           />
           <PlanCard
             name="Plus"
+            tagline="Всегда на связи — даже когда другие сервисы не работают"
             price={plusPrice}
             yearlyTotal={yearly ? PLANS.plus.yearly : null}
             save={yearly ? plusSave : null}
             features={[
-              "10 устройств одновременно",
-              "Все локации серверов",
-              "Гарантированный SLA 99,98%",
-              "Приоритетная поддержка от человека",
-              "Персональный статический адрес",
-              "Отдельная маршрутизация под игры и стриминг",
+              "Приоритетная скорость для стримов и игр",
+              "Всегда доступен",
+              "Выделенные серверы в нескольких странах",
+              "Резервные каналы — доступ работает всегда",
             ]}
             cta="Выбрать Plus"
             href="/auth?plan=plus"
@@ -118,9 +117,10 @@ export default function PricingPreviewSection() {
 }
 
 function PlanCard({
-  name, price, yearlyTotal, save, features, cta, href, highlighted,
+  name, tagline, price, yearlyTotal, save, features, cta, href, highlighted,
 }: {
   name: string;
+  tagline: string;
   price: number;
   yearlyTotal: number | null;
   save: number | null;
@@ -143,9 +143,12 @@ function PlanCard({
         </div>
       )}
 
-      <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase mb-6" style={{ color: highlighted ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.45)" }}>
+      <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase mb-2" style={{ color: highlighted ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.45)" }}>
         {name}
       </div>
+      <p className="font-mts-wide text-[14px] leading-[1.4] mb-6" style={{ color: highlighted ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.7)" }}>
+        {tagline}
+      </p>
 
       <div className="flex items-baseline gap-2 mb-2">
         <span className="font-mts-wide text-[52px] sm:text-[64px] font-bold leading-none tabular-nums tracking-tight">

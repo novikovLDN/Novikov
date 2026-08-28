@@ -156,22 +156,25 @@ function TopBar({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v:
 
 // ─── PlanCard ───────────────────────────────────────────────────
 
-const PLAN_FEATURES = {
-  basic: [
-    "3 устройства одновременно",
-    "3 локации серверов",
-    "Стабильное соединение 24/7",
-    "Автопереподключение при обрыве",
-    "Приоритет обычный",
-  ],
-  plus: [
-    "10 устройств одновременно",
-    "Все локации серверов",
-    "Гарантированный SLA 99,98%",
-    "Приоритетная поддержка от человека",
-    "Персональный статический адрес",
-    "Отдельная маршрутизация под игры и стриминг",
-  ],
+const PLAN_META = {
+  basic: {
+    tagline: "Стабильное соединение для повседневного использования",
+    features: [
+      "Стабильная скорость",
+      "Надёжное шифрование",
+      "Безлимит устройств",
+      "Всегда доступен сайт",
+    ],
+  },
+  plus: {
+    tagline: "Всегда на связи — даже когда другие сервисы не работают",
+    features: [
+      "Приоритетная скорость для стримов и игр",
+      "Всегда доступен",
+      "Выделенные серверы в нескольких странах",
+      "Резервные каналы — доступ работает всегда",
+    ],
+  },
 } as const;
 
 function PlanCard({ plan, period, highlighted }: { plan: "basic" | "plus"; period: Period; highlighted?: boolean }) {
@@ -190,9 +193,12 @@ function PlanCard({ plan, period, highlighted }: { plan: "basic" | "plus"; perio
         </div>
       )}
 
-      <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase mb-6" style={{ color: highlighted ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.45)" }}>
+      <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase mb-2" style={{ color: highlighted ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.45)" }}>
         {plan === "basic" ? "Basic" : "Plus"}
       </div>
+      <p className="font-mts-wide text-[14px] leading-[1.4] mb-6" style={{ color: highlighted ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.7)" }}>
+        {PLAN_META[plan].tagline}
+      </p>
 
       <div className="flex items-baseline gap-2 mb-2">
         <span className="font-mts-wide text-[52px] sm:text-[64px] font-bold leading-none tabular-nums tracking-tight">
@@ -216,7 +222,7 @@ function PlanCard({ plan, period, highlighted }: { plan: "basic" | "plus"; perio
       <div className={`my-6 sm:my-8 h-px ${highlighted ? "bg-black/15" : "bg-white/10"}`} />
 
       <ul className="space-y-3 mb-8">
-        {PLAN_FEATURES[plan].map((f) => (
+        {PLAN_META[plan].features.map((f) => (
           <li key={f} className="flex items-start gap-3 font-mts-wide text-[14px] sm:text-[15px] leading-[1.4]" style={{ color: highlighted ? "rgba(0,0,0,0.85)" : "rgba(255,255,255,0.85)" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0" style={{ color: highlighted ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.65)" }}>
               <polyline points="20 6 9 17 4 12" />
@@ -244,13 +250,13 @@ function PlanCard({ plan, period, highlighted }: { plan: "basic" | "plus"; perio
 // ─── Comparison table (light) ───────────────────────────────────
 
 const COMPARE_ROWS: Array<[string, string, string]> = [
-  ["Устройств одновременно",                    "3",              "10"],
-  ["Локации серверов",                          "3",              "Все"],
-  ["Соединение 24/7 · автопереподключение",     "check",          "check"],
-  ["Персональный статический адрес",            "cross",          "check"],
-  ["Отдельная маршрутизация для игр/стриминга", "cross",          "check"],
-  ["Приоритетная поддержка от человека",        "cross",          "check"],
-  ["Гарантированный SLA",                       "—",              "99,98%"],
+  ["Стабильная скорость",                         "check", "check"],
+  ["Надёжное шифрование",                         "check", "check"],
+  ["Безлимит устройств",                          "check", "check"],
+  ["Всегда доступен сайт",                        "check", "check"],
+  ["Приоритетная скорость для стримов и игр",     "cross", "check"],
+  ["Выделенные серверы в нескольких странах",     "cross", "check"],
+  ["Резервные каналы — работает всегда",          "cross", "check"],
 ];
 
 function ComparisonSection() {
