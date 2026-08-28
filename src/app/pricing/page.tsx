@@ -18,11 +18,13 @@ import { useEffect, useState } from "react";
 
 type Period = 1 | 3 | 6 | 12;
 const PERIODS: Period[] = [1, 3, 6, 12];
-const PERIOD_LABEL: Record<Period, string> = {
-  1:  "1 месяц",
-  3:  "3 месяца",
-  6:  "6 месяцев",
-  12: "12 месяцев",
+/** Full label used on md+, short label used on mobile so the four
+ *  pills stay on one row instead of wrapping to two. */
+const PERIOD_LABEL: Record<Period, { full: string; short: string }> = {
+  1:  { full: "1 месяц",    short: "1 мес" },
+  3:  { full: "3 месяца",   short: "3 мес" },
+  6:  { full: "6 месяцев",  short: "6 мес" },
+  12: { full: "12 месяцев", short: "12 мес" },
 };
 const PLANS = {
   basic: { 1: 199, 3: 499, 6: 899, 12: 1599 },
@@ -59,14 +61,15 @@ export default function PricingPage() {
 
       {/* ── Period selector ── */}
       <section className="px-5 sm:px-8 pb-6 max-w-[1200px] mx-auto w-full">
-        <div className="inline-flex flex-wrap items-center gap-1 p-1 rounded-full border border-white/12 bg-white/[0.03] font-mts-wide text-[13px]">
+        <div className="inline-flex flex-wrap items-center gap-1 p-1 rounded-full border border-white/15 bg-white/[0.03] font-mts-wide text-[13px]">
           {PERIODS.map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
               className={`px-4 py-2 rounded-full transition-colors ${period === p ? "bg-white text-black" : "text-white/70 hover:text-white"}`}
             >
-              {PERIOD_LABEL[p]}
+              <span className="sm:hidden">{PERIOD_LABEL[p].short}</span>
+              <span className="hidden sm:inline">{PERIOD_LABEL[p].full}</span>
               {p === 12 && <span className="ml-1.5 text-[11px] opacity-70">−17%</span>}
             </button>
           ))}
@@ -124,7 +127,7 @@ function TopBar({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v:
           <Link href="/auth" className="ml-3 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/15 transition-colors">Войти</Link>
         </nav>
         <button
-          className="md:hidden w-10 h-10 rounded-full bg-white/8 border border-white/12 flex items-center justify-center"
+          className="md:hidden w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center active:scale-[0.95] transition-transform"
           onClick={() => setMenuOpen(true)}
           aria-label="Меню"
         >
@@ -136,7 +139,7 @@ function TopBar({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v:
       {menuOpen && (
         <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8 font-mts-wide" onClick={() => setMenuOpen(false)}>
           <button
-            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/8 border border-white/12 flex items-center justify-center"
+            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center active:scale-[0.95] transition-transform"
             onClick={() => setMenuOpen(false)}
             aria-label="Закрыть"
           >
@@ -213,7 +216,7 @@ function PlanCard({ plan, period, highlighted }: { plan: "basic" | "plus"; perio
           <>Списывается каждый месяц</>
         ) : (
           <>
-            {fmt(total)} ₽ разово за {PERIOD_LABEL[period].toLowerCase()}
+            {fmt(total)} ₽ разово за {PERIOD_LABEL[period].full.toLowerCase()}
             {savings > 0 && <span className="ml-2 opacity-70">· экономия {fmt(savings)} ₽</span>}
           </>
         )}

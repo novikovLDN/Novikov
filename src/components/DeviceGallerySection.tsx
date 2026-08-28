@@ -57,16 +57,16 @@ export default function DeviceGallerySection() {
 }
 
 function DeviceIcon({ name }: { name: string }) {
+  // 40 px on mobile, 32 px on sm+ — bigger on small phones so the
+  // icon reads as the focal point of a ~160 px square card.
   const props = {
-    width: 32,
-    height: 32,
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
     strokeWidth: 1.4,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
-    className: "text-black/60 group-hover:text-black transition-colors",
+    className: "w-10 h-10 sm:w-8 sm:h-8 text-black/60 group-hover:text-black transition-colors",
   };
   switch (name) {
     case "iPhone":

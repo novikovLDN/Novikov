@@ -86,7 +86,7 @@ export default function HeroV4({
 
         {/* Mobile hamburger */}
         <button
-          className="md:hidden w-10 h-10 rounded-full bg-white/8 border border-white/12 flex items-center justify-center"
+          className="md:hidden w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center active:scale-[0.95] transition-transform"
           onClick={() => setMenuOpen(true)}
           aria-label="Меню"
         >
@@ -102,7 +102,7 @@ export default function HeroV4({
           onClick={() => setMenuOpen(false)}
         >
           <button
-            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/8 border border-white/12 flex items-center justify-center"
+            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center"
             onClick={() => setMenuOpen(false)}
             aria-label="Закрыть"
           >
