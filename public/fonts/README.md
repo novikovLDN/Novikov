@@ -1,20 +1,39 @@
 # MTS Wide fonts
 
-По лицензии MTS Wide кладём сюда следующие файлы (форматы **woff2** обязательно, **woff** желательно как фолбэк для старых браузеров):
+Корпоративный шрифт МТС, доступный по лицензии (см. `COPYRIGHT.txt`).
 
-| Weight | file (обязателен)          | file (fallback)           |
-| ------ | -------------------------- | ------------------------- |
-| 400 Regular  | `MTSWide-Regular.woff2`  | `MTSWide-Regular.woff`  |
-| 500 Medium   | `MTSWide-Medium.woff2`   | `MTSWide-Medium.woff`   |
-| 700 Bold     | `MTSWide-Bold.woff2`     | `MTSWide-Bold.woff`     |
-| 900 Black    | `MTSWide-Black.woff2`    | `MTSWide-Black.woff`    |
+## Что лежит
 
-Минимум для стартового redesign — Regular и Bold (400 + 700). Medium и Black добавятся, если нужны промежуточные веса.
+| Weight | Файл                     | Fallback-веса, которые тоже подхватываются |
+| ------ | ------------------------ | ------------------------------------------ |
+| 500 Medium | `MTSWide-Medium.woff2` | 400 (Regular) — используем Medium как самый близкий |
+| 700 Bold   | `MTSWide-Bold.woff2`   | 600, 800, 900 — используем Bold           |
 
-**@font-face уже прописан** в `src/app/globals.css` (секция «MTS Wide font faces»). При наличии файлов шрифт автоматически подхватится по CSS-переменной `--font-mts-wide`.
+Regular (400) и Black (900) в официальной сборке нам не выдали — маппим на Medium и Bold соответственно, чтобы CSS-веса `font-weight: 400/500/600/700/800/900` всегда рендерились в MTS Wide, а не в фейковой полужирности Inter.
 
-**Куда используется:** класс `.font-mts-wide` (или подключение через `var(--font-mts-wide)` в CSS). Пока файлов нет, fallback-стек сработает на Inter / system UI — сайт не сломается.
+## @font-face
 
-## Как проверить
+Живёт в `src/app/globals.css` в самом верху. Веса объявлены через диапазон (`font-weight: 400 500;` и `font-weight: 600 900;`) — это валидный CSS4-синтаксис, все современные браузеры понимают.
 
-После деплоя открой DevTools → Network → Fonts. Должны появиться `MTSWide-*.woff2` со статусом 200. В Elements выбрать элемент с классом `.font-mts-wide` → Computed → `font-family` показывает `"MTS Wide"`.
+## Использование
+
+- CSS-переменная: `var(--font-mts-wide)`
+- Утилитарный класс: `.font-mts-wide`
+- Hero-заголовок использует Bold (700).
+
+## Как проверить в проде
+
+1. Открой DevTools → Network → Fonts.
+2. Должны прогружаться `MTSWide-Medium.woff2` (~31 KB) и `MTSWide-Bold.woff2` (~31 KB), статус 200.
+3. Выбери элемент с `.font-mts-wide` → Computed → `font-family` показывает `"MTS Wide"`.
+
+## Как обновить
+
+Если МТС пришлёт новую версию — TTF-файлы конвертируются в WOFF2 через `fonttools + brotli`:
+
+```
+pip install fonttools brotli
+python -c "from fontTools.ttLib import TTFont; f=TTFont('MTSWide-Bold-XXXX.ttf'); f.flavor='woff2'; f.save('public/fonts/MTSWide-Bold.woff2')"
+```
+
+TTF-оригиналы в репе не хранить — только WOFF2 (в ~2.5 раза легче, лучше кэшируется, все браузеры поддерживают).

@@ -1,41 +1,24 @@
 @import "tailwindcss";
 
 /* ─── MTS Wide font faces ───────────────────────────────────────
- * Files live under /public/fonts/. See public/fonts/README.md
- * for the expected filenames. If a weight is missing the browser
- * silently falls back to the CSS-var stack below, so the site
- * never breaks while assets are being uploaded. */
+ * Under corporate MTS Wide licence — see /public/fonts/COPYRIGHT.txt.
+ * Only Medium (500) and Bold (700) shipped with the licence; we alias
+ * weights 400 → Medium and 900 → Bold so `font-weight: 400/500/700/900`
+ * always renders in MTS Wide instead of the browser faking a weight
+ * from the fallback stack. */
 @font-face {
   font-family: "MTS Wide";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 400 500;
   font-display: swap;
-  src: url("/fonts/MTSWide-Regular.woff2") format("woff2"),
-       url("/fonts/MTSWide-Regular.woff") format("woff");
+  src: url("/fonts/MTSWide-Medium.woff2") format("woff2");
 }
 @font-face {
   font-family: "MTS Wide";
   font-style: normal;
-  font-weight: 500;
+  font-weight: 600 900;
   font-display: swap;
-  src: url("/fonts/MTSWide-Medium.woff2") format("woff2"),
-       url("/fonts/MTSWide-Medium.woff") format("woff");
-}
-@font-face {
-  font-family: "MTS Wide";
-  font-style: normal;
-  font-weight: 700;
-  font-display: swap;
-  src: url("/fonts/MTSWide-Bold.woff2") format("woff2"),
-       url("/fonts/MTSWide-Bold.woff") format("woff");
-}
-@font-face {
-  font-family: "MTS Wide";
-  font-style: normal;
-  font-weight: 900;
-  font-display: swap;
-  src: url("/fonts/MTSWide-Black.woff2") format("woff2"),
-       url("/fonts/MTSWide-Black.woff") format("woff");
+  src: url("/fonts/MTSWide-Bold.woff2") format("woff2");
 }
 
 @theme {
