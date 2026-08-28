@@ -103,7 +103,7 @@ export default function WelcomeToast({ telegramLinkToken, subscriptionEnd }: Wel
         {/* Buttons */}
         <div className="p-4 sm:p-5 pt-3 sm:pt-4 flex flex-col gap-2">
           <a
-            href={`https://t.me/atlassecure_bot${telegramLinkToken ? `?start=${telegramLinkToken}` : ""}`}
+            href={`https://t.me/atlas_suppbot${telegramLinkToken ? `?start=${telegramLinkToken}` : ""}`}
             target="_blank"
             rel="noopener noreferrer"
             className="h-10 sm:h-11 rounded-xl bg-telegram text-white font-medium text-sm hover:bg-telegram-hover transition-all btn-press flex items-center justify-center gap-2"

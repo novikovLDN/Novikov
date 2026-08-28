@@ -86,7 +86,7 @@ export default function TelegramLinkBanner({ telegramLinked, telegramLinkToken }
 
           {/* Button */}
           <a
-            href={`https://t.me/atlassecure_bot${telegramLinkToken ? `?start=${telegramLinkToken}` : ""}`}
+            href={`https://t.me/atlas_suppbot${telegramLinkToken ? `?start=${telegramLinkToken}` : ""}`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleClose}
