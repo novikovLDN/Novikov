@@ -87,10 +87,10 @@ export default function SettingsCard() {
 
   return (
     <>
-      {/* Button — matches dv2 ghost button style */}
+      {/* Button — matches the light-shell dashboard control row */}
       <button
         onClick={() => setOpen(!open)}
-        className="h-[52px] w-full rounded-2xl bg-white/[0.02] border border-white/[0.06] text-white/85 font-medium text-[13px] hover:bg-white/[0.04] hover:border-white/[0.1] backdrop-blur transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+        className="font-mts-wide h-[52px] w-full rounded-2xl bg-white border border-black/[0.06] text-black/85 font-medium text-[13px] hover:border-black/[0.14] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="1.5" fill="currentColor" />
