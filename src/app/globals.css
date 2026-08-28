@@ -1541,6 +1541,17 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Rounded bottom corners — the hero reads as a container/card,
+   * with the light body-bg peeking through underneath. Top edge stays
+   * flush with the viewport (no radius). Reference: provod.ai hero. */
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+}
+@media (min-width: 640px) {
+  .hero-v4 {
+    border-bottom-left-radius: 48px;
+    border-bottom-right-radius: 48px;
+  }
 }
 .hero-v4-title {
   font-family: var(--font-mts-wide);

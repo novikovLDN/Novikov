@@ -30,7 +30,7 @@ export default function PricingPreviewSection() {
   const plusSave = PLANS.plus.monthly * 12 - PLANS.plus.yearly;
 
   return (
-    <section className="bg-black text-white px-5 sm:px-8 py-20 sm:py-28 lg:py-32">
+    <section className="bg-black text-white px-5 sm:px-8 py-20 sm:py-28 lg:py-32 mx-2 sm:mx-3 mt-2 sm:mt-3 rounded-[28px] sm:rounded-[36px]">
       <div className="max-w-[1200px] mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-12 sm:mb-16">

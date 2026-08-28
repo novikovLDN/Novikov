@@ -40,7 +40,7 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
   }, []);
 
   return (
-    <div className="premium-landing">
+    <div className="premium-landing bg-[#f5f5f0]">
       {/* ═══ HERO v4 — new design (provod.ai-inspired) ═══ */}
       <HeroV4 />
 
