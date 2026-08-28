@@ -3,6 +3,8 @@ import { botExtendSubscription, getUserByTelegramId, creditReferrerOnPayment, up
 import { xrayAddUser } from "@/lib/xray";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
 import { botSyncDisabledResponse } from "../sync-guard";
+import { syncUserToRemnawave } from "@/lib/subscription-sync";
+import { startFlow, endFlow, info, warn } from "@/lib/panel-log";
 
 // Hard cap: anything beyond ~13 months is almost certainly a bug on the
 // caller side (10-year "lifetime" tariffs were silently nuking trial
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (typeof days !== "number" || days <= 0 || days > MAX_DAYS) {
-      console.warn(`[BOT] REJECTED extend: telegramId=${telegramId} days=${days} (must be 1..${MAX_DAYS})`);
+      warn(null, "bot-purchase.rejected", { telegramId, days, max: MAX_DAYS });
       return NextResponse.json(
         { success: false, error: `days must be a positive number ≤ ${MAX_DAYS}`, code: "days_out_of_range" },
         { status: 400 }
@@ -34,15 +36,20 @@ export async function POST(request: NextRequest) {
     }
 
     const beforeUser = await getUserByTelegramId(String(telegramId));
+    const ctx = startFlow("bot-purchase", { userId: beforeUser?.id, email: beforeUser?.email });
+    info(ctx, "bot-purchase.received", { telegramId, days, plan, amount, paymentId });
     const hadKey = !!beforeUser?.xrayUuid;
 
     const user = await botExtendSubscription(String(telegramId), days, plan);
     if (!user) {
+      warn(ctx, "bot-purchase.user_not_linked", { telegramId });
+      endFlow(ctx, "failed", { reason: "user_not_linked" });
       return NextResponse.json(
         { success: false, error: "User not found. Link Telegram first." },
         { status: 404 }
       );
     }
+    info(ctx, "bot-purchase.extend.ok", { newEnd: user.subscriptionEnd });
 
     // If key was regenerated (user had no key before), add to Xray
     if (!hadKey && user.xrayUuid) {
@@ -54,6 +61,25 @@ export async function POST(request: NextRequest) {
     // Sync subscription plan
     if (plan && ["basic", "plus"].includes(plan)) {
       await updateUser(user.id, { subscriptionPlan: plan });
+    }
+
+    // CRITICAL: push the new expireAt to Remnawave right now. Without
+    // this the panel stays on the old date until the hourly worker
+    // catches up — that's why bot-purchased users saw their VPN key
+    // stop working immediately after payment.
+    info(ctx, "bot-purchase.panel_sync.start");
+    const syncResult = await syncUserToRemnawave(user.id);
+    if (syncResult.ok) {
+      info(ctx, "bot-purchase.panel_sync.ok", {
+        action: syncResult.action,
+        panelUuid: syncResult.uuid,
+        subscriptionUrl: syncResult.subscriptionUrl,
+      });
+    } else {
+      warn(ctx, "bot-purchase.panel_sync.failed", {
+        reason: syncResult.reason,
+        panelError: syncResult.panelError,
+      });
     }
 
     // Credit referrer with cashback
@@ -75,7 +101,7 @@ export async function POST(request: NextRequest) {
     const end = new Date(user.subscriptionEnd);
     const daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
 
-    console.log(`[BOT] Extended subscription for ${user.email}: +${days} days (plan: ${plan || "n/a"})`);
+    endFlow(ctx, "ok", { days, plan: plan || null, cashback: cashbackResult ? cashbackResult.rewardRubles : 0 });
 
     return NextResponse.json({
       success: true,

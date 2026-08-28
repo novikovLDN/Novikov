@@ -16,12 +16,12 @@ const t = {
 
   // ═══ HERO ═══
   "hero.title": {
-    en: "The secure infrastructure for business and beyond",
-    ru: "Защищённая инфраструктура для бизнеса",
+    en: "VPS and internet accelerator, all in one",
+    ru: "VPS и ускоритель интернета — в одном сервисе",
   },
   "hero.desc": {
-    en: "Enterprise-grade secure connectivity, VPS and VDS solutions with military-class encryption. Headquartered in Hong Kong with data centers across three continental jurisdictions.",
-    ru: "Защищённое соединение, VPS и VDS решения корпоративного класса с шифрованием военного уровня. Штаб-квартира в Гонконге, дата-центры в трёх континентальных юрисдикциях.",
+    en: "Own server in a minute, faster connection, stable 24/7. Dedicated infrastructure up to 75 Gbps with data centers across three continental jurisdictions.",
+    ru: "Свой сервер за минуту, ускорение соединения и стабильность 24/7. Выделенная инфраструктура до 75 Гбит/с, дата-центры в трёх континентальных юрисдикциях.",
   },
   "hero.cta": { en: "Request access", ru: "Запросить доступ" },
   "hero.vpn": { en: "Connect", ru: "Подключиться" },

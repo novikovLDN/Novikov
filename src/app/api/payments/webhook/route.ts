@@ -13,6 +13,7 @@ import { getPaymentStatus as ykGetPayment } from "@/lib/yookassa";
 import type { YooKassaNotification } from "@/lib/yookassa";
 import { sendPaymentSucceededEmail, sendRefundAdminAlertEmail } from "@/lib/email";
 import { syncUserToRemnawave } from "@/lib/subscription-sync";
+import { startFlow, endFlow, info, warn, error as logError } from "@/lib/panel-log";
 import { pool } from "@/lib/db";
 
 const PERIOD_DAYS: Record<number, number> = { 1: 30, 3: 90, 6: 180, 12: 365 };
@@ -88,30 +89,51 @@ export async function POST(request: NextRequest) {
 
     // ── SUCCEEDED ──
     if (verifiedStatus === "succeeded") {
+      const ctx = startFlow("purchase", { userId: paymentRecord.userId });
+      info(ctx, "purchase.webhook", {
+        yookassaId: payment.id,
+        paymentId: paymentRecord.id,
+        plan: paymentRecord.plan,
+        period: paymentRecord.period,
+        amount: paymentRecord.amount,
+      });
       const alreadyApplied = paymentRecord.status === "confirmed" && !!paymentRecord.paidAt;
       if (alreadyApplied) {
-        console.log(`[WEBHOOK] ${payment.id} already applied — skipping`);
+        info(ctx, "purchase.already_applied");
+        endFlow(ctx, "skipped", { reason: "already_applied" });
         return NextResponse.json({ ok: true });
       }
 
       const days = PERIOD_DAYS[paymentRecord.period] || 30;
+      info(ctx, "purchase.extend.start", { days });
 
       // Step 1: extend local subscription
       try {
         await extendSubscription(paymentRecord.userId, days);
         await updateUser(paymentRecord.userId, { subscriptionPlan: paymentRecord.plan });
+        info(ctx, "purchase.extend.ok");
       } catch (err) {
-        console.error("[WEBHOOK] extendSubscription failed:", err);
+        logError(ctx, "purchase.extend.failed", { message: err instanceof Error ? err.message : String(err) });
+        endFlow(ctx, "failed", { reason: "extend_failed" });
         return NextResponse.json({ error: "Internal error" }, { status: 500 });
       }
 
       // Step 2: mirror to Remnawave (ONE function handles everything)
+      info(ctx, "purchase.panel_sync.start");
       const syncResult = await syncUserToRemnawave(paymentRecord.userId);
       if (syncResult.ok) {
         await pool.query("UPDATE payments SET applied_to_remnawave_at = NOW() WHERE id = $1", [paymentRecord.id]);
-        console.log(`[WEBHOOK] Remnawave synced for payment ${payment.id}`);
+        info(ctx, "purchase.panel_sync.ok", {
+          action: syncResult.action,
+          panelUuid: syncResult.uuid,
+          panelUsername: syncResult.panelUsername,
+          subscriptionUrl: syncResult.subscriptionUrl,
+        });
       } else {
-        console.warn(`[WEBHOOK] Remnawave sync failed (${syncResult.reason}) — will retry on next dashboard load`);
+        warn(ctx, "purchase.panel_sync.failed", {
+          reason: syncResult.reason,
+          panelError: syncResult.panelError,
+        });
       }
 
       // Step 3: mark payment confirmed
@@ -142,7 +164,7 @@ export async function POST(request: NextRequest) {
       }
 
       createAuditLog("payment.success", `${paymentRecord.plan} ${paymentRecord.period}мес, ${paymentRecord.amount}₽`, paymentRecord.userId).catch(() => null);
-      console.log(`[WEBHOOK] Subscription extended: ${paymentRecord.userId} +${days}d`);
+      endFlow(ctx, "ok", { days, plan: paymentRecord.plan });
 
     // ── CANCELED ──
     } else if (verifiedStatus === "canceled") {
