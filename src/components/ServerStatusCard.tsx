@@ -91,17 +91,17 @@ export default function ServerStatusCard() {
   const areaPath = `${linePath} L${W},${H} L0,${H} Z`;
 
   return (
-    <section className="dv2-glow dv2-elevate relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0F0F12] h-full flex flex-col">
+    <section className="dv2-card relative overflow-hidden rounded-[28px] h-full flex flex-col">
       {/* Backdrop accent */}
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div
-          className="absolute -top-16 -right-16 h-56 w-56 rounded-full blur-3xl opacity-30"
-          style={{ background: "radial-gradient(closest-side, rgba(52,211,153,0.18), transparent 70%)" }}
+          className="absolute -top-16 -right-16 h-56 w-56 rounded-full blur-3xl opacity-40"
+          style={{ background: "radial-gradient(closest-side, rgba(52,211,153,0.22), transparent 70%)" }}
         />
         <div
-          className="absolute inset-0 opacity-[0.03]"
+          className="absolute inset-0 opacity-[0.05]"
           style={{
-            backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.7) 1px, transparent 0)",
+            backgroundImage: "radial-gradient(circle at 1px 1px, rgba(0,0,0,0.6) 1px, transparent 0)",
             backgroundSize: "18px 18px",
           }}
         />

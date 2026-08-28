@@ -35,16 +35,16 @@ export default function SubscriptionCard({
 
   if (!subscriptionUrl) {
     return (
-      <div className="rounded-[24px] border border-white/[0.06] bg-white/[0.02] p-5 backdrop-blur">
+      <div className="dv2-card p-5">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+          <div className="h-9 w-9 rounded-xl bg-black/[0.04] border border-black/[0.06] flex items-center justify-center">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ animationDuration: "2s" }}>
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
             </svg>
           </div>
           <div className="flex-1">
-            <div className="text-[13px] font-medium text-white/90">Подписка готовится</div>
-            <div className="text-[11px] text-white/40 mt-0.5">Обновите страницу через несколько секунд</div>
+            <div className="font-mts-wide text-[13px] font-medium text-black/85">Подписка готовится</div>
+            <div className="font-mts-wide text-[11px] text-black/45 mt-0.5">Обновите страницу через несколько секунд</div>
           </div>
         </div>
       </div>
@@ -68,7 +68,7 @@ export default function SubscriptionCard({
 
   return (
     <section
-      className={`dv2-glow dv2-elevate relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0F0F12] transition-all duration-700 ease-out ${
+      className={`dv2-dark dv2-elevate relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0F0F12] transition-all duration-700 ease-out ${
         mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
       }`}
     >

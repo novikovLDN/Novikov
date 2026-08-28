@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
+import LandingFooter from "@/components/LandingFooter";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -153,48 +155,65 @@ const APPS: Record<Platform, AppConfig[]> = {
   ],
 };
 
-const PLATFORMS: { id: Platform; name: string }[] = [
-  { id: "ios", name: "iPhone / iPad" },
-  { id: "android", name: "Android" },
-  { id: "macos", name: "macOS" },
-  { id: "windows", name: "Windows" },
-  { id: "tv", name: "Android TV" },
+const PLATFORMS: { id: Platform; name: string; detail: string }[] = [
+  { id: "ios",     name: "iPhone / iPad", detail: "iOS 16+" },
+  { id: "android", name: "Android",       detail: "10+" },
+  { id: "macos",   name: "macOS",         detail: "M1 / Intel" },
+  { id: "windows", name: "Windows",       detail: "10 / 11" },
+  { id: "tv",      name: "Android TV",    detail: "Google TV" },
 ];
 
 // ─── Icons ──────────────────────────────────────────────────
 
-function PlatformIcon({ id, size = 22 }: { id: string; size?: number }) {
+function PlatformIcon({ id }: { id: string }) {
+  const p = {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.4,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    className: "w-7 h-7",
+  };
   switch (id) {
-    case "android":
+    case "ios":
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 16V8a7 7 0 0114 0v8" />
-          <rect x="3" y="16" width="18" height="4" rx="1" />
-          <circle cx="8.5" cy="8.5" r="1" fill="currentColor" />
-          <circle cx="15.5" cy="8.5" r="1" fill="currentColor" />
+        <svg {...p}>
+          <rect x="7" y="2" width="10" height="20" rx="2" />
+          <line x1="11" y1="18" x2="13" y2="18" />
         </svg>
       );
-    case "ios": case "macos":
+    case "android":
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+        <svg {...p}>
+          <path d="M4 16V9a2 2 0 012-2h12a2 2 0 012 2v7" />
+          <path d="M4 16h16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z" />
+          <path d="M8 7l-2-3M16 7l2-3" />
+        </svg>
+      );
+    case "macos":
+      return (
+        <svg {...p}>
+          <rect x="2" y="4" width="20" height="12" rx="1" />
+          <path d="M2 20h20M9 20l1-4M15 20l-1-4" />
         </svg>
       );
     case "windows":
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3 12V6.5l8-1.1V12H3zm0 .5V18l8 1.1V12.5H3zm9 0V18.6l9 1.4V12.5h-9zm0-.5h9V4l-9 1.4V12z" />
+        <svg {...p}>
+          <path d="M3 5l8-1v8H3zM11 4l10-1v10H11zM3 13h8v7l-8-1zM11 13h10v8l-10-1z" />
         </svg>
       );
     case "tv":
       return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" />
+        <svg {...p}>
+          <rect x="2" y="4" width="20" height="13" rx="1.5" />
           <line x1="8" y1="21" x2="16" y2="21" />
           <line x1="12" y1="17" x2="12" y2="21" />
         </svg>
       );
-    default: return null;
+    default:
+      return null;
   }
 }
 
@@ -207,6 +226,7 @@ export default function AddDevice() {
   const [appIndex, setAppIndex] = useState(0);
   const [vpnKey, setVpnKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const fetchKey = useCallback(async () => {
     try {
@@ -256,161 +276,264 @@ export default function AddDevice() {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // ─── Platform Selection ─────────────────────────────────
+  const backLabel =
+    step === "platform" ? "В кабинет"
+    : step === "app"    ? "К устройствам"
+    :                     apps.length > 1 ? "К приложениям" : "К устройствам";
 
-  if (step === "platform") {
-    return (
-      <div className="min-h-dvh bg-background flex flex-col">
-        <WizardHeader onBack={() => router.push("/dashboard")} title="Добавить устройство" />
-        <div className="flex-1 px-4 sm:px-6 pb-8 max-w-lg mx-auto w-full">
-          <div className="text-center mt-6 sm:mt-10 mb-8">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center animate-scale-in">
-              <svg className="w-8 h-8 sm:w-10 sm:h-10" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
+  const stepLabel =
+    step === "platform"   ? "Шаг 1 из 3 · Устройство"
+    : step === "app"      ? "Шаг 2 из 3 · Приложение"
+    :                       "Шаг 3 из 3 · Подключение";
+
+  const navLinks = [
+    { label: "Личный кабинет", href: "/dashboard" },
+    { label: "Тарифы",         href: "/pricing" },
+    { label: "Поддержка",      href: "/contact" },
+  ];
+
+  return (
+    <div className="bg-[#f5f5f0] min-h-dvh flex flex-col text-black">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
+        <Link href="/" className="flex items-center gap-2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
+        </Link>
+
+        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-black/60">
+          {navLinks.map((l) => (
+            <Link key={l.href} href={l.href} className="hover:text-black transition-colors">{l.label}</Link>
+          ))}
+        </nav>
+
+        <button
+          className="md:hidden w-11 h-11 rounded-full bg-black/[0.04] border border-black/10 flex items-center justify-center active:scale-[0.95] transition-transform"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Меню"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+      </div>
+
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-[#f5f5f0] flex flex-col items-center justify-center gap-8 font-mts-wide"
+          onClick={() => setMenuOpen(false)}
+        >
+          <button
+            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-black/[0.04] border border-black/10 flex items-center justify-center"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Закрыть"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+          {navLinks.map((l) => (
+            <Link key={l.href} href={l.href} className="text-black text-2xl" onClick={() => setMenuOpen(false)}>
+              {l.label}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Wizard content */}
+      <section className="flex-1 px-5 sm:px-8 pt-8 sm:pt-12 pb-16 sm:pb-24 max-w-[900px] mx-auto w-full">
+
+        {/* Back + step */}
+        <div className="flex items-center justify-between mb-8 sm:mb-10">
+          <button
+            onClick={handleBack}
+            className="font-mts-wide inline-flex items-center gap-2 px-4 py-2 rounded-full border border-black/15 text-black/85 hover:border-black/30 hover:bg-black/[0.04] transition-colors text-[13px] active:scale-[0.98]"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            Назад · {backLabel}
+          </button>
+          <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45">
+            {stepLabel}
+          </span>
+        </div>
+
+        {/* ─── Platform Selection ─── */}
+        {step === "platform" && (
+          <>
+            <div className="mb-10 sm:mb-14">
+              <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">
+                Добавление устройства
+              </div>
+              <h1 className="font-mts-wide text-[36px] sm:text-[52px] leading-[1.02] tracking-tight font-bold">
+                На каком<br />устройстве?
+              </h1>
+              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.5] text-black/60 mt-6 max-w-[52ch]">
+                Ваш ключ подписки работает на любом устройстве. Выберите платформу — покажем подходящее приложение и QR-код для быстрого добавления.
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2 animate-fade-in-up">Добавить устройство</h1>
-            <p className="text-muted text-sm sm:text-base animate-fade-in-up animate-delay-1">На каком устройстве подключаемся?</p>
-          </div>
-          <div className="space-y-2.5">
-            {PLATFORMS.map((p, i) => (
-              <button
-                key={p.id}
-                onClick={() => handleSelectPlatform(p.id)}
-                className="w-full bg-card border border-border/50 rounded-2xl p-4 sm:p-5 flex items-center gap-4 transition-all hover:border-primary/40 hover:bg-card-hover active:scale-[0.98] btn-press animate-fade-in-up"
-                style={{ animationDelay: `${i * 60}ms` }}
-              >
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 text-primary">
-                  <PlatformIcon id={p.id} />
-                </div>
-                <span className="font-semibold text-sm sm:text-base flex-1 text-left">{p.name}</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted shrink-0"><path d="M9 18l6-6-6-6" /></svg>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
-  // ─── App Selection ────────────────────────────────────────
-
-  if (step === "app" && platform) {
-    return (
-      <div className="min-h-dvh bg-background flex flex-col">
-        <WizardHeader onBack={handleBack} title="Выберите приложение" />
-        <div className="flex-1 px-4 sm:px-6 pb-8 max-w-lg mx-auto w-full">
-          <div className="text-center mt-6 sm:mt-10 mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-2">В какое приложение?</h1>
-            <p className="text-muted text-sm sm:text-base">Выберите приложение, в которое добавляем подписку</p>
-          </div>
-          <div className="space-y-3">
-            {apps.map((app, i) => (
-              <button
-                key={app.id}
-                onClick={() => { setAppIndex(i); setStep("instruction"); }}
-                className="w-full bg-card border border-border/50 rounded-2xl p-5 text-left transition-all hover:border-primary/40 hover:bg-card-hover active:scale-[0.98] btn-press animate-fade-in-up"
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shrink-0">
-                    <span className="text-xl font-bold text-primary">{app.name[0]}</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {PLATFORMS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => handleSelectPlatform(p.id)}
+                  className="group text-left bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6 flex items-center gap-5 hover:border-black/[0.15] hover:-translate-y-0.5 transition-all active:scale-[0.99]"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-black/[0.04] flex items-center justify-center shrink-0 text-black/70 group-hover:text-black transition-colors">
+                    <PlatformIcon id={p.id} />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm sm:text-base">{app.name}</p>
-                    <p className="text-muted text-xs sm:text-sm">{app.storeLabel}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-mts-wide text-[16px] sm:text-[17px] font-medium text-black">{p.name}</div>
+                    <div className="font-mts-wide text-[12px] text-black/45 mt-0.5">{p.detail}</div>
                   </div>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted shrink-0"><path d="M9 18l6-6-6-6" /></svg>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Instruction + QR Code ────────────────────────────────
-
-  if (step === "instruction" && currentApp) {
-    const keyUrl = getKeyUrl();
-
-    return (
-      <div className="min-h-dvh bg-background flex flex-col">
-        <WizardHeader onBack={handleBack} title={currentApp.instructions.title} />
-        <div className="flex-1 px-4 sm:px-6 pb-8 max-w-lg mx-auto w-full">
-
-          {/* QR Code */}
-          {keyUrl && (
-            <div className="mt-5 sm:mt-8 animate-fade-in-up">
-              <div className="bg-card border border-border/50 rounded-2xl p-5 sm:p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7" />
-                    <rect x="14" y="3" width="7" height="7" />
-                    <rect x="3" y="14" width="7" height="7" />
-                    <rect x="14" y="14" width="3" height="3" />
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-black/30 group-hover:text-black/70 transition-colors shrink-0">
+                    <path d="M9 18l6-6-6-6" />
                   </svg>
-                  <h3 className="font-bold text-sm sm:text-base">QR-код подписки</h3>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ─── App Selection ─── */}
+        {step === "app" && platform && (
+          <>
+            <div className="mb-10 sm:mb-14">
+              <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">
+                Приложение для подключения
+              </div>
+              <h1 className="font-mts-wide text-[36px] sm:text-[52px] leading-[1.02] tracking-tight font-bold">
+                В какое<br />приложение?
+              </h1>
+              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.5] text-black/60 mt-6 max-w-[52ch]">
+                Для {PLATFORMS.find((p) => p.id === platform)?.name} есть несколько подходящих клиентов. Выберите один — добавим подписку туда.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3 sm:gap-4">
+              {apps.map((app, i) => (
+                <button
+                  key={app.id}
+                  onClick={() => { setAppIndex(i); setStep("instruction"); }}
+                  className="group text-left bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6 flex items-center gap-5 hover:border-black/[0.15] hover:-translate-y-0.5 transition-all active:scale-[0.99]"
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-black text-white flex items-center justify-center shrink-0 font-mts-wide text-[22px] font-bold">
+                    {app.name[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-mts-wide text-[17px] sm:text-[19px] font-medium text-black">{app.name}</div>
+                    <div className="font-mts-wide text-[12px] text-black/45 mt-0.5 uppercase tracking-[0.10em]">{app.storeLabel}</div>
+                  </div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-black/30 group-hover:text-black/70 transition-colors shrink-0">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ─── Instruction + QR ─── */}
+        {step === "instruction" && currentApp && (
+          <>
+            <div className="mb-10 sm:mb-12">
+              <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">
+                {PLATFORMS.find((p) => p.id === currentApp.platform)?.name} · {currentApp.name}
+              </div>
+              <h1 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.05] tracking-tight font-bold max-w-[18ch]">
+                {currentApp.instructions.title}
+              </h1>
+            </div>
+
+            {/* QR card */}
+            {getKeyUrl() && (
+              <div className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3"  width="7" height="7" />
+                      <rect x="14" y="3" width="7" height="7" />
+                      <rect x="3" y="14" width="7" height="7" />
+                      <rect x="14" y="14" width="3" height="3" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45">Импорт</div>
+                    <h3 className="font-mts-wide text-[16px] sm:text-[18px] font-bold leading-tight">QR-код подписки</h3>
+                  </div>
                 </div>
 
-                <p className="text-muted text-xs sm:text-sm mb-4 leading-relaxed">
+                <p className="font-mts-wide text-[13px] sm:text-[14px] leading-[1.55] text-black/60 mb-6">
                   {currentApp.instructions.qrHint}
                 </p>
 
-                <div className="bg-white rounded-xl p-4 sm:p-5 flex items-center justify-center mx-auto max-w-[240px]">
+                <div className="bg-white border border-black/[0.08] rounded-2xl p-5 sm:p-6 flex items-center justify-center mx-auto max-w-[280px]">
                   <QRCodeSVG
-                    value={keyUrl}
-                    size={200}
+                    value={getKeyUrl()!}
+                    size={220}
                     level="M"
                     bgColor="#ffffff"
                     fgColor="#000000"
                   />
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Step-by-step Instructions */}
-          <div className="mt-4 animate-fade-in-up animate-delay-1">
-            <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5">
-              <h3 className="font-bold text-sm sm:text-base mb-4">Пошаговая инструкция</h3>
-              <div className="space-y-3">
-                {currentApp.instructions.steps.map((s, i) => (
-                  <div key={i} className="flex gap-3">
-                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                      <span className="text-[11px] font-bold text-primary">{i + 1}</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed pt-1">{s}</p>
-                  </div>
-                ))}
+            {/* Steps card */}
+            <div className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
+              <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mb-4">
+                Пошаговая инструкция
               </div>
+              <h3 className="font-mts-wide text-[18px] sm:text-[22px] font-bold leading-tight mb-6">
+                Как добавить подписку
+              </h3>
+              <ol className="space-y-4">
+                {currentApp.instructions.steps.map((s, i) => (
+                  <li key={i} className="flex gap-4">
+                    <div className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center shrink-0 mt-0.5 font-mts-wide text-[12px] font-bold tabular-nums">
+                      {i + 1}
+                    </div>
+                    <p className="font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] text-black/75 pt-1">{s}</p>
+                  </li>
+                ))}
+              </ol>
             </div>
-          </div>
 
-          {/* Copy Key */}
-          {keyUrl && (
-            <div className="mt-4 animate-fade-in-up animate-delay-2">
-              <div className="bg-card border border-border/50 rounded-2xl p-4 sm:p-5">
-                <h3 className="font-bold text-sm sm:text-base mb-3">Или вставьте ключ вручную</h3>
-                <div className="bg-background rounded-xl p-3 mb-3 overflow-hidden">
-                  <p className="text-[11px] sm:text-xs text-muted font-mono break-all leading-relaxed select-all">
-                    {keyUrl.length > 50 ? `${keyUrl.slice(0, 25)}...${keyUrl.slice(-20)}` : keyUrl}
-                  </p>
+            {/* Manual key card */}
+            {getKeyUrl() && (
+              <div className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
+                <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mb-3">
+                  Или скопируйте вручную
                 </div>
+                <h3 className="font-mts-wide text-[18px] sm:text-[22px] font-bold leading-tight mb-5">
+                  Ключ подписки
+                </h3>
+
+                <div className="bg-black/[0.04] border border-black/[0.08] rounded-2xl p-4 mb-4 font-mono text-xs break-all leading-relaxed text-black/70 select-all">
+                  {getKeyUrl()}
+                </div>
+
                 <button
                   onClick={handleCopy}
-                  className={`w-full h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base transition-all btn-press flex items-center justify-center gap-2 ${
+                  className={`w-full h-12 sm:h-14 rounded-2xl font-mts-wide font-semibold text-[15px] transition-all flex items-center justify-center gap-2 active:scale-[0.99] ${
                     copied
-                      ? "bg-success/20 text-success border border-success/30"
-                      : "bg-card-hover border border-border hover:bg-card-active"
+                      ? "bg-black/[0.04] border border-black/15 text-black"
+                      : "bg-black text-white hover:bg-neutral-800"
                   }`}
                 >
                   {copied ? (
                     <>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                      Скопировано!
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Скопировано
                     </>
                   ) : (
                     <>
@@ -423,59 +546,40 @@ export default function AddDevice() {
                   )}
                 </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Need the app? */}
-          <div className="mt-4 animate-fade-in-up animate-delay-3">
+            {/* Install app CTA */}
             <a
               href={currentApp.downloadUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full h-11 sm:h-12 rounded-xl border border-border bg-card font-medium text-sm sm:text-base hover:bg-card-hover transition-all btn-press flex items-center justify-center gap-2"
+              className="font-mts-wide w-full h-12 sm:h-14 rounded-2xl border border-black/15 text-black/85 hover:border-black/30 hover:bg-black/[0.04] transition-colors flex items-center justify-center gap-2 text-[14px] sm:text-[15px] font-medium active:scale-[0.99]"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-              Установить {currentApp.name} ({currentApp.storeLabel})
+              Установить {currentApp.name} · {currentApp.storeLabel}
             </a>
-          </div>
 
-          {/* Back to dashboard */}
-          <div className="mt-4 animate-fade-in-up animate-delay-4">
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="w-full h-11 sm:h-12 rounded-xl border border-border bg-card font-medium text-sm sm:text-base hover:bg-card-hover transition-all btn-press flex items-center justify-center gap-2 text-muted"
-            >
-              Вернуться в кабинет
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+            {/* Return to dashboard */}
+            <div className="mt-4">
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="font-mts-wide w-full h-12 sm:h-14 rounded-2xl bg-black text-white hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 text-[15px] font-semibold active:scale-[0.99]"
+              >
+                Готово — вернуться в кабинет
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </>
+        )}
+      </section>
 
-  return null;
-}
-
-// ─── Wizard Header ──────────────────────────────────────────
-
-function WizardHeader({ onBack, title }: { onBack: () => void; title: string }) {
-  return (
-    <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border/30">
-      <div className="max-w-lg mx-auto flex items-center h-14 sm:h-16 px-4 sm:px-6">
-        <button
-          onClick={onBack}
-          className="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-card-hover transition-all btn-press -ml-2"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <h2 className="font-semibold text-sm sm:text-base ml-2">{title}</h2>
-      </div>
+      <LandingFooter />
     </div>
   );
 }

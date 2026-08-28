@@ -1701,82 +1701,57 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   Dashboard v2 — futuristic dark glass cards
+   Dashboard v2 — light shell with white cards and dark accent cards.
+
+   Two dark focal cards (SubscriptionHero + SubscriptionCard) keep
+   their opaque `#0F0F12` surface — they're the accents. Every other
+   .dv2-card renders as a plain white card on off-white body bg,
+   matching the language of /about, /support, /pricing.
+
+   The previous dark-glass + backdrop-filter combo caused smeared
+   text on mobile Safari; the light shell removes that failure mode
+   entirely and stays visually consistent with the rest of the site.
    ═══════════════════════════════════════════════════════════════════════ */
 
 .dashboard-v2 {
-  background: #0A0A0B;
+  background: #f5f5f0;
+  color: #111;
   position: relative;
-}
-
-.dashboard-v2::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 800px 600px at 50% -10%, rgba(94,106,210,0.06), transparent 60%),
-    radial-gradient(ellipse 600px 400px at 100% 100%, rgba(94,106,210,0.04), transparent 60%);
-  z-index: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 .dashboard-v2 > * { position: relative; z-index: 1; }
 
 .dv2-card {
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.06);
   border-radius: 24px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: background 0.25s ease, border-color 0.25s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dv2-card:hover {
-  background: rgba(255,255,255,0.03);
-  border-color: rgba(255,255,255,0.08);
+  border-color: rgba(0,0,0,0.14);
 }
 
 .dv2-eyebrow {
-  font-family: var(--pl-mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-family: var(--font-mts-wide), var(--pl-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.4);
+  color: rgba(0,0,0,0.45);
 }
 
-/* Cursor-tracking glow on .dv2-card / .dv2-glow.
-   The :hover layer mirrors the pointer position via CSS variables
-   (--mx, --my) set by CursorGlowTracker. */
-.dv2-card,
-.dv2-glow {
-  position: relative;
-}
-.dv2-card::before,
-.dv2-glow::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: radial-gradient(
-    220px circle at var(--mx, 50%) var(--my, 50%),
-    rgba(255,255,255,0.05),
-    transparent 60%
-  );
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  z-index: 1;
-}
-.dv2-card:hover::before,
-.dv2-glow:hover::before { opacity: 1; }
-
-/* Accent variant — slightly tinted glass for primary actions */
+/* Accent variant — orange-tinted card for primary offers */
 .dv2-card-accent {
-  background: linear-gradient(180deg, rgba(94,106,210,0.05), rgba(255,255,255,0.02));
-  border-color: rgba(94,106,210,0.18);
+  background: #F97316;
+  border-color: transparent;
+  color: #000;
 }
 .dv2-card-accent:hover {
-  border-color: rgba(94,106,210,0.28);
+  border-color: rgba(0,0,0,0.08);
 }
 
 /* ─── Auth screens (dv2 language) ─────────────────────────────── */
@@ -1873,126 +1848,165 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   Light theme overrides for the dv2 design system
-   ═══════════════════════════════════════════════════════════════════════
+   Dashboard utility overrides — unconditional light shell.
 
-   The dv2 components are written in dark-mode-first style with hardcoded
-   white/* and black/[#0F0F12]/etc. utilities. This block flips them
-   under html.light so we don't have to touch each component. Specificity
-   is bumped via the html.light .dashboard-v2 prefix; !important is used
-   only where Tailwind's compiled rules would otherwise win.
+   The dv2 child components were written dark-mode-first with `text-white`,
+   `bg-white/[0.xx]`, `border-white/[0.xx]` and `bg-[#0F0F12]` utilities.
+   These rules flip them to work correctly on the light shell without
+   touching every component. Elements inside a `.dv2-dark` subtree
+   (the two focal accent cards — SubscriptionHero and SubscriptionCard)
+   opt back into dark rendering via higher-specificity re-declarations
+   further below.
    ═══════════════════════════════════════════════════════════════════════ */
 
-html.light .dashboard-v2 {
-  background: #F5F5F7;
-  color-scheme: light;
-}
-
-html.light .dashboard-v2::before {
-  background:
-    radial-gradient(ellipse 800px 600px at 50% -10%, rgba(94,106,210,0.10), transparent 60%),
-    radial-gradient(ellipse 600px 400px at 100% 100%, rgba(94,106,210,0.06), transparent 60%);
-}
-
-/* dv2-card / dv2-glow surfaces */
-html.light .dashboard-v2 .dv2-card,
-html.light .dashboard-v2 .dv2-glow {
-  background: rgba(255,255,255,0.65);
-  border-color: rgba(0,0,0,0.08);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-html.light .dashboard-v2 .dv2-card:hover,
-html.light .dashboard-v2 .dv2-glow:hover {
-  background: rgba(255,255,255,0.85);
-  border-color: rgba(0,0,0,0.12);
-}
-html.light .dashboard-v2 .dv2-card::before,
-html.light .dashboard-v2 .dv2-glow::before {
-  background: radial-gradient(
-    220px circle at var(--mx, 50%) var(--my, 50%),
-    rgba(94,106,210,0.10),
-    transparent 60%
-  );
-}
-html.light .dashboard-v2 .dv2-eyebrow { color: rgba(0,0,0,0.55); }
-
-/* Hardcoded dark backgrounds */
-html.light .dashboard-v2 .bg-\[\#0F0F12\] { background-color: #fff !important; }
-html.light .dashboard-v2 .bg-\[\#0A0A0B\] { background-color: #F5F5F7 !important; }
-html.light .dashboard-v2 .bg-\[\#0A0A0B\]\/85 { background-color: rgba(245,245,247,0.85) !important; }
-html.light .dashboard-v2 .bg-\[\#0A0A0B\]\/80 { background-color: rgba(245,245,247,0.80) !important; }
+/* Hardcoded dark backgrounds → light */
+.dashboard-v2 .bg-\[\#0F0F12\] { background-color: #fff !important; }
+.dashboard-v2 .bg-\[\#0A0A0B\] { background-color: #f5f5f0 !important; }
+.dashboard-v2 .bg-\[\#0A0A0B\]\/85 { background-color: rgba(245,245,240,0.85) !important; }
+.dashboard-v2 .bg-\[\#0A0A0B\]\/80 { background-color: rgba(245,245,240,0.80) !important; }
 
 /* White text → near-black */
-html.light .dashboard-v2 .text-white { color: #0F0F12 !important; }
-html.light .dashboard-v2 .text-white\/95 { color: rgba(0,0,0,0.88) !important; }
-html.light .dashboard-v2 .text-white\/90 { color: rgba(0,0,0,0.84) !important; }
-html.light .dashboard-v2 .text-white\/85 { color: rgba(0,0,0,0.78) !important; }
-html.light .dashboard-v2 .text-white\/80 { color: rgba(0,0,0,0.72) !important; }
-html.light .dashboard-v2 .text-white\/75 { color: rgba(0,0,0,0.68) !important; }
-html.light .dashboard-v2 .text-white\/70 { color: rgba(0,0,0,0.62) !important; }
-html.light .dashboard-v2 .text-white\/60 { color: rgba(0,0,0,0.55) !important; }
-html.light .dashboard-v2 .text-white\/50 { color: rgba(0,0,0,0.48) !important; }
-html.light .dashboard-v2 .text-white\/65 { color: rgba(0,0,0,0.60) !important; }
-html.light .dashboard-v2 .text-white\/55 { color: rgba(0,0,0,0.52) !important; }
-html.light .dashboard-v2 .text-white\/45 { color: rgba(0,0,0,0.44) !important; }
-html.light .dashboard-v2 .text-white\/40 { color: rgba(0,0,0,0.40) !important; }
-html.light .dashboard-v2 .text-white\/35 { color: rgba(0,0,0,0.40) !important; }
-html.light .dashboard-v2 .text-white\/30 { color: rgba(0,0,0,0.38) !important; }
-html.light .dashboard-v2 .text-white\/25 { color: rgba(0,0,0,0.34) !important; }
-html.light .dashboard-v2 .text-white\/20 { color: rgba(0,0,0,0.30) !important; }
-html.light .dashboard-v2 .text-white\/15 { color: rgba(0,0,0,0.24) !important; }
+.dashboard-v2 .text-white { color: #0F0F12 !important; }
+.dashboard-v2 .text-white\/95 { color: rgba(0,0,0,0.88) !important; }
+.dashboard-v2 .text-white\/90 { color: rgba(0,0,0,0.84) !important; }
+.dashboard-v2 .text-white\/85 { color: rgba(0,0,0,0.78) !important; }
+.dashboard-v2 .text-white\/80 { color: rgba(0,0,0,0.72) !important; }
+.dashboard-v2 .text-white\/75 { color: rgba(0,0,0,0.68) !important; }
+.dashboard-v2 .text-white\/70 { color: rgba(0,0,0,0.62) !important; }
+.dashboard-v2 .text-white\/65 { color: rgba(0,0,0,0.60) !important; }
+.dashboard-v2 .text-white\/60 { color: rgba(0,0,0,0.55) !important; }
+.dashboard-v2 .text-white\/55 { color: rgba(0,0,0,0.52) !important; }
+.dashboard-v2 .text-white\/50 { color: rgba(0,0,0,0.48) !important; }
+.dashboard-v2 .text-white\/45 { color: rgba(0,0,0,0.44) !important; }
+.dashboard-v2 .text-white\/40 { color: rgba(0,0,0,0.40) !important; }
+.dashboard-v2 .text-white\/35 { color: rgba(0,0,0,0.40) !important; }
+.dashboard-v2 .text-white\/30 { color: rgba(0,0,0,0.38) !important; }
+.dashboard-v2 .text-white\/25 { color: rgba(0,0,0,0.34) !important; }
+.dashboard-v2 .text-white\/20 { color: rgba(0,0,0,0.30) !important; }
+.dashboard-v2 .text-white\/15 { color: rgba(0,0,0,0.24) !important; }
 
 /* White-tint backgrounds → black-tint */
-html.light .dashboard-v2 .bg-white\/\[0\.02\] { background-color: rgba(0,0,0,0.02) !important; }
-html.light .dashboard-v2 .bg-white\/\[0\.025\] { background-color: rgba(0,0,0,0.025) !important; }
-html.light .dashboard-v2 .bg-white\/\[0\.03\] { background-color: rgba(0,0,0,0.03) !important; }
-html.light .dashboard-v2 .bg-white\/\[0\.04\] { background-color: rgba(0,0,0,0.04) !important; }
-html.light .dashboard-v2 .bg-white\/\[0\.05\] { background-color: rgba(0,0,0,0.05) !important; }
-html.light .dashboard-v2 .bg-white\/\[0\.06\] { background-color: rgba(0,0,0,0.06) !important; }
-html.light .dashboard-v2 .bg-white\/\[0\.07\] { background-color: rgba(0,0,0,0.07) !important; }
-html.light .dashboard-v2 .bg-white\/\[0\.08\] { background-color: rgba(0,0,0,0.08) !important; }
-html.light .dashboard-v2 .bg-white\/\[0\.10\] { background-color: rgba(0,0,0,0.10) !important; }
+.dashboard-v2 .bg-white\/\[0\.02\] { background-color: rgba(0,0,0,0.02) !important; }
+.dashboard-v2 .bg-white\/\[0\.025\] { background-color: rgba(0,0,0,0.025) !important; }
+.dashboard-v2 .bg-white\/\[0\.03\] { background-color: rgba(0,0,0,0.03) !important; }
+.dashboard-v2 .bg-white\/\[0\.035\] { background-color: rgba(0,0,0,0.035) !important; }
+.dashboard-v2 .bg-white\/\[0\.04\] { background-color: rgba(0,0,0,0.04) !important; }
+.dashboard-v2 .bg-white\/\[0\.05\] { background-color: rgba(0,0,0,0.05) !important; }
+.dashboard-v2 .bg-white\/\[0\.06\] { background-color: rgba(0,0,0,0.06) !important; }
+.dashboard-v2 .bg-white\/\[0\.07\] { background-color: rgba(0,0,0,0.07) !important; }
+.dashboard-v2 .bg-white\/\[0\.08\] { background-color: rgba(0,0,0,0.08) !important; }
+.dashboard-v2 .bg-white\/\[0\.10\] { background-color: rgba(0,0,0,0.10) !important; }
 
 /* White-tint borders → black-tint */
-html.light .dashboard-v2 .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.06) !important; }
-html.light .dashboard-v2 .border-white\/\[0\.05\] { border-color: rgba(0,0,0,0.07) !important; }
-html.light .dashboard-v2 .border-white\/\[0\.06\] { border-color: rgba(0,0,0,0.08) !important; }
-html.light .dashboard-v2 .border-white\/\[0\.08\] { border-color: rgba(0,0,0,0.10) !important; }
-html.light .dashboard-v2 .border-white\/\[0\.1\] { border-color: rgba(0,0,0,0.12) !important; }
-html.light .dashboard-v2 .border-white\/\[0\.10\] { border-color: rgba(0,0,0,0.12) !important; }
-html.light .dashboard-v2 .border-white\/\[0\.12\] { border-color: rgba(0,0,0,0.14) !important; }
-html.light .dashboard-v2 .border-white\/\[0\.14\] { border-color: rgba(0,0,0,0.16) !important; }
-html.light .dashboard-v2 .border-white\/\[0\.20\] { border-color: rgba(0,0,0,0.22) !important; }
+.dashboard-v2 .border-white\/\[0\.04\] { border-color: rgba(0,0,0,0.06) !important; }
+.dashboard-v2 .border-white\/\[0\.05\] { border-color: rgba(0,0,0,0.07) !important; }
+.dashboard-v2 .border-white\/\[0\.06\] { border-color: rgba(0,0,0,0.08) !important; }
+.dashboard-v2 .border-white\/\[0\.08\] { border-color: rgba(0,0,0,0.10) !important; }
+.dashboard-v2 .border-white\/\[0\.1\] { border-color: rgba(0,0,0,0.12) !important; }
+.dashboard-v2 .border-white\/\[0\.10\] { border-color: rgba(0,0,0,0.12) !important; }
+.dashboard-v2 .border-white\/\[0\.12\] { border-color: rgba(0,0,0,0.14) !important; }
+.dashboard-v2 .border-white\/\[0\.14\] { border-color: rgba(0,0,0,0.16) !important; }
+.dashboard-v2 .border-white\/\[0\.15\] { border-color: rgba(0,0,0,0.18) !important; }
+.dashboard-v2 .border-white\/\[0\.20\] { border-color: rgba(0,0,0,0.22) !important; }
 
 /* Hover variants */
-html.light .dashboard-v2 .hover\:bg-white\/\[0\.04\]:hover { background-color: rgba(0,0,0,0.04) !important; }
-html.light .dashboard-v2 .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(0,0,0,0.05) !important; }
-html.light .dashboard-v2 .hover\:bg-white\/\[0\.06\]:hover { background-color: rgba(0,0,0,0.06) !important; }
-html.light .dashboard-v2 .hover\:bg-white\/\[0\.07\]:hover { background-color: rgba(0,0,0,0.07) !important; }
-html.light .dashboard-v2 .hover\:border-white\/\[0\.10\]:hover { border-color: rgba(0,0,0,0.12) !important; }
-html.light .dashboard-v2 .hover\:border-white\/\[0\.12\]:hover { border-color: rgba(0,0,0,0.14) !important; }
-html.light .dashboard-v2 .hover\:border-white\/\[0\.14\]:hover { border-color: rgba(0,0,0,0.16) !important; }
-html.light .dashboard-v2 .hover\:text-white:hover { color: #0F0F12 !important; }
+.dashboard-v2 .hover\:bg-white\/\[0\.04\]:hover { background-color: rgba(0,0,0,0.04) !important; }
+.dashboard-v2 .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(0,0,0,0.05) !important; }
+.dashboard-v2 .hover\:bg-white\/\[0\.06\]:hover { background-color: rgba(0,0,0,0.06) !important; }
+.dashboard-v2 .hover\:bg-white\/\[0\.07\]:hover { background-color: rgba(0,0,0,0.07) !important; }
+.dashboard-v2 .hover\:border-white\/\[0\.10\]:hover { border-color: rgba(0,0,0,0.12) !important; }
+.dashboard-v2 .hover\:border-white\/\[0\.12\]:hover { border-color: rgba(0,0,0,0.14) !important; }
+.dashboard-v2 .hover\:border-white\/\[0\.14\]:hover { border-color: rgba(0,0,0,0.16) !important; }
+.dashboard-v2 .hover\:text-white:hover { color: #0F0F12 !important; }
 
-/* White CTA pills become dark in light mode.
-   Targets only button/anchor elements so the QR <div className="bg-white"> stays white. */
-html.light .dashboard-v2 button.bg-white,
-html.light .dashboard-v2 a.bg-white {
+/* White CTA pills become dark on the light shell.
+   Targets only button/anchor elements so <div className="bg-white"> (QR)
+   stays white. */
+.dashboard-v2 button.bg-white,
+.dashboard-v2 a.bg-white {
   background-color: #0F0F12 !important;
   color: #fff !important;
 }
-html.light .dashboard-v2 button.bg-white:hover,
-html.light .dashboard-v2 a.bg-white:hover {
+.dashboard-v2 button.bg-white:hover,
+.dashboard-v2 a.bg-white:hover {
   background-color: #1F1F22 !important;
 }
-html.light .dashboard-v2 button.bg-white\/95,
-html.light .dashboard-v2 button.hover\:bg-white\/95:hover {
+.dashboard-v2 button.bg-white\/95,
+.dashboard-v2 button.hover\:bg-white\/95:hover {
   background-color: #1F1F22 !important;
 }
 
-/* Header / wizard chrome */
-html.light .dashboard-v2 .border-white\/\[0\.05\] { border-color: rgba(0,0,0,0.07) !important; }
+/* ═══════════════════════════════════════════════════════════════════════
+   Dark focal card exception — SubscriptionHero + SubscriptionCard.
+
+   These two cards keep their dark styling on the light shell so they
+   read as focal accents (the "orange CTA is the only other accent"
+   principle from the site's visual language). Higher specificity than
+   the base overrides (3 class selectors vs 2) so they win without
+   further !important gymnastics beyond what Tailwind already ships.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.dashboard-v2 .dv2-dark.bg-\[\#0F0F12\],
+.dashboard-v2 .dv2-dark .bg-\[\#0F0F12\] { background-color: #0F0F12 !important; }
+
+.dashboard-v2 .dv2-dark .text-white { color: #fff !important; }
+.dashboard-v2 .dv2-dark .text-white\/95 { color: rgba(255,255,255,0.95) !important; }
+.dashboard-v2 .dv2-dark .text-white\/90 { color: rgba(255,255,255,0.90) !important; }
+.dashboard-v2 .dv2-dark .text-white\/85 { color: rgba(255,255,255,0.85) !important; }
+.dashboard-v2 .dv2-dark .text-white\/80 { color: rgba(255,255,255,0.80) !important; }
+.dashboard-v2 .dv2-dark .text-white\/75 { color: rgba(255,255,255,0.75) !important; }
+.dashboard-v2 .dv2-dark .text-white\/70 { color: rgba(255,255,255,0.70) !important; }
+.dashboard-v2 .dv2-dark .text-white\/65 { color: rgba(255,255,255,0.65) !important; }
+.dashboard-v2 .dv2-dark .text-white\/60 { color: rgba(255,255,255,0.60) !important; }
+.dashboard-v2 .dv2-dark .text-white\/55 { color: rgba(255,255,255,0.55) !important; }
+.dashboard-v2 .dv2-dark .text-white\/50 { color: rgba(255,255,255,0.50) !important; }
+.dashboard-v2 .dv2-dark .text-white\/45 { color: rgba(255,255,255,0.45) !important; }
+.dashboard-v2 .dv2-dark .text-white\/40 { color: rgba(255,255,255,0.40) !important; }
+.dashboard-v2 .dv2-dark .text-white\/35 { color: rgba(255,255,255,0.35) !important; }
+.dashboard-v2 .dv2-dark .text-white\/30 { color: rgba(255,255,255,0.30) !important; }
+.dashboard-v2 .dv2-dark .text-white\/25 { color: rgba(255,255,255,0.25) !important; }
+.dashboard-v2 .dv2-dark .text-white\/20 { color: rgba(255,255,255,0.20) !important; }
+.dashboard-v2 .dv2-dark .text-white\/15 { color: rgba(255,255,255,0.15) !important; }
+
+.dashboard-v2 .dv2-dark .bg-white\/\[0\.02\] { background-color: rgba(255,255,255,0.02) !important; }
+.dashboard-v2 .dv2-dark .bg-white\/\[0\.025\] { background-color: rgba(255,255,255,0.025) !important; }
+.dashboard-v2 .dv2-dark .bg-white\/\[0\.03\] { background-color: rgba(255,255,255,0.03) !important; }
+.dashboard-v2 .dv2-dark .bg-white\/\[0\.035\] { background-color: rgba(255,255,255,0.035) !important; }
+.dashboard-v2 .dv2-dark .bg-white\/\[0\.04\] { background-color: rgba(255,255,255,0.04) !important; }
+.dashboard-v2 .dv2-dark .bg-white\/\[0\.05\] { background-color: rgba(255,255,255,0.05) !important; }
+.dashboard-v2 .dv2-dark .bg-white\/\[0\.06\] { background-color: rgba(255,255,255,0.06) !important; }
+.dashboard-v2 .dv2-dark .bg-white\/\[0\.07\] { background-color: rgba(255,255,255,0.07) !important; }
+.dashboard-v2 .dv2-dark .bg-white\/\[0\.08\] { background-color: rgba(255,255,255,0.08) !important; }
+
+.dashboard-v2 .dv2-dark .border-white\/\[0\.04\] { border-color: rgba(255,255,255,0.04) !important; }
+.dashboard-v2 .dv2-dark .border-white\/\[0\.05\] { border-color: rgba(255,255,255,0.05) !important; }
+.dashboard-v2 .dv2-dark .border-white\/\[0\.06\] { border-color: rgba(255,255,255,0.06) !important; }
+.dashboard-v2 .dv2-dark .border-white\/\[0\.08\] { border-color: rgba(255,255,255,0.08) !important; }
+.dashboard-v2 .dv2-dark .border-white\/\[0\.1\]  { border-color: rgba(255,255,255,0.10) !important; }
+.dashboard-v2 .dv2-dark .border-white\/\[0\.10\] { border-color: rgba(255,255,255,0.10) !important; }
+.dashboard-v2 .dv2-dark .border-white\/\[0\.12\] { border-color: rgba(255,255,255,0.12) !important; }
+.dashboard-v2 .dv2-dark .border-white\/\[0\.14\] { border-color: rgba(255,255,255,0.14) !important; }
+.dashboard-v2 .dv2-dark .border-white\/\[0\.15\] { border-color: rgba(255,255,255,0.15) !important; }
+
+.dashboard-v2 .dv2-dark .hover\:bg-white\/\[0\.04\]:hover { background-color: rgba(255,255,255,0.04) !important; }
+.dashboard-v2 .dv2-dark .hover\:bg-white\/\[0\.05\]:hover { background-color: rgba(255,255,255,0.05) !important; }
+.dashboard-v2 .dv2-dark .hover\:bg-white\/\[0\.06\]:hover { background-color: rgba(255,255,255,0.06) !important; }
+.dashboard-v2 .dv2-dark .hover\:bg-white\/\[0\.07\]:hover { background-color: rgba(255,255,255,0.07) !important; }
+.dashboard-v2 .dv2-dark .hover\:border-white\/\[0\.10\]:hover { border-color: rgba(255,255,255,0.10) !important; }
+.dashboard-v2 .dv2-dark .hover\:border-white\/\[0\.12\]:hover { border-color: rgba(255,255,255,0.12) !important; }
+.dashboard-v2 .dv2-dark .hover\:border-white\/\[0\.14\]:hover { border-color: rgba(255,255,255,0.14) !important; }
+.dashboard-v2 .dv2-dark .hover\:text-white:hover { color: #fff !important; }
+
+/* Inside a dv2-dark card, .bg-white button/anchor CTAs stay white with black text */
+.dashboard-v2 .dv2-dark button.bg-white,
+.dashboard-v2 .dv2-dark a.bg-white {
+  background-color: #fff !important;
+  color: #000 !important;
+}
+.dashboard-v2 .dv2-dark button.bg-white:hover,
+.dashboard-v2 .dv2-dark a.bg-white:hover {
+  background-color: rgba(255,255,255,0.95) !important;
+}
 
 /* Auth utility classes (rendered outside .dashboard-v2 in some cases) */
 html.light .auth-input {

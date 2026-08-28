@@ -1,12 +1,20 @@
 "use client";
 
 import { Suspense, useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import CursorGlowTracker from "@/components/CursorGlowTracker";
+import LandingFooter from "@/components/LandingFooter";
+
+/**
+ * /subscribe — payment funnel in the v4 light shell.
+ *
+ * Business logic (state machine, prices, API endpoints, polling) is
+ * preserved 1:1 from the previous dashboard-v2 implementation. Only
+ * the visual language is rebuilt to match /pricing and /about —
+ * MTS Wide typography on an off-white ground, white rounded cards,
+ * orange accent for Plus.
+ */
 
 type Plan = "basic" | "plus";
 
@@ -57,19 +65,21 @@ const PRICES: Record<Plan, PeriodOption[]> = {
 
 type PageStep = "plans" | "periods" | "payment-methods" | "processing" | "success" | "failed" | "expired";
 
-export default function PricingPage() {
+export default function SubscribePage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-dvh flex items-center justify-center">
-        <LoadingSpinner size="lg" className="text-primary" />
-      </div>
-    }>
-      <PricingContent />
+    <Suspense
+      fallback={
+        <div className="bg-[#f5f5f0] min-h-dvh flex items-center justify-center">
+          <LoadingSpinner size="lg" className="text-black" />
+        </div>
+      }
+    >
+      <SubscribeContent />
     </Suspense>
   );
 }
 
-function PricingContent() {
+function SubscribeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [step, setStep] = useState<PageStep>("plans");
@@ -78,6 +88,7 @@ function PricingContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   // Check for payment return from YooKassa
   useEffect(() => {
@@ -167,246 +178,178 @@ function PricingContent() {
     }
   };
 
+  const handleBack = () => {
+    if (step === "payment-methods") {
+      setStep("periods");
+    } else if (step === "periods") {
+      setStep("plans");
+      setSelectedPlan(null);
+    } else if (step === "plans") {
+      router.push("/pricing");
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
   // Step progress (1..3) for the visible indicator
   const stepNum = step === "plans" ? 1 : step === "periods" ? 2 : step === "payment-methods" ? 3 : 3;
+  const showSteps = step === "plans" || step === "periods" || step === "payment-methods";
 
   return (
-    <div className="dashboard-v2 min-h-dvh flex flex-col">
-      <CursorGlowTracker />
-      <Header showBack onBack={() => {
-        if (step === "payment-methods") {
-          setStep("periods");
-        } else if (step === "periods") {
-          setStep("plans");
-          setSelectedPlan(null);
-        } else {
-          router.push("/dashboard");
+    <div className="bg-[#f5f5f0] min-h-dvh flex flex-col text-black">
+      <TopBar
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        onBack={handleBack}
+        backLabel={
+          step === "plans"
+            ? "К тарифам"
+            : step === "periods" || step === "payment-methods"
+            ? "Назад"
+            : "В кабинет"
         }
-      }} />
+      />
 
-      {/* Step indicator (only on the 3 selection steps) */}
-      {(step === "plans" || step === "periods" || step === "payment-methods") && (
-        <div className="max-w-2xl w-full mx-auto px-4 sm:px-6 mt-1">
+      {showSteps && (
+        <div className="max-w-[900px] w-full mx-auto px-5 sm:px-8 mt-4">
           <div className="flex items-center gap-1.5">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
                 className={`h-1 rounded-full transition-all duration-500 ease-out ${
-                  i <= stepNum ? "flex-1 bg-white/85" : "w-8 bg-white/15"
+                  i <= stepNum ? "flex-1 bg-black/85" : "w-8 bg-black/10"
                 }`}
               />
             ))}
           </div>
+          <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mt-3">
+            Шаг {stepNum} из 3 —{" "}
+            {step === "plans" ? "Тариф" : step === "periods" ? "Срок" : "Оплата"}
+          </div>
         </div>
       )}
 
-      <PageContainer>
+      <main className="flex-1 w-full">
         {/* ═══ Plan Selection ═══ */}
         {step === "plans" && (
-          <div className="pt-4 sm:pt-8 max-w-2xl mx-auto w-full">
-            <div className="dv2-rise mb-7 sm:mb-9">
-              <div className="dv2-eyebrow mb-2">ШАГ 1 — ТАРИФ</div>
-              <h1 className="text-[32px] sm:text-[40px] font-light leading-[1.05] tracking-tight text-white">
+          <section className="max-w-[900px] mx-auto w-full px-5 sm:px-8 pt-8 sm:pt-12 pb-16">
+            <div className="mb-10 sm:mb-12">
+              <h1 className="font-mts-wide text-[36px] sm:text-[48px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
                 Выберите<br />
-                <span className="text-white/50">тариф</span>
+                <span className="text-black/45">тариф</span>
               </h1>
-              <p className="text-[13px] text-white/45 mt-3">
-                Максимальная свобода в интернете
+              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[52ch]">
+                Два тарифа, одинаковая инфраструктура. Plus добавляет приоритетную полосу и резервные каналы.
               </p>
             </div>
 
-            {/* Plus — featured floating card */}
-            <button
-              onClick={() => handleSelectPlan("plus")}
-              className="dv2-rise dv2-rise-1 dv2-elevate-accent dv2-glow w-full text-left rounded-[28px] p-6 sm:p-7 relative overflow-hidden mb-3 group"
-            >
-              <div className="absolute top-4 right-4 z-[2]">
-                <span className="text-[10px] font-mono uppercase tracking-[0.14em] bg-[#5E6AD2] text-white px-2.5 py-1 rounded-full">
-                  Популярный
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3.5 mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-[#5E6AD2]/20 border border-[#5E6AD2]/30 flex items-center justify-center text-[24px]">
-                  👑
-                </div>
-                <div>
-                  <div className="text-[20px] sm:text-[22px] font-medium text-white">Plus</div>
-                  <div className="text-[12px] text-white/50">от 217 ₽/мес</div>
-                </div>
-              </div>
-
-              <p className="text-[13px] text-white/65 mb-5 leading-relaxed">
-                Всегда на связи — даже когда другие сервисы не работают
-              </p>
-
-              <div className="space-y-2.5">
-                {PLANS.plus.features.map((f, i) => (
-                  <div key={i} className="flex items-center gap-3 text-[13px]">
-                    <span className="text-[15px] shrink-0">{f.icon}</span>
-                    <span className="text-white/85">{f.text}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-5 pt-5 border-t border-white/[0.06] flex items-center justify-between">
-                <span className="text-[#8F8FD9] font-medium text-[14px]">Выбрать Plus</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#8F8FD9] transition-transform group-hover:translate-x-0.5">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </div>
-            </button>
-
-            {/* Basic — calm secondary card */}
-            <button
-              onClick={() => handleSelectPlan("basic")}
-              className="dv2-rise dv2-rise-2 dv2-card dv2-glow w-full text-left rounded-[28px] p-6 sm:p-7 group"
-            >
-              <div className="flex items-center gap-3.5 mb-5">
-                <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-[24px]">
-                  🔒
-                </div>
-                <div>
-                  <div className="text-[20px] sm:text-[22px] font-medium text-white">Basic</div>
-                  <div className="text-[12px] text-white/50">от 133 ₽/мес</div>
-                </div>
-              </div>
-
-              <p className="text-[13px] text-white/65 mb-5 leading-relaxed">
-                Надёжная защита и стабильное соединение для повседневного использования
-              </p>
-
-              <div className="space-y-2.5">
-                {PLANS.basic.features.map((f, i) => (
-                  <div key={i} className="flex items-center gap-3 text-[13px]">
-                    <span className="text-[15px] shrink-0">{f.icon}</span>
-                    <span className="text-white/85">{f.text}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-5 pt-5 border-t border-white/[0.06] flex items-center justify-between">
-                <span className="text-white/85 font-medium text-[14px]">Выбрать Basic</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/40 transition-transform group-hover:translate-x-0.5">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </div>
-            </button>
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+              <PlanCard plan="plus" onSelect={() => handleSelectPlan("plus")} highlighted />
+              <PlanCard plan="basic" onSelect={() => handleSelectPlan("basic")} />
+            </div>
+          </section>
         )}
 
         {/* ═══ Period Selection ═══ */}
         {step === "periods" && selectedPlan && (
-          <div className="pt-4 sm:pt-8 max-w-2xl mx-auto w-full">
-            <div className="dv2-rise mb-6">
-              <div className="inline-flex items-center gap-2 bg-white/[0.04] border border-white/[0.06] rounded-full px-3 py-1 mb-4">
-                <span className="text-[14px]">{selectedPlan === "plus" ? "👑" : "🔒"}</span>
-                <span className="text-[12px] font-medium text-white/85">{PLANS[selectedPlan].name}</span>
-              </div>
-              <div className="dv2-eyebrow mb-2">ШАГ 2 — СРОК</div>
-              <h1 className="text-[32px] sm:text-[40px] font-light leading-[1.05] tracking-tight text-white">
-                Выберите<br /><span className="text-white/50">срок</span>
+          <section className="max-w-[900px] mx-auto w-full px-5 sm:px-8 pt-8 sm:pt-12 pb-16">
+            <div className="mb-10 sm:mb-12">
+              <PlanChip plan={selectedPlan} />
+              <h1 className="font-mts-wide text-[36px] sm:text-[48px] lg:text-[56px] leading-[1.02] tracking-tight font-bold mt-5">
+                Выберите<br />
+                <span className="text-black/45">срок</span>
               </h1>
-              <p className="text-[13px] text-white/45 mt-3">
-                Чем дольше срок — тем выгоднее
+              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[52ch]">
+                Чем дольше срок — тем ниже цена за месяц. Отмена в один клик из личного кабинета.
               </p>
             </div>
 
-            <div className="space-y-2.5">
-              {PRICES[selectedPlan].map((opt, index) => (
-                <button
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {PRICES[selectedPlan].map((opt) => (
+                <PeriodCard
                   key={opt.months}
-                  onClick={() => handleSelectPeriod(opt)}
+                  opt={opt}
+                  featured={opt.months === 12}
                   disabled={loading}
-                  className={`dv2-rise dv2-glow w-full text-left rounded-[22px] p-5 sm:p-6 group disabled:opacity-50 disabled:cursor-not-allowed ${
-                    opt.months === 12
-                      ? "dv2-elevate-accent"
-                      : "dv2-card"
-                  }`}
-                  style={{ animationDelay: `${(index + 1) * 70}ms` }}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-medium text-[14px] shrink-0 ${
-                        opt.months === 12
-                          ? "bg-[#5E6AD2]/20 border border-[#5E6AD2]/30 text-[#8F8FD9]"
-                          : "bg-white/[0.04] border border-white/[0.06] text-white/85"
-                      }`}>
-                        {opt.months}м
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-[15px] font-medium text-white truncate">{opt.label}</div>
-                        <div className="text-[12px] text-white/50">{opt.perMonth} ₽/мес</div>
-                      </div>
-                    </div>
-
-                    <div className="text-right flex items-center gap-2 shrink-0">
-                      {opt.discount && (
-                        <span className="text-[10px] font-medium bg-[#34D399]/15 text-[#34D399] px-2 py-0.5 rounded-full">
-                          {opt.discount}
-                        </span>
-                      )}
-                      <div className="text-[18px] sm:text-[20px] font-light text-white tabular-nums">
-                        {opt.price} <span className="text-white/40">₽</span>
-                      </div>
-                    </div>
-                  </div>
-                </button>
+                  onSelect={() => handleSelectPeriod(opt)}
+                />
               ))}
             </div>
 
-            {error && (
-              <div className="dv2-rise mt-4 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-2xl p-3">
-                <p className="text-[#EF4444] text-[13px] text-center">{error}</p>
-              </div>
-            )}
+            {error && <ErrorNote>{error}</ErrorNote>}
 
             {loading && (
               <div className="flex items-center justify-center gap-2 mt-6">
-                <LoadingSpinner size="sm" className="text-[#8F8FD9]" />
-                <p className="text-white/50 text-[13px]">Создаём платёж…</p>
+                <LoadingSpinner size="sm" className="text-black" />
+                <p className="font-mts-wide text-black/60 text-[13px]">Создаём платёж…</p>
               </div>
             )}
 
-            <p className="text-white/30 text-[11px] text-center mt-6 leading-relaxed">
+            <p className="font-mts-wide text-black/45 text-[12px] text-center mt-8 leading-[1.6]">
               Оплата через защищённую платёжную систему · 15 минут на оплату
             </p>
-          </div>
+          </section>
         )}
 
         {/* ═══ Payment Methods ═══ */}
         {step === "payment-methods" && selectedPlan && selectedPeriod && (
-          <div className="pt-4 sm:pt-8 max-w-2xl mx-auto w-full">
-            <div className="dv2-rise mb-6">
-              <div className="dv2-eyebrow mb-2">ШАГ 3 — ОПЛАТА</div>
-              <h1 className="text-[32px] sm:text-[40px] font-light leading-[1.05] tracking-tight text-white">
-                Способ<br /><span className="text-white/50">оплаты</span>
+          <section className="max-w-[900px] mx-auto w-full px-5 sm:px-8 pt-8 sm:pt-12 pb-16">
+            <div className="mb-8 sm:mb-10">
+              <h1 className="font-mts-wide text-[36px] sm:text-[48px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
+                Способ<br />
+                <span className="text-black/45">оплаты</span>
               </h1>
             </div>
 
-            {/* Order summary — featured floating card */}
-            <div className="dv2-rise dv2-rise-1 dv2-elevate dv2-glow rounded-[24px] bg-[#0F0F12] border border-white/[0.06] p-5 sm:p-6 mb-4">
-              <div className="dv2-eyebrow mb-3">К ОПЛАТЕ</div>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-[22px] shrink-0 ${
-                    selectedPlan === "plus" ? "bg-[#5E6AD2]/20 border border-[#5E6AD2]/30" : "bg-white/[0.04] border border-white/[0.06]"
-                  }`}>
-                    {selectedPlan === "plus" ? "👑" : "🔒"}
+            {/* Order summary */}
+            <div
+              className={`rounded-3xl p-6 sm:p-8 mb-4 ${
+                selectedPlan === "plus"
+                  ? "bg-[#F97316] text-black"
+                  : "bg-black text-white"
+              }`}
+            >
+              <div
+                className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase mb-4 ${
+                  selectedPlan === "plus" ? "text-black/55" : "text-white/55"
+                }`}
+              >
+                К оплате
+              </div>
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <div className="font-mts-wide text-[15px] sm:text-[17px] font-medium">
+                    {PLANS[selectedPlan].name} · {selectedPeriod.label}
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-[15px] font-medium text-white truncate">{PLANS[selectedPlan].name} · {selectedPeriod.label}</div>
-                    <div className="text-[12px] text-white/50">{selectedPeriod.perMonth} ₽/мес</div>
+                  <div
+                    className={`font-mts-wide text-[13px] mt-1 ${
+                      selectedPlan === "plus" ? "text-black/60" : "text-white/60"
+                    }`}
+                  >
+                    {selectedPeriod.perMonth} ₽/мес
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <div className="text-[28px] sm:text-[32px] font-light text-white tabular-nums leading-none">
-                    {selectedPeriod.price} <span className="text-white/40 text-[18px]">₽</span>
+                <div className="text-right">
+                  <div className="font-mts-wide text-[36px] sm:text-[44px] font-bold leading-none tabular-nums tracking-tight">
+                    {selectedPeriod.price}{" "}
+                    <span
+                      className={`text-[18px] font-medium ${
+                        selectedPlan === "plus" ? "text-black/55" : "text-white/55"
+                      }`}
+                    >
+                      ₽
+                    </span>
                   </div>
                   {selectedPeriod.discount && (
-                    <span className="inline-block mt-1.5 text-[10px] font-medium bg-[#34D399]/15 text-[#34D399] px-2 py-0.5 rounded-full">
+                    <div
+                      className={`inline-flex mt-2 font-mts-wide text-[11px] font-semibold tracking-[0.06em] px-2.5 py-1 rounded-full ${
+                        selectedPlan === "plus"
+                          ? "bg-black/15 text-black"
+                          : "bg-white/15 text-white"
+                      }`}
+                    >
                       экономия {selectedPeriod.discount}
-                    </span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -417,163 +360,479 @@ function PricingContent() {
               <button
                 onClick={handlePayYooKassa}
                 disabled={loading}
-                className="dv2-rise dv2-rise-2 dv2-card dv2-glow w-full text-left rounded-[24px] p-5 group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full text-left bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-7 flex items-center gap-5 transition-colors hover:border-black/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#3b82f6]/20 to-[#10b981]/20 border border-white/[0.06] flex items-center justify-center shrink-0">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white/90">
-                      <rect x="2" y="5" width="20" height="14" rx="2" />
-                      <line x1="2" y1="10" x2="22" y2="10" />
-                    </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[15px] font-medium text-white">Карта или СБП</div>
-                    <div className="text-[12px] text-white/45 mt-0.5">Visa, Mastercard, МИР, СБП</div>
-                  </div>
-                  {loading ? (
-                    <LoadingSpinner size="sm" className="text-[#8F8FD9] shrink-0" />
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white/40 shrink-0 transition-transform group-hover:translate-x-0.5">
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
-                  )}
+                <div className="w-14 h-14 rounded-2xl bg-black text-white flex items-center justify-center shrink-0">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                  </svg>
                 </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-mts-wide text-[16px] sm:text-[17px] font-semibold text-black">
+                    Карта или СБП
+                  </div>
+                  <div className="font-mts-wide text-[13px] text-black/60 mt-1">
+                    Visa, Mastercard, МИР, СБП
+                  </div>
+                </div>
+                {loading ? (
+                  <LoadingSpinner size="sm" className="text-black shrink-0" />
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-black/45 shrink-0">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                )}
               </button>
             </div>
 
-            {error && (
-              <div className="dv2-rise mt-4 bg-[#EF4444]/10 border border-[#EF4444]/25 rounded-2xl p-3">
-                <p className="text-[#EF4444] text-[13px] text-center">{error}</p>
-              </div>
-            )}
+            {error && <ErrorNote>{error}</ErrorNote>}
 
-            <div className="mt-6 flex items-center gap-2 justify-center text-white/30">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="mt-8 flex items-center gap-2 justify-center text-black/45">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" />
                 <path d="M7 11V7a5 5 0 0110 0v4" />
               </svg>
-              <p className="text-[11px]">Безопасная оплата через защищённый платёжный шлюз</p>
+              <p className="font-mts-wide text-[12px]">
+                Безопасная оплата через защищённый платёжный шлюз
+              </p>
             </div>
-          </div>
+          </section>
         )}
 
+        {/* ═══ Processing ═══ */}
         {step === "processing" && (
-          <div className="pt-12 sm:pt-20 flex flex-col items-center text-center max-w-md mx-auto w-full">
-            <div className="dv2-rise mb-6 relative">
-              <div className="absolute inset-0 rounded-full bg-[#5E6AD2]/20 blur-2xl animate-pulse" />
-              <LoadingSpinner size="lg" className="text-[#8F8FD9] relative" />
+          <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-white border border-black/[0.06] mb-8">
+              <LoadingSpinner size="lg" className="text-black" />
             </div>
-            <h1 className="dv2-rise dv2-rise-1 text-[32px] sm:text-[40px] font-light tracking-tight text-white mb-3">
+            <h1 className="font-mts-wide text-[36px] sm:text-[48px] leading-[1.02] tracking-tight font-bold">
               Проверяем оплату
             </h1>
-            <p className="dv2-rise dv2-rise-2 text-[14px] text-white/50 max-w-sm leading-relaxed">
+            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[48ch] mx-auto">
               Пожалуйста, подождите. Проверяем статус вашего платежа…
             </p>
-          </div>
+          </section>
         )}
 
         {/* ═══ Success ═══ */}
         {step === "success" && (
-          <div className="pt-12 sm:pt-20 flex flex-col items-center text-center max-w-md mx-auto w-full">
-            <div className="dv2-rise relative w-24 h-24 mb-6">
-              <div className="absolute inset-0 rounded-full bg-[#34D399]/15 animate-ping" style={{ animationDuration: "2.4s" }} />
-              <div className="relative w-full h-full rounded-full bg-gradient-to-br from-[#34D399]/30 to-[#34D399]/10 border border-[#34D399]/30 flex items-center justify-center">
-                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-              </div>
+          <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-emerald-500 text-white mb-8">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
             </div>
-
-            <h1 className="dv2-rise dv2-rise-1 text-[36px] sm:text-[44px] font-light tracking-tight leading-[1.05] text-white mb-3">
-              Оплата прошла
+            <h1 className="font-mts-wide text-[40px] sm:text-[56px] leading-[1.02] tracking-tight font-bold">
+              Оплата принята
             </h1>
-            <p className="dv2-rise dv2-rise-2 text-[14px] text-white/50 max-w-sm leading-relaxed mb-8">
+            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[48ch] mx-auto mb-10">
               Подписка успешно продлена. Ключ активен и готов к использованию.
             </p>
-
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="dv2-rise dv2-rise-3 w-full max-w-xs h-14 rounded-2xl bg-white text-black font-medium text-[15px] hover:bg-white/95 transition-all active:scale-[0.985]"
+            <Link
+              href="/dashboard"
+              className="font-mts-wide inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-8 rounded-2xl bg-[#F97316] text-black font-semibold text-[15px] hover:bg-[#ea6a0d] transition-colors active:scale-[0.98]"
             >
               Перейти в кабинет
-            </button>
-          </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </Link>
+          </section>
         )}
 
         {/* ═══ Failed ═══ */}
         {step === "failed" && (
-          <div className="pt-12 sm:pt-20 flex flex-col items-center text-center max-w-md mx-auto w-full">
-            <div className="dv2-rise relative w-24 h-24 mb-6">
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-[#EF4444]/25 to-[#EF4444]/5 border border-[#EF4444]/30 flex items-center justify-center">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </div>
+          <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-red-500 text-white mb-8">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
             </div>
-
-            <h1 className="dv2-rise dv2-rise-1 text-[36px] sm:text-[44px] font-light tracking-tight leading-[1.05] text-white mb-3">
-              Оплата<br /><span className="text-white/50">не прошла</span>
+            <h1 className="font-mts-wide text-[40px] sm:text-[56px] leading-[1.02] tracking-tight font-bold">
+              Оплата<br />
+              <span className="text-black/45">не прошла</span>
             </h1>
-            <p className="dv2-rise dv2-rise-2 text-[14px] text-white/50 max-w-sm leading-relaxed mb-8">
+            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[48ch] mx-auto mb-10">
               Платёж отклонён или отменён. Попробуйте ещё раз или используйте другую карту.
             </p>
-
-            <div className="dv2-rise dv2-rise-3 w-full max-w-xs space-y-2.5">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
-                onClick={() => { setStep("plans"); setSelectedPlan(null); setError(""); }}
-                className="w-full h-14 rounded-2xl bg-white text-black font-medium text-[15px] hover:bg-white/95 transition-all active:scale-[0.985]"
+                onClick={() => {
+                  setStep("plans");
+                  setSelectedPlan(null);
+                  setError("");
+                }}
+                className="font-mts-wide inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-8 rounded-2xl bg-black text-white font-medium text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]"
               >
                 Попробовать снова
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
               </button>
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[13px] hover:bg-white/[0.06] transition-all active:scale-[0.985]"
+              <Link
+                href="/dashboard"
+                className="font-mts-wide inline-flex items-center justify-center h-12 px-8 rounded-2xl border border-black/15 text-black/85 font-medium text-[14px] hover:bg-black/5 transition-colors active:scale-[0.98]"
               >
                 Вернуться в кабинет
-              </button>
+              </Link>
             </div>
-          </div>
+          </section>
         )}
 
         {/* ═══ Expired ═══ */}
         {step === "expired" && (
-          <div className="pt-12 sm:pt-20 flex flex-col items-center text-center max-w-md mx-auto w-full">
-            <div className="dv2-rise relative w-24 h-24 mb-6">
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-[#F59E0B]/25 to-[#F59E0B]/5 border border-[#F59E0B]/30 flex items-center justify-center">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-              </div>
+          <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-amber-500 text-white mb-8">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
             </div>
-
-            <h1 className="dv2-rise dv2-rise-1 text-[36px] sm:text-[44px] font-light tracking-tight leading-[1.05] text-white mb-3">
-              Время<br /><span className="text-white/50">истекло</span>
+            <h1 className="font-mts-wide text-[40px] sm:text-[56px] leading-[1.02] tracking-tight font-bold">
+              Время<br />
+              <span className="text-black/45">истекло</span>
             </h1>
-            <p className="dv2-rise dv2-rise-2 text-[14px] text-white/50 max-w-sm leading-relaxed mb-8">
+            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[48ch] mx-auto mb-10">
               Платёж не был оплачен в течение 15 минут и аннулирован. Создайте новый.
             </p>
-
-            <div className="dv2-rise dv2-rise-3 w-full max-w-xs space-y-2.5">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
-                onClick={() => { setStep("plans"); setSelectedPlan(null); setError(""); }}
-                className="w-full h-14 rounded-2xl bg-white text-black font-medium text-[15px] hover:bg-white/95 transition-all active:scale-[0.985]"
+                onClick={() => {
+                  setStep("plans");
+                  setSelectedPlan(null);
+                  setError("");
+                }}
+                className="font-mts-wide inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-8 rounded-2xl bg-black text-white font-medium text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]"
               >
                 Создать новый платёж
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
               </button>
-              <button
-                onClick={() => router.push("/dashboard")}
-                className="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[13px] hover:bg-white/[0.06] transition-all active:scale-[0.985]"
+              <Link
+                href="/dashboard"
+                className="font-mts-wide inline-flex items-center justify-center h-12 px-8 rounded-2xl border border-black/15 text-black/85 font-medium text-[14px] hover:bg-black/5 transition-colors active:scale-[0.98]"
               >
                 Вернуться в кабинет
-              </button>
+              </Link>
             </div>
-          </div>
+          </section>
         )}
-      </PageContainer>
+      </main>
 
-      <Footer />
+      <LandingFooter />
+    </div>
+  );
+}
+
+// ─── TopBar ─────────────────────────────────────────────────────
+
+function TopBar({
+  menuOpen,
+  setMenuOpen,
+  onBack,
+  backLabel,
+}: {
+  menuOpen: boolean;
+  setMenuOpen: (v: boolean) => void;
+  onBack: () => void;
+  backLabel: string;
+}) {
+  const links = [
+    { label: "Тарифы", href: "/pricing" },
+    { label: "Устройства", href: "/devices" },
+    { label: "Кабинет", href: "/dashboard" },
+    { label: "Поддержка", href: "/contact" },
+  ];
+  return (
+    <>
+      <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
+        <div className="flex items-center gap-3 sm:gap-5">
+          <Link href="/" className="flex items-center gap-2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">
+              atlas.secure
+            </span>
+          </Link>
+          <button
+            onClick={onBack}
+            className="hidden sm:inline-flex items-center gap-1.5 font-mts-wide text-[13px] text-black/60 hover:text-black transition-colors pl-3 border-l border-black/15"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            {backLabel}
+          </button>
+        </div>
+
+        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-black/60">
+          {links.map((l) => (
+            <Link key={l.href} href={l.href} className="hover:text-black transition-colors">
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+
+        <button
+          className="md:hidden w-11 h-11 rounded-full bg-white border border-black/10 flex items-center justify-center active:scale-[0.95] transition-transform"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Меню"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile back button — visible on mobile only, right under top bar */}
+      <div className="sm:hidden px-5 pt-4">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 font-mts-wide text-[13px] text-black/60"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          {backLabel}
+        </button>
+      </div>
+
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8 font-mts-wide"
+          onClick={() => setMenuOpen(false)}
+        >
+          <button
+            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center active:scale-[0.95] transition-transform"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Закрыть"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+          {links.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="text-white text-2xl"
+              onClick={() => setMenuOpen(false)}
+            >
+              {l.label}
+            </Link>
+          ))}
+          <Link
+            href="/auth"
+            className="mt-4 px-6 py-3 rounded-full bg-white text-black text-base"
+            onClick={() => setMenuOpen(false)}
+          >
+            Войти
+          </Link>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── Plan card ──────────────────────────────────────────────────
+
+function PlanCard({
+  plan,
+  onSelect,
+  highlighted,
+}: {
+  plan: Plan;
+  onSelect: () => void;
+  highlighted?: boolean;
+}) {
+  const cheapestPerMonth = Math.min(...PRICES[plan].map((p) => p.perMonth));
+  const cardBg = highlighted
+    ? "bg-[#F97316] text-black"
+    : "bg-white text-black border border-black/[0.06]";
+  const bodyText = highlighted ? "text-black/75" : "text-black/70";
+  const muted = highlighted ? "text-black/60" : "text-black/55";
+  const divider = highlighted ? "bg-black/15" : "bg-black/[0.08]";
+  const cta = highlighted
+    ? "bg-black text-white hover:bg-neutral-800"
+    : "bg-black text-white hover:bg-neutral-800";
+
+  return (
+    <button
+      onClick={onSelect}
+      className={`text-left rounded-3xl p-6 sm:p-8 flex flex-col transition-transform active:scale-[0.99] ${cardBg}`}
+    >
+      <div className="flex items-center justify-between">
+        <div className={`font-mts-wide text-[13px] tracking-[0.14em] uppercase font-semibold ${muted}`}>
+          {PLANS[plan].name}
+        </div>
+        {highlighted && (
+          <span className="font-mts-wide text-[10px] font-bold uppercase tracking-[0.14em] text-black/70 bg-black/10 px-2.5 py-1 rounded-full">
+            Популярный
+          </span>
+        )}
+      </div>
+
+      <p className={`font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] mt-3 ${bodyText}`}>
+        {plan === "basic"
+          ? "Стабильное соединение для повседневного использования"
+          : "Всегда на связи — даже когда другие сервисы не работают"}
+      </p>
+
+      <div className="mt-6 flex items-baseline gap-2">
+        <span className="font-mts-wide text-[44px] sm:text-[52px] font-bold leading-none tabular-nums tracking-tight">
+          от {cheapestPerMonth}
+        </span>
+        <span className={`font-mts-wide text-[16px] font-medium ${muted}`}>₽/мес</span>
+      </div>
+
+      <div className={`h-px my-6 sm:my-7 ${divider}`} />
+
+      <ul className="space-y-3 mb-8">
+        {PLANS[plan].features.map((f) => (
+          <li
+            key={f.text}
+            className={`flex items-start gap-3 font-mts-wide text-[14px] sm:text-[15px] leading-[1.4] ${
+              highlighted ? "text-black/85" : "text-black/85"
+            }`}
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`mt-0.5 shrink-0 ${highlighted ? "text-black/70" : "text-black/50"}`}
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {f.text}
+          </li>
+        ))}
+      </ul>
+
+      <div
+        className={`mt-auto font-mts-wide inline-flex items-center justify-center gap-2 h-12 sm:h-14 rounded-2xl font-medium text-[15px] ${cta}`}
+      >
+        Выбрать {PLANS[plan].name}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      </div>
+    </button>
+  );
+}
+
+// ─── Period card ────────────────────────────────────────────────
+
+function PeriodCard({
+  opt,
+  featured,
+  disabled,
+  onSelect,
+}: {
+  opt: PeriodOption;
+  featured?: boolean;
+  disabled?: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      disabled={disabled}
+      className={`text-left rounded-3xl p-6 sm:p-7 flex flex-col transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed ${
+        featured
+          ? "bg-black text-white hover:bg-neutral-800"
+          : "bg-white text-black border border-black/[0.06] hover:border-black/30"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div
+          className={`font-mts-wide text-[13px] tracking-[0.14em] uppercase font-semibold ${
+            featured ? "text-white/60" : "text-black/55"
+          }`}
+        >
+          {opt.label}
+        </div>
+        {opt.discount && (
+          <span
+            className={`font-mts-wide text-[11px] font-semibold px-2.5 py-1 rounded-full ${
+              featured ? "bg-white/15 text-white" : "bg-emerald-500/15 text-emerald-700"
+            }`}
+          >
+            {opt.discount}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-5 flex items-baseline gap-2">
+        <span className="font-mts-wide text-[36px] sm:text-[42px] font-bold leading-none tabular-nums tracking-tight">
+          {opt.price}
+        </span>
+        <span
+          className={`font-mts-wide text-[16px] font-medium ${
+            featured ? "text-white/60" : "text-black/55"
+          }`}
+        >
+          ₽
+        </span>
+      </div>
+
+      <div
+        className={`font-mts-wide text-[13px] mt-2 ${
+          featured ? "text-white/60" : "text-black/55"
+        }`}
+      >
+        {opt.perMonth} ₽/мес
+      </div>
+
+      <div
+        className={`mt-6 font-mts-wide inline-flex items-center gap-2 text-[14px] font-medium ${
+          featured ? "text-white" : "text-black/85"
+        }`}
+      >
+        Выбрать
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      </div>
+    </button>
+  );
+}
+
+// ─── PlanChip (used in periods header) ──────────────────────────
+
+function PlanChip({ plan }: { plan: Plan }) {
+  const isPlus = plan === "plus";
+  return (
+    <div
+      className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mts-wide text-[12px] font-semibold tracking-[0.08em] uppercase ${
+        isPlus ? "bg-[#F97316] text-black" : "bg-black text-white"
+      }`}
+    >
+      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
+      {PLANS[plan].name}
+    </div>
+  );
+}
+
+// ─── ErrorNote ──────────────────────────────────────────────────
+
+function ErrorNote({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mt-4 bg-red-50 border border-red-200 rounded-2xl p-4">
+      <p className="font-mts-wide text-red-700 text-[13px] text-center leading-[1.6]">
+        {children}
+      </p>
     </div>
   );
 }

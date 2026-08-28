@@ -30,7 +30,7 @@ export default function ThemeToggleButton() {
             </svg>
           )}
         </div>
-        <div className="text-[13px] font-medium text-white/90 truncate">
+        <div className="font-mts-wide text-[13px] font-medium text-white/90 truncate">
           {isDark ? "Тёмная тема" : "Светлая тема"}
         </div>
       </div>

@@ -1,246 +1,321 @@
 "use client";
 
 import Link from "next/link";
-import PremiumPage from "@/components/PremiumPage";
-import { useI18n } from "@/lib/i18n";
+import LandingFooter from "@/components/LandingFooter";
 
-const DCS = [
-  { x: 505, y: 155, name: "Frankfurt", label: "FRA" },
-  { x: 595, y: 140, name: "Moscow", label: "MOW" },
-  { x: 825, y: 295, name: "Sydney", label: "SYD" },
+/**
+ * /infrastructure — technical marketing page in the v4 light shell.
+ *
+ * Rhythm: top bar → hero → stats → data-center cards → network
+ * feature cards → registry (spec sheet) → orange CTA → footer.
+ * Every technical claim (Tier ratings, peering fabrics, PUE,
+ * latency, uptime SLA) is preserved verbatim from the source.
+ */
+
+const DATACENTERS = [
+  {
+    region: "EU",
+    city: "Франкфурт",
+    country: "Germany",
+    facility: "Tier IV · Equinix FR5",
+    rows: [
+      ["Комплаенс",   "GDPR · BSI C5 · ISO 27001"],
+      ["Пиринг",      "DE-CIX · 10 Tbps+"],
+      ["Питание",     "100% возобновляемое · PUE 1.3"],
+      ["Резерв",      "2N UPS · N+1 охлаждение"],
+      ["Задержка в EU", "< 3 мс"],
+    ] as Array<[string, string]>,
+  },
+  {
+    region: "RU",
+    city: "Москва",
+    country: "Russia",
+    facility: "Tier III+ · M9",
+    rows: [
+      ["Комплаенс",     "152-ФЗ · ФСТЭК · ГОСТ"],
+      ["Пиринг",        "MSK-IX · 8 Tbps"],
+      ["Питание",       "2N дизельный резерв"],
+      ["Резерв",        "2N питание · N+1 охлаждение"],
+      ["Задержка в RU", "< 5 мс"],
+    ] as Array<[string, string]>,
+  },
+  {
+    region: "APAC",
+    city: "Сидней",
+    country: "Australia",
+    facility: "Tier III · NEXTDC S2",
+    rows: [
+      ["Комплаенс",       "Privacy Act · ASD ISM · SOC 2"],
+      ["Пиринг",          "AMS-IX Pacific · Megaport"],
+      ["Питание",         "2N UPS · N+2 охлаждение"],
+      ["Покрытие",        "APAC · JP · SG · NZ"],
+      ["Задержка в APAC", "< 15 мс"],
+    ] as Array<[string, string]>,
+  },
+];
+
+const NETWORK_FEATURES = [
+  {
+    t: "Пропускная способность",
+    d: "До 200 Gb/s на сервер. Двойной аплинк, BGP Anycast, переключение регионов менее 30 секунд.",
+  },
+  {
+    t: "Задержка",
+    d: "Менее 5 мс в регионе. Оптимизированный пиринг с DE-CIX, AMS-IX, MSK-IX, Megaport.",
+  },
+  {
+    t: "SLA аптайм",
+    d: "99.98% гарантированно. Кредиты начисляются автоматически при любом нарушении в течение месяца.",
+  },
+  {
+    t: "DDoS-защита",
+    d: "Terabit-scale фильтрация апстрим. L3/L4/L7 защита, активация менее 10 секунд.",
+  },
+  {
+    t: "Мониторинг",
+    d: "Независимый Prometheus, синтетические пробы с 12 континентов, RUM-мониторинг.",
+  },
+  {
+    t: "NOC 24/7/365",
+    d: "Tier-2 инженеры круглосуточно. Реакция на инцидент менее 15 минут.",
+  },
+];
+
+const REGISTRY: Array<[string, string]> = [
+  ["Штаб-квартира",    "Гонконг, КНР (SAR)"],
+  ["Партнёрские ЦОД",  "Франкфурт · Москва · Сидней"],
+  ["Пропускная способность", "До 200 Gb/s на сервер"],
+  ["Задержка в регионе",     "< 5 мс"],
+  ["Аптайм SLA",             "99.98% гарантированно"],
+  ["Магистраль",             "BGP Anycast, двойной аплинк"],
+  ["Точки обмена",           "DE-CIX · MSK-IX · AMS-IX Pacific · Megaport"],
+  ["Стандарты",              "ISO/IEC 27001 · SOC 2 Type II · BSI C5 · GDPR · 152-ФЗ · ФСТЭК"],
+  ["Питание",                "2N UPS, N+1/N+2 охлаждение, дизельный резерв"],
+  ["Режим работы",           "NOC 24/7/365 · реакция < 15 мин"],
+];
+
+// Map dots for the world silhouette — coordinates preserved verbatim.
+const MAP_DOTS = {
+  na: [[120, 150], [140, 150], [160, 150], [180, 160], [200, 170], [120, 170], [140, 170], [160, 170], [100, 190], [120, 190], [140, 190], [160, 190], [180, 190], [140, 210], [160, 210], [180, 210], [200, 210], [180, 230], [200, 230], [220, 230]],
+  sa: [[260, 280], [280, 280], [260, 300], [280, 300], [300, 320], [280, 320], [280, 340], [300, 340], [280, 360], [300, 360]],
+  eu: [[480, 140], [500, 140], [520, 140], [540, 140], [480, 160], [500, 160], [520, 160], [540, 160], [560, 160], [580, 160], [500, 180], [520, 180], [540, 180], [560, 180], [580, 180]],
+  af: [[500, 220], [520, 220], [540, 220], [500, 240], [520, 240], [540, 240], [560, 240], [520, 260], [540, 260], [520, 280], [540, 280], [520, 300], [540, 300], [520, 320]],
+  as: [[600, 140], [620, 140], [640, 140], [660, 140], [680, 140], [700, 140], [720, 140], [740, 140], [760, 140], [620, 160], [640, 160], [660, 160], [680, 160], [700, 160], [720, 160], [740, 160], [640, 180], [660, 180], [680, 180], [700, 180], [720, 180], [740, 180], [660, 200], [680, 200], [700, 200], [720, 200], [740, 200], [680, 220], [700, 220], [720, 220]],
+  au: [[800, 300], [820, 300], [840, 300], [820, 320], [840, 320], [800, 320]],
+};
+
+const DC_NODES = [
+  { x: 505, y: 155, name: "Франкфурт", label: "FRA" },
+  { x: 595, y: 140, name: "Москва",    label: "MOW" },
+  { x: 825, y: 295, name: "Сидней",    label: "SYD" },
 ];
 
 export default function InfrastructurePage() {
-  const { locale } = useI18n();
-  const en = locale === "en";
-
   return (
-    <PremiumPage>
-      {/* HERO */}
-      <section className="plx-hero">
-        <div className="plx-hero-bg" />
-        <div className="plx-hero-grid" />
-        <div className="plx-wrap plx-hero-wide">
-          <div className="pl-entrance pl-ed1">
-            <div className="plx-eyebrow">{en ? "INFRASTRUCTURE" : "ИНФРАСТРУКТУРА"}</div>
-            <h1 className="plx-hero-title">
-              {en ? "Three jurisdictions.\n" : "Три юрисдикции.\n"}
-              <span className="plx-grad">{en ? "One standard." : "Один стандарт."}</span>
-            </h1>
-            <p className="plx-hero-desc">
-              {en
-                ? "Partner data centers across Europe, APAC, and Russia. Tier III+ facilities, 2N power redundancy, carrier-neutral peering, 24/7/365 on-site operations."
-                : "Партнёрские дата-центры в Европе, АТР и России. Объекты Tier III+, резервирование питания 2N, carrier-neutral пиринг, on-site операции 24/7/365."}
-            </p>
-          </div>
+    <div className="bg-[#f5f5f0] min-h-dvh flex flex-col text-black">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
+        <Link href="/" className="flex items-center gap-2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-black/60">
+          <Link href="/pricing"  className="hover:text-black transition-colors">Тарифы</Link>
+          <Link href="/security" className="hover:text-black transition-colors">Безопасность</Link>
+          <Link href="/about"    className="hover:text-black transition-colors">О нас</Link>
+          <Link href="/contact"  className="hover:text-black transition-colors">Поддержка</Link>
+          <Link href="/auth"     className="ml-3 px-4 py-2 rounded-full bg-black text-white hover:bg-neutral-800 transition-colors">Войти</Link>
+        </nav>
+      </div>
+
+      {/* Hero */}
+      <section className="px-5 sm:px-8 pt-16 pb-16 sm:pt-24 sm:pb-24 max-w-[1200px] mx-auto w-full">
+        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-5">
+          Инфраструктура
+        </div>
+        <h1 className="font-mts-wide text-[40px] sm:text-[56px] lg:text-[80px] leading-[1.02] tracking-tight font-bold max-w-[14ch]">
+          Три юрисдикции.<br />Один стандарт.
+        </h1>
+        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-black/55 mt-8 max-w-[58ch]">
+          Партнёрские дата-центры в Европе, АТР и России. Объекты Tier III+, резервирование питания 2N, carrier-neutral пиринг, on-site операции 24/7/365.
+        </p>
+      </section>
+
+      {/* Stats */}
+      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          {[
+            ["200 Gb/s", "На сервер"],
+            ["< 5 мс",   "Задержка в регионе"],
+            ["99.98%",   "Аптайм SLA"],
+            ["24/7",     "NOC дежурит"],
+          ].map(([v, l]) => (
+            <div key={l} className="bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6">
+              <div className="font-mts-wide text-[32px] sm:text-[44px] font-bold leading-none tracking-tight tabular-nums">{v}</div>
+              <div className="font-mts-wide text-[12px] tracking-[0.10em] uppercase text-black/45 mt-3">{l}</div>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* WORLD MAP */}
-      <section style={{ padding: "0 0 100px" }}>
-        <div className="plx-wrap">
-          <div className="plx-map-wrap">
-            <svg viewBox="0 0 1000 500" className="plx-map-svg">
-              {/* Dot-grid world silhouette — simplified continent patches */}
-              <g fill="rgba(255,255,255,0.12)">
-                {/* North America */}
-                {[[120, 150], [140, 150], [160, 150], [180, 160], [200, 170], [120, 170], [140, 170], [160, 170], [100, 190], [120, 190], [140, 190], [160, 190], [180, 190], [140, 210], [160, 210], [180, 210], [200, 210], [180, 230], [200, 230], [220, 230]].map(([x, y], i) => <circle key={`na${i}`} cx={x} cy={y} r="1.5" />)}
-                {/* South America */}
-                {[[260, 280], [280, 280], [260, 300], [280, 300], [300, 320], [280, 320], [280, 340], [300, 340], [280, 360], [300, 360]].map(([x, y], i) => <circle key={`sa${i}`} cx={x} cy={y} r="1.5" />)}
-                {/* Europe */}
-                {[[480, 140], [500, 140], [520, 140], [540, 140], [480, 160], [500, 160], [520, 160], [540, 160], [560, 160], [580, 160], [500, 180], [520, 180], [540, 180], [560, 180], [580, 180]].map(([x, y], i) => <circle key={`eu${i}`} cx={x} cy={y} r="1.5" />)}
-                {/* Africa */}
-                {[[500, 220], [520, 220], [540, 220], [500, 240], [520, 240], [540, 240], [560, 240], [520, 260], [540, 260], [520, 280], [540, 280], [520, 300], [540, 300], [520, 320]].map(([x, y], i) => <circle key={`af${i}`} cx={x} cy={y} r="1.5" />)}
-                {/* Asia */}
-                {[[600, 140], [620, 140], [640, 140], [660, 140], [680, 140], [700, 140], [720, 140], [740, 140], [760, 140], [620, 160], [640, 160], [660, 160], [680, 160], [700, 160], [720, 160], [740, 160], [640, 180], [660, 180], [680, 180], [700, 180], [720, 180], [740, 180], [660, 200], [680, 200], [700, 200], [720, 200], [740, 200], [680, 220], [700, 220], [720, 220]].map(([x, y], i) => <circle key={`as${i}`} cx={x} cy={y} r="1.5" />)}
-                {/* Australia */}
-                {[[800, 300], [820, 300], [840, 300], [820, 320], [840, 320], [800, 320]].map(([x, y], i) => <circle key={`au${i}`} cx={x} cy={y} r="1.5" />)}
+      {/* World map card */}
+      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
+        <div className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-10">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
+            <div>
+              <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mb-3">Присутствие</div>
+              <h2 className="font-mts-wide text-[22px] sm:text-[28px] font-bold leading-tight">Три опорные точки</h2>
+            </div>
+            <div className="font-mts-wide text-[12px] tracking-[0.10em] uppercase text-black/45">FRA · MOW · SYD</div>
+          </div>
+
+          <div className="w-full overflow-x-auto">
+            <svg viewBox="0 0 1000 500" className="w-full min-w-[720px] h-auto" role="img" aria-label="Карта присутствия">
+              {/* Continent dots */}
+              <g fill="rgba(0,0,0,0.14)">
+                {MAP_DOTS.na.map(([x, y], i) => <circle key={`na${i}`} cx={x} cy={y} r="1.5" />)}
+                {MAP_DOTS.sa.map(([x, y], i) => <circle key={`sa${i}`} cx={x} cy={y} r="1.5" />)}
+                {MAP_DOTS.eu.map(([x, y], i) => <circle key={`eu${i}`} cx={x} cy={y} r="1.5" />)}
+                {MAP_DOTS.af.map(([x, y], i) => <circle key={`af${i}`} cx={x} cy={y} r="1.5" />)}
+                {MAP_DOTS.as.map(([x, y], i) => <circle key={`as${i}`} cx={x} cy={y} r="1.5" />)}
+                {MAP_DOTS.au.map(([x, y], i) => <circle key={`au${i}`} cx={x} cy={y} r="1.5" />)}
               </g>
 
               {/* Connection lines between DCs */}
-              <g stroke="#5E6AD2" strokeWidth="1" fill="none" opacity="0.4" strokeDasharray="3 4">
+              <g stroke="#111" strokeWidth="1" fill="none" opacity="0.35" strokeDasharray="3 4">
                 <path d="M505 155 Q550 120 595 140" />
                 <path d="M505 155 Q665 225 825 295" />
                 <path d="M595 140 Q710 220 825 295" />
               </g>
 
-              {/* DC nodes with pulse */}
-              {DCS.map((dc) => (
-                <g key={dc.name} className="plx-map-node">
-                  <circle cx={dc.x} cy={dc.y} r="18" fill="rgba(94,106,210,0.15)" className="plx-map-pulse" />
-                  <circle cx={dc.x} cy={dc.y} r="10" fill="rgba(94,106,210,0.3)" />
-                  <circle cx={dc.x} cy={dc.y} r="5" fill="#5E6AD2" stroke="#fff" strokeWidth="1" />
-                  <text x={dc.x} y={dc.y - 24} textAnchor="middle" className="plx-map-label">{dc.label}</text>
-                  <text x={dc.x} y={dc.y + 34} textAnchor="middle" fontFamily="Inter" fontSize="12" fill="#F2F2F2" fontWeight="500">{dc.name}</text>
-                </g>
-              ))}
-            </svg>
-          </div>
-        </div>
-      </section>
-
-      {/* DC CARDS */}
-      <section className="plx-section" style={{ paddingTop: 0 }}>
-        <div className="plx-wrap">
-          <div className="plx-section-head">
-            <div className="plx-section-label">{en ? "Facilities" : "Объекты"}</div>
-            <h2 className="plx-section-title">{en ? "Where your workloads run" : "Где работают ваши нагрузки"}</h2>
-            <p className="plx-section-desc">{en ? "Carrier-neutral, Tier III+ facilities with certified compliance for each jurisdiction." : "Carrier-neutral объекты Tier III+ с сертифицированным комплаенсом для каждой юрисдикции."}</p>
-          </div>
-          <div className="plx-dcgrid">
-            {[
-              {
-                flag: "🇩🇪 EU", title: "Frankfurt, DE", sub: "Tier IV · Equinix FR5",
-                rows: [
-                  ["Compliance", "GDPR · BSI C5 · ISO 27001"],
-                  ["Peering", "DE-CIX · 10 Tbps+"],
-                  ["Power", "100% renewable · PUE 1.3"],
-                  ["Redundancy", "2N UPS · N+1 cooling"],
-                  ["Latency → EU", "< 3 ms"],
-                ],
-              },
-              {
-                flag: "🇷🇺 RU", title: en ? "Moscow, RU" : "Москва, RU", sub: "Tier III+ · M9",
-                rows: [
-                  ["Compliance", "152-ФЗ · ФСТЭК · ГОСТ"],
-                  ["Peering", "MSK-IX · 8 Tbps"],
-                  ["Power", "2N diesel backup"],
-                  ["Redundancy", "2N power · N+1 cooling"],
-                  ["Latency → RU", "< 5 ms"],
-                ],
-              },
-              {
-                flag: "🇦🇺 APAC", title: "Sydney, AU", sub: "Tier III · NEXTDC S2",
-                rows: [
-                  ["Compliance", "Privacy Act · ASD ISM · SOC 2"],
-                  ["Peering", "AMS-IX Pacific · Megaport"],
-                  ["Power", "2N UPS · N+2 cooling"],
-                  ["Coverage", "APAC · JP · SG · NZ"],
-                  ["Latency → APAC", "< 15 ms"],
-                ],
-              },
-            ].map((dc) => (
-              <div key={dc.title} className="plx-dc">
-                <div className="plx-dc-flag">{dc.flag}</div>
-                <div className="plx-dc-title">{dc.title}</div>
-                <div className="plx-dc-sub">{dc.sub}</div>
-                {dc.rows.map(([k, v]) => (
-                  <div key={k} className="plx-dc-row"><span className="plx-dc-k">{k}</span><span className="plx-dc-v">{v}</span></div>
-                ))}
-                <div className="plx-dc-status">{en ? "Operational" : "Работает"}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* STATS */}
-      <section style={{ padding: "0 0 100px" }}>
-        <div className="plx-wrap">
-          <div className="plx-stats">
-            <div className="plx-stat"><div className="plx-stat-val">200 Gb/s</div><div className="plx-stat-label">{en ? "Per-server bandwidth" : "На сервер"}</div></div>
-            <div className="plx-stat"><div className="plx-stat-val">&lt; 5 ms</div><div className="plx-stat-label">{en ? "Regional latency" : "Задержка в регионе"}</div></div>
-            <div className="plx-stat"><div className="plx-stat-val">99.98%</div><div className="plx-stat-label">{en ? "Uptime SLA" : "Аптайм SLA"}</div></div>
-            <div className="plx-stat"><div className="plx-stat-val">24/7</div><div className="plx-stat-label">{en ? "NOC staffed" : "NOC дежурит"}</div></div>
-          </div>
-        </div>
-      </section>
-
-      {/* NETWORK TOPOLOGY */}
-      <section className="plx-section" style={{ paddingTop: 0 }}>
-        <div className="plx-wrap">
-          <div className="plx-section-head">
-            <div className="plx-section-label">{en ? "Network" : "Сеть"}</div>
-            <h2 className="plx-section-title">{en ? "Designed to stay up" : "Спроектировано жить"}</h2>
-            <p className="plx-section-desc">{en ? "BGP Anycast routing, dual-carrier uplinks, sub-30s failover between regions." : "BGP Anycast маршрутизация, два аплинка, переключение между регионами менее 30с."}</p>
-          </div>
-          <div style={{ border: "1px solid var(--pl-border)", borderRadius: 20, background: "var(--pl-surface)", padding: 40 }}>
-            <svg viewBox="0 0 900 360" className="plx-topo">
-              <defs>
-                <linearGradient id="topoCore" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0" stopColor="#5E6AD2" stopOpacity="0" />
-                  <stop offset="0.5" stopColor="#5E6AD2" />
-                  <stop offset="1" stopColor="#5E6AD2" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {/* Core backbone */}
-              <line x1="150" y1="180" x2="750" y2="180" stroke="url(#topoCore)" strokeWidth="2" />
               {/* DC nodes */}
-              {[
-                { x: 150, y: 180, label: "FRA", role: "Core" },
-                { x: 450, y: 180, label: "MOW", role: "Core" },
-                { x: 750, y: 180, label: "SYD", role: "Core" },
-              ].map((n) => (
-                <g key={n.label}>
-                  <circle cx={n.x} cy={n.y} r="36" className="plx-topo-node-acc" />
-                  <text x={n.x} y={n.y + 4} textAnchor="middle" fontFamily="var(--pl-mono)" fontSize="11" fill="#F2F2F2" fontWeight="500">{n.label}</text>
-                  <text x={n.x} y={n.y - 48} textAnchor="middle" fontFamily="var(--pl-mono)" fontSize="9" fill="#8A8A8E" letterSpacing="0.08em">{n.role.toUpperCase()}</text>
+              {DC_NODES.map((dc) => (
+                <g key={dc.name}>
+                  <circle cx={dc.x} cy={dc.y} r="18" fill="rgba(0,0,0,0.08)" />
+                  <circle cx={dc.x} cy={dc.y} r="10" fill="rgba(0,0,0,0.20)" />
+                  <circle cx={dc.x} cy={dc.y} r="5" fill="#111" stroke="#fff" strokeWidth="1.5" />
+                  <text x={dc.x} y={dc.y - 24} textAnchor="middle" className="font-mts-wide" fontSize="11" fill="#111" fontWeight="600" letterSpacing="1">{dc.label}</text>
+                  <text x={dc.x} y={dc.y + 34} textAnchor="middle" className="font-mts-wide" fontSize="12" fill="rgba(0,0,0,0.6)">{dc.name}</text>
                 </g>
-              ))}
-              {/* Edge / peering nodes */}
-              {[
-                { x: 80, y: 80, l: "DE-CIX" }, { x: 220, y: 80, l: "AMS-IX" },
-                { x: 380, y: 80, l: "MSK-IX" }, { x: 520, y: 80, l: "IX.ru" },
-                { x: 680, y: 80, l: "Megaport" }, { x: 820, y: 80, l: "AMS-IX Pac" },
-                { x: 80, y: 280, l: "Cloudflare" }, { x: 220, y: 280, l: "Google" },
-                { x: 380, y: 280, l: "Yandex" }, { x: 520, y: 280, l: "VK" },
-                { x: 680, y: 280, l: "AWS" }, { x: 820, y: 280, l: "Azure" },
-              ].map((n) => (
-                <g key={n.l}>
-                  <circle cx={n.x} cy={n.y} r="18" className="plx-topo-node" />
-                  <text x={n.x} y={n.y + 3} textAnchor="middle" fontFamily="var(--pl-mono)" fontSize="8" fill="#8A8A8E">{n.l}</text>
-                </g>
-              ))}
-              {/* Lines to edge */}
-              {[[150, 80], [150, 280], [450, 80], [450, 280], [750, 80], [750, 280]].map(([cx, cy], i) => (
-                <line key={i} x1={cx} y1={cy === 80 ? 100 : 260} x2={cx} y2={cy === 80 ? 150 : 210} className="plx-topo-line" />
-              ))}
-              {/* Peering dashes */}
-              {[[80, 80, 150, 150], [220, 80, 150, 150], [380, 80, 450, 150], [520, 80, 450, 150], [680, 80, 750, 150], [820, 80, 750, 150], [80, 280, 150, 210], [220, 280, 150, 210], [380, 280, 450, 210], [520, 280, 450, 210], [680, 280, 750, 210], [820, 280, 750, 210]].map(([x1, y1, x2, y2], i) => (
-                <line key={i} x1={x1} y1={y1 === 80 ? 98 : 262} x2={x2} y2={y2} className="plx-topo-line" />
               ))}
             </svg>
           </div>
         </div>
       </section>
 
-      {/* NETWORK SPECS */}
-      <section className="plx-section" style={{ paddingTop: 0 }}>
-        <div className="plx-wrap">
-          <div className="plx-fgrid">
-            {[
-              { t: en ? "Bandwidth" : "Пропускная способность", d: en ? "Up to 200 Gb/s per server. Dual-carrier uplinks with BGP Anycast and sub-30s regional failover." : "До 200 Gb/s на сервер. Двойной аплинк, BGP Anycast, переключение регионов < 30с." },
-              { t: en ? "Latency" : "Задержка", d: en ? "< 5 ms within region. Optimized peering with DE-CIX, AMS-IX, MSK-IX, Megaport." : "< 5 мс в регионе. Оптимизированный пиринг с DE-CIX, AMS-IX, MSK-IX, Megaport." },
-              { t: en ? "Uptime SLA" : "SLA аптайм", d: en ? "99.98% guaranteed. Credits issued automatically for any breach within the month." : "99.98% гарантированно. Кредиты автоматически при нарушении в течение месяца." },
-              { t: en ? "DDoS shield" : "DDoS щит", d: en ? "Terabit-scale scrubbing upstream. L3/L4/L7 protection with sub-10s activation." : "Terabit-scale фильтрация апстрим. L3/L4/L7 защита, активация < 10с." },
-              { t: en ? "Monitoring" : "Мониторинг", d: en ? "Independent Prometheus, synthetic probes from 12 continents, real-user monitoring." : "Независимый Prometheus, синтетика с 12 континентов, RUM-мониторинг." },
-              { t: "NOC 24/7/365", d: en ? "Tier-2 engineers on shift around the clock. < 15 minute incident response." : "Tier-2 инженеры круглосуточно. Реакция на инцидент < 15 минут." },
-            ].map((f) => (
-              <div key={f.t} className="plx-fcard">
-                <div className="plx-fcard-icon">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a13 13 0 010 18" /></svg>
-                </div>
-                <h3>{f.t}</h3>
-                <p>{f.d}</p>
+      {/* DC cards */}
+      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
+        <div className="mb-12 sm:mb-16 max-w-[720px]">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Объекты</div>
+          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
+            Где работают<br />ваши нагрузки
+          </h2>
+          <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.55] text-black/60 mt-6 max-w-[58ch]">
+            Carrier-neutral объекты Tier III+ с сертифицированным комплаенсом для каждой юрисдикции.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {DATACENTERS.map((dc) => (
+            <div key={dc.city} className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 hover:border-black/[0.15] transition-colors flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45">{dc.region}</span>
+                <span className="font-mts-wide text-[11px] tracking-[0.10em] uppercase text-black/45 inline-flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-black" />
+                  Работает
+                </span>
               </div>
-            ))}
+              <div className="font-mts-wide text-[22px] sm:text-[24px] font-bold leading-tight">{dc.city}</div>
+              <div className="font-mts-wide text-[12px] text-black/45 uppercase tracking-[0.10em] mt-1 mb-2">{dc.country}</div>
+              <div className="font-mts-wide text-[13px] text-black/70 mb-6">{dc.facility}</div>
+
+              <div className="border-t border-black/[0.08] pt-4 space-y-3 flex-1">
+                {dc.rows.map(([k, v]) => (
+                  <div key={k} className="flex items-baseline justify-between gap-3">
+                    <span className="font-mts-wide text-[12px] text-black/45 shrink-0">{k}</span>
+                    <span className="font-mts-wide text-[13px] text-black/85 font-medium text-right">{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Network feature cards */}
+      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
+        <div className="mb-12 sm:mb-16 max-w-[720px]">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Сеть</div>
+          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
+            Спроектировано<br />жить
+          </h2>
+          <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.55] text-black/60 mt-6 max-w-[58ch]">
+            BGP Anycast маршрутизация, два аплинка, переключение между регионами менее 30 секунд.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {NETWORK_FEATURES.map((f, i) => (
+            <div key={f.t} className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 hover:border-black/[0.15] transition-colors">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="font-mts-wide text-[12px] font-semibold text-black/45 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
+                <span className="h-px flex-1 bg-black/10" />
+              </div>
+              <h3 className="font-mts-wide text-[20px] sm:text-[22px] font-bold leading-[1.2] tracking-tight mb-3">{f.t}</h3>
+              <p className="font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] text-black/60">{f.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Registry — full spec sheet */}
+      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[900px] mx-auto w-full">
+        <div className="mb-10 sm:mb-14">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Спецификация</div>
+          <h2 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.02] tracking-tight font-bold">
+            Инфраструктура —<br />документально
+          </h2>
+        </div>
+        <div className="bg-white border border-black/[0.06] rounded-3xl overflow-hidden">
+          {REGISTRY.map(([k, v], i) => (
+            <div
+              key={k}
+              className={`flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 px-5 sm:px-8 py-4 sm:py-5 ${i > 0 ? "border-t border-black/[0.06]" : ""}`}
+            >
+              <div className="font-mts-wide text-[13px] text-black/45 sm:w-[240px] shrink-0">{k}</div>
+              <div className="font-mts-wide text-[14px] sm:text-[15px] text-black/85 font-medium">{v}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="bg-[#F97316] text-black px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
+        <div className="max-w-[900px] mx-auto text-center">
+          <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
+            Разверните глобально
+          </h2>
+          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-black/70 mt-6 max-w-[46ch] mx-auto">
+            Один аккаунт, три континента. Выберите регион под своих пользователей.
+          </p>
+          <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
+            <Link href="/pricing" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]">
+              Тарифы
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </Link>
+            <Link href="/contact" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-black/30 text-black font-semibold text-[15px] hover:bg-black/5 transition-colors">
+              Связаться с NOC
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="plx-section" style={{ paddingTop: 0 }}>
-        <div className="plx-wrap">
-          <div className="plx-cta-box">
-            <h2>{en ? "Deploy globally" : "Разверните глобально"}</h2>
-            <p>{en ? "One account, three continents. Pick the region that fits your users." : "Один аккаунт, три континента. Выберите регион под пользователей."}</p>
-            <div className="pl-cta-buttons">
-              <Link href="/pricing" className="pl-cta-btn-light">{en ? "View pricing" : "Тарифы"} <span className="pl-arrow">→</span></Link>
-              <Link href="/contact" className="pl-cta-btn-dark">{en ? "Talk to NOC" : "Связаться с NOC"}</Link>
-            </div>
-          </div>
-        </div>
-      </section>
-    </PremiumPage>
+      <LandingFooter />
+    </div>
   );
 }
