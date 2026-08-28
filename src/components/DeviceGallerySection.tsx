@@ -3,13 +3,11 @@
 import Link from "next/link";
 
 /**
- * "Работает везде" — dark section right after the hero.
+ * "Работает везде" — light section (blends with the body bg).
  *
- * Reference (provod.ai screen 2) is an image gallery. Our public
- * product is an internet accelerator — this section shows every
- * supported platform. Technically we're a VPN under the hood
- * (Xray + Remnawave), but the site never says that word — RF ad
- * regulations require the "ускоритель интернета" framing.
+ * White device cards on the off-white body. Only Hero, FinalCta and
+ * Footer stay dark/accent-coloured; every content section is light,
+ * per the reference rhythm.
  */
 export default function DeviceGallerySection() {
   const devices = [
@@ -22,7 +20,7 @@ export default function DeviceGallerySection() {
   ];
 
   return (
-    <section className="bg-black text-white px-5 sm:px-8 py-20 sm:py-28 lg:py-32 mx-2 sm:mx-3 mt-2 sm:mt-3 rounded-[28px] sm:rounded-[36px]">
+    <section className="bg-[#f5f5f0] text-[#111] px-5 sm:px-8 py-20 sm:py-28 lg:py-32">
       <div className="max-w-[1200px] mx-auto">
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 md:gap-10 mb-10 sm:mb-14">
           <h2 className="font-mts-wide text-[36px] sm:text-[48px] lg:text-[64px] leading-[1.02] tracking-tight font-bold max-w-[12ch]">
@@ -30,7 +28,7 @@ export default function DeviceGallerySection() {
           </h2>
           <Link
             href="/devices"
-            className="font-mts-wide inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/15 text-white/85 hover:bg-white/5 hover:border-white/25 text-[13px] transition-colors self-start md:self-end"
+            className="font-mts-wide inline-flex items-center gap-2 px-4 py-2 rounded-full border border-black/15 text-black/75 hover:bg-black/5 hover:border-black/25 text-[13px] transition-colors self-start md:self-end"
           >
             Инструкции по настройке
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -43,12 +41,12 @@ export default function DeviceGallerySection() {
           {devices.map((d) => (
             <div
               key={d.name}
-              className="group aspect-square rounded-2xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/20 transition-all p-4 sm:p-5 flex flex-col justify-between"
+              className="group aspect-square rounded-2xl border border-black/[0.06] bg-white hover:border-black/[0.15] hover:-translate-y-0.5 transition-all p-4 sm:p-5 flex flex-col justify-between"
             >
               <DeviceIcon name={d.name} />
               <div>
-                <div className="font-mts-wide text-white text-[15px] sm:text-[17px] font-medium">{d.name}</div>
-                <div className="font-mts-wide text-white/45 text-[11px] sm:text-[12px] mt-0.5">{d.detail}</div>
+                <div className="font-mts-wide text-black text-[15px] sm:text-[17px] font-medium">{d.name}</div>
+                <div className="font-mts-wide text-black/50 text-[11px] sm:text-[12px] mt-0.5">{d.detail}</div>
               </div>
             </div>
           ))}
@@ -68,7 +66,7 @@ function DeviceIcon({ name }: { name: string }) {
     strokeWidth: 1.4,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
-    className: "text-white/60 group-hover:text-white transition-colors",
+    className: "text-black/60 group-hover:text-black transition-colors",
   };
   switch (name) {
     case "iPhone":
