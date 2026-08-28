@@ -2,13 +2,9 @@
 
 import { useState, useRef, useEffect, useActionState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import FeatureCard from "@/components/FeatureCard";
-import PageContainer from "@/components/PageContainer";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import PasswordInput from "@/components/PasswordInput";
-import CursorGlowTracker from "@/components/CursorGlowTracker";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { sendCodeAction, verifyCodeAction } from "./actions";
 
@@ -478,19 +474,19 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   const codeError = verifyState.error || null;
 
   return (
-    <div className="dashboard-v2 min-h-dvh flex flex-col">
-      <CursorGlowTracker />
-      <Header transparent={step === "email"} />
-
-      <PageContainer>
+    <div className="auth-shell">
+      <AuthTopBar />
+      <div className="flex-1 flex items-start sm:items-center justify-center px-4 sm:px-6 pt-6 sm:pt-10 pb-16">
+        <div className="w-full max-w-[520px]">
+          <div className="auth-card">
         {step === "email" && (
           <div className="animate-fade-in-up pt-2 sm:pt-6">
             <div className="dv2-eyebrow mb-2">ВХОД ИЛИ РЕГИСТРАЦИЯ</div>
-            <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
               Введите<br />
-              <span className="text-white/50">почту</span>
+              <span className="text-black/50">почту</span>
             </h1>
-            <p className="text-[13px] text-white/45 mb-6 sm:mb-8">
+            <p className="text-[13px] text-black/55 mb-6 sm:mb-8">
               Отправим одноразовый код для подтверждения
             </p>
 
@@ -526,10 +522,10 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/[0.06]" />
+                <div className="w-full border-t border-black/[0.08]" />
               </div>
               <div className="relative flex justify-center">
-                <span className="px-3 text-[10px] font-mono tracking-wider uppercase text-white/30 bg-[#0A0A0B]">или</span>
+                <span className="px-3 text-[10px] font-mono tracking-wider uppercase text-black/40 bg-white">или</span>
               </div>
             </div>
 
@@ -609,15 +605,15 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div>
               <div className="dv2-eyebrow mb-2">ШАГ 2 — КОД</div>
-              <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
                 Введите<br />
-                <span className="text-white/50">код из письма</span>
+                <span className="text-black/50">код из письма</span>
               </h1>
-              <p className="text-[13px] text-white/45 mb-1">
+              <p className="text-[13px] text-black/55 mb-1">
                 Отправили на{" "}
-                <span className="text-white/85 font-medium break-all">{email}</span>
+                <span className="text-black/85 font-medium break-all">{email}</span>
               </p>
-              <p className="text-[11px] text-white/30 mb-6">
+              <p className="text-[11px] text-black/40 mb-6">
                 Проверьте папку «Спам», если письмо не пришло
               </p>
             </div>
@@ -711,8 +707,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div className="text-center">
               <div className="dv2-eyebrow mb-2">ШАГ 3 — ПАРОЛЬ</div>
-              <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
-                Создайте<br /><span className="text-white/50">пароль</span>
+              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
+                Создайте<br /><span className="text-black/50">пароль</span>
               </h1>
               <p className="text-muted text-sm sm:text-base mb-8">
                 Придумайте пароль для входа в личный кабинет. В дальнейшем вы сможете войти по почте и паролю.
@@ -771,7 +767,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             <BackButton onClick={() => setStep("email")} />
 
             <div className="dv2-eyebrow mb-2">ВХОД</div>
-            <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
               С возвращением
             </h1>
             <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
@@ -854,8 +850,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             <BackButton onClick={() => setStep("login")} />
 
             <div className="dv2-eyebrow mb-2">ВОССТАНОВЛЕНИЕ</div>
-            <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
-              Восстановление<br /><span className="text-white/50">пароля</span>
+            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
+              Восстановление<br /><span className="text-black/50">пароля</span>
             </h1>
             <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
               Введите почту, привязанную к аккаунту
@@ -900,7 +896,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div className="text-center sm:text-left">
               <div className="dv2-eyebrow mb-2">КОД ИЗ ПИСЬМА</div>
-              <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
+              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
                 Введите код
               </h1>
               <p className="text-muted text-sm sm:text-base mb-1">
@@ -985,8 +981,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div className="text-center">
               <div className="dv2-eyebrow mb-2">НОВЫЙ ПАРОЛЬ</div>
-              <h1 className="text-[32px] sm:text-[40px] font-light tracking-tight leading-[1.05] text-white mb-2">
-                Придумайте<br /><span className="text-white/50">новый пароль</span>
+              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
+                Придумайте<br /><span className="text-black/50">новый пароль</span>
               </h1>
               <p className="text-muted text-sm sm:text-base mb-8">
                 Придумайте новый пароль для аккаунта
@@ -1063,9 +1059,41 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             </button>
           </div>
         )}
-      </PageContainer>
+          </div>
+        </div>
+      </div>
+      <AuthFooterBar />
+    </div>
+  );
+}
 
-      <Footer />
+function AuthTopBar() {
+  return (
+    <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
+      <a href="/" className="flex items-center gap-2">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
+      </a>
+      <a href="/pricing" className="font-mts-wide text-[13px] text-black/60 hover:text-black transition-colors">
+        Тарифы →
+      </a>
+    </div>
+  );
+}
+
+function AuthFooterBar() {
+  return (
+    <div className="px-5 sm:px-8 pb-8 sm:pb-10">
+      <div className="max-w-[520px] mx-auto flex flex-wrap justify-center gap-x-6 gap-y-2 font-mts-wide text-[12px] text-black/40">
+        <a href="/terms"   className="hover:text-black/70 transition-colors">Условия</a>
+        <a href="/privacy" className="hover:text-black/70 transition-colors">Приватность</a>
+        <a href="/support" className="hover:text-black/70 transition-colors">Поддержка</a>
+      </div>
     </div>
   );
 }
