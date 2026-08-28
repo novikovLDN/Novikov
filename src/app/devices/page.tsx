@@ -1,13 +1,24 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import CursorGlowTracker from "@/components/CursorGlowTracker";
+import { QRCodeSVG } from "qrcode.react";
+import LandingFooter from "@/components/LandingFooter";
+
+/**
+ * /devices — device-setup page in the v4 light shell.
+ *
+ * Pick a platform → see instructions for the recommended app →
+ * copy the profile link, open it via deep-link, or scan the QR.
+ *
+ * Visual language matches /about: MTS Wide, off-white body,
+ * white rounded cards, black primary buttons, no dark glass bar.
+ */
 
 // ─── Types ──────────────────────────────────────────────────
 
-type Step = "device" | "app" | "install" | "done";
-type Platform = "ios" | "android" | "windows" | "macos" | "tv";
+type Platform = "ios" | "android" | "macos" | "windows" | "tv";
 
 interface AppInfo {
   id: string;
@@ -23,12 +34,12 @@ interface AppInfo {
 
 // ─── Platform Config ────────────────────────────────────────
 
-const PLATFORMS: { id: Platform; name: string; icon: string }[] = [
-  { id: "ios", name: "iPhone / iPad", icon: "ios" },
-  { id: "android", name: "Android", icon: "android" },
-  { id: "macos", name: "macOS", icon: "macos" },
-  { id: "windows", name: "Windows", icon: "windows" },
-  { id: "tv", name: "Android TV", icon: "tv" },
+const PLATFORMS: { id: Platform; name: string; detail: string }[] = [
+  { id: "ios",     name: "iPhone / iPad", detail: "iOS 16+" },
+  { id: "android", name: "Android",       detail: "10+" },
+  { id: "macos",   name: "macOS",         detail: "M1 / Intel" },
+  { id: "windows", name: "Windows",       detail: "10 / 11" },
+  { id: "tv",      name: "Android TV",    detail: "все модели" },
 ];
 
 const APPS: Record<Platform, AppInfo[]> = {
@@ -138,108 +149,75 @@ const APPS: Record<Platform, AppInfo[]> = {
 
 // ─── Icons ──────────────────────────────────────────────────
 
-function PlatformIcon({ id, size = 24 }: { id: string; size?: number }) {
-  const s = size;
+function PlatformIcon({ id, className }: { id: Platform; className?: string }) {
+  const props = {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.4,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    className: className ?? "w-8 h-8",
+  };
   switch (id) {
-    case "android":
-      return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M5 16V8a7 7 0 0114 0v8" />
-          <rect x="3" y="16" width="18" height="4" rx="1" />
-          <circle cx="8.5" cy="8.5" r="1" fill="currentColor" />
-          <circle cx="15.5" cy="8.5" r="1" fill="currentColor" />
-        </svg>
-      );
     case "ios":
       return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+        <svg {...props}>
+          <rect x="7" y="2" width="10" height="20" rx="2" />
+          <line x1="11" y1="18" x2="13" y2="18" />
+        </svg>
+      );
+    case "android":
+      return (
+        <svg {...props}>
+          <path d="M4 16V9a2 2 0 012-2h12a2 2 0 012 2v7" />
+          <path d="M4 16h16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z" />
+          <path d="M8 7l-2-3M16 7l2-3" />
         </svg>
       );
     case "macos":
       return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+        <svg {...props}>
+          <rect x="2" y="4" width="20" height="12" rx="1" />
+          <path d="M2 20h20M9 20l1-4M15 20l-1-4" />
         </svg>
       );
     case "windows":
       return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3 12V6.5l8-1.1V12H3zm0 .5V18l8 1.1V12.5H3zm9 0V18.6l9 1.4V12.5h-9zm0-.5h9V4l-9 1.4V12z" />
+        <svg {...props}>
+          <path d="M3 5l8-1v8H3zM11 4l10-1v10H11zM3 13h8v7l-8-1zM11 13h10v8l-10-1z" />
         </svg>
       );
     case "tv":
       return (
-        <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" />
+        <svg {...props}>
+          <rect x="2" y="4" width="20" height="13" rx="2" />
           <line x1="8" y1="21" x2="16" y2="21" />
           <line x1="12" y1="17" x2="12" y2="21" />
         </svg>
       );
-    default:
-      return null;
   }
 }
 
-// ─── Confetti ───────────────────────────────────────────────
+// ─── Nav Links ──────────────────────────────────────────────
 
-function Confetti() {
-  const [particles, setParticles] = useState<Array<{
-    id: number; x: number; y: number; color: string;
-    size: number; rotation: number; delay: number; duration: number;
-    shape: "circle" | "rect" | "star";
-  }>>([]);
-
-  useEffect(() => {
-    const colors = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#22c55e", "#06b6d4", "#f97316", "#a855f7"];
-    const shapes: ("circle" | "rect" | "star")[] = ["circle", "rect", "star"];
-    const p = Array.from({ length: 80 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: -10 - Math.random() * 30,
-      color: colors[Math.floor(Math.random() * colors.length)],
-      size: 4 + Math.random() * 8,
-      rotation: Math.random() * 360,
-      delay: Math.random() * 0.6,
-      duration: 1.5 + Math.random() * 2,
-      shape: shapes[Math.floor(Math.random() * shapes.length)],
-    }));
-    setParticles(p);
-  }, []);
-
-  return (
-    <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
-      {particles.map((p) => (
-        <div
-          key={p.id}
-          className="absolute confetti-particle"
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: p.size,
-            height: p.shape === "rect" ? p.size * 0.6 : p.size,
-            backgroundColor: p.color,
-            borderRadius: p.shape === "circle" ? "50%" : p.shape === "star" ? "2px" : "1px",
-            transform: `rotate(${p.rotation}deg)`,
-            animationDelay: `${p.delay}s`,
-            animationDuration: `${p.duration}s`,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
+const NAV_LINKS = [
+  { label: "Тарифы",       href: "/pricing" },
+  { label: "Безопасность", href: "/security" },
+  { label: "О нас",        href: "/about" },
+  { label: "Поддержка",    href: "/contact" },
+];
 
 // ─── Main Component ─────────────────────────────────────────
 
-export default function Devices() {
+export default function DevicesPage() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("device");
-  const [platform, setPlatform] = useState<Platform | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [platform, setPlatform] = useState<Platform>("ios");
   const [appIndex, setAppIndex] = useState(0);
   const [vpnKey, setVpnKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
+  const [showQR, setShowQR] = useState(false);
 
   const fetchKey = useCallback(async () => {
     try {
@@ -253,8 +231,8 @@ export default function Devices() {
 
   useEffect(() => { fetchKey(); }, [fetchKey]);
 
-  const selectedApps = platform ? APPS[platform] : [];
-  const currentApp = selectedApps[appIndex] || null;
+  const selectedApps = APPS[platform];
+  const currentApp = selectedApps[appIndex] ?? selectedApps[0];
 
   // Build the key URL: add &format=json for Happ, plain for V2RayTun
   const getKeyUrl = useCallback(() => {
@@ -266,26 +244,17 @@ export default function Devices() {
     return vpnKey;
   }, [vpnKey, currentApp]);
 
-  const handleBack = () => {
-    if (step === "done") { setStep("install"); setShowConfetti(false); }
-    else if (step === "install") setStep(selectedApps.length > 1 ? "app" : "device");
-    else if (step === "app") setStep("device");
-    else router.push("/dashboard");
-  };
-
   const handleSelectPlatform = (p: Platform) => {
     setPlatform(p);
     setAppIndex(0);
-    if (APPS[p].length === 1) {
-      setStep("install");
-    } else {
-      setStep("app");
-    }
+    setShowQR(false);
+    setCopied(false);
   };
 
   const handleSelectApp = (idx: number) => {
     setAppIndex(idx);
-    setStep("install");
+    setShowQR(false);
+    setCopied(false);
   };
 
   const handleCopy = async () => {
@@ -311,305 +280,361 @@ export default function Devices() {
     window.location.href = currentApp.deepLink(key);
   };
 
-  const handleDone = () => {
-    setStep("done");
-    setShowConfetti(true);
-    setTimeout(() => setShowConfetti(false), 4000);
-  };
+  const keyUrl = getKeyUrl();
 
-  // Step number for the progress indicator (1..3)
-  const stepNum = step === "device" ? 1 : step === "app" ? 2 : step === "install" ? 3 : 3;
-  const totalSteps = selectedApps.length > 1 ? 3 : 2;
-  const displayedNum = selectedApps.length > 1 ? stepNum : step === "install" ? 2 : 1;
+  return (
+    <div className="bg-[#f5f5f0] min-h-dvh flex flex-col text-black">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/dashboard")}
+            aria-label="Назад в кабинет"
+            className="w-10 h-10 rounded-full border border-black/15 flex items-center justify-center text-black/70 hover:text-black hover:bg-black/5 transition-colors"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <Link href="/" className="flex items-center gap-2">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+              <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
+          </Link>
+        </div>
 
-  // ─── Step: Device Selection ─────────────────────────────
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-black/60">
+          {NAV_LINKS.map((l) => (
+            <Link key={l.href} href={l.href} className="hover:text-black transition-colors">
+              {l.label}
+            </Link>
+          ))}
+          <Link
+            href="/dashboard"
+            className="ml-3 px-4 py-2 rounded-full bg-black text-white hover:bg-neutral-800 transition-colors"
+          >
+            Кабинет
+          </Link>
+        </nav>
 
-  if (step === "device") {
-    return (
-      <div className="dashboard-v2 min-h-dvh flex flex-col">
-        <CursorGlowTracker />
-        <WizardHeader onBack={() => router.push("/dashboard")} title="Подключение" step={1} total={2} />
-        <div className="flex-1 px-4 sm:px-6 pb-10 max-w-2xl mx-auto w-full">
-          <div className="pt-6 sm:pt-10 pb-8">
-            <div className="dv2-eyebrow mb-3">ШАГ 1 — УСТРОЙСТВО</div>
-            <h1 className="text-[32px] sm:text-[40px] font-light leading-[1.1] tracking-tight text-white">
-              На каком устройстве<br />
-              <span className="text-white/50">подключаемся?</span>
-            </h1>
-          </div>
+        {/* Mobile hamburger */}
+        <button
+          className="md:hidden w-11 h-11 rounded-full bg-black/[0.06] border border-black/10 flex items-center justify-center active:scale-[0.95] transition-transform"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Меню"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+      </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {PLATFORMS.map((p, i) => (
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8 font-mts-wide"
+          onClick={() => setMenuOpen(false)}
+        >
+          <button
+            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Закрыть"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+          {NAV_LINKS.map((l) => (
+            <Link key={l.href} href={l.href} className="text-white text-2xl" onClick={() => setMenuOpen(false)}>
+              {l.label}
+            </Link>
+          ))}
+          <Link
+            href="/dashboard"
+            className="mt-4 px-6 py-3 rounded-full bg-white text-black text-base"
+            onClick={() => setMenuOpen(false)}
+          >
+            Кабинет
+          </Link>
+        </div>
+      )}
+
+      {/* Hero */}
+      <section className="px-5 sm:px-8 pt-14 pb-10 sm:pt-20 sm:pb-14 max-w-[900px] mx-auto w-full">
+        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-5">
+          Устройства
+        </div>
+        <h1 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[68px] leading-[1.02] tracking-tight font-bold max-w-[16ch]">
+          Настройка на<br />любом устройстве
+        </h1>
+        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-black/55 mt-7 max-w-[54ch]">
+          Выберите устройство, установите приложение и импортируйте профиль. Занимает около минуты, дальше всё работает автоматически.
+        </p>
+      </section>
+
+      {/* Platform picker */}
+      <section className="px-5 sm:px-8 pb-8 sm:pb-12 max-w-[900px] mx-auto w-full">
+        <div className="font-mts-wide text-[12px] tracking-[0.12em] uppercase text-black/45 mb-4">
+          Шаг 1 — устройство
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          {PLATFORMS.map((p) => {
+            const active = platform === p.id;
+            return (
               <button
                 key={p.id}
                 onClick={() => handleSelectPlatform(p.id)}
-                className="dv2-card p-5 flex items-center gap-4 text-left transition-all active:scale-[0.985] group animate-fade-in-up"
-                style={{ animationDelay: `${i * 60}ms` }}
+                aria-pressed={active}
+                className={
+                  "group aspect-square rounded-2xl border p-4 sm:p-5 flex flex-col justify-between text-left transition-all active:scale-[0.98] " +
+                  (active
+                    ? "bg-black text-white border-black shadow-[0_8px_24px_-12px_rgba(0,0,0,0.35)]"
+                    : "bg-white text-black border-black/[0.06] hover:border-black/[0.15] hover:-translate-y-0.5")
+                }
               >
-                <div className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 text-white/80 group-hover:text-white group-hover:border-white/[0.14] transition-colors">
-                  <PlatformIcon id={p.icon} size={22} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-medium text-white/95">{p.name}</div>
-                  <div className="text-[11px] text-white/40 mt-0.5">Настройка за 2 шага</div>
-                </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/30 group-hover:text-white/70 group-hover:translate-x-0.5 transition-all shrink-0">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Step: App Selection (only if >1 app) ─────────────────
-
-  if (step === "app" && platform) {
-    return (
-      <div className="dashboard-v2 min-h-dvh flex flex-col">
-        <CursorGlowTracker />
-        <WizardHeader onBack={handleBack} title="Выберите приложение" step={2} total={3} />
-        <div className="flex-1 px-4 sm:px-6 pb-10 max-w-2xl mx-auto w-full">
-          <div className="pt-6 sm:pt-10 pb-8">
-            <div className="dv2-eyebrow mb-3">ШАГ 2 — ПРИЛОЖЕНИЕ</div>
-            <h1 className="text-[32px] sm:text-[40px] font-light leading-[1.1] tracking-tight text-white">
-              Выберите<br />
-              <span className="text-white/50">приложение</span>
-            </h1>
-          </div>
-
-          <div className="space-y-2.5">
-            {selectedApps.map((app, i) => (
-              <button
-                key={app.id}
-                onClick={() => handleSelectApp(i)}
-                className="dv2-card p-5 w-full text-left transition-all active:scale-[0.985] group animate-fade-in-up"
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#5E6AD2]/20 to-white/[0.02] border border-white/[0.06] flex items-center justify-center shrink-0">
-                    <span className="text-[22px] font-light text-white">{app.name[0]}</span>
+                <PlatformIcon
+                  id={p.id}
+                  className={
+                    "w-9 h-9 sm:w-8 sm:h-8 transition-colors " +
+                    (active ? "text-white" : "text-black/60 group-hover:text-black")
+                  }
+                />
+                <div>
+                  <div className={"font-mts-wide text-[15px] sm:text-[17px] font-medium " + (active ? "text-white" : "text-black")}>
+                    {p.name}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[15px] font-medium text-white/95">{app.name}</div>
-                    <div className="text-[12px] text-white/40 mt-0.5">{app.description}</div>
+                  <div className={"font-mts-wide text-[11px] sm:text-[12px] mt-0.5 " + (active ? "text-white/60" : "text-black/50")}>
+                    {p.detail}
                   </div>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/30 group-hover:text-white/70 group-hover:translate-x-0.5 transition-all shrink-0">
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
                 </div>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      </div>
-    );
-  }
+      </section>
 
-  // ─── Step: Install App + Setup Key ────────────────────────
+      {/* Instructions panel */}
+      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[900px] mx-auto w-full">
+        <div className="font-mts-wide text-[12px] tracking-[0.12em] uppercase text-black/45 mb-4">
+          Шаг 2 — приложение и профиль
+        </div>
 
-  if (step === "install" && currentApp) {
-    return (
-      <div className="dashboard-v2 min-h-dvh flex flex-col">
-        <CursorGlowTracker />
-        <WizardHeader onBack={handleBack} title={currentApp.name} step={displayedNum} total={totalSteps} />
-        <div className="flex-1 px-4 sm:px-6 pb-10 max-w-2xl mx-auto w-full">
-          <div className="pt-6 sm:pt-10 pb-6">
-            <div className="dv2-eyebrow mb-3">{currentApp.name.toUpperCase()} · НАСТРОЙКА</div>
-            <h1 className="text-[28px] sm:text-[36px] font-light leading-[1.1] tracking-tight text-white">
-              Установите приложение и<br />
-              <span className="text-white/50">импортируйте подписку</span>
-            </h1>
-          </div>
-
-          {/* Step 1: Install App */}
-          <div className="dv2-card p-5 sm:p-6 mb-3 animate-fade-in-up">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-7 h-7 rounded-full bg-[#5E6AD2]/15 border border-[#5E6AD2]/30 flex items-center justify-center shrink-0">
-                <span className="text-[#8F8FD9] text-[12px] font-medium">1</span>
-              </div>
-              <h2 className="text-[15px] font-medium text-white">Установите {currentApp.name}</h2>
+        <div className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8">
+          {/* App tabs (only when >1 app for the platform) */}
+          {selectedApps.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-6">
+              {selectedApps.map((a, i) => {
+                const active = i === appIndex;
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => handleSelectApp(i)}
+                    className={
+                      "font-mts-wide px-4 py-2 rounded-full text-[13px] transition-colors " +
+                      (active
+                        ? "bg-black text-white"
+                        : "bg-black/[0.04] border border-black/[0.08] text-black/70 hover:bg-black/[0.06]")
+                    }
+                  >
+                    {a.name}
+                  </button>
+                );
+              })}
             </div>
-            <p className="text-[12px] text-white/50 mb-4 leading-relaxed pl-10">
+          )}
+
+          {/* App header */}
+          <div className="flex items-start gap-4 mb-8">
+            <div className="w-14 h-14 rounded-2xl bg-black/[0.04] border border-black/[0.08] flex items-center justify-center shrink-0">
+              <span className="font-mts-wide text-[22px] font-semibold text-black">{currentApp.name[0]}</span>
+            </div>
+            <div className="flex-1 min-w-0 pt-1">
+              <div className="font-mts-wide text-[20px] sm:text-[22px] font-bold leading-tight tracking-tight">
+                {currentApp.name}
+              </div>
+              <div className="font-mts-wide text-[13px] sm:text-[14px] text-black/55 mt-1">
+                {currentApp.description}
+              </div>
+            </div>
+          </div>
+
+          {/* Step 1: install */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-mts-wide text-[13px] font-semibold shrink-0">
+                1
+              </div>
+              <div className="font-mts-wide text-[17px] font-bold">Установите приложение</div>
+            </div>
+            <p className="font-mts-wide text-[14px] leading-[1.55] text-black/60 pl-11 mb-4">
               {currentApp.searchHint}
             </p>
-            <a
-              href={currentApp.downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full h-12 rounded-2xl bg-white text-black font-medium text-[14px] hover:bg-white/95 transition-all active:scale-[0.985] flex items-center justify-center gap-2"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              Открыть {currentApp.storeLabel}
-            </a>
-          </div>
-
-          {/* Step 2: Setup connection */}
-          <div className="dv2-card p-5 sm:p-6 mb-3 animate-fade-in-up animate-delay-1">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-7 h-7 rounded-full bg-[#5E6AD2]/15 border border-[#5E6AD2]/30 flex items-center justify-center shrink-0">
-                <span className="text-[#8F8FD9] text-[12px] font-medium">2</span>
-              </div>
-              <h2 className="text-[15px] font-medium text-white">Настройте подключение</h2>
-            </div>
-
-            {/* Auto-install */}
-            {currentApp.deepLink && getKeyUrl() && (
-              <>
-                <button
-                  onClick={handleAutoInstall}
-                  className="w-full h-12 rounded-2xl bg-gradient-to-r from-[#5E6AD2] to-[#8F8FD9] text-white font-medium text-[14px] hover:opacity-95 transition-all active:scale-[0.985] flex items-center justify-center gap-2 mb-4"
-                  style={{ boxShadow: "0 8px 24px -8px rgba(94,106,210,0.5)" }}
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                  </svg>
-                  Автоустановка в {currentApp.name}
-                </button>
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex-1 h-px bg-white/[0.06]" />
-                  <span className="text-[10px] font-mono text-white/30 tracking-wider">ИЛИ ВРУЧНУЮ</span>
-                  <div className="flex-1 h-px bg-white/[0.06]" />
-                </div>
-              </>
-            )}
-
-            {/* Manual steps */}
-            <div className="space-y-3 mb-4">
-              {currentApp.steps.map((s, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-[10px] font-medium text-white/70">{i + 1}</span>
-                  </div>
-                  <p className="text-[13px] text-white/75 leading-relaxed">{s}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Key + copy */}
-            {getKeyUrl() && (
-              <button
-                onClick={handleCopy}
-                className={`w-full h-12 rounded-2xl font-medium text-[13px] transition-all active:scale-[0.985] flex items-center justify-center gap-2 ${
-                  copied
-                    ? "bg-[#34D399]/10 border border-[#34D399]/30 text-[#34D399]"
-                    : "bg-white/[0.04] border border-white/[0.08] text-white/85 hover:bg-white/[0.06] hover:border-white/[0.12]"
-                }`}
+            <div className="pl-11">
+              <a
+                href={currentApp.downloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-mts-wide inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-black text-white font-semibold text-[14px] hover:bg-neutral-800 transition-colors active:scale-[0.98]"
               >
-                {copied ? (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Скопировано
-                  </>
-                ) : (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="9" y="9" width="13" height="13" rx="2" />
-                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                    </svg>
-                    Скопировать ссылку подписки
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-
-          {/* Done button */}
-          <button
-            onClick={handleDone}
-            className="w-full h-14 rounded-2xl bg-white text-black font-medium text-[15px] hover:bg-white/95 transition-all active:scale-[0.985] flex items-center justify-center gap-2 mt-4 animate-fade-in-up animate-delay-2"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-            Всё готово
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Step: Done with Confetti ─────────────────────────────
-
-  if (step === "done") {
-    return (
-      <div className="dashboard-v2 min-h-dvh flex flex-col">
-        {showConfetti && <Confetti />}
-        <div className="flex-1 flex flex-col items-center justify-center px-4 sm:px-6 pb-10 max-w-md mx-auto w-full">
-          <div className="text-center mb-8">
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full bg-[#34D399]/15 animate-ping" style={{ animationDuration: "2.4s" }} />
-              <div className="relative w-full h-full rounded-full bg-gradient-to-br from-[#34D399]/30 to-[#34D399]/10 border border-[#34D399]/30 flex items-center justify-center">
-                <svg className="w-10 h-10 sm:w-12 sm:h-12" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-              </div>
+                Открыть {currentApp.storeLabel}
+              </a>
             </div>
-            <h1 className="text-[36px] sm:text-[44px] font-light tracking-tight leading-[1.05] text-white">
-              Подключено
-            </h1>
-            <p className="text-[14px] text-white/50 mt-4 leading-relaxed max-w-sm">
-              Соединение защищено. Откройте приложение чтобы убедиться что оно установило подписку.
-            </p>
           </div>
-          <div className="w-full space-y-2.5">
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="w-full h-14 rounded-2xl bg-white text-black font-medium text-[15px] hover:bg-white/95 transition-all active:scale-[0.985]"
+
+          {/* Step 2: import profile */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-mts-wide text-[13px] font-semibold shrink-0">
+                2
+              </div>
+              <div className="font-mts-wide text-[17px] font-bold">Импортируйте профиль</div>
+            </div>
+
+            <div className="pl-11">
+              {/* Key display */}
+              {keyUrl ? (
+                <div className="bg-black/[0.04] border border-black/[0.08] rounded-2xl p-4 font-mono text-xs break-all text-black/75 mb-4">
+                  {keyUrl}
+                </div>
+              ) : (
+                <div className="bg-black/[0.04] border border-black/[0.08] rounded-2xl p-4 font-mono text-xs text-black/45 mb-4">
+                  Загружаем ссылку профиля…
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                <button
+                  onClick={handleCopy}
+                  disabled={!keyUrl}
+                  className={
+                    "font-mts-wide inline-flex items-center gap-2 px-5 py-3 rounded-2xl font-semibold text-[14px] transition-colors active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed " +
+                    (copied
+                      ? "bg-black/[0.04] border border-black/15 text-black"
+                      : "bg-black text-white hover:bg-neutral-800")
+                  }
+                >
+                  {copied ? (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Скопировано
+                    </>
+                  ) : (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      Скопировать ссылку
+                    </>
+                  )}
+                </button>
+
+                {currentApp.deepLink && (
+                  <button
+                    onClick={handleAutoInstall}
+                    disabled={!keyUrl}
+                    className="font-mts-wide inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-black text-white font-semibold text-[14px] hover:bg-neutral-800 transition-colors active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                    </svg>
+                    Открыть в приложении
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setShowQR((v) => !v)}
+                  disabled={!keyUrl}
+                  aria-pressed={showQR}
+                  className="font-mts-wide inline-flex items-center gap-2 px-5 py-3 rounded-2xl border border-black/15 text-black/75 font-semibold text-[14px] hover:bg-black/5 hover:border-black/25 transition-colors active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <path d="M14 14h3v3h-3zM20 14h1M14 20h1M20 20h1" />
+                  </svg>
+                  {showQR ? "Скрыть QR" : "Показать QR"}
+                </button>
+              </div>
+
+              {/* QR panel */}
+              {showQR && keyUrl && (
+                <div className="mb-6 inline-flex flex-col items-center gap-3 p-5 bg-white border border-black/[0.08] rounded-2xl">
+                  <QRCodeSVG value={keyUrl} size={192} bgColor="#ffffff" fgColor="#000000" level="M" />
+                  <div className="font-mts-wide text-[12px] text-black/55 max-w-[220px] text-center leading-[1.45]">
+                    Наведите камеру приложения на код, чтобы импортировать профиль
+                  </div>
+                </div>
+              )}
+
+              {/* Numbered manual steps */}
+              <ol className="space-y-3">
+                {currentApp.steps.map((s, i) => (
+                  <li key={i} className="flex gap-3">
+                    <div className="w-6 h-6 rounded-full bg-black/[0.06] border border-black/[0.08] flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="font-mts-wide text-[11px] font-semibold text-black/70">{i + 1}</span>
+                    </div>
+                    <p className="font-mts-wide text-[14px] leading-[1.55] text-black/70">{s}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+
+          {/* Done row */}
+          <div className="border-t border-black/[0.06] pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="font-mts-wide text-[13px] text-black/55 max-w-[46ch]">
+              Готово — приложение подключится автоматически при следующем запуске.
+            </div>
+            <Link
+              href="/dashboard"
+              className="font-mts-wide inline-flex items-center gap-2 px-5 py-3 rounded-2xl border border-black/15 text-black/75 font-semibold text-[14px] hover:bg-black/5 hover:border-black/25 transition-colors self-start sm:self-auto"
             >
               Вернуться в кабинет
-            </button>
-            <button
-              onClick={() => router.push("/support")}
-              className="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[13px] hover:bg-white/[0.06] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
-            >
-              Нужна помощь?
-            </button>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </Link>
           </div>
         </div>
-      </div>
-    );
-  }
+      </section>
 
-  return null;
-}
-
-// ─── Wizard Header ──────────────────────────────────────────
-
-function WizardHeader({ onBack, title, step, total }: { onBack: () => void; title: string; step?: number; total?: number }) {
-  return (
-    <div className="sticky top-0 z-40 bg-[#0A0A0B]/85 backdrop-blur-xl border-b border-white/[0.05]">
-      <div className="max-w-2xl mx-auto flex items-center h-14 sm:h-16 px-4 sm:px-6 gap-3">
-        <button
-          onClick={onBack}
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-white/70 hover:text-white hover:bg-white/[0.05] transition-all -ml-2"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <h2 className="text-[14px] font-medium text-white/90 truncate">{title}</h2>
-        {step && total && (
-          <div className="ml-auto flex items-center gap-1.5">
-            {Array.from({ length: total }).map((_, i) => (
-              <div
-                key={i}
-                className={`h-1 rounded-full transition-all duration-300 ${
-                  i + 1 <= step ? "w-6 bg-white/90" : "w-2 bg-white/15"
-                }`}
-              />
-            ))}
+      {/* Help nudge */}
+      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[900px] mx-auto w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 sm:p-8 rounded-3xl border border-black/[0.08] bg-white">
+          <div>
+            <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mb-2">Не получается?</div>
+            <div className="font-mts-wide text-[17px] font-bold leading-tight">Мы поможем настроить лично</div>
+            <p className="font-mts-wide text-[14px] text-black/55 mt-2 max-w-[52ch]">
+              Напишите в поддержку — ответим в течение нескольких минут и доведём настройку до конца.
+            </p>
           </div>
-        )}
-      </div>
+          <Link
+            href="/contact"
+            className="font-mts-wide inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-black text-white font-semibold text-[14px] hover:bg-neutral-800 transition-colors active:scale-[0.98] self-start sm:self-auto shrink-0"
+          >
+            Написать в поддержку
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
+      </section>
+
+      <LandingFooter />
     </div>
   );
 }
