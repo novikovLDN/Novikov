@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import HeroV4 from "@/components/HeroV4";
 import DeviceGallerySection from "@/components/DeviceGallerySection";
 import ThreePillarsSection from "@/components/ThreePillarsSection";
+import PricingPreviewSection from "@/components/PricingPreviewSection";
 
 function AtlasLogo({ size = 24 }: { size?: number }) {
   return (
@@ -48,6 +49,9 @@ export default function LandingPage({ referralCode }: { referralCode?: string })
 
       {/* ═══ Section 3 — Three pillars (light) ═══ */}
       <ThreePillarsSection />
+
+      {/* ═══ Section 4 — Pricing preview (dark) ═══ */}
+      <PricingPreviewSection />
       {/* End of v4 redesign block — old marketing sections continue below */}
 
       {/* ═══ LOGOS / STATS strip ═══ */}
