@@ -1,514 +1,423 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useI18n, LanguageSwitcher } from "@/lib/i18n";
+import { useEffect, useState } from "react";
 
-function AtlasLogo({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <path d="M5,5 L1,1 M5,5 L5,1 M5,5 L1,5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M19,5 L23,1 M19,5 L19,1 M19,5 L23,5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M5,19 L1,23 M5,19 L5,23 M5,19 L1,19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M19,19 L23,23 M19,19 L19,23 M19,19 L23,19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+/**
+ * /pricing — Basic + Plus tariff page (v4 redesign).
+ *
+ * Full-page rebuild in the HeroV4 visual language: MTS Wide font,
+ * dark hero + light comparison + dark FAQ + dark CTA, orange
+ * highlight for the recommended Plus plan.
+ *
+ * VPS / VDS tariffs are separate products with their own /vps and
+ * /vds pages — this page is only about the accelerator subscription.
+ * Prices mirror src/app/api/payments/create/route.ts::PLANS exactly
+ * (period 1 / 3 / 6 / 12 months → RUB total).
+ */
 
-type Tab = "vpn" | "vps" | "vds";
+type Period = 1 | 3 | 6 | 12;
+const PERIODS: Period[] = [1, 3, 6, 12];
+const PERIOD_LABEL: Record<Period, string> = {
+  1:  "1 месяц",
+  3:  "3 месяца",
+  6:  "6 месяцев",
+  12: "12 месяцев",
+};
+const PLANS = {
+  basic: { 1: 199, 3: 499, 6: 899, 12: 1599 },
+  plus:  { 1: 349, 3: 899, 6: 1499, 12: 2599 },
+} as const;
 
-function AnimatedPrice({ value, duration = 600 }: { value: number; duration?: number }) {
-  const [display, setDisplay] = useState(value);
-  const animRef = useRef<number>(0);
-  const startVal = useRef(value);
-  const startTime = useRef(0);
-
-  useEffect(() => {
-    if (display === value) return;
-    startVal.current = display;
-    startTime.current = performance.now();
-    cancelAnimationFrame(animRef.current);
-
-    const animate = (now: number) => {
-      const elapsed = now - startTime.current;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = startVal.current + (value - startVal.current) * eased;
-      setDisplay(Math.round(current * 100) / 100);
-      if (progress < 1) animRef.current = requestAnimationFrame(animate);
-    };
-    animRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animRef.current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, duration]);
-
-  return <>{display.toFixed(2)}</>;
-}
-
-type Bi = { en: string; ru: string };
-type BiList = { en: string[]; ru: string[] };
-interface Plan {
-  name: Bi;
-  price: number;
-  priceYearly?: number;
-  period: Bi;
-  sub: string;
-  features: BiList;
-  cta: Bi;
-  ctaStyle: "ghost" | "primary";
-  highlighted?: boolean;
-}
-
-const PER_MONTH: Bi = { en: "per month", ru: "в месяц" };
-
-const VPN_PLANS: Plan[] = [
-  {
-    name: { en: "Personal", ru: "Личный" },
-    price: 4.99, priceYearly: 3.99, period: PER_MONTH, sub: "",
-    features: {
-      en: [
-        "Stable connection around the clock",
-        "Up to 3 devices at once",
-        "Fast speed, no bandwidth caps",
-        "Auto-reconnect if the link drops",
-        "Ready in a minute — no setup pain",
-      ],
-      ru: [
-        "Стабильное соединение 24/7",
-        "До 3 устройств одновременно",
-        "Быстрая скорость без ограничений",
-        "Автопереподключение при обрыве",
-        "Готово за минуту — без настройки",
-      ],
-    },
-    cta: { en: "Request", ru: "Запросить" }, ctaStyle: "ghost",
-  },
-  {
-    name: { en: "Business", ru: "Бизнес" },
-    price: 9.99, priceYearly: 7.99, period: PER_MONTH, sub: "",
-    features: {
-      en: [
-        "Everything in Personal, and more",
-        "Up to 10 devices simultaneously",
-        "Priority access to every location",
-        "Guaranteed 99.9% stability",
-        "Personal static address",
-        "Priority support with a human",
-      ],
-      ru: [
-        "Всё из Личного и сверху",
-        "До 10 устройств одновременно",
-        "Приоритетный доступ ко всем локациям",
-        "Гарантированная стабильность 99,9%",
-        "Персональный статический адрес",
-        "Приоритетная поддержка от живого человека",
-      ],
-    },
-    cta: { en: "Request", ru: "Запросить" }, ctaStyle: "primary", highlighted: true,
-  },
-  {
-    name: { en: "Enterprise", ru: "Enterprise" },
-    price: 24.99, priceYearly: 19.99, period: PER_MONTH, sub: "",
-    features: {
-      en: [
-        "Everything in Business, and more",
-        "No device limit at all",
-        "Dedicated infrastructure for your team",
-        "Guaranteed 99.98% uptime",
-        "Round-the-clock priority support",
-        "Personal account manager",
-      ],
-      ru: [
-        "Всё из Бизнес и сверху",
-        "Устройств без лимита",
-        "Выделенная инфраструктура под вашу команду",
-        "Гарантированный аптайм 99,98%",
-        "Круглосуточная приоритетная поддержка",
-        "Персональный менеджер",
-      ],
-    },
-    cta: { en: "Request", ru: "Запросить" }, ctaStyle: "ghost",
-  },
-  {
-    name: { en: "Custom", ru: "Индивидуальный" },
-    price: 0, period: { en: "", ru: "" }, sub: "CUSTOM_SUB",
-    features: {
-      en: [
-        "Infrastructure tailored to your load",
-        "Bandwidth sized to your peak",
-        "Any locations you need",
-        "Invoice billing for legal entities",
-        "Single sign-on (SAML / SSO)",
-        "Dedicated account team on call",
-      ],
-      ru: [
-        "Инфраструктура под ваши задачи",
-        "Пропускная способность под нагрузку",
-        "Любые нужные вам локации",
-        "Оплата по счёту для юрлиц",
-        "Единый вход SSO / SAML",
-        "Выделенная команда сопровождения",
-      ],
-    },
-    cta: { en: "Contact sales", ru: "Связаться с отделом продаж" }, ctaStyle: "ghost",
-  },
-];
-
-const VPS_PRESETS = [
-  { name: "Starter", cpu: 1, ram: 1, ssd: 20, port: 1, price: 7.99, priceYearly: 6.39 },
-  { name: "Standard", cpu: 2, ram: 4, ssd: 50, port: 1, price: 19.99, priceYearly: 15.99 },
-  { name: "Performance", cpu: 4, ram: 8, ssd: 100, port: 1, price: 39.99, priceYearly: 31.99 },
-  { name: "Scale", cpu: 8, ram: 16, ssd: 200, port: 1, price: 79.99, priceYearly: 63.99 },
-];
-
-const VDS_PRESETS = [
-  { name: "Starter", cpu: 2, ram: 4, ssd: 50, port: 1, price: 29.99, priceYearly: 23.99 },
-  { name: "Standard", cpu: 4, ram: 8, ssd: 100, port: 1, price: 59.99, priceYearly: 47.99 },
-  { name: "Performance", cpu: 8, ram: 16, ssd: 200, port: 1, price: 119.99, priceYearly: 95.99 },
-  { name: "Infrastructure", cpu: 16, ram: 32, ssd: 500, port: 1, price: 249.99, priceYearly: 199.99 },
-];
-
-const PORT_OPTIONS = [1, 5, 10, 15, 25, 40, 75, 100, 150, 200];
-
-function portPrice(gbps: number): number {
-  if (gbps <= 1) return 0;
-  if (gbps <= 5) return 4;
-  if (gbps <= 10) return 9;
-  if (gbps <= 15) return 16;
-  if (gbps <= 25) return 28;
-  if (gbps <= 40) return 48;
-  if (gbps <= 75) return 85;
-  if (gbps <= 100) return 120;
-  if (gbps <= 150) return 170;
-  return 230;
-}
-
-function calcVpsPrice(cpu: number, ram: number, ssd: number, port: number) {
-  return Math.round((cpu * 3 + ram * 2.5 + (ssd / 10) * 1 + 2 + portPrice(port)) * 100) / 100;
-}
-function calcVdsPrice(cpu: number, ram: number, ssd: number, port: number) {
-  return Math.round((cpu * 8 + ram * 3.5 + (ssd / 10) * 1.5 + 3 + portPrice(port)) * 100) / 100;
-}
-
-function CheckIcon() {
-  return <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="10" fill="#5E6AD2" opacity="0.15" /><path d="M6 10l3 3 5-5" stroke="#5E6AD2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>;
-}
-function CrossIcon() {
-  return <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><path d="M7 7l6 6M13 7l-6 6" stroke="#55555A" strokeWidth="1.5" strokeLinecap="round" /></svg>;
-}
+function fmt(n: number) { return n.toLocaleString("ru-RU"); }
 
 export default function PricingPage() {
-  const { t, locale } = useI18n();
-  const [tab, setTab] = useState<Tab>("vpn");
-  const [yearly, setYearly] = useState(true);
-  const [showConfig, setShowConfig] = useState(false);
-  const [cpu, setCpu] = useState(2);
-  const [ram, setRam] = useState(4);
-  const [ssd, setSsd] = useState(50);
-  const [port, setPort] = useState(1);
-  const [mobileMenu, setMobileMenu] = useState(false);
+  const [period, setPeriod] = useState<Period>(12);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    document.documentElement.classList.add("premium-page");
-    return () => document.documentElement.classList.remove("premium-page");
+    document.documentElement.classList.remove("light");
   }, []);
 
-  const customPrice = tab === "vds" ? calcVdsPrice(cpu, ram, ssd, port) : calcVpsPrice(cpu, ram, ssd, port);
-  const customPriceYearly = Math.round(customPrice * 0.8 * 100) / 100;
-  const presets = tab === "vds" ? VDS_PRESETS : VPS_PRESETS;
-
   return (
-    <div className="premium-landing">
-      {/* Header */}
-      <header className="pl-header pl-header-solid" style={{ position: "sticky" }}>
-        <div className="pl-header-inner">
-          <Link href="/" className="pl-logo">
-            <AtlasLogo size={22} />
-            <span>Atlas Secure</span>
-          </Link>
-          <nav className="pl-nav">
-            <Link href="/#about">{t("nav.product")}</Link>
-            <Link href="/#services">{t("nav.solutions")}</Link>
-            <Link href="/#infra">{t("nav.infrastructure")}</Link>
-            <Link href="/pricing" style={{ color: "var(--pl-t1)" }}>{t("nav.pricing")}</Link>
-          </nav>
-          <div className="pl-header-actions">
-            <LanguageSwitcher />
-            <span className="pl-header-sep" />
-            <Link href="/auth" className="pl-header-login">{t("nav.login")}</Link>
-            <Link href="/auth" className="pl-header-signup">{t("nav.signup")}</Link>
-          </div>
-          <button className="pl-burger" onClick={() => setMobileMenu(true)} aria-label="Menu">
-            <span /><span /><span />
-          </button>
-        </div>
-      </header>
+    <div className="min-h-dvh bg-black text-white flex flex-col">
+      {/* ── Header (same visual as HeroV4) ── */}
+      <TopBar menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
 
-      {mobileMenu && (
-        <div className="pl-mobile-overlay" onClick={() => setMobileMenu(false)}>
-          <nav className="pl-mobile-nav" onClick={(e) => e.stopPropagation()}>
-            <button className="pl-mobile-close" onClick={() => setMobileMenu(false)} aria-label="Close">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
-            </button>
-            <Link href="/" onClick={() => setMobileMenu(false)}>{t("nav.product")}</Link>
-            <Link href="/pricing" onClick={() => setMobileMenu(false)}>{t("nav.pricing")}</Link>
-            <Link href="/auth" className="pl-mobile-cta" onClick={() => setMobileMenu(false)}>{t("nav.signup")}</Link>
-            <LanguageSwitcher />
-          </nav>
+      {/* ── Hero ── */}
+      <section className="px-5 sm:px-8 pt-10 pb-16 sm:pt-16 sm:pb-20 max-w-[1200px] mx-auto w-full">
+        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-white/45 mb-4">
+          Тарифы
         </div>
-      )}
-
-      {/* Hero */}
-      <section className="pl-pricing-hero">
-        <h1 style={{ fontSize: "clamp(36px, 4vw, 52px)", fontWeight: 500, letterSpacing: "-.03em", marginBottom: 16 }}>{t("pricing.title")}</h1>
-        <p style={{ fontSize: 17, color: "var(--pl-t2)", maxWidth: 480, marginBottom: 48 }}>
-          {t("pricing.desc")}
+        <h1 className="font-mts-wide text-[40px] sm:text-[56px] lg:text-[72px] leading-[1.02] tracking-tight font-bold max-w-[16ch]">
+          Простые тарифы —<br />без сюрпризов
+        </h1>
+        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-white/55 mt-6 max-w-[52ch]">
+          Два тарифа, четыре периода. Все цены в рублях, НДС включён. Отмена в один клик из личного кабинета — списываем ровно за выбранный срок.
         </p>
+      </section>
 
-        {/* Tab switcher */}
-        <div className="pl-pricing-tabs">
-          {(["vpn", "vps", "vds"] as Tab[]).map((t) => (
-            <button key={t} className={`pl-pricing-tab${tab === t ? " active" : ""}`} onClick={() => { setTab(t); setShowConfig(false); }}>
-              {t === "vpn" ? "PRO" : t.toUpperCase()}
+      {/* ── Period selector ── */}
+      <section className="px-5 sm:px-8 pb-6 max-w-[1200px] mx-auto w-full">
+        <div className="inline-flex flex-wrap items-center gap-1 p-1 rounded-full border border-white/12 bg-white/[0.03] font-mts-wide text-[13px]">
+          {PERIODS.map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={`px-4 py-2 rounded-full transition-colors ${period === p ? "bg-white text-black" : "text-white/70 hover:text-white"}`}
+            >
+              {PERIOD_LABEL[p]}
+              {p === 12 && <span className="ml-1.5 text-[11px] opacity-70">−17%</span>}
             </button>
           ))}
         </div>
       </section>
 
-      {/* ══ VPN Plans ══ */}
-      {tab === "vpn" && (
-        <section className="pl-pricing-section">
-          <div className="pl-pricing-inner">
-            {/* Billing toggle */}
-            <div className="pl-billing-row">
-              <button className={`pl-billing-toggle${yearly ? " active" : ""}`} onClick={() => setYearly(!yearly)}>
-                <span className="pl-toggle-track"><span className="pl-toggle-thumb" /></span>
-              </button>
-              <span style={{ fontSize: 14, color: "var(--pl-t2)" }}>{t("pricing.yearly")}</span>
-              {yearly && <span className="pl-save-tag">{t("pricing.save")}</span>}
-            </div>
+      {/* ── Plan cards ── */}
+      <section className="px-5 sm:px-8 pb-20 sm:pb-24 max-w-[1200px] mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+          <PlanCard plan="basic" period={period} />
+          <PlanCard plan="plus"  period={period} highlighted />
+        </div>
+      </section>
 
-            <div className="pl-plans-grid">
-              {VPN_PLANS.map((p) => (
-                <div key={p.name.en} className={`pl-plan-card${p.highlighted ? " pl-plan-hl" : ""}`}>
-                  <h3 className="pl-plan-name">{p.name[locale]}</h3>
-                  <div className="pl-plan-price">
-                    {p.price > 0 ? (
-                      <>
-                        <span className="pl-price-amount"><AnimatedPrice value={yearly && p.priceYearly ? p.priceYearly : p.price} /> $</span>
-                        <span className="pl-price-period">{p.period[locale]}</span>
-                      </>
-                    ) : (
-                      <span className="pl-price-amount">{p.sub === "CUSTOM_SUB" ? t("pricing.custom.sub") : (p.sub || "$0")}</span>
-                    )}
-                  </div>
-                  {p.price > 0 && !p.sub && (
-                    <div className="pl-plan-billing">
-                      <button className={`pl-billing-toggle sm${yearly ? " active" : ""}`} onClick={() => setYearly(!yearly)}>
-                        <span className="pl-toggle-track"><span className="pl-toggle-thumb" /></span>
-                      </button>
-                      <span style={{ fontSize: 13, color: "var(--pl-t3)" }}>{t("pricing.yearly")}</span>
-                    </div>
-                  )}
-                  {p.sub && <p className="pl-plan-sub">{p.sub === "CUSTOM_SUB" ? t("pricing.custom.sub") : p.sub}</p>}
-                  <div className="pl-plan-divider" />
-                  <ul className="pl-plan-features">
-                    {p.features[locale].map((f) => (
-                      <li key={f}><CheckIcon /> {f}</li>
-                    ))}
-                  </ul>
-                  <div className="pl-plan-cta">
-                    <Link href="/contact" className={`pl-plan-btn ${p.ctaStyle}`}>{p.cta[locale]}</Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+      {/* ── Comparison table (light) ── */}
+      <ComparisonSection />
+
+      {/* ── FAQ ── */}
+      <FaqSection />
+
+      {/* ── Final CTA ── */}
+      <FinalCta />
+
+      {/* ── Footer ── */}
+      <Footer />
+    </div>
+  );
+}
+
+// ─── TopBar ─────────────────────────────────────────────────────
+
+function TopBar({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v: boolean) => void }) {
+  const links = [
+    { label: "Тарифы", href: "/pricing" },
+    { label: "Безопасность", href: "/security" },
+    { label: "О нас", href: "/about" },
+    { label: "Поддержка", href: "/contact" },
+  ];
+  return (
+    <>
+      <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
+        <Link href="/" className="flex items-center gap-2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-white/85">atlas.secure</span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-white/70">
+          {links.map((l) => (
+            <Link key={l.href} href={l.href} className="hover:text-white transition-colors">{l.label}</Link>
+          ))}
+          <Link href="/auth" className="ml-3 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white hover:bg-white/15 transition-colors">Войти</Link>
+        </nav>
+        <button
+          className="md:hidden w-10 h-10 rounded-full bg-white/8 border border-white/12 flex items-center justify-center"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Меню"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18" />
+          </svg>
+        </button>
+      </div>
+      {menuOpen && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8 font-mts-wide" onClick={() => setMenuOpen(false)}>
+          <button
+            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/8 border border-white/12 flex items-center justify-center"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Закрыть"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+          {links.map((l) => (
+            <Link key={l.href} href={l.href} className="text-white text-2xl" onClick={() => setMenuOpen(false)}>{l.label}</Link>
+          ))}
+          <Link href="/auth" className="mt-4 px-6 py-3 rounded-full bg-white text-black text-base" onClick={() => setMenuOpen(false)}>Войти</Link>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ─── PlanCard ───────────────────────────────────────────────────
+
+const PLAN_FEATURES = {
+  basic: [
+    "3 устройства одновременно",
+    "3 локации серверов",
+    "Стабильное соединение 24/7",
+    "Автопереподключение при обрыве",
+    "Приоритет обычный",
+  ],
+  plus: [
+    "10 устройств одновременно",
+    "Все локации серверов",
+    "Гарантированный SLA 99,98%",
+    "Приоритетная поддержка от человека",
+    "Персональный статический адрес",
+    "Отдельная маршрутизация под игры и стриминг",
+  ],
+} as const;
+
+function PlanCard({ plan, period, highlighted }: { plan: "basic" | "plus"; period: Period; highlighted?: boolean }) {
+  const total = PLANS[plan][period];
+  const perMonth = Math.round(total / period);
+  const monthlyBase = PLANS[plan][1];
+  const savings = monthlyBase * period - total;
+
+  return (
+    <div className={`relative rounded-3xl p-6 sm:p-8 lg:p-10 flex flex-col ${
+      highlighted ? "bg-[#F97316] text-black" : "bg-white/[0.03] text-white border border-white/10"
+    }`}>
+      {highlighted && (
+        <div className="absolute top-5 right-5 font-mts-wide text-[11px] font-bold uppercase tracking-[0.14em] text-black/70">
+          популярный
+        </div>
       )}
 
-      {/* ══ VPS / VDS Plans ══ */}
-      {(tab === "vps" || tab === "vds") && (
-        <section className="pl-pricing-section">
-          <div className="pl-pricing-inner">
-            <div className="pl-billing-row">
-              <button className={`pl-billing-toggle${yearly ? " active" : ""}`} onClick={() => setYearly(!yearly)}>
-                <span className="pl-toggle-track"><span className="pl-toggle-thumb" /></span>
-              </button>
-              <span style={{ fontSize: 14, color: "var(--pl-t2)" }}>{t("pricing.yearly")}</span>
-              {yearly && <span className="pl-save-tag">{t("pricing.save")}</span>}
-            </div>
+      <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase mb-6" style={{ color: highlighted ? "rgba(0,0,0,0.55)" : "rgba(255,255,255,0.45)" }}>
+        {plan === "basic" ? "Basic" : "Plus"}
+      </div>
 
-            <div className="pl-plans-grid pl-plans-4">
-              {presets.map((p) => (
-                <div key={p.name} className="pl-plan-card">
-                  <h3 className="pl-plan-name">{p.name}</h3>
-                  <div className="pl-plan-price">
-                    <span className="pl-price-amount"><AnimatedPrice value={yearly ? p.priceYearly : p.price} /> $</span>
-                    <span className="pl-price-period">{PER_MONTH[locale]}</span>
-                  </div>
-                  <div className="pl-plan-divider" />
-                  <ul className="pl-plan-features">
-                    <li><CheckIcon /> {p.cpu} {locale === "ru" ? (tab === "vds" ? "выделенных" : "v") + "CPU" : (tab === "vds" ? "dedicated " : "v") + "CPU" + (p.cpu > 1 ? "s" : "")}</li>
-                    <li><CheckIcon /> {p.ram} {locale === "ru" ? "ГБ ОЗУ" : "GB RAM"}</li>
-                    <li><CheckIcon /> {p.ssd} {locale === "ru" ? "ГБ NVMe SSD" : "GB NVMe SSD"}</li>
-                    <li><CheckIcon /> {p.port} {locale === "ru" ? "Гбит/с порт" : "Gbps port"}</li>
-                    <li><CheckIcon /> {t("pricing.unlimited")}</li>
-                    <li><CheckIcon /> {locale === "ru" ? "Шифрование AES-256" : "AES-256 encryption"}</li>
-                    <li><CheckIcon /> {locale === "ru" ? "Защита от DDoS" : "DDoS protection"}</li>
-                    {tab === "vds" && <li><CheckIcon /> {locale === "ru" ? "Полный root-доступ" : "Full root access"}</li>}
-                  </ul>
-                  <div className="pl-plan-cta">
-                    <Link href="/contact" className="pl-plan-btn ghost">{locale === "ru" ? "Запросить" : "Request"}</Link>
-                  </div>
-                </div>
-              ))}
-            </div>
+      <div className="flex items-baseline gap-2 mb-2">
+        <span className="font-mts-wide text-[52px] sm:text-[64px] font-bold leading-none tabular-nums tracking-tight">
+          {fmt(perMonth)}
+        </span>
+        <span className="font-mts-wide text-[18px] font-medium" style={{ color: highlighted ? "rgba(0,0,0,0.65)" : "rgba(255,255,255,0.5)" }}>
+          ₽/мес
+        </span>
+      </div>
+      <div className="font-mts-wide text-[13px]" style={{ color: highlighted ? "rgba(0,0,0,0.65)" : "rgba(255,255,255,0.5)" }}>
+        {period === 1 ? (
+          <>Списывается каждый месяц</>
+        ) : (
+          <>
+            {fmt(total)} ₽ разово за {PERIOD_LABEL[period].toLowerCase()}
+            {savings > 0 && <span className="ml-2 opacity-70">· экономия {fmt(savings)} ₽</span>}
+          </>
+        )}
+      </div>
 
-            {/* Custom configurator */}
-            <div className="pl-config-section">
-              <button className="pl-config-toggle" onClick={() => setShowConfig(!showConfig)}>
-                {t("pricing.custom")}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: showConfig ? "rotate(180deg)" : "none", transition: "transform .2s" }}>
-                  <path d="M6 9l6 6 6-6" />
-                </svg>
-              </button>
+      <div className={`my-6 sm:my-8 h-px ${highlighted ? "bg-black/15" : "bg-white/10"}`} />
 
-              {showConfig && (
-                <div className="pl-config-panel">
-                  <div className="pl-config-sliders">
-                    <div className="pl-slider-group">
-                      <div className="pl-slider-header">
-                        <span>{tab === "vds" ? "CPU Cores" : "vCPU"}</span>
-                        <span className="pl-slider-val">{cpu}</span>
-                      </div>
-                      <input type="range" min={1} max={tab === "vds" ? 32 : 16} value={cpu} onChange={(e) => setCpu(Number(e.target.value))} />
-                      <div className="pl-slider-range"><span>1</span><span>{tab === "vds" ? 32 : 16}</span></div>
-                    </div>
-                    <div className="pl-slider-group">
-                      <div className="pl-slider-header">
-                        <span>RAM</span>
-                        <span className="pl-slider-val">{ram} GB</span>
-                      </div>
-                      <input type="range" min={1} max={tab === "vds" ? 64 : 32} value={ram} onChange={(e) => setRam(Number(e.target.value))} />
-                      <div className="pl-slider-range"><span>1 GB</span><span>{tab === "vds" ? 64 : 32} GB</span></div>
-                    </div>
-                    <div className="pl-slider-group">
-                      <div className="pl-slider-header">
-                        <span>NVMe SSD</span>
-                        <span className="pl-slider-val">{ssd} GB</span>
-                      </div>
-                      <input type="range" min={10} max={tab === "vds" ? 1000 : 500} step={10} value={ssd} onChange={(e) => setSsd(Number(e.target.value))} />
-                      <div className="pl-slider-range"><span>10 GB</span><span>{tab === "vds" ? "1 TB" : "500 GB"}</span></div>
-                    </div>
-                    <div className="pl-slider-group">
-                      <div className="pl-slider-header">
-                        <span>{t("pricing.port")}</span>
-                        <span className="pl-slider-val">{port} Gb/s</span>
-                      </div>
-                      <div className="pl-port-select">
-                        {PORT_OPTIONS.map((p) => (
-                          <button key={p} className={`pl-port-btn${port === p ? " active" : ""}`} onClick={() => setPort(p)}>
-                            {p}
-                          </button>
-                        ))}
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--pl-t3)", marginTop: 6 }}>Gb/s &middot; {t("pricing.unlimited")} included</div>
-                    </div>
-                  </div>
-                  <div className="pl-config-result">
-                    <div className="pl-config-specs">
-                      <div>{cpu} {tab === "vds" ? "Core" : "vCPU"}{cpu > 1 ? "s" : ""}</div>
-                      <div>{ram} GB RAM</div>
-                      <div>{ssd} GB NVMe</div>
-                      <div>{port} Gb/s port</div>
-                      <div style={{ color: "var(--pl-accent)" }}>{t("pricing.unlimited")}</div>
-                    </div>
-                    <div className="pl-config-price">
-                      <span className="pl-config-amount"><AnimatedPrice value={yearly ? customPriceYearly : customPrice} /> $</span>
-                      <span className="pl-config-period">/ month</span>
-                    </div>
-                    <Link href="/contact" className="pl-plan-btn primary" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>
-                      {t("pricing.config.req")}
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
+      <ul className="space-y-3 mb-8">
+        {PLAN_FEATURES[plan].map((f) => (
+          <li key={f} className="flex items-start gap-3 font-mts-wide text-[14px] sm:text-[15px] leading-[1.4]" style={{ color: highlighted ? "rgba(0,0,0,0.85)" : "rgba(255,255,255,0.85)" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0" style={{ color: highlighted ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.65)" }}>
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            {f}
+          </li>
+        ))}
+      </ul>
+
+      <Link
+        href={`/auth?plan=${plan}&period=${period}`}
+        className={`mt-auto font-mts-wide inline-flex items-center justify-center gap-2 h-12 rounded-2xl font-semibold text-[15px] transition-all active:scale-[0.98] ${
+          highlighted ? "bg-black text-white hover:bg-neutral-800" : "bg-white text-black hover:bg-neutral-100"
+        }`}
+      >
+        Выбрать {plan === "basic" ? "Basic" : "Plus"}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      </Link>
+    </div>
+  );
+}
+
+// ─── Comparison table (light) ───────────────────────────────────
+
+const COMPARE_ROWS: Array<[string, string, string]> = [
+  ["Устройств одновременно",                    "3",              "10"],
+  ["Локации серверов",                          "3",              "Все"],
+  ["Соединение 24/7 · автопереподключение",     "check",          "check"],
+  ["Персональный статический адрес",            "cross",          "check"],
+  ["Отдельная маршрутизация для игр/стриминга", "cross",          "check"],
+  ["Приоритетная поддержка от человека",        "cross",          "check"],
+  ["Гарантированный SLA",                       "—",              "99,98%"],
+];
+
+function ComparisonSection() {
+  return (
+    <section className="bg-[#f5f5f0] text-[#111] px-5 sm:px-8 py-20 sm:py-28 lg:py-32">
+      <div className="max-w-[1200px] mx-auto">
+        <div className="mb-10 sm:mb-14 max-w-[720px]">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">
+            Сравнение
           </div>
-        </section>
-      )}
+          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
+            Что входит<br />в каждый тариф
+          </h2>
+        </div>
 
-      {/* ══ Feature comparison (VPN) ══ */}
-      {tab === "vpn" && (
-        <section className="pl-comparison">
-          <div className="pl-comparison-inner">
-            <div className="pl-comp-header">
-              <div className="pl-comp-label">{t("pricing.features")}</div>
-              <div>{locale === "ru" ? "Пробный" : "Trial"}</div>
-              <div>{locale === "ru" ? "Личный" : "Personal"}</div>
-              <div>{locale === "ru" ? "Бизнес" : "Business"}</div>
-              <div>Enterprise</div>
+        <div className="rounded-3xl bg-white border border-black/[0.04] overflow-hidden">
+          <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_minmax(0,1fr)] font-mts-wide text-[13px] sm:text-[14px]">
+            <div className="p-4 sm:p-5 text-black/45 font-medium tracking-[0.06em] uppercase text-[11px] sm:text-[12px]">
+              Что вы получаете
             </div>
-            {(locale === "ru" ? [
-              ["Шифрование", "AES-256", "AES-256", "AES-256", "AES-256"],
-              ["Протоколы", "VLESS", "VLESS, WG", "Все", "Все + кастом"],
-              ["Устройств", "1", "3", "10", "Без лимита"],
-              ["Локации серверов", "1", "3", "Все", "Все + выделенные"],
-              ["Пропускная способность", "75 Гбит/с", "75 Гбит/с", "100 Гбит/с", "200 Гбит/с"],
-              ["Kill Switch", "check", "check", "check", "check"],
-              ["Защита DNS", "check", "check", "check", "check"],
-              ["Обфускация трафика", "cross", "check", "check", "check"],
-              ["Выделенный IP", "cross", "cross", "check", "check"],
-              ["Защита от DDoS", "cross", "cross", "check", "check"],
-              ["Приоритетная поддержка", "cross", "cross", "check", "check"],
-              ["SLA", "cross", "cross", "99,9%", "99,98%"],
-              ["Персональный менеджер", "cross", "cross", "cross", "check"],
-              ["Оплата по счёту", "cross", "cross", "cross", "check"],
-            ] : [
-              ["Encryption", "AES-256", "AES-256", "AES-256", "AES-256"],
-              ["Protocols", "VLESS", "VLESS, WG", "All", "All + Custom"],
-              ["Devices", "1", "3", "10", "Unlimited"],
-              ["Server locations", "1", "3", "All", "All + Dedicated"],
-              ["Bandwidth", "75 Gb/s", "75 Gb/s", "100 Gb/s", "200 Gb/s"],
-              ["Kill Switch", "check", "check", "check", "check"],
-              ["DNS protection", "check", "check", "check", "check"],
-              ["Traffic obfuscation", "cross", "check", "check", "check"],
-              ["Dedicated IP", "cross", "cross", "check", "check"],
-              ["DDoS protection", "cross", "cross", "check", "check"],
-              ["Priority support", "cross", "cross", "check", "check"],
-              ["SLA guarantee", "cross", "cross", "99.9%", "99.98%"],
-              ["Account manager", "cross", "cross", "cross", "check"],
-              ["Invoice billing", "cross", "cross", "cross", "check"],
-            ]).map(([feature, ...vals]) => (
-              <div key={feature} className="pl-comp-row">
-                <div className="pl-comp-feature">{feature}</div>
-                {vals.map((v, i) => (
-                  <div key={i} className="pl-comp-val">
-                    {v === "check" ? <CheckIcon /> : v === "cross" ? <CrossIcon /> : v}
+            <div className="p-4 sm:p-5 text-black/85 font-semibold text-center">Basic</div>
+            <div className="p-4 sm:p-5 bg-[#F97316]/10 text-black font-semibold text-center">Plus</div>
+
+            {COMPARE_ROWS.map((row, i) => (
+              <div key={row[0]} className="contents">
+                <div className={`p-4 sm:p-5 text-black/75 ${i > 0 ? "border-t border-black/[0.06]" : ""}`}>{row[0]}</div>
+                {row.slice(1).map((v, j) => (
+                  <div
+                    key={j}
+                    className={`p-4 sm:p-5 flex items-center justify-center ${i > 0 ? "border-t border-black/[0.06]" : ""} ${j === 1 ? "bg-[#F97316]/5" : ""}`}
+                  >
+                    <CompareCell v={v} />
                   </div>
                 ))}
               </div>
             ))}
           </div>
-        </section>
-      )}
-
-      {/* Footer */}
-      <footer className="pl-footer">
-        <div className="pl-footer-inner">
-          <div className="pl-footer-brand">
-            <AtlasLogo size={14} />
-            <span>Atlas Secure</span>
-          </div>
-          <div className="pl-footer-links">
-            <Link href="/pricing">{t("footer.pricing")}</Link>
-            <Link href="/terms">{t("footer.terms")}</Link>
-            <Link href="/privacy">{t("footer.privacy")}</Link>
-          </div>
-          <div className="pl-footer-copy">HQ: Hong Kong SAR &middot; &copy; {new Date().getFullYear()} Atlas Secure</div>
         </div>
-      </footer>
-    </div>
+      </div>
+    </section>
+  );
+}
+
+function CompareCell({ v }: { v: string }) {
+  if (v === "check") {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    );
+  }
+  if (v === "cross" || v === "—") {
+    return <span className="text-black/25 font-mts-wide text-[15px]">—</span>;
+  }
+  return <span className="font-mts-wide text-[14px] font-semibold text-black/85">{v}</span>;
+}
+
+// ─── FAQ ────────────────────────────────────────────────────────
+
+const FAQ: Array<{ q: string; a: string }> = [
+  { q: "Как быстро активируется подписка?",          a: "Мгновенно после оплаты. Ключ и инструкции по подключению откроются в личном кабинете, там же можно скачать приложение под нужное устройство." },
+  { q: "Можно ли переключаться между тарифами?",      a: "Да. Из личного кабинета — новый тариф активируется сразу, остаток по старому пересчитывается пропорционально." },
+  { q: "Работает ли на роутере?",                     a: "Да. Есть готовые прошивки для Keenetic и OpenWrt — инструкция в разделе Устройства." },
+  { q: "Что с оплатой и возвратами?",                 a: "Оплата картой РФ и зарубежной, СБП. Возврат — по запросу в первые 3 дня, дальше — за неиспользованный остаток по тарифу." },
+  { q: "Ведёте ли логи трафика?",                     a: "Нет. На магистрали журналируется только техническая метрика соединения — этого нужно, чтобы держать SLA. Содержимое трафика не хранится." },
+];
+
+function FaqSection() {
+  const [open, setOpen] = useState<number | null>(0);
+  return (
+    <section className="bg-black text-white px-5 sm:px-8 py-20 sm:py-28 lg:py-32">
+      <div className="max-w-[900px] mx-auto">
+        <div className="mb-12 sm:mb-16">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-white/45 mb-4">
+            Вопросы
+          </div>
+          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
+            Частые вопросы
+          </h2>
+        </div>
+        <div className="divide-y divide-white/10 border-y border-white/10">
+          {FAQ.map((item, i) => {
+            const isOpen = open === i;
+            return (
+              <div key={item.q}>
+                <button
+                  className="w-full text-left py-6 flex items-center justify-between gap-6 group"
+                  onClick={() => setOpen(isOpen ? null : i)}
+                >
+                  <span className="font-mts-wide text-[17px] sm:text-[19px] font-medium leading-tight text-white group-hover:text-white transition-colors">
+                    {item.q}
+                  </span>
+                  <span className={`w-8 h-8 shrink-0 rounded-full border border-white/15 flex items-center justify-center transition-transform ${isOpen ? "rotate-45 bg-white text-black border-white" : ""}`}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </span>
+                </button>
+                <div
+                  className="grid transition-all duration-300"
+                  style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+                >
+                  <div className="overflow-hidden">
+                    <p className="pb-6 pr-14 font-mts-wide text-[15px] sm:text-[16px] leading-[1.6] text-white/65">
+                      {item.a}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Final CTA ──────────────────────────────────────────────────
+
+function FinalCta() {
+  return (
+    <section className="bg-[#F97316] text-black px-5 sm:px-8 py-20 sm:py-28 lg:py-32">
+      <div className="max-w-[900px] mx-auto text-center">
+        <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[72px] leading-[1.02] tracking-tight font-bold">
+          Начните<br />за минуту
+        </h2>
+        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-black/70 mt-6 max-w-[42ch] mx-auto">
+          Регистрация занимает 30 секунд. Никаких предоплат за пробный доступ.
+        </p>
+        <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
+          <Link href="/auth" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]">
+            Создать аккаунт
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+          </Link>
+          <Link href="/contact" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-black/30 text-black font-semibold text-[15px] hover:bg-black/5 transition-colors">
+            Поговорить с командой
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ─── Footer ─────────────────────────────────────────────────────
+
+function Footer() {
+  return (
+    <footer className="bg-black text-white/50 px-5 sm:px-8 py-10 sm:py-12 mt-auto border-t border-white/10">
+      <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row md:items-center gap-6 md:gap-10 font-mts-wide text-[13px]">
+        <div className="flex items-center gap-2 text-white/85">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <span className="tracking-[0.14em] uppercase text-[12px]">atlas.secure</span>
+        </div>
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <Link href="/terms"    className="hover:text-white transition-colors">Условия</Link>
+          <Link href="/privacy"  className="hover:text-white transition-colors">Приватность</Link>
+          <Link href="/contact"  className="hover:text-white transition-colors">Поддержка</Link>
+        </div>
+        <div className="md:ml-auto text-white/45">
+          &copy; {new Date().getFullYear()} Atlas Secure
+        </div>
+      </div>
+    </footer>
   );
 }
