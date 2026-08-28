@@ -1612,6 +1612,95 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   Auth shell v4 — light MTS Wide theme, wraps /auth flow
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.auth-shell {
+  background: #f5f5f0;
+  color: #111;
+  font-family: var(--font-mts-wide);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Override auth-input inside the light shell — inputs need a
+ * white sunken card with black text, not the dark-theme translucent
+ * whites of the original. */
+.auth-shell .auth-input {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  color: #111;
+}
+.auth-shell .auth-input::placeholder { color: rgba(0,0,0,0.35); }
+.auth-shell .auth-input:hover  { background: #fff; border-color: rgba(0,0,0,0.16); }
+.auth-shell .auth-input:focus  {
+  background: #fff;
+  border-color: rgba(0,0,0,0.55);
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.06);
+}
+.auth-shell .auth-input-error       { border-color: rgba(239,68,68,0.55); }
+.auth-shell .auth-input-error:focus { border-color: rgba(239,68,68,0.75); box-shadow: 0 0 0 4px rgba(239,68,68,0.10); }
+
+/* Code input cells */
+.auth-shell .auth-code-cell {
+  background: #fff;
+  border-color: rgba(0,0,0,0.08);
+  color: #111;
+}
+.auth-shell .auth-code-cell:focus {
+  border-color: rgba(0,0,0,0.55);
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.06);
+}
+
+/* Primary CTA — black solid rounded pill matching landing */
+.auth-shell .auth-cta {
+  background: #111;
+  color: #fff;
+  border-radius: 16px;
+  height: 52px;
+  font-family: var(--font-mts-wide);
+  font-weight: 600;
+  font-size: 15px;
+  transition: background .2s ease, transform .12s ease;
+}
+.auth-shell .auth-cta:hover    { background: #000; }
+.auth-shell .auth-cta:active   { transform: scale(0.98); }
+.auth-shell .auth-cta:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Ghost / secondary CTA */
+.auth-shell .auth-cta-ghost {
+  background: transparent;
+  color: #111;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 16px;
+  height: 52px;
+  font-family: var(--font-mts-wide);
+  font-weight: 500;
+  font-size: 15px;
+  transition: background .2s ease, border-color .2s ease;
+}
+.auth-shell .auth-cta-ghost:hover { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.25); }
+
+/* Eyebrow label — reuse dv2-eyebrow's shape but invert colour */
+.auth-shell .dv2-eyebrow {
+  color: rgba(0,0,0,0.5);
+  font-family: var(--font-mts-wide);
+  font-weight: 500;
+}
+
+/* Rounded content card in the middle of the page */
+.auth-shell .auth-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.04);
+  border-radius: 28px;
+  padding: 28px 24px;
+}
+@media (min-width: 640px) {
+  .auth-shell .auth-card { padding: 40px 36px; border-radius: 32px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    Dashboard v2 — futuristic dark glass cards
    ═══════════════════════════════════════════════════════════════════════ */
 
