@@ -1,201 +1,353 @@
 "use client";
 
 import Link from "next/link";
-import PremiumPage from "@/components/PremiumPage";
-import { useI18n } from "@/lib/i18n";
+import LandingFooter from "@/components/LandingFooter";
 
-function Icon({ name }: { name: string }) {
-  const paths: Record<string, React.ReactNode> = {
-    server: <><rect x="3" y="4" width="18" height="6" rx="1" /><rect x="3" y="14" width="18" height="6" rx="1" /><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6" /></>,
-    cpu: <><rect x="5" y="5" width="14" height="14" rx="1.5" /><rect x="8" y="8" width="8" height="8" rx="0.5" /><path d="M9 2v2M12 2v2M15 2v2M2 9h2M2 12h2M2 15h2M22 9h-2M22 12h-2M22 15h-2M9 22v-2M12 22v-2M15 22v-2" /></>,
-    shield: <><path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5l8-3z" /></>,
-    lock: <><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 018 0v3" /></>,
-    rack: <><rect x="4" y="3" width="16" height="18" rx="1" /><path d="M4 7h16M4 11h16M4 15h16M4 19h16M7 5h.01M7 9h.01M7 13h.01M7 17h.01" /></>,
-    disk: <><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14a9 3 0 0018 0V5" /><path d="M3 12a9 3 0 0018 0" /></>,
-  };
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      {paths[name]}
-    </svg>
-  );
-}
+/**
+ * /vds — VDS product page in the v4 light shell.
+ *
+ * Hero → stats → CPU tiers → features → use cases → hardware
+ * registry → orange CTA → LandingFooter. Content preserved from
+ * the earlier PremiumPage implementation: dedicated physical
+ * servers, Intel Xeon Scalable / AMD EPYC, NVMe RAID 10, up to
+ * 200 Gb/s network, up to 1 TB RAM, IPMI/KVM, private VLAN,
+ * from $29.99/mo. CPU line-up: EPYC 9354P (recommended), EPYC
+ * 9554, Xeon Gold 6548Y, Xeon 6430.
+ */
+
+const STATS: Array<[string, string]> = [
+  ["EPYC 9K",  "Свежий Zen 4c"],
+  ["200 Gb/s", "Макс. сеть"],
+  ["300k",     "NVMe RAID IOPS"],
+  ["1 ТБ",     "Макс. RAM"],
+];
+
+const CPU_TIERS = [
+  {
+    name:    "EPYC 9354P",
+    badge:   "Рекомендуем",
+    highlight: true,
+    price:   "От $29,99",
+    d:       "32 ядра Zen 4c. 360W TDP. До 128 линий PCIe 5.0 для NVMe и сетевых карт.",
+    specs: [
+      ["Ядра",     "32 физических"],
+      ["TDP",      "360 Вт"],
+      ["PCIe",     "5.0 · до 128 линий"],
+      ["Профиль",  "Универсальный high-end"],
+    ] as Array<[string, string]>,
+  },
+  {
+    name:    "EPYC 9554",
+    badge:   "HPC",
+    highlight: false,
+    price:   "По запросу",
+    d:       "64 ядра / 128 потоков. Для multi-tenant баз данных и HPC-кластеров с параллельными задачами.",
+    specs: [
+      ["Ядра",     "64 / 128 потоков"],
+      ["Кэш L3",   "256 МБ"],
+      ["Профиль",  "HPC, аналитика"],
+      ["Сокет",    "SP5"],
+    ] as Array<[string, string]>,
+  },
+  {
+    name:    "Xeon Gold 6548Y",
+    badge:   "AVX-512",
+    highlight: false,
+    price:   "По запросу",
+    d:       "Sapphire Rapids. 32 ядра с AVX-512 и AMX — оптимально для ML-инференса на CPU.",
+    specs: [
+      ["Ядра",     "32 физических"],
+      ["AVX-512",  "Да"],
+      ["AMX",      "Да"],
+      ["Профиль",  "ML-инференс"],
+    ] as Array<[string, string]>,
+  },
+  {
+    name:    "Xeon 6430",
+    badge:   "Balanced",
+    highlight: false,
+    price:   "По запросу",
+    d:       "32 ядра. Универсальная рабочая лошадка для веба и баз данных с предсказуемой ценой.",
+    specs: [
+      ["Ядра",     "32 физических"],
+      ["Частота",  "2,1 / 3,4 ГГц"],
+      ["Профиль",  "Веб, БД"],
+      ["Сокет",    "LGA 4677"],
+    ] as Array<[string, string]>,
+  },
+];
+
+const FEATURES = [
+  {
+    n: "01",
+    eyebrow: "Процессор",
+    t: "Выделенный CPU",
+    d: "Intel Xeon Gold 6xxx или AMD EPYC 9xxx. До 64 физических ядер. Полный доступ к performance-счётчикам.",
+  },
+  {
+    n: "02",
+    eyebrow: "Изоляция",
+    t: "Аппаратная, без гипервизора",
+    d: "Ваши потоки, кэши и шина памяти. Безопасный дом для чувствительных нагрузок и compliance-задач.",
+  },
+  {
+    n: "03",
+    eyebrow: "Диск",
+    t: "NVMe RAID 10",
+    d: "Enterprise NVMe в RAID 10 по умолчанию. 300 000+ IOPS, избыточность и hot-swap без простоя.",
+  },
+  {
+    n: "04",
+    eyebrow: "Сеть",
+    t: "До 200 Gb/s и DDoS в базе",
+    d: "Полнодуплекс до 200 Gb/s. Центр фильтрации впереди — митигирует L3/4/7 атаки до терабитного масштаба.",
+  },
+  {
+    n: "05",
+    eyebrow: "Управление",
+    t: "IPMI и KVM out-of-band",
+    d: "Любая ОС, монтирование ISO, power-cycle и переустановка без обращения в поддержку.",
+  },
+  {
+    n: "06",
+    eyebrow: "Сеть между узлами",
+    t: "Приватный VLAN",
+    d: "Объединяйте несколько VDS в приватной L2-сети. Готовая база для HA-пар и кластеров.",
+  },
+];
+
+const USECASES = [
+  { t: "Нагруженные БД",     d: "PostgreSQL, Cassandra, ClickHouse с непредсказуемыми запросами и большими буферами." },
+  { t: "ML-инференс",        d: "Ускоренный AVX-512 и AMX инференс без стоимости GPU. Обслуживание LLM на CPU." },
+  { t: "Финтрейдинг",        d: "Микросекундная предсказуемость задержек. Никакого джиттера гипервизора для HFT-задач." },
+  { t: "Enterprise ERP",     d: "SAP, Oracle, 1С — нагрузки, требующие сертифицированного железа и полной изоляции." },
+  { t: "Compliance-задачи",  d: "PCI-DSS, HIPAA, 152-ФЗ. Физическая изоляция устраивает самых строгих аудиторов." },
+  { t: "Рендер-фермы",       d: "100% CPU часами. Без throttling и соседей, предсказуемое время рендера." },
+];
+
+const HARDWARE: Array<[string, string]> = [
+  ["Класс серверов",       "Bare metal · без гипервизора"],
+  ["Процессоры",           "Intel Xeon Gold 6xxx · AMD EPYC 9xxx"],
+  ["Максимум ядер",        "До 64 физических"],
+  ["Максимум RAM",         "До 1 ТБ ECC"],
+  ["Диски",                "Enterprise NVMe · RAID 10 · hot-swap"],
+  ["Дисковая производительность", "300 000+ IOPS в RAID"],
+  ["Сеть",                 "10 / 100 / 200 Gb/s полнодуплекс"],
+  ["Приватная сеть",       "L2 VLAN между вашими VDS"],
+  ["Защита",               "DDoS L3/4/7 · до терабитного масштаба"],
+  ["Управление",           "IPMI · KVM · ISO-mount · API"],
+  ["ЦОДы",                 "Франкфурт · Москва · Сидней"],
+  ["Аптайм SLA",           "99,98% с компенсацией"],
+  ["Поддержка",            "NOC 24/7/365"],
+  ["Стартовая цена",       "От $29,99 / мес"],
+];
 
 export default function VdsPage() {
-  const { locale } = useI18n();
-  const en = locale === "en";
-
   return (
-    <PremiumPage>
-      {/* HERO */}
-      <section className="plx-hero">
-        <div className="plx-hero-bg" />
-        <div className="plx-hero-grid" />
-        <div className="plx-wrap plx-hero-inner">
-          <div className="pl-entrance pl-ed1">
-            <div className="plx-eyebrow">VDS · BARE METAL</div>
-            <h1 className="plx-hero-title">
-              {en ? "Dedicated metal.\n" : "Выделенное железо.\n"}
-              <span className="plx-grad">{en ? "Zero neighbors." : "Ноль соседей."}</span>
-            </h1>
-            <p className="plx-hero-desc">
-              {en
-                ? "Full physical server. No hypervisor overhead, no noisy neighbors, no shared cache lines. Intel Xeon Scalable or AMD EPYC with enterprise NVMe and up to 200 Gb/s networking."
-                : "Полный физический сервер. Без оверхеда гипервизора, без соседей, без общих cache-линий. Intel Xeon Scalable или AMD EPYC, enterprise NVMe и сеть до 200 Gb/s."}
-            </p>
-            <div className="plx-hero-actions">
-              <Link href="/pricing" className="pl-cta-btn-light">{en ? "Configure VDS" : "Конфигуратор"} <span className="pl-arrow">→</span></Link>
-              <Link href="/contact" className="pl-cta-btn-dark">{en ? "Talk to engineer" : "Написать инженеру"}</Link>
-            </div>
-          </div>
+    <div className="bg-[#f5f5f0] min-h-dvh flex flex-col text-black">
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
+        <Link href="/" className="flex items-center gap-2">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
+        </Link>
+        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-black/60">
+          <Link href="/pricing"  className="hover:text-black transition-colors">Тарифы</Link>
+          <Link href="/security" className="hover:text-black transition-colors">Безопасность</Link>
+          <Link href="/contact"  className="hover:text-black transition-colors">Поддержка</Link>
+          <Link href="/about"    className="hover:text-black transition-colors">О нас</Link>
+          <Link href="/auth"     className="ml-3 px-4 py-2 rounded-full bg-black text-white hover:bg-neutral-800 transition-colors">Войти</Link>
+        </nav>
+      </div>
 
-          {/* Server rack visual */}
-          <div className="pl-entrance pl-ed2">
-            <div style={{ border: "1px solid var(--pl-border)", borderRadius: 20, background: "var(--pl-surface)", padding: 24, boxShadow: "0 30px 80px -20px rgba(0,0,0,0.6)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontFamily: "var(--pl-mono)", color: "var(--pl-t3)", letterSpacing: "0.08em", textTransform: "uppercase" }}>{en ? "Rack R-07 · Frankfurt" : "Стойка R-07 · Франкфурт"}</div>
-                <div style={{ fontSize: 11, color: "#34D399", display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#34D399", boxShadow: "0 0 8px rgba(52,211,153,0.6)" }} />
-                  {en ? "Online" : "Онлайн"}
-                </div>
+      {/* Hero */}
+      <section className="px-5 sm:px-8 pt-16 pb-14 sm:pt-24 sm:pb-20 max-w-[1200px] mx-auto w-full">
+        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-5">
+          VDS · Выделенное железо
+        </div>
+        <h1 className="font-mts-wide text-[40px] sm:text-[56px] lg:text-[80px] leading-[1.02] tracking-tight font-bold max-w-[14ch]">
+          Выделенное<br />железо.<br />Ноль соседей
+        </h1>
+        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-black/55 mt-8 max-w-[58ch]">
+          Полный физический сервер. Без оверхеда гипервизора, без соседей, без общих cache-линий. Intel Xeon Scalable или AMD EPYC, enterprise NVMe и сеть до 200 Gb/s.
+        </p>
+        <div className="mt-10 flex flex-wrap gap-3">
+          <Link href="/subscribe" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]">
+            Выбрать конфигурацию
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+          </Link>
+          <Link href="/contact" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-black/20 text-black font-semibold text-[15px] hover:bg-black/5 transition-colors">
+            Написать инженеру
+          </Link>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          {STATS.map(([v, l]) => (
+            <div key={l} className="bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6">
+              <div className="font-mts-wide text-[28px] sm:text-[40px] font-bold leading-none tracking-tight tabular-nums">{v}</div>
+              <div className="font-mts-wide text-[12px] tracking-[0.10em] uppercase text-black/45 mt-3">{l}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CPU tiers */}
+      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
+        <div className="mb-12 sm:mb-16 max-w-[720px]">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Поколения CPU</div>
+          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
+            Всегда свежий<br />кремний
+          </h2>
+          <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.5] text-black/55 mt-6 max-w-[58ch]">
+            Четыре поколения процессоров под разные профили нагрузки. Начиная от $29,99/мес за EPYC 9354P.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {CPU_TIERS.map((t) => (
+            <div
+              key={t.name}
+              className={`rounded-3xl p-6 sm:p-8 border transition-colors flex flex-col ${
+                t.highlight
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-black border-black/[0.06] hover:border-black/[0.15]"
+              }`}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <span className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase ${t.highlight ? "text-white/55" : "text-black/45"}`}>
+                  {t.badge}
+                </span>
+                <span className={`font-mts-wide text-[13px] font-semibold ${t.highlight ? "text-white/85" : "text-black/70"}`}>
+                  {t.price} / мес
+                </span>
               </div>
-              <svg viewBox="0 0 360 300" style={{ width: "100%", height: "auto", display: "block" }}>
-                <defs>
-                  <linearGradient id="rackGrad" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0" stopColor="#18181B" />
-                    <stop offset="1" stopColor="#111113" />
-                  </linearGradient>
-                </defs>
-                {/* Rack frame */}
-                <rect x="40" y="20" width="280" height="260" rx="4" fill="url(#rackGrad)" stroke="rgba(255,255,255,0.08)" />
-                {/* Units */}
-                {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-                  <g key={i}>
-                    <rect x="50" y={32 + i * 30} width="260" height="26" rx="3" fill="#0A0A0B" stroke="rgba(255,255,255,0.05)" />
-                    {/* LEDs */}
-                    <circle cx="64" cy={45 + i * 30} r="2.5" fill={i === 2 ? "#5E6AD2" : "#34D399"} opacity={i === 7 ? "0.3" : "1"}>
-                      {i === 2 && <animate attributeName="opacity" values="0.3;1;0.3" dur="1.8s" repeatCount="indefinite" />}
-                    </circle>
-                    <circle cx="74" cy={45 + i * 30} r="2.5" fill="#34D399" opacity={i === 7 ? "0.3" : "1"} />
-                    {/* Label */}
-                    <text x="86" y={48 + i * 30} fontFamily="var(--pl-mono)" fontSize="9" fill="#55555A" letterSpacing="0.08em">
-                      {i === 2 ? "YOUR-VDS-07  · EPYC 9354P · 128 GB · 2×NVMe 3.84 TB" : `NODE-${String(i + 1).padStart(2, "0")}`}
-                    </text>
-                    {/* Port */}
-                    {[0, 1, 2, 3].map((p) => (
-                      <rect key={p} x={270 + p * 8} y={42 + i * 30} width="5" height="8" rx="1" fill={p < 3 ? "#34D399" : "#333"} opacity={i === 2 ? "1" : "0.4"} />
-                    ))}
-                  </g>
+              <h3 className="font-mts-wide text-[24px] sm:text-[28px] font-bold leading-[1.1] tracking-tight mb-3">{t.name}</h3>
+              <p className={`font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] mb-6 ${t.highlight ? "text-white/70" : "text-black/60"}`}>
+                {t.d}
+              </p>
+              <dl className={`grid grid-cols-2 gap-x-4 gap-y-3 mb-8 pt-6 border-t ${t.highlight ? "border-white/10" : "border-black/[0.08]"}`}>
+                {t.specs.map(([k, v]) => (
+                  <div key={k}>
+                    <dt className={`font-mts-wide text-[11px] tracking-[0.10em] uppercase mb-1 ${t.highlight ? "text-white/45" : "text-black/45"}`}>{k}</dt>
+                    <dd className="font-mts-wide text-[14px] font-semibold">{v}</dd>
+                  </div>
                 ))}
-                {/* Highlight your unit */}
-                <rect x="48" y={92 - 2} width="264" height="30" rx="4" fill="none" stroke="#5E6AD2" strokeWidth="1" opacity="0.5" />
-              </svg>
+              </dl>
+              <Link
+                href="/subscribe"
+                className={`mt-auto font-mts-wide inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-semibold text-[14px] transition-colors active:scale-[0.98] ${
+                  t.highlight
+                    ? "bg-white text-black hover:bg-neutral-200"
+                    : "bg-black text-white hover:bg-neutral-800"
+                }`}
+              >
+                Заказать сборку
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+              </Link>
             </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* HARDWARE STATS */}
-      <section style={{ padding: "0 0 80px" }}>
-        <div className="plx-wrap">
-          <div className="plx-stats">
-            <div className="plx-stat"><div className="plx-stat-val">EPYC 9K</div><div className="plx-stat-label">{en ? "Latest Zen 4c" : "Новейший Zen 4c"}</div></div>
-            <div className="plx-stat"><div className="plx-stat-val">200 Gb/s</div><div className="plx-stat-label">{en ? "Max network" : "Макс. сеть"}</div></div>
-            <div className="plx-stat"><div className="plx-stat-val">300k</div><div className="plx-stat-label">{en ? "NVMe RAID IOPS" : "NVMe RAID IOPS"}</div></div>
-            <div className="plx-stat"><div className="plx-stat-val">1 TB</div><div className="plx-stat-label">{en ? "Max RAM" : "Макс. RAM"}</div></div>
-          </div>
+      {/* Features */}
+      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
+        <div className="mb-12 sm:mb-16 max-w-[720px]">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Железо</div>
+          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
+            Что реально<br />получаете
+          </h2>
+          <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.5] text-black/55 mt-6 max-w-[58ch]">
+            Не абстракции и не доли — физические компоненты, принадлежащие вашей нагрузке.
+          </p>
         </div>
-      </section>
-
-      {/* FEATURES */}
-      <section className="plx-section">
-        <div className="plx-wrap">
-          <div className="plx-section-head">
-            <div className="plx-section-label">{en ? "Hardware" : "Железо"}</div>
-            <h2 className="plx-section-title">{en ? "What you actually get" : "Что реально получаете"}</h2>
-            <p className="plx-section-desc">{en ? "Not abstractions, not shares — physical components that belong to your workload." : "Не абстракции, не доли — физические компоненты, принадлежащие вашей нагрузке."}</p>
-          </div>
-          <div className="plx-fgrid">
-            {[
-              { i: "cpu", t: en ? "Dedicated CPU" : "Выделенный CPU", d: en ? "Intel Xeon Gold 6xxx or AMD EPYC 9xxx. Up to 64 physical cores. Full performance counters." : "Intel Xeon Gold 6xxx или AMD EPYC 9xxx. До 64 физических ядер. Полный доступ к счётчикам." },
-              { i: "lock", t: en ? "Hardware isolation" : "Аппаратная изоляция", d: en ? "No shared hypervisor. Your threads, caches, and memory bus. Sensitive workloads' safest home." : "Никакого общего гипервизора. Ваши потоки, кэши, шина памяти. Безопасный дом для чувствительных нагрузок." },
-              { i: "disk", t: en ? "NVMe RAID 10" : "NVMe RAID 10", d: en ? "Enterprise NVMe in RAID 10 by default. 300k+ IOPS, redundancy, hot-swap." : "Enterprise NVMe в RAID 10 по умолчанию. 300k+ IOPS, избыточность, hot-swap." },
-              { i: "shield", t: en ? "DDoS baseline" : "DDoS в базе", d: en ? "Scrubbing center in front. Mitigates L3/4/7 attacks up to terabit scale." : "Центр фильтрации впереди. Митигирует L3/4/7 атаки до терабитного масштаба." },
-              { i: "server", t: en ? "IPMI / KVM" : "IPMI / KVM", d: en ? "Out-of-band management. Reinstall any OS, mount ISO, power-cycle without support." : "Out-of-band управление. Любая ОС, монтирование ISO, power-cycle без поддержки." },
-              { i: "rack", t: en ? "Private VLAN" : "Приватный VLAN", d: en ? "Connect multiple VDS on a private L2 network. Perfect for clusters and HA pairs." : "Объедините несколько VDS в приватной L2-сети. Для кластеров и HA-пар." },
-            ].map((f) => (
-              <div key={f.t} className="plx-fcard">
-                <div className="plx-fcard-icon"><Icon name={f.i} /></div>
-                <h3>{f.t}</h3>
-                <p>{f.d}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {FEATURES.map((f) => (
+            <div key={f.n} className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 hover:border-black/[0.15] transition-colors">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="font-mts-wide text-[12px] font-semibold text-black/45">{f.n}</span>
+                <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45">{f.eyebrow}</span>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CPU generations */}
-      <section className="plx-section" style={{ paddingTop: 0 }}>
-        <div className="plx-wrap">
-          <div className="plx-section-head">
-            <div className="plx-section-label">{en ? "CPU generations" : "Поколения CPU"}</div>
-            <h2 className="plx-section-title">{en ? "Latest silicon, always" : "Всегда свежий кремний"}</h2>
-          </div>
-          <div className="plx-proto">
-            {[
-              { n: "EPYC 9354P", b: "REC", d: en ? "32-core Zen 4c. 360W TDP. Up to 128 PCIe 5.0 lanes." : "32 ядра Zen 4c. 360W TDP. До 128 PCIe 5.0 линий.", k: "TDP", v: "360W" },
-              { n: "EPYC 9554", b: "HPC", d: en ? "64 cores / 128 threads. Best for multi-tenant DB and HPC clusters." : "64 ядра / 128 потоков. Для multi-tenant БД и HPC-кластеров.", k: "Cores", v: "64" },
-              { n: "Xeon Gold 6548Y", b: "AVX-512", d: en ? "Sapphire Rapids. 32 cores with AVX-512 and AMX for ML inference." : "Sapphire Rapids. 32 ядра, AVX-512 и AMX для ML-инференса.", k: "AMX", v: "yes" },
-              { n: "Xeon 6430", b: "BALANCED", d: en ? "32 cores. All-round workhorse for web and databases." : "32 ядра. Универсальная рабочая лошадка для веба и БД.", k: "GHz", v: "2.1/3.4" },
-            ].map((p) => (
-              <div key={p.n} className="plx-proto-card">
-                <div className="plx-proto-name">{p.n}<span className={`plx-proto-badge ${p.b === "REC" ? "rec" : ""}`}>{p.b}</span></div>
-                <div className="plx-proto-desc">{p.d}</div>
-                <div className="plx-proto-spec"><span>{p.k}</span><span>{p.v}</span></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* USE CASES */}
-      <section className="plx-section" style={{ paddingTop: 0 }}>
-        <div className="plx-wrap">
-          <div className="plx-section-head">
-            <div className="plx-section-label">{en ? "Ideal workloads" : "Идеальные нагрузки"}</div>
-            <h2 className="plx-section-title">{en ? "When bare metal wins" : "Когда выигрывает bare metal"}</h2>
-          </div>
-          <div className="plx-usecases">
-            {[
-              { t: en ? "High-load databases" : "Нагруженные БД", d: en ? "PostgreSQL / Cassandra / ClickHouse with unpredictable query patterns and large shared buffers." : "PostgreSQL / Cassandra / ClickHouse с непредсказуемыми запросами и большими буферами." },
-              { t: en ? "ML inference" : "ML инференс", d: en ? "AVX-512 / AMX-accelerated inference without GPU cost. CPU-only LLM serving." : "AVX-512 / AMX ускоренный инференс без стоимости GPU. LLM на CPU." },
-              { t: en ? "Financial trading" : "Финтрейдинг", d: en ? "Microsecond-predictable latency. No hypervisor jitter for HFT-adjacent workloads." : "Микросекундная предсказуемость. Без джиттера гипервизора для HFT-задач." },
-              { t: en ? "Enterprise ERP" : "Enterprise ERP", d: en ? "SAP, Oracle, 1C — workloads that demand certified hardware and full isolation." : "SAP, Oracle, 1С — нагрузки, требующие сертифицированного железа и полной изоляции." },
-              { t: en ? "Compliance workloads" : "Compliance-задачи", d: en ? "PCI-DSS, HIPAA, 152-FZ. Physical isolation satisfies most strict auditors." : "PCI-DSS, HIPAA, 152-ФЗ. Физическая изоляция устраивает строжайших аудиторов." },
-              { t: en ? "Render farms" : "Рендер-фермы", d: en ? "Sustained 100% CPU for hours. No throttling, no noisy neighbors, predictable ETA." : "100% CPU часами. Без throttling и соседей, предсказуемое ETA." },
-            ].map((u, i) => (
-              <div key={u.t} className="plx-uc">
-                <div className="plx-uc-num">{String(i + 1).padStart(2, "0")}</div>
-                <h3>{u.t}</h3>
-                <p>{u.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="plx-section" style={{ paddingTop: 0 }}>
-        <div className="plx-wrap">
-          <div className="plx-cta-box">
-            <h2>{en ? "Claim your metal" : "Заберите своё железо"}</h2>
-            <p>{en ? "From $29.99/month. Full hardware, full control, zero compromises." : "От $29.99/мес. Полное железо, полный контроль, без компромиссов."}</p>
-            <div className="pl-cta-buttons">
-              <Link href="/pricing" className="pl-cta-btn-light">{en ? "Configure" : "Конфигуратор"} <span className="pl-arrow">→</span></Link>
-              <Link href="/contact" className="pl-cta-btn-dark">{en ? "Custom build" : "Кастомная сборка"}</Link>
+              <h3 className="font-mts-wide text-[22px] sm:text-[26px] font-bold leading-[1.2] tracking-tight mb-3">{f.t}</h3>
+              <p className="font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] text-black/60">{f.d}</p>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Use cases */}
+      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
+        <div className="mb-12 sm:mb-16 max-w-[720px]">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Идеальные нагрузки</div>
+          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
+            Когда выигрывает<br />bare metal
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {USECASES.map((u, i) => (
+            <div key={u.t} className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 hover:border-black/[0.15] transition-colors">
+              <div className="font-mts-wide text-[12px] font-semibold text-black/45 mb-4">{String(i + 1).padStart(2, "0")}</div>
+              <h3 className="font-mts-wide text-[20px] sm:text-[22px] font-bold leading-[1.2] tracking-tight mb-3">{u.t}</h3>
+              <p className="font-mts-wide text-[14px] leading-[1.55] text-black/60">{u.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Hardware registry */}
+      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[900px] mx-auto w-full">
+        <div className="mb-10 sm:mb-14">
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Спецификации</div>
+          <h2 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.02] tracking-tight font-bold">Полный лист железа</h2>
+        </div>
+        <div className="bg-white border border-black/[0.06] rounded-3xl overflow-hidden">
+          {HARDWARE.map(([k, v], i) => (
+            <div
+              key={k}
+              className={`flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 px-5 sm:px-8 py-4 sm:py-5 ${i > 0 ? "border-t border-black/[0.06]" : ""}`}
+            >
+              <div className="font-mts-wide text-[13px] text-black/45 sm:w-[260px] shrink-0">{k}</div>
+              <div className="font-mts-wide text-[14px] sm:text-[15px] text-black/85 font-medium">{v}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8">
+          <Link href="/vps" className="font-mts-wide inline-flex items-center gap-2 text-[14px] text-black/70 hover:text-black transition-colors">
+            Сравнить с VPS
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+          </Link>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="bg-[#F97316] text-black px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
+        <div className="max-w-[900px] mx-auto text-center">
+          <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
+            Заберите своё железо
+          </h2>
+          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-black/70 mt-6 max-w-[46ch] mx-auto">
+            От $29,99/мес. Полное железо, полный контроль, без компромиссов.
+          </p>
+          <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
+            <Link href="/subscribe" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]">
+              Заказать
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </Link>
+            <Link href="/contact" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-black/30 text-black font-semibold text-[15px] hover:bg-black/5 transition-colors">
+              Кастомная сборка
+            </Link>
           </div>
         </div>
       </section>
-    </PremiumPage>
+
+      {/* Footer */}
+      <LandingFooter />
+    </div>
   );
 }
