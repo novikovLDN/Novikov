@@ -248,22 +248,22 @@ export default function Dashboard() {
                    date ever get out of sync (e.g. legacy ghost-date
                    residue), one tap here re-runs the full repair +
                    panel PATCH and returns the outcome. */}
-              <div className="dv2-rise dv2-rise-4 dv2-card p-5 sm:p-6 lg:col-span-12 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
+              <div className="dv2-rise dv2-rise-4 dv2-card p-4 sm:p-5 lg:col-span-12 flex items-center gap-3 sm:gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="font-mts-wide text-[15px] sm:text-[16px] font-semibold text-black leading-tight">
-                    Проверить и обновить подписку
+                  <div className="font-mts-wide text-[14px] sm:text-[15px] font-semibold text-black leading-tight">
+                    Проверить подписку
                   </div>
-                  <div className="font-mts-wide text-[13px] text-black/55 mt-1.5 leading-[1.5]">
+                  <div className="font-mts-wide text-[12px] sm:text-[13px] text-black/55 mt-1 leading-[1.45]">
                     {resyncStatus
                       ? resyncStatus.text
-                      : "Подхватит зависшие оплаты, пересчитает срок, обновит ключ в панели."}
+                      : "Подхватит зависшие оплаты и обновит ключ."}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={handleForceResync}
                   disabled={resyncing}
-                  className={`as-btn as-btn-secondary shrink-0 sm:min-w-[180px] w-full sm:w-auto ${
+                  className={`as-btn as-btn-compact shrink-0 ${
                     resyncStatus?.kind === "ok"
                       ? "as-btn-good"
                       : resyncStatus?.kind === "error"
@@ -273,14 +273,14 @@ export default function Dashboard() {
                 >
                   {resyncing ? (
                     <>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="animate-spin" style={{ animationDuration: "1.2s" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="animate-spin" style={{ animationDuration: "1.2s" }}>
                         <path d="M21 12a9 9 0 11-6.219-8.56" />
                       </svg>
-                      Обновляем…
+                      <span className="hidden sm:inline">Обновляем…</span>
                     </>
                   ) : resyncStatus?.kind === "ok" ? (
                     <>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                       Готово
@@ -289,7 +289,7 @@ export default function Dashboard() {
                     <>Повторить</>
                   ) : (
                     <>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 12a9 9 0 11-3.51-7.11L21 8M21 3v5h-5" />
                       </svg>
                       Обновить
@@ -532,16 +532,16 @@ function DashboardTopBar({
         </nav>
         <button
           onClick={onNotifications}
-          className="relative w-10 h-10 rounded-xl bg-white border border-black/[0.08] flex items-center justify-center hover:border-black/[0.16] transition-colors active:scale-[0.95]"
+          className="as-icon-btn relative w-11 h-11 rounded-xl flex items-center justify-center transition-colors active:scale-[0.95]"
           aria-label="Уведомления"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-[#EF4444] rounded-full flex items-center justify-center px-1">
-              <span className="font-mts-wide text-[10px] font-bold text-white leading-none">{unreadCount > 9 ? "9+" : unreadCount}</span>
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-[#EF4444] rounded-full flex items-center justify-center px-1 border-2 border-[#f5f5f0]">
+              <span className="font-mts-wide text-[10px] font-bold leading-none tabular-nums" style={{ color: "#fff" }}>{unreadCount > 9 ? "9+" : unreadCount}</span>
             </span>
           )}
         </button>

@@ -22,11 +22,10 @@ import { onlineAt } from "@/lib/online-counter";
 const TICK_MS = 10_000;
 const HISTORY_TICKS = 360; // 360 × 10s = 1 hour of history
 const SERVER_REGIONS = [
-  { code: "NL", label: "Нидерланды" },
-  { code: "DE", label: "Германия" },
-  { code: "DE", label: "Германия" },
-  { code: "RU", label: "Россия" },
-  { code: "NL", label: "Нидерланды" },
+  { code: "DE", label: "Германия · Frankfurt" },
+  { code: "NL", label: "Нидерланды · Amsterdam" },
+  { code: "AT", label: "Австрия · Vienna" },
+  { code: "US", label: "США · New York" },
 ];
 
 function formatNumber(n: number): string {
@@ -172,25 +171,25 @@ export default function ServerStatusCard() {
 
         {/* Server pills at the bottom */}
         <div className="mt-auto">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-mono uppercase tracking-[0.14em] text-white/35">Сервера</span>
-            <span className="text-[11px] text-[#34D399]/85">Активны</span>
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-mts-wide text-[11px] uppercase tracking-[0.14em] text-white/40">Сервера</span>
+            <span className="font-mts-wide text-[12px] text-[#22C55E]/85 font-medium">Активны</span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="grid grid-cols-4 gap-2">
             {SERVER_REGIONS.map((s, i) => (
               <div
                 key={i}
-                className="flex-1 min-w-0 flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.05]"
+                className="flex items-center justify-center gap-2 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08]"
                 title={s.label}
               >
                 <span
-                  className="relative h-1 w-1 rounded-full bg-[#34D399] shrink-0"
+                  className="relative h-1.5 w-1.5 rounded-full bg-[#22C55E] shrink-0"
                   style={{
-                    boxShadow: "0 0 4px #34D399",
+                    boxShadow: "0 0 6px #22C55E",
                     animation: `serverPulse ${1.8 + i * 0.4}s ease-in-out infinite`,
                   }}
                 />
-                <span className="text-[10px] font-mono text-white/65">{s.code}</span>
+                <span className="font-mts-wide text-[12px] font-semibold text-white/85 tracking-[0.06em]">{s.code}</span>
               </div>
             ))}
           </div>
