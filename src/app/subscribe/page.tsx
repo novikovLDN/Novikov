@@ -431,7 +431,7 @@ function SubscribeContent() {
             </p>
             <Link
               href="/dashboard"
-              className="font-mts-wide inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-8 rounded-2xl bg-[#F97316] text-black font-semibold text-[15px] hover:bg-[#ea6a0d] transition-colors active:scale-[0.98]"
+              className="as-btn as-btn-primary as-btn-accent"
             >
               Перейти в кабинет
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -464,7 +464,7 @@ function SubscribeContent() {
                   setSelectedPlan(null);
                   setError("");
                 }}
-                className="font-mts-wide inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-8 rounded-2xl bg-black text-white font-medium text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]"
+                className="as-btn as-btn-primary as-btn-solid"
               >
                 Попробовать снова
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -473,7 +473,7 @@ function SubscribeContent() {
               </button>
               <Link
                 href="/dashboard"
-                className="font-mts-wide inline-flex items-center justify-center h-12 px-8 rounded-2xl border border-black/15 text-black/85 font-medium text-[14px] hover:bg-black/5 transition-colors active:scale-[0.98]"
+                className="as-btn as-btn-secondary as-btn-ghost"
               >
                 Вернуться в кабинет
               </Link>
@@ -504,7 +504,7 @@ function SubscribeContent() {
                   setSelectedPlan(null);
                   setError("");
                 }}
-                className="font-mts-wide inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-8 rounded-2xl bg-black text-white font-medium text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]"
+                className="as-btn as-btn-primary as-btn-solid"
               >
                 Создать новый платёж
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -513,7 +513,7 @@ function SubscribeContent() {
               </button>
               <Link
                 href="/dashboard"
-                className="font-mts-wide inline-flex items-center justify-center h-12 px-8 rounded-2xl border border-black/15 text-black/85 font-medium text-[14px] hover:bg-black/5 transition-colors active:scale-[0.98]"
+                className="as-btn as-btn-secondary as-btn-ghost"
               >
                 Вернуться в кабинет
               </Link>
@@ -659,9 +659,6 @@ function PlanCard({
   const bodyText = highlighted ? "text-black/75" : "text-black/70";
   const muted = highlighted ? "text-black/60" : "text-black/55";
   const divider = highlighted ? "bg-black/15" : "bg-black/[0.08]";
-  const cta = highlighted
-    ? "bg-black text-white hover:bg-neutral-800"
-    : "bg-black text-white hover:bg-neutral-800";
 
   return (
     <button
@@ -720,9 +717,7 @@ function PlanCard({
         ))}
       </ul>
 
-      <div
-        className={`mt-auto font-mts-wide inline-flex items-center justify-center gap-2 h-12 sm:h-14 rounded-2xl font-medium text-[15px] ${cta}`}
-      >
+      <div className="mt-auto as-btn as-btn-primary as-btn-accent as-btn-block">
         Выбрать {PLANS[plan].name}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
           <path d="M5 12h14M12 5l7 7-7 7" />

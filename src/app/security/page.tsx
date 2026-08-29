@@ -219,17 +219,11 @@ export default function SecurityPage() {
             Сообщить об уязвимости: security@atlas.secure
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
-            <Link
-              href="/pricing"
-              className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]"
-            >
+            <Link href="/pricing" className="as-btn as-btn-primary as-btn-solid">
               Тарифы
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
-            <Link
-              href="/auth"
-              className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-black/30 text-black font-semibold text-[15px] hover:bg-black/5 transition-colors"
-            >
+            <Link href="/auth" className="as-btn as-btn-secondary" style={{ background: "rgba(0,0,0,0.08)", color: "#000" }}>
               Войти
             </Link>
           </div>

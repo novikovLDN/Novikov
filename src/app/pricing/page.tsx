@@ -66,7 +66,7 @@ export default function PricingPage() {
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={`px-4 py-2 rounded-full transition-colors ${period === p ? "bg-white text-black" : "text-white/70 hover:text-white"}`}
+              className={"as-btn as-btn-compact " + (period === p ? "as-btn-solid" : "as-btn-ghost")}
             >
               <span className="sm:hidden">{PERIOD_LABEL[p].short}</span>
               <span className="hidden sm:inline">{PERIOD_LABEL[p].full}</span>
@@ -237,9 +237,7 @@ function PlanCard({ plan, period, highlighted }: { plan: "basic" | "plus"; perio
 
       <Link
         href={`/auth?plan=${plan}&period=${period}`}
-        className={`mt-auto font-mts-wide inline-flex items-center justify-center gap-2 h-12 rounded-2xl font-semibold text-[15px] transition-all active:scale-[0.98] ${
-          highlighted ? "bg-black text-white hover:bg-neutral-800" : "bg-white text-black hover:bg-neutral-100"
-        }`}
+        className="mt-auto as-btn as-btn-primary as-btn-accent as-btn-block"
       >
         Выбрать {plan === "basic" ? "Basic" : "Plus"}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
@@ -390,11 +388,11 @@ function FinalCta() {
           Регистрация занимает 30 секунд. Никаких предоплат за пробный доступ.
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
-          <Link href="/auth" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]">
+          <Link href="/auth" className="as-btn as-btn-primary as-btn-accent">
             Создать аккаунт
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </Link>
-          <Link href="/contact" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-black/30 text-black font-semibold text-[15px] hover:bg-black/5 transition-colors">
+          <Link href="/contact" className="as-btn as-btn-primary as-btn-ghost">
             Поговорить с командой
           </Link>
         </div>

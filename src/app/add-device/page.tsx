@@ -352,7 +352,7 @@ export default function AddDevice() {
         <div className="flex items-center justify-between mb-8 sm:mb-10">
           <button
             onClick={handleBack}
-            className="font-mts-wide inline-flex items-center gap-2 px-4 py-2 rounded-full border border-black/15 text-black/85 hover:border-black/30 hover:bg-black/[0.04] transition-colors text-[13px] active:scale-[0.98]"
+            className="as-btn as-btn-compact as-btn-ghost"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -522,11 +522,7 @@ export default function AddDevice() {
 
                 <button
                   onClick={handleCopy}
-                  className={`w-full h-12 sm:h-14 rounded-2xl font-mts-wide font-semibold text-[15px] transition-all flex items-center justify-center gap-2 active:scale-[0.99] ${
-                    copied
-                      ? "bg-black/[0.04] border border-black/15 text-black"
-                      : "bg-black text-white hover:bg-neutral-800"
-                  }`}
+                  className={`as-btn as-btn-secondary as-btn-block ${copied ? "as-btn-ghost" : "as-btn-solid"}`}
                 >
                   {copied ? (
                     <>
@@ -553,7 +549,7 @@ export default function AddDevice() {
               href={currentApp.downloadUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mts-wide w-full h-12 sm:h-14 rounded-2xl border border-black/15 text-black/85 hover:border-black/30 hover:bg-black/[0.04] transition-colors flex items-center justify-center gap-2 text-[14px] sm:text-[15px] font-medium active:scale-[0.99]"
+              className="as-btn as-btn-secondary as-btn-ghost as-btn-block"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
@@ -567,7 +563,7 @@ export default function AddDevice() {
             <div className="mt-4">
               <button
                 onClick={() => router.push("/dashboard")}
-                className="font-mts-wide w-full h-12 sm:h-14 rounded-2xl bg-black text-white hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2 text-[15px] font-semibold active:scale-[0.99]"
+                className="as-btn as-btn-primary as-btn-solid as-btn-block"
               >
                 Готово — вернуться в кабинет
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
