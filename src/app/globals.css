@@ -1589,6 +1589,8 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   transition: background .2s ease, border-color .2s ease;
 }
 .hero-v4-cta-secondary:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.28); }
+/* Legacy scattered decorative pill (kept for back-compat if any
+ * caller still uses it; the v5 hero doesn't). */
 .hero-v4-pill {
   display: inline-flex; align-items: center;
   padding: 12px 22px; border-radius: 999px;
@@ -1599,16 +1601,76 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   font-weight: 400; font-size: 15px;
   backdrop-filter: blur(4px);
 }
+/* v5 status: outlined pill with a live-dot outside it. The pill
+ * itself is quiet (fine hairline) so the pulsing dot carries the
+ * "live" signal — matches how a status bar in a control-room UI
+ * reads. */
 .hero-v4-status-pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 8px 16px; border-radius: 999px;
-  background: #10B981;
-  color: #0a0a0a; font-family: var(--font-mts-wide);
-  font-weight: 600; font-size: 13px; letter-spacing: 0.01em;
+  display: inline-flex; align-items: center;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.82);
+  font-family: var(--font-mts-wide);
+  font-weight: 500; font-size: 12.5px;
+  letter-spacing: 0.01em;
 }
-.hero-v4-status-pill::before {
-  content: ""; width: 6px; height: 6px; border-radius: 50%;
-  background: #0a0a0a; opacity: 0.8;
+.hero-v4-status-dot {
+  display: inline-block;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #22C55E;
+  box-shadow: 0 0 0 4px rgba(34,197,94,0.16), 0 0 8px rgba(34,197,94,0.6);
+  animation: heroDotPulse 2.4s ease-in-out infinite;
+}
+@keyframes heroDotPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.75; transform: scale(0.9); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-v4-status-dot { animation: none; }
+}
+
+/* Factbar — one grounding strip below the CTAs. Mobile 2×2,
+ * desktop 4-across with hairline dividers between cells so the
+ * whole thing reads as one bar, not four disconnected cards. */
+.hero-v4-factbar {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+@media (min-width: 640px) {
+  .hero-v4-factbar { grid-template-columns: repeat(4, 1fr); }
+}
+.hero-v4-fact {
+  padding: 18px 4px;
+  text-align: left;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+.hero-v4-fact:nth-child(2n) { border-right: none; }
+@media (min-width: 640px) {
+  .hero-v4-fact { padding: 22px 8px; }
+  .hero-v4-fact:nth-child(2n) { border-right: 1px solid rgba(255,255,255,0.08); }
+  .hero-v4-fact:last-child { border-right: none; }
+}
+.hero-v4-fact-value {
+  font-family: var(--font-mts-wide);
+  font-weight: 700;
+  font-size: clamp(22px, 3.6vw, 32px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.hero-v4-fact-label {
+  font-family: var(--font-mts-wide);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.42);
+  margin-top: 8px;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
