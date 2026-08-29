@@ -1998,6 +1998,39 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   background-color: #1F1F22 !important;
 }
 
+/* Dark CTA pills (bg-black / bg-neutral-800): the .text-white override
+   above turns their label black-on-black. Restore white ink and add
+   a tiny explicit hover shade so these read correctly on the light
+   shell without needing an inline style on every button. */
+.dashboard-v2 button.bg-black,
+.dashboard-v2 a.bg-black {
+  background-color: #0F0F12 !important;
+  color: #fff !important;
+}
+.dashboard-v2 button.bg-black:hover,
+.dashboard-v2 a.bg-black:hover {
+  background-color: #1F1F22 !important;
+}
+.dashboard-v2 button.bg-neutral-800,
+.dashboard-v2 a.bg-neutral-800 {
+  background-color: #1F1F22 !important;
+  color: #fff !important;
+}
+
+/* Coloured-background buttons: the global .text-white override
+   turns their label black-on-<colour>. Restore correct ink per
+   background so buttons stay legible regardless of what utility
+   Tailwind emits for the label. */
+.dashboard-v2 button.bg-\[\#2AABEE\],
+.dashboard-v2 a.bg-\[\#2AABEE\] { color: #fff !important; }
+.dashboard-v2 button.bg-\[\#EF4444\],
+.dashboard-v2 a.bg-\[\#EF4444\] { color: #fff !important; }
+.dashboard-v2 button.bg-\[\#22C55E\],
+.dashboard-v2 a.bg-\[\#22C55E\] { color: #fff !important; }
+/* Orange CTAs keep black ink — that's the palette rule. */
+.dashboard-v2 button.bg-\[\#F97316\],
+.dashboard-v2 a.bg-\[\#F97316\] { color: #000 !important; }
+
 /* ═══════════════════════════════════════════════════════════════════════
    Dark focal card exception — SubscriptionHero + SubscriptionCard.
 
@@ -2180,3 +2213,183 @@ html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
   background: #ffffff !important;
   border-color: rgba(0,0,0,0.08) !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Design system v5 — atlas.secure
+   ═══════════════════════════════════════════════════════════════════════
+   Formal tokens for the light-shell UI. Compact scale — everything
+   composes from a handful of values so the site stays coherent across
+   marketing pages and dashboard.
+
+   Palette         — 6 named hex values, no ad-hoc mid-greys anywhere
+   Type scale      — modular 1.25x, 11..64 px; MTS Wide 500 / 700
+   Spacing         — 4/8pt grid, 4..96 px
+   Radii           — 12/16/20/24/28/999
+   Buttons         — three sizes: primary (h-14), secondary (h-12),
+                     compact (h-11 = 44 px min touch target)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Palette ─── */
+  --as-ground:      #f5f5f0;
+  --as-surface:     #ffffff;
+  --as-ink:         #0F0F12;
+  --as-ink-2:       rgba(15, 15, 18, 0.72);
+  --as-ink-3:       rgba(15, 15, 18, 0.55);
+  --as-ink-4:       rgba(15, 15, 18, 0.38);
+  --as-hairline:    rgba(15, 15, 18, 0.08);
+  --as-hairline-2:  rgba(15, 15, 18, 0.14);
+  --as-focal:       #0F0F12;
+  --as-accent:      #F97316;
+  --as-accent-hi:   #FB923C;
+  --as-good:        #22C55E;
+  --as-warn:        #F59E0B;
+  --as-danger:      #EF4444;
+  --as-info:        #2AABEE;
+
+  /* ─── Type scale (modular ~1.25x) ─── */
+  --as-fs-11: 11px;
+  --as-fs-13: 13px;
+  --as-fs-15: 15px;
+  --as-fs-17: 17px;
+  --as-fs-20: 20px;
+  --as-fs-26: 26px;
+  --as-fs-32: 32px;
+  --as-fs-44: 44px;
+  --as-fs-56: 56px;
+  --as-fs-64: 64px;
+
+  /* ─── Spacing (8pt grid) ─── */
+  --as-sp-1: 4px;
+  --as-sp-2: 8px;
+  --as-sp-3: 12px;
+  --as-sp-4: 16px;
+  --as-sp-5: 20px;
+  --as-sp-6: 24px;
+  --as-sp-8: 32px;
+  --as-sp-10: 40px;
+  --as-sp-12: 48px;
+  --as-sp-16: 64px;
+  --as-sp-24: 96px;
+
+  /* ─── Radii ─── */
+  --as-r-chip:    12px;
+  --as-r-btn:     16px;
+  --as-r-input:   20px;
+  --as-r-card:    24px;
+  --as-r-card-lg: 28px;
+  --as-r-hero:    36px;
+  --as-r-pill:    999px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Buttons — universal shapes for the whole app.
+
+   Rules:
+     - Primary CTA (Подключить, Купить, main-action): .as-btn.as-btn-primary
+       h-14 (56 px), text-15 semibold, orange fill, black ink.
+     - Secondary CTA (Продлить, Скопировать, back-out): .as-btn.as-btn-secondary
+       h-12 (48 px), text-14 medium, white surface with hairline.
+     - Compact (utility rows, chips-with-icon): .as-btn.as-btn-compact
+       h-11 (44 px min touch), text-13 medium.
+     - Dark focal button (on dark hero surfaces): .as-btn.as-btn-dark
+       Fills a dv2-dark card. white ink, subtle white/10 wash.
+     - Danger, Info, Good — semantic colour variants for status actions.
+
+   Every button gets padding X of 20 px on primary / 18 px on secondary /
+   16 px on compact so the label breathes even on very short text.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.as-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--as-r-btn);
+  font-family: var(--font-mts-wide);
+  font-weight: 500;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  transition: background-color 0.18s ease, border-color 0.18s ease,
+              color 0.18s ease, transform 0.18s ease;
+  cursor: pointer;
+  user-select: none;
+  -webkit-appearance: none;
+}
+.as-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.as-btn:active:not(:disabled) { transform: scale(0.985); }
+.as-btn:focus-visible {
+  outline: 2px solid var(--as-ink);
+  outline-offset: 2px;
+}
+
+/* Sizes */
+.as-btn-primary   { height: 56px; padding: 0 24px; font-size: 15px; font-weight: 700; border-radius: 18px; }
+.as-btn-secondary { height: 48px; padding: 0 20px; font-size: 14px; font-weight: 500; border-radius: 16px; }
+.as-btn-compact   { height: 44px; padding: 0 16px; font-size: 13px; font-weight: 500; border-radius: 14px; }
+.as-btn-block     { width: 100%; }
+
+/* Variants — filled surfaces */
+.as-btn-solid    { background: var(--as-ink);    color: #fff !important; }
+.as-btn-solid:hover:not(:disabled)   { background: #1F1F22; }
+
+.as-btn-accent   { background: var(--as-accent); color: #000 !important; }
+.as-btn-accent:hover:not(:disabled)  { background: var(--as-accent-hi); }
+
+.as-btn-danger   { background: var(--as-danger); color: #fff !important; }
+.as-btn-danger:hover:not(:disabled)  { background: #DC2626; }
+
+.as-btn-info     { background: var(--as-info);   color: #fff !important; }
+.as-btn-info:hover:not(:disabled)    { background: #229ED9; }
+
+.as-btn-good     { background: var(--as-good);   color: #fff !important; }
+.as-btn-good:hover:not(:disabled)    { background: #16A34A; }
+
+/* Ghost — hairline over the ground */
+.as-btn-ghost {
+  background: var(--as-surface);
+  color: var(--as-ink) !important;
+  border: 1px solid var(--as-hairline);
+}
+.as-btn-ghost:hover:not(:disabled) {
+  background: rgba(255,255,255,0.7);
+  border-color: var(--as-hairline-2);
+}
+
+/* Dark focal — for buttons that sit inside a .dv2-dark surface */
+.as-btn-dark {
+  background: rgba(255,255,255,0.06);
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.as-btn-dark:hover:not(:disabled) {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.18);
+}
+
+/* On-surface (inside a white card) — no filled background, just readable */
+.as-btn-plain {
+  background: rgba(15,15,18,0.04);
+  color: var(--as-ink) !important;
+  border: 1px solid var(--as-hairline);
+}
+.as-btn-plain:hover:not(:disabled) {
+  background: rgba(15,15,18,0.06);
+  border-color: var(--as-hairline-2);
+}
+
+/* Every solid/accent/danger/info/good button that lives INSIDE
+   .dashboard-v2 needs its ink locked in via !important so the global
+   .text-white / .text-black overrides can't repaint it dark-on-dark.
+   The `color` declarations above already carry !important — this
+   block just ensures Tailwind's compiled utility classes on the same
+   button never win. */
+.dashboard-v2 .as-btn.as-btn-solid,
+.dashboard-v2 .as-btn.as-btn-danger,
+.dashboard-v2 .as-btn.as-btn-info,
+.dashboard-v2 .as-btn.as-btn-good { color: #fff !important; }
+.dashboard-v2 .as-btn.as-btn-accent { color: #000 !important; }
+.dashboard-v2 .as-btn.as-btn-dark   { color: #fff !important; }
+.dashboard-v2 .as-btn.as-btn-ghost,
+.dashboard-v2 .as-btn.as-btn-plain  { color: var(--as-ink) !important; }

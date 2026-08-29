@@ -160,15 +160,18 @@ export default function SubscriptionHero({
           </div>
         )}
 
-        {/* Row 3 — CTAs. On mobile they stack (both full-width,
-            56 px tall); from sm+ Connect keeps flexing and Extend
-            becomes a fixed 160 px ghost sitting beside it. */}
-        <div className="flex flex-col sm:flex-row gap-2.5">
+        {/* Row 3 — CTAs. Both full-width on mobile so they read as one
+            clear action stack; from sm+ they sit side by side with
+            Connect (primary/orange) flexing and Extend (dark ghost)
+            at fixed 180 px. Sizes come from the design-system tokens:
+            56 px primary, 48 px secondary. */}
+        <div className="flex flex-col sm:flex-row gap-3">
           {!isExpired ? (
             <>
               <button
+                type="button"
                 onClick={() => router.push("/devices")}
-                className="font-mts-wide group relative flex-1 h-14 rounded-2xl bg-[#F97316] text-black font-semibold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] hover:bg-[#FB923C]"
+                className="as-btn as-btn-primary as-btn-accent as-btn-block group flex-1"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
@@ -179,16 +182,18 @@ export default function SubscriptionHero({
                 </svg>
               </button>
               <button
+                type="button"
                 onClick={() => router.push("/subscribe")}
-                className="font-mts-wide h-12 sm:h-14 sm:w-[160px] rounded-2xl bg-white/[0.05] border border-white/[0.10] text-white font-medium text-[14px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.08] active:scale-[0.985]"
+                className="as-btn as-btn-primary as-btn-dark as-btn-block sm:w-[180px] sm:flex-none"
               >
                 Продлить
               </button>
             </>
           ) : (
             <button
+              type="button"
               onClick={() => router.push("/subscribe")}
-              className="font-mts-wide group relative flex-1 h-14 rounded-2xl bg-[#F97316] text-black font-semibold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] hover:bg-[#FB923C]"
+              className="as-btn as-btn-primary as-btn-accent as-btn-block group flex-1"
             >
               Купить подписку
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
