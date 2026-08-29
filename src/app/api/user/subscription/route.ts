@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById, getLoyaltyInfo } from "@/lib/store";
 import { createUserWithExpire, getUser, encryptHappLink, REMNAWAVE_CONFIG } from "@/lib/remnawave";
+import { syncSubscriptionToPanel } from "@/lib/subscription-sync";
+import { isGhostDate } from "@/lib/ghost-date-repair";
 import { pool } from "@/lib/db";
 import crypto from "crypto";
 
@@ -28,6 +30,24 @@ export async function GET(request: NextRequest) {
       );
       response.cookies.delete("session");
       return response;
+    }
+
+    // ─── Auto-heal ghost-date users on the hot path ───
+    // If the local subscription_end is a residue of the legacy 10-year
+    // bug (2032/2036 dates), syncSubscriptionToPanel now recomputes
+    // the honest value from payment history AND pushes it to the
+    // panel. Without this, the dashboard would keep showing the
+    // ghost date and the subscription URL would report "expired"
+    // because the panel never learned about the (bogus) local value.
+    if (isGhostDate(user.subscriptionEnd)) {
+      try {
+        console.log(`[USER/SUBSCRIPTION] ghost date on ${user.email} (${user.subscriptionEnd}) — auto-repairing`);
+        await syncSubscriptionToPanel(user.id);
+        const refreshed = await getUserById(user.id);
+        if (refreshed) user = refreshed;
+      } catch (err) {
+        console.warn("[USER/SUBSCRIPTION] auto-repair failed:", err);
+      }
     }
 
     const now = new Date();

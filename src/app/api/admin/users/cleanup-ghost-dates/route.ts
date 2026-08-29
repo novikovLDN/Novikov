@@ -3,33 +3,26 @@ import { pool } from "@/lib/db";
 import { verifyAdmin } from "../../middleware";
 import { setUserExpire } from "@/lib/remnawave";
 import { createAuditLog } from "@/lib/store";
+import {
+  computeGhostRepair,
+  applyGhostRepair,
+  GHOST_THRESHOLD_MS,
+  RepairAction,
+} from "@/lib/ghost-date-repair";
 
 /**
- * One-shot cleanup of ghost-date users.
+ * Bulk cleanup of ghost-date users — admin-only preview + apply.
  *
- * A "ghost date" is subscription_end > NOW + 400 days — almost
- * certainly the legacy 10-year bug (bot pushed 2036 / days=3650 with
- * no cap). For each such user we look up their confirmed payments in
- * our `payments` table and honestly recompute what they're entitled
- * to:
+ * A "ghost date" is subscription_end > NOW + 400 days — almost always
+ * a residue of the legacy 10-year bug. `computeGhostRepair` is now
+ * the single source of truth for what the repaired value should be
+ * (see src/lib/ghost-date-repair.ts); this endpoint just walks every
+ * ghost user, previews or applies the plan, and reports.
  *
- *   latest confirmed payment + that payment's period (in days)
- *   → that becomes the new local subscription_end
- *
- * Never paid → expired (subscription_end = NOW - 1d).
- * Latest paid + period already past → also expired.
- * Otherwise → correct future date.
- *
- * Panel side: we cannot push past dates to Remnawave ("Expiration date
- * cannot be in the past"). For users we expire, we set panel expireAt
- * to NOW + 1 day so the panel auto-disables within 24h.
- *
- * Always reports per-user before/after. Defaults to dryRun=true.
+ * Note: users are now auto-repaired on dashboard load and by the
+ * hourly sync worker via `syncSubscriptionToPanel`. This endpoint
+ * stays useful as a one-shot audit / bulk apply for the ops team.
  */
-
-const PERIOD_DAYS: Record<number, number> = { 1: 30, 3: 90, 6: 180, 12: 365 };
-const GHOST_THRESHOLD_MS = 400 * 24 * 60 * 60 * 1000;
-const PANEL_EXPIRE_GRACE_MS = 1 * 24 * 60 * 60 * 1000;
 
 interface UserRow {
   id: string;
@@ -40,17 +33,6 @@ interface UserRow {
   remnawave_user_uuid: string | null;
 }
 
-interface PaymentRow {
-  id: string;
-  user_id: string;
-  plan: string;
-  period: number;
-  amount: string;
-  status: string;
-  paid_at: Date | null;
-  created_at: Date;
-}
-
 interface PerUserReport {
   userId: string;
   email: string;
@@ -59,7 +41,7 @@ interface PerUserReport {
   oldSubscriptionEnd: string;
   newSubscriptionEnd: string;
   panelTarget: string;
-  action: "expired_no_payment" | "expired_payment_too_old" | "corrected_from_payment";
+  action: RepairAction;
   confirmedPayments: number;
   latestPaidAt: string | null;
   latestPlan: string | null;
@@ -100,41 +82,11 @@ export async function POST(request: NextRequest) {
   let dbWritten = 0;
 
   for (const u of ghosts) {
-    const paymentsRes = await pool.query<PaymentRow>(
-      `SELECT id, user_id, plan, period, amount, status, paid_at, created_at
-       FROM payments
-       WHERE user_id = $1 AND status = 'confirmed' AND paid_at IS NOT NULL
-       ORDER BY paid_at DESC`,
-      [u.id]
-    );
-    const payments = paymentsRes.rows;
-    const latest = payments[0] || null;
+    const plan = await computeGhostRepair(u.id);
 
-    let newEnd: Date;
-    let action: PerUserReport["action"];
-
-    if (!latest) {
-      newEnd = new Date(now.getTime() - 1000);
-      action = "expired_no_payment";
-      expiredNoPayment += 1;
-    } else {
-      const days = PERIOD_DAYS[latest.period] ?? 30;
-      const candidate = new Date(new Date(latest.paid_at as Date).getTime() + days * 24 * 60 * 60 * 1000);
-      if (candidate.getTime() <= now.getTime()) {
-        newEnd = new Date(now.getTime() - 1000);
-        action = "expired_payment_too_old";
-        expiredPaymentTooOld += 1;
-      } else {
-        newEnd = candidate;
-        action = "corrected_from_payment";
-        correctedFromPayment += 1;
-      }
-    }
-
-    const panelTarget =
-      newEnd.getTime() <= now.getTime()
-        ? new Date(now.getTime() + PANEL_EXPIRE_GRACE_MS)
-        : newEnd;
+    if (plan.action === "expired_no_payment") expiredNoPayment += 1;
+    else if (plan.action === "expired_payment_too_old") expiredPaymentTooOld += 1;
+    else correctedFromPayment += 1;
 
     const entry: PerUserReport = {
       userId: u.id,
@@ -142,23 +94,20 @@ export async function POST(request: NextRequest) {
       publicId: u.public_id,
       telegramId: u.telegram_id,
       oldSubscriptionEnd: new Date(u.subscription_end).toISOString(),
-      newSubscriptionEnd: newEnd.toISOString(),
-      panelTarget: panelTarget.toISOString(),
-      action,
-      confirmedPayments: payments.length,
-      latestPaidAt: latest ? new Date(latest.paid_at as Date).toISOString() : null,
-      latestPlan: latest?.plan ?? null,
-      latestPeriodMonths: latest?.period ?? null,
+      newSubscriptionEnd: plan.newEnd.toISOString(),
+      panelTarget: plan.panelTarget.toISOString(),
+      action: plan.action,
+      confirmedPayments: plan.confirmedPayments,
+      latestPaidAt: plan.latestPaidAt,
+      latestPlan: plan.latestPlan,
+      latestPeriodMonths: plan.latestPeriodMonths,
       panelPushOk: null,
       dbWritten: false,
     };
 
     if (!dryRun) {
       try {
-        await pool.query(
-          "UPDATE users SET subscription_end = $1 WHERE id = $2",
-          [newEnd, u.id]
-        );
+        await applyGhostRepair(u.id, plan);
         entry.dbWritten = true;
         dbWritten += 1;
       } catch (err) {
@@ -166,7 +115,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (u.remnawave_user_uuid) {
-        const pushed = await setUserExpire(u.remnawave_user_uuid, panelTarget.toISOString());
+        const pushed = await setUserExpire(u.remnawave_user_uuid, plan.panelTarget.toISOString());
         if (pushed) {
           entry.panelPushOk = true;
           panelPushed += 1;
@@ -179,7 +128,7 @@ export async function POST(request: NextRequest) {
 
       await createAuditLog(
         "admin.cleanup_ghost_date",
-        `${u.email}: ${entry.oldSubscriptionEnd} → ${entry.newSubscriptionEnd} (${action})`,
+        `${u.email}: ${entry.oldSubscriptionEnd} → ${entry.newSubscriptionEnd} (${plan.action})`,
         u.id,
         u.email
       );

@@ -19,9 +19,8 @@
  * for any user from server logs alone.
  */
 
-import crypto from "crypto";
 import { pool } from "./db";
-import { getUserById, UserRecord } from "./store";
+import { getUserById, UserRecord, createAuditLog } from "./store";
 import {
   createUserWithExpire,
   setUserExpire,
@@ -31,6 +30,11 @@ import {
   getLastRwError,
   RemnawaveUser,
 } from "./remnawave";
+import {
+  isGhostDate,
+  computeGhostRepair,
+  applyGhostRepair,
+} from "./ghost-date-repair";
 
 export type SyncReason =
   | "user_not_found"
@@ -134,33 +138,57 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
   }
   log("info", userId, `public_id=${publicId} email=${user.email}`);
 
-  // ─── Refuse to push corrupted ghost dates to the panel ───
-  // If a manual operator fixed expireAt in the Remnawave UI for a user
-  // whose local subscription_end is still the legacy 10-year ghost,
-  // any sync triggered after that (hourly worker, dashboard load,
-  // reconcile, payment) would silently overwrite the manual fix with
-  // 2036 again. Skip sync entirely until the local value is clamped
-  // (paid renewal resets it via extendSubscription) or fixed by SQL.
-  const MAX_LOCAL_AHEAD_MS = 400 * 24 * 60 * 60 * 1000;
-  const localEndMs = new Date(user.subscriptionEnd).getTime();
-  if (localEndMs > Date.now() + MAX_LOCAL_AHEAD_MS) {
+  // ─── Auto-repair ghost dates in-line ───
+  // Old code SKIPPED here for fear of overwriting a manual admin fix,
+  // but the side effect was that any user with a ghost subscription_end
+  // (residue of the legacy 10-year bug) got a dashboard showing e.g.
+  // 2032 while the panel still held the original, long-since-expired
+  // date — a broken subscription URL with no self-heal path.
+  //
+  // Instead: detect the ghost, recompute the honest subscription_end
+  // from the user's payment history (same logic as the admin cleanup
+  // endpoint), write it locally, then fall through and PATCH the panel
+  // with the repaired value in the same call.
+  if (isGhostDate(user.subscriptionEnd)) {
     log(
       "warn",
       userId,
-      `SKIP sync: local subscription_end=${user.subscriptionEnd} is past NOW+400d (ghost date) — panel left alone`
+      `ghost date detected local=${user.subscriptionEnd} — computing repair`
     );
-    return {
-      ok: true,
-      publicId,
-      uuid: user.remnawaveUserUuid,
-      subscriptionUrl: user.subscriptionUrl,
-      expireAt: null,
-      action: "skip",
-      panelUsername: null,
-    };
+    try {
+      const plan = await computeGhostRepair(userId);
+      await applyGhostRepair(userId, plan);
+      log(
+        "info",
+        userId,
+        `ghost repaired: ${user.subscriptionEnd} → ${plan.newEnd.toISOString()} (${plan.action}, payments=${plan.confirmedPayments})`
+      );
+      await createAuditLog(
+        "system.ghost_date_repair",
+        `${user.email}: ${user.subscriptionEnd} → ${plan.newEnd.toISOString()} (${plan.action})`,
+        user.id,
+        user.email
+      ).catch(() => null);
+      const refreshed = await getUserById(userId);
+      if (refreshed) user = refreshed;
+    } catch (err) {
+      log("error", userId, "ghost repair failed, falling through", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
-  const expireIso = new Date(user.subscriptionEnd).toISOString();
+  // If subscription_end is now in the past (either it was already or
+  // the repair landed us there), push a small grace window to the
+  // panel so the panel-side auto-disable fires cleanly instead of
+  // rejecting the past-date PATCH. clampExpireAt in remnawave.ts also
+  // enforces a NOW+30s floor, but making the grace explicit here means
+  // the panel target reflects our intent instead of a defensive nudge.
+  const localEndMs = new Date(user.subscriptionEnd).getTime();
+  const nowMs = Date.now();
+  const panelTargetMs =
+    localEndMs <= nowMs ? nowMs + 24 * 60 * 60 * 1000 : localEndMs;
+  const expireIso = new Date(panelTargetMs).toISOString();
   log("info", userId, `target expireAt=${expireIso} (subscription_end)`);
 
   // ─── Have a UUID? Try PATCH first ───
