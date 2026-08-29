@@ -2325,6 +2325,7 @@ html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
 }
 
 /* Sizes */
+.as-btn-xl        { height: 64px; padding: 0 28px; font-size: 16px; font-weight: 700; border-radius: 20px; }
 .as-btn-primary   { height: 56px; padding: 0 24px; font-size: 15px; font-weight: 700; border-radius: 18px; }
 .as-btn-secondary { height: 48px; padding: 0 20px; font-size: 14px; font-weight: 500; border-radius: 16px; }
 .as-btn-compact   { height: 44px; padding: 0 16px; font-size: 13px; font-weight: 500; border-radius: 14px; }
@@ -2393,3 +2394,27 @@ html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
 .dashboard-v2 .as-btn.as-btn-dark   { color: #fff !important; }
 .dashboard-v2 .as-btn.as-btn-ghost,
 .dashboard-v2 .as-btn.as-btn-plain  { color: var(--as-ink) !important; }
+
+/* Icon-only buttons — keep them exempt from the bg-white / bg-black
+   flip. The dashboard bell etc. sit on the light shell as small white
+   squares with dark icons; without this exception the .bg-white
+   override paints their background near-black and any hardcoded
+   stroke color goes invisible. Any button that opts into
+   `.as-icon-btn` keeps its declared surface + ink. */
+.dashboard-v2 button.as-icon-btn,
+.dashboard-v2 a.as-icon-btn {
+  background-color: #fff !important;
+  color: var(--as-ink) !important;
+  border: 1px solid var(--as-hairline);
+}
+.dashboard-v2 button.as-icon-btn:hover,
+.dashboard-v2 a.as-icon-btn:hover {
+  background-color: #fff !important;
+  border-color: var(--as-hairline-2);
+}
+.dashboard-v2 button.as-icon-btn.as-icon-btn-dark,
+.dashboard-v2 a.as-icon-btn.as-icon-btn-dark {
+  background-color: var(--as-ink) !important;
+  color: #fff !important;
+  border-color: transparent;
+}

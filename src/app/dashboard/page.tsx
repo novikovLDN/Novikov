@@ -532,16 +532,16 @@ function DashboardTopBar({
         </nav>
         <button
           onClick={onNotifications}
-          className="relative w-10 h-10 rounded-xl bg-white border border-black/[0.08] flex items-center justify-center hover:border-black/[0.16] transition-colors active:scale-[0.95]"
+          className="as-icon-btn relative w-11 h-11 rounded-xl flex items-center justify-center transition-colors active:scale-[0.95]"
           aria-label="Уведомления"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
           {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 min-w-[16px] h-4 bg-[#EF4444] rounded-full flex items-center justify-center px-1">
-              <span className="font-mts-wide text-[10px] font-bold text-white leading-none">{unreadCount > 9 ? "9+" : unreadCount}</span>
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-[#EF4444] rounded-full flex items-center justify-center px-1 border-2 border-[#f5f5f0]">
+              <span className="font-mts-wide text-[10px] font-bold leading-none tabular-nums" style={{ color: "#fff" }}>{unreadCount > 9 ? "9+" : unreadCount}</span>
             </span>
           )}
         </button>

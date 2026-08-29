@@ -66,7 +66,7 @@ export default function PricingPage() {
             <button
               key={p}
               onClick={() => setPeriod(p)}
-              className={"as-btn as-btn-compact " + (period === p ? "as-btn-solid" : "as-btn-ghost")}
+              className={"as-btn as-btn-compact " + (period === p ? "as-btn-accent" : "as-btn-ghost")}
             >
               <span className="sm:hidden">{PERIOD_LABEL[p].short}</span>
               <span className="hidden sm:inline">{PERIOD_LABEL[p].full}</span>

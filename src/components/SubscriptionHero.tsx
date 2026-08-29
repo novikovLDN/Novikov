@@ -160,31 +160,29 @@ export default function SubscriptionHero({
           </div>
         )}
 
-        {/* Row 3 — CTAs. Both full-width on mobile so they read as one
-            clear action stack; from sm+ they sit side by side with
-            Connect (primary/orange) flexing and Extend (dark ghost)
-            at fixed 180 px. Sizes come from the design-system tokens:
-            56 px primary, 48 px secondary. */}
+        {/* Row 3 — CTAs. Hero-scale (64 px) so the primary action
+            has proper presence; both stack full-width on mobile,
+            side-by-side from sm+ with Extend at 180 px. */}
         <div className="flex flex-col sm:flex-row gap-3">
           {!isExpired ? (
             <>
               <button
                 type="button"
                 onClick={() => router.push("/devices")}
-                className="as-btn as-btn-primary as-btn-accent as-btn-block group flex-1"
+                className="as-btn as-btn-xl as-btn-accent as-btn-block group flex-1"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                 </svg>
                 Подключить
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </button>
               <button
                 type="button"
                 onClick={() => router.push("/subscribe")}
-                className="as-btn as-btn-primary as-btn-dark as-btn-block sm:w-[180px] sm:flex-none"
+                className="as-btn as-btn-xl as-btn-dark as-btn-block sm:w-[200px] sm:flex-none"
               >
                 Продлить
               </button>
@@ -193,10 +191,10 @@ export default function SubscriptionHero({
             <button
               type="button"
               onClick={() => router.push("/subscribe")}
-              className="as-btn as-btn-primary as-btn-accent as-btn-block group flex-1"
+              className="as-btn as-btn-xl as-btn-accent as-btn-block group flex-1"
             >
               Купить подписку
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </button>
