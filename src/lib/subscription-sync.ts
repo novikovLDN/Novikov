@@ -155,6 +155,7 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
       userId,
       `ghost date detected local=${user.subscriptionEnd} — computing repair`
     );
+    let repaired = false;
     try {
       const plan = await computeGhostRepair(userId);
       await applyGhostRepair(userId, plan);
@@ -171,10 +172,45 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
       ).catch(() => null);
       const refreshed = await getUserById(userId);
       if (refreshed) user = refreshed;
+      repaired = true;
     } catch (err) {
-      log("error", userId, "ghost repair failed, falling through", {
+      log("error", userId, "ghost repair failed", {
         error: err instanceof Error ? err.message : String(err),
       });
+      await createAuditLog(
+        "system.ghost_date_repair_failed",
+        `${user.email}: repair threw ${err instanceof Error ? err.message : String(err)} — panel will get a safe fallback`,
+        user.id,
+        user.email
+      ).catch(() => null);
+    }
+
+    // If repair itself blew up, we still refuse to push the ghost
+    // value to the panel. The safe fallback is NOW + 1 day: the panel
+    // stays alive for a short grace period, the user's dashboard now
+    // shows a 24h window rather than the 6-year fiction, and the next
+    // hourly sync (or manual "Обновить подписку") gets another shot at
+    // the real repair. Do NOT return; the panel PATCH below still
+    // needs to run so the user's URL keeps working.
+    if (!repaired) {
+      const grace = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      log(
+        "warn",
+        userId,
+        `repair fallback: clamping local to ${grace.toISOString()} (NOW+1d) so panel and local agree`
+      );
+      try {
+        await pool.query(
+          "UPDATE users SET subscription_end = $1 WHERE id = $2",
+          [grace, userId]
+        );
+        const refreshed = await getUserById(userId);
+        if (refreshed) user = refreshed;
+      } catch (err) {
+        log("error", userId, "fallback clamp write failed", {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
   }
 

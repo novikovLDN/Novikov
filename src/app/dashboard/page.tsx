@@ -46,6 +46,8 @@ export default function Dashboard() {
   const [unlinking, setUnlinking] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [resyncing, setResyncing] = useState(false);
+  const [resyncStatus, setResyncStatus] = useState<null | { kind: "ok" | "error"; text: string }>(null);
 
   const fetchSubscription = useCallback(async () => {
     try {
@@ -112,6 +114,38 @@ export default function Dashboard() {
       // ignore
     }
     router.push("/auth");
+  };
+
+  const handleForceResync = async () => {
+    if (resyncing) return;
+    setResyncing(true);
+    setResyncStatus(null);
+    try {
+      const res = await fetch("/api/user/force-resync", { method: "POST" });
+      const json = await res.json();
+      if (json.success) {
+        if (json.data.changed) {
+          setResyncStatus({
+            kind: "ok",
+            text: "Подписка обновлена — данные пересчитаны по последней оплате.",
+          });
+        } else {
+          setResyncStatus({
+            kind: "ok",
+            text: "Проверка завершена — данные актуальны.",
+          });
+        }
+        // pull the fresh dashboard payload
+        await fetchSubscription();
+      } else {
+        setResyncStatus({ kind: "error", text: json.error || "Не удалось обновить." });
+      }
+    } catch {
+      setResyncStatus({ kind: "error", text: "Ошибка сети." });
+    } finally {
+      setResyncing(false);
+      setTimeout(() => setResyncStatus(null), 5000);
+    }
   };
 
   if (loading) {
@@ -204,6 +238,58 @@ export default function Dashboard() {
                 <span className="sm:hidden font-mts-wide text-[10px] text-black/40 tracking-[0.1em] uppercase">
                   {data.balance > 0 ? "Активен" : "Пусто"}
                 </span>
+              </div>
+
+              {/* ═══ Force-resync — the "починить подписку" escape hatch ═══
+                   Small helper strip. If a user's local date and panel
+                   date ever get out of sync (e.g. legacy ghost-date
+                   residue), one tap here re-runs the full repair +
+                   panel PATCH and returns the outcome. */}
+              <div className="dv2-rise dv2-rise-4 dv2-card p-4 sm:p-5 lg:col-span-12 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="font-mts-wide text-[13px] font-medium text-black leading-tight">Обновить подписку</div>
+                  <div className="font-mts-wide text-[11px] text-black/50 mt-0.5 leading-snug">
+                    {resyncStatus
+                      ? resyncStatus.text
+                      : "Пересчёт сроков и ключа. Полезно, если данные расходятся с реальной оплатой."}
+                  </div>
+                </div>
+                <button
+                  onClick={handleForceResync}
+                  disabled={resyncing}
+                  className={`font-mts-wide shrink-0 h-10 px-4 rounded-xl text-[13px] font-medium transition-all active:scale-[0.985] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                    resyncStatus?.kind === "ok"
+                      ? "bg-[#22C55E]/12 border border-[#22C55E]/30 text-[#22C55E]"
+                      : resyncStatus?.kind === "error"
+                      ? "bg-[#EF4444]/12 border border-[#EF4444]/30 text-[#EF4444]"
+                      : "bg-black text-white hover:bg-neutral-800"
+                  }`}
+                >
+                  {resyncing ? (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="animate-spin" style={{ animationDuration: "1.2s" }}>
+                        <path d="M21 12a9 9 0 11-6.219-8.56" />
+                      </svg>
+                      Обновляем…
+                    </>
+                  ) : resyncStatus?.kind === "ok" ? (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Готово
+                    </>
+                  ) : resyncStatus?.kind === "error" ? (
+                    <>Повторить</>
+                  ) : (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 12a9 9 0 11-3.51-7.11L21 8M21 3v5h-5" />
+                      </svg>
+                      Обновить
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* ═══ Referral programme ═══ */}
