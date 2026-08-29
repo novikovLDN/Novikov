@@ -511,11 +511,11 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
               {emailError && <ErrorMessage error={emailError} />}
 
-              <button type="submit" disabled={sendPending} className="auth-primary">
+              <button type="submit" disabled={sendPending} className="as-btn as-btn-primary as-btn-solid as-btn-block">
                 {sendPending ? (
                   <><LoadingSpinner size="sm" /> Отправка…</>
                 ) : (
-                  <>Далее <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg></>
+                  <>Далее <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg></>
                 )}
               </button>
             </form>
@@ -532,7 +532,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             <div className="space-y-2.5">
               <button
                 onClick={() => { setStep("login"); setLoginError(""); }}
-                className="auth-ghost"
+                className="as-btn as-btn-secondary as-btn-ghost as-btn-block"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -544,7 +544,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 onClick={handlePasskeyLogin}
                 disabled={passkeyLoading}
-                className="auth-ghost"
+                className="as-btn as-btn-secondary as-btn-ghost as-btn-block"
                 style={{ borderColor: "rgba(94,106,210,0.3)", color: "#8F8FD9" }}
               >
                 {passkeyLoading ? (
@@ -659,7 +659,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={verifyPending}
-                className="auth-primary mb-5"
+                className="as-btn as-btn-primary as-btn-solid as-btn-block mb-5"
               >
                 {verifyPending ? (
                   <span className="inline-flex items-center gap-2">
@@ -685,7 +685,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                   type="button"
                   onClick={handleResendCode}
                   disabled={resendLoading}
-                  className="text-primary text-sm font-medium hover:text-primary-hover transition-colors disabled:opacity-50 py-2 px-4"
+                  className="as-btn as-btn-secondary as-btn-plain"
                 >
                   {resendLoading ? "Отправляем..." : "Отправить код повторно"}
                 </button>
@@ -740,7 +740,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={setPasswordLoading}
-                className="auth-primary"
+                className="as-btn as-btn-primary as-btn-solid as-btn-block"
               >
                 {setPasswordLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -755,7 +755,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <button
               onClick={() => router.push("/dashboard")}
-              className="w-full mt-3 text-muted text-sm font-medium hover:text-foreground transition-colors py-2"
+              className="as-btn as-btn-secondary as-btn-plain as-btn-block mt-3"
             >
               Пропустить
             </button>
@@ -806,7 +806,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                       setResetEmail(loginEmail);
                       setResetError("");
                     }}
-                    className="text-primary text-sm font-medium hover:text-primary-hover transition-colors"
+                    className="as-btn as-btn-compact as-btn-plain"
                   >
                     Сбросить пароль
                   </button>
@@ -816,7 +816,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="auth-primary"
+                className="as-btn as-btn-primary as-btn-solid as-btn-block"
               >
                 {loginLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -837,7 +837,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                   setResetEmail(loginEmail);
                   setResetError("");
                 }}
-                className="text-primary text-sm font-medium hover:text-primary-hover transition-colors"
+                className="as-btn as-btn-compact as-btn-plain"
               >
                 Забыли пароль?
               </button>
@@ -875,7 +875,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="auth-primary"
+                className="as-btn as-btn-primary as-btn-solid as-btn-block"
               >
                 {resetLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -942,7 +942,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
               <button
                 type="submit"
-                className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 transition-all btn-press mb-5"
+                className="as-btn as-btn-primary as-btn-solid as-btn-block mb-5"
               >
                 Подтвердить
               </button>
@@ -958,7 +958,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                   </span>
                 </p>
               ) : (
-                <button type="button" onClick={handleResendResetCode} className="text-primary text-sm font-medium hover:text-primary-hover transition-colors">
+                <button type="button" onClick={handleResendResetCode} className="as-btn as-btn-secondary as-btn-plain">
                   Отправить код повторно
                 </button>
               )}
@@ -1014,7 +1014,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="auth-primary"
+                className="as-btn as-btn-primary as-btn-solid as-btn-block"
               >
                 {resetLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -1053,7 +1053,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                 setLoginPassword("");
                 setLoginError("");
               }}
-              className="w-full h-13 sm:h-14 rounded-2xl bg-foreground text-background font-semibold text-base sm:text-lg hover:bg-foreground/90 transition-all btn-press"
+              className="as-btn as-btn-primary as-btn-solid as-btn-block"
             >
               Войти в аккаунт
             </button>

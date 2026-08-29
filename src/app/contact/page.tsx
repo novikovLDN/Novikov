@@ -243,10 +243,7 @@ export default function ContactPage() {
               <p className="font-mts-wide text-[15px] text-black/55 mb-8 max-w-[46ch] mx-auto">
                 Ответим в течение 4 рабочих часов. Проверьте, пожалуйста, входящие и папку «Спам».
               </p>
-              <Link
-                href="/"
-                className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors"
-              >
+              <Link href="/" className="as-btn as-btn-primary as-btn-solid">
                 На главную
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </Link>
@@ -294,11 +291,7 @@ export default function ContactPage() {
                         key={opt.value}
                         type="button"
                         onClick={() => setInterest(opt.value)}
-                        className={`font-mts-wide text-[14px] px-4 py-2.5 rounded-full border transition-colors ${
-                          active
-                            ? "bg-black border-black text-white"
-                            : "bg-transparent border-black/15 text-black/70 hover:border-black/40"
-                        }`}
+                        className={`as-btn as-btn-compact ${active ? "as-btn-solid" : "as-btn-plain"}`}
                       >
                         {opt.label}
                       </button>
@@ -328,7 +321,7 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={sending}
-                className="font-mts-wide w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98] disabled:opacity-60"
+                className="as-btn as-btn-primary as-btn-solid as-btn-block sm:!w-auto"
               >
                 {sending ? "Отправка..." : "Отправить запрос"}
                 {!sending && (
@@ -360,17 +353,11 @@ export default function ContactPage() {
             Три дня бесплатно. Без карты, без ограничений скорости.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
-            <Link
-              href="/pricing"
-              className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]"
-            >
+            <Link href="/pricing" className="as-btn as-btn-primary as-btn-solid">
               Тарифы
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
-            <Link
-              href="/auth"
-              className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-black/30 text-black font-semibold text-[15px] hover:bg-black/5 transition-colors"
-            >
+            <Link href="/auth" className="as-btn as-btn-secondary" style={{ background: "rgba(0,0,0,0.08)", color: "#000" }}>
               Войти
             </Link>
           </div>

@@ -177,11 +177,11 @@ export default function VdsPage() {
           Полный физический сервер. Без оверхеда гипервизора, без соседей, без общих cache-линий. Intel Xeon Scalable или AMD EPYC, enterprise NVMe и сеть до 200 Gb/s.
         </p>
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/subscribe" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]">
+          <Link href="/subscribe" className="as-btn as-btn-primary as-btn-accent">
             Выбрать конфигурацию
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </Link>
-          <Link href="/contact" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-black/20 text-black font-semibold text-[15px] hover:bg-black/5 transition-colors">
+          <Link href="/contact" className="as-btn as-btn-secondary as-btn-ghost">
             Написать инженеру
           </Link>
         </div>
@@ -240,14 +240,7 @@ export default function VdsPage() {
                   </div>
                 ))}
               </dl>
-              <Link
-                href="/subscribe"
-                className={`mt-auto font-mts-wide inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl font-semibold text-[14px] transition-colors active:scale-[0.98] ${
-                  t.highlight
-                    ? "bg-white text-black hover:bg-neutral-200"
-                    : "bg-black text-white hover:bg-neutral-800"
-                }`}
-              >
+              <Link href="/subscribe" className="mt-auto as-btn as-btn-secondary as-btn-accent as-btn-block">
                 Заказать сборку
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </Link>
@@ -335,11 +328,11 @@ export default function VdsPage() {
             От $29,99/мес. Полное железо, полный контроль, без компромиссов.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
-            <Link href="/subscribe" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl bg-black text-white font-semibold text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.98]">
+            <Link href="/subscribe" className="as-btn as-btn-primary as-btn-solid">
               Заказать
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
-            <Link href="/contact" className="font-mts-wide inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-black/30 text-black font-semibold text-[15px] hover:bg-black/5 transition-colors">
+            <Link href="/contact" className="as-btn as-btn-secondary" style={{ background: "rgba(0,0,0,0.08)", color: "#000" }}>
               Кастомная сборка
             </Link>
           </div>
