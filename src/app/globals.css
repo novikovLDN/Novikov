@@ -1998,6 +1998,39 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   background-color: #1F1F22 !important;
 }
 
+/* Dark CTA pills (bg-black / bg-neutral-800): the .text-white override
+   above turns their label black-on-black. Restore white ink and add
+   a tiny explicit hover shade so these read correctly on the light
+   shell without needing an inline style on every button. */
+.dashboard-v2 button.bg-black,
+.dashboard-v2 a.bg-black {
+  background-color: #0F0F12 !important;
+  color: #fff !important;
+}
+.dashboard-v2 button.bg-black:hover,
+.dashboard-v2 a.bg-black:hover {
+  background-color: #1F1F22 !important;
+}
+.dashboard-v2 button.bg-neutral-800,
+.dashboard-v2 a.bg-neutral-800 {
+  background-color: #1F1F22 !important;
+  color: #fff !important;
+}
+
+/* Coloured-background buttons: the global .text-white override
+   turns their label black-on-<colour>. Restore correct ink per
+   background so buttons stay legible regardless of what utility
+   Tailwind emits for the label. */
+.dashboard-v2 button.bg-\[\#2AABEE\],
+.dashboard-v2 a.bg-\[\#2AABEE\] { color: #fff !important; }
+.dashboard-v2 button.bg-\[\#EF4444\],
+.dashboard-v2 a.bg-\[\#EF4444\] { color: #fff !important; }
+.dashboard-v2 button.bg-\[\#22C55E\],
+.dashboard-v2 a.bg-\[\#22C55E\] { color: #fff !important; }
+/* Orange CTAs keep black ink — that's the palette rule. */
+.dashboard-v2 button.bg-\[\#F97316\],
+.dashboard-v2 a.bg-\[\#F97316\] { color: #000 !important; }
+
 /* ═══════════════════════════════════════════════════════════════════════
    Dark focal card exception — SubscriptionHero + SubscriptionCard.
 

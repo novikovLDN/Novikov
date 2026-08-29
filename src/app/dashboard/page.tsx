@@ -124,18 +124,21 @@ export default function Dashboard() {
       const res = await fetch("/api/user/force-resync", { method: "POST" });
       const json = await res.json();
       if (json.success) {
-        if (json.data.changed) {
-          setResyncStatus({
-            kind: "ok",
-            text: "Подписка обновлена — данные пересчитаны по последней оплате.",
-          });
+        const applied = json.data.paymentsApplied || 0;
+        let text: string;
+        if (applied > 0) {
+          text =
+            applied === 1
+              ? "Оплата подхвачена — подписка активирована."
+              : `Подхвачено оплат: ${applied}. Подписка активирована.`;
+        } else if (json.data.changed) {
+          text = "Подписка обновлена — данные пересчитаны по последней оплате.";
+        } else if (json.data.panelAction === "patched" || json.data.panelAction === "created" || json.data.panelAction === "adopted") {
+          text = "Проверка завершена — данные и панель актуальны.";
         } else {
-          setResyncStatus({
-            kind: "ok",
-            text: "Проверка завершена — данные актуальны.",
-          });
+          text = "Проверка завершена — данные актуальны.";
         }
-        // pull the fresh dashboard payload
+        setResyncStatus({ kind: "ok", text });
         await fetchSubscription();
       } else {
         setResyncStatus({ kind: "error", text: json.error || "Не удалось обновить." });
@@ -144,7 +147,7 @@ export default function Dashboard() {
       setResyncStatus({ kind: "error", text: "Ошибка сети." });
     } finally {
       setResyncing(false);
-      setTimeout(() => setResyncStatus(null), 5000);
+      setTimeout(() => setResyncStatus(null), 7000);
     }
   };
 
@@ -247,11 +250,11 @@ export default function Dashboard() {
                    panel PATCH and returns the outcome. */}
               <div className="dv2-rise dv2-rise-4 dv2-card p-4 sm:p-5 lg:col-span-12 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="font-mts-wide text-[13px] font-medium text-black leading-tight">Обновить подписку</div>
+                  <div className="font-mts-wide text-[13px] font-medium text-black leading-tight">Проверить и обновить подписку</div>
                   <div className="font-mts-wide text-[11px] text-black/50 mt-0.5 leading-snug">
                     {resyncStatus
                       ? resyncStatus.text
-                      : "Пересчёт сроков и ключа. Полезно, если данные расходятся с реальной оплатой."}
+                      : "Подхватит зависшие оплаты, пересчитает срок, обновит ключ в панели."}
                   </div>
                 </div>
                 <button
