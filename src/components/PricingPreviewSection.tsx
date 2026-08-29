@@ -42,17 +42,21 @@ export default function PricingPreviewSection() {
             </h2>
           </div>
 
-          <div className="inline-flex items-center gap-1 p-1 rounded-full border border-black/12 bg-white font-mts-wide text-[13px] self-start">
+          <div className="inline-flex items-center gap-1 p-1 rounded-full border border-black/12 bg-white self-start">
             <button
+              type="button"
               onClick={() => setYearly(true)}
-              className={`px-4 py-2 rounded-full transition-colors ${yearly ? "bg-black text-white" : "text-black/70 hover:text-black"}`}
+              className={`as-btn as-btn-compact ${yearly ? "as-btn-accent" : "as-btn-plain"}`}
+              style={yearly ? undefined : { background: "transparent", border: "none" }}
             >
               На год
-              <span className="ml-1.5 text-[11px] opacity-70">−17%</span>
+              <span className="ml-1 text-[11px] opacity-70">−17%</span>
             </button>
             <button
+              type="button"
               onClick={() => setYearly(false)}
-              className={`px-4 py-2 rounded-full transition-colors ${!yearly ? "bg-black text-white" : "text-black/70 hover:text-black"}`}
+              className={`as-btn as-btn-compact ${!yearly ? "as-btn-accent" : "as-btn-plain"}`}
+              style={!yearly ? undefined : { background: "transparent", border: "none" }}
             >
               На месяц
             </button>
@@ -188,14 +192,10 @@ function PlanCard({
 
       <Link
         href={href}
-        className={`mt-auto font-mts-wide inline-flex items-center justify-center gap-2 h-12 rounded-2xl font-semibold text-[15px] transition-all active:scale-[0.98] ${
-          highlighted
-            ? "bg-black text-white hover:bg-neutral-800"
-            : "bg-black text-white hover:bg-neutral-800"
-        }`}
+        className="mt-auto as-btn as-btn-primary as-btn-solid as-btn-block group"
       >
         {cta}
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
           <path d="M5 12h14M12 5l7 7-7 7" />
         </svg>
       </Link>
