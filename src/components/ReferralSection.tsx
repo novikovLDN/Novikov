@@ -148,7 +148,7 @@ export default function ReferralSection({
           type="button"
           onClick={handleShare}
           disabled={sharing}
-          className="as-btn as-btn-primary as-btn-solid as-btn-block flex-1"
+          className="as-btn as-btn-primary as-btn-solid as-btn-block sm:flex-1"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="18" cy="5" r="3" />
@@ -162,7 +162,7 @@ export default function ReferralSection({
         <button
           type="button"
           onClick={() => onCopy(shareUrl)}
-          className="as-btn as-btn-secondary as-btn-plain as-btn-block flex-1"
+          className="as-btn as-btn-secondary as-btn-plain as-btn-block sm:flex-1"
         >
           {copiedRef ? (
             <>

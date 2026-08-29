@@ -142,14 +142,14 @@ export default function HeroV4({
 
         <p className="hero-v4-lede mt-5 sm:mt-7">{lede}</p>
 
-        <div className="mt-7 sm:mt-9 flex flex-wrap gap-3 sm:gap-4">
-          <Link href={primaryHref} className="hero-v4-cta-primary">
+        <div className="mt-7 sm:mt-9 flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <Link href={primaryHref} className="as-btn as-btn-xl as-btn-accent as-btn-block sm:w-auto group">
             {primaryCta}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </Link>
-          <Link href={secondaryHref} className="hero-v4-cta-secondary">
+          <Link href={secondaryHref} className="as-btn as-btn-xl as-btn-dark as-btn-block sm:w-auto">
             {secondaryCta}
           </Link>
         </div>

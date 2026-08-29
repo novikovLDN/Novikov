@@ -2324,11 +2324,14 @@ html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
   outline-offset: 2px;
 }
 
-/* Sizes */
-.as-btn-xl        { height: 64px; padding: 0 28px; font-size: 16px; font-weight: 700; border-radius: 20px; }
-.as-btn-primary   { height: 56px; padding: 0 24px; font-size: 15px; font-weight: 700; border-radius: 18px; }
-.as-btn-secondary { height: 48px; padding: 0 20px; font-size: 14px; font-weight: 500; border-radius: 16px; }
-.as-btn-compact   { height: 44px; padding: 0 16px; font-size: 13px; font-weight: 500; border-radius: 14px; }
+/* Sizes — every one pins BOTH `height` and `min-height` so a flex-col
+ * parent with `flex-1` on the child (which resets flex-basis to 0%)
+ * cannot collapse the button below its declared size. This bug
+ * silently squished the "Подключить" CTA on mobile until pinned. */
+.as-btn-xl        { height: 64px; min-height: 64px; padding: 0 28px; font-size: 16px; font-weight: 700; border-radius: 20px; }
+.as-btn-primary   { height: 56px; min-height: 56px; padding: 0 24px; font-size: 15px; font-weight: 700; border-radius: 18px; }
+.as-btn-secondary { height: 48px; min-height: 48px; padding: 0 20px; font-size: 14px; font-weight: 500; border-radius: 16px; }
+.as-btn-compact   { height: 44px; min-height: 44px; padding: 0 16px; font-size: 13px; font-weight: 500; border-radius: 14px; }
 .as-btn-block     { width: 100%; }
 
 /* Variants — filled surfaces */

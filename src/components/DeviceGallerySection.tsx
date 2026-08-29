@@ -28,10 +28,10 @@ export default function DeviceGallerySection() {
           </h2>
           <Link
             href="/devices"
-            className="font-mts-wide inline-flex items-center gap-2 px-4 py-2 rounded-full border border-black/15 text-black/75 hover:bg-black/5 hover:border-black/25 text-[13px] transition-colors self-start md:self-end"
+            className="as-btn as-btn-compact as-btn-ghost self-start md:self-end group"
           >
             Инструкции по настройке
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </Link>
