@@ -248,36 +248,39 @@ export default function Dashboard() {
                    date ever get out of sync (e.g. legacy ghost-date
                    residue), one tap here re-runs the full repair +
                    panel PATCH and returns the outcome. */}
-              <div className="dv2-rise dv2-rise-4 dv2-card p-4 sm:p-5 lg:col-span-12 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <div className="dv2-rise dv2-rise-4 dv2-card p-5 sm:p-6 lg:col-span-12 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
                 <div className="flex-1 min-w-0">
-                  <div className="font-mts-wide text-[13px] font-medium text-black leading-tight">Проверить и обновить подписку</div>
-                  <div className="font-mts-wide text-[11px] text-black/50 mt-0.5 leading-snug">
+                  <div className="font-mts-wide text-[15px] sm:text-[16px] font-semibold text-black leading-tight">
+                    Проверить и обновить подписку
+                  </div>
+                  <div className="font-mts-wide text-[13px] text-black/55 mt-1.5 leading-[1.5]">
                     {resyncStatus
                       ? resyncStatus.text
                       : "Подхватит зависшие оплаты, пересчитает срок, обновит ключ в панели."}
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={handleForceResync}
                   disabled={resyncing}
-                  className={`font-mts-wide shrink-0 h-10 px-4 rounded-xl text-[13px] font-medium transition-all active:scale-[0.985] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                  className={`as-btn as-btn-secondary shrink-0 sm:min-w-[180px] w-full sm:w-auto ${
                     resyncStatus?.kind === "ok"
-                      ? "bg-[#22C55E]/12 border border-[#22C55E]/30 text-[#22C55E]"
+                      ? "as-btn-good"
                       : resyncStatus?.kind === "error"
-                      ? "bg-[#EF4444]/12 border border-[#EF4444]/30 text-[#EF4444]"
-                      : "bg-black text-white hover:bg-neutral-800"
+                      ? "as-btn-danger"
+                      : "as-btn-solid"
                   }`}
                 >
                   {resyncing ? (
                     <>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="animate-spin" style={{ animationDuration: "1.2s" }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="animate-spin" style={{ animationDuration: "1.2s" }}>
                         <path d="M21 12a9 9 0 11-6.219-8.56" />
                       </svg>
                       Обновляем…
                     </>
                   ) : resyncStatus?.kind === "ok" ? (
                     <>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                       Готово
@@ -286,7 +289,7 @@ export default function Dashboard() {
                     <>Повторить</>
                   ) : (
                     <>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 12a9 9 0 11-3.51-7.11L21 8M21 3v5h-5" />
                       </svg>
                       Обновить
@@ -330,9 +333,9 @@ export default function Dashboard() {
                     href={`https://t.me/atlas_suppbot?start=${data.telegramLinkToken || ""}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mts-wide w-full h-12 rounded-2xl bg-[#2AABEE] text-white font-medium text-[14px] hover:bg-[#2AABEE]/90 transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+                    className="as-btn as-btn-primary as-btn-info as-btn-block"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
                     </svg>
                     Привязать Telegram
@@ -351,25 +354,28 @@ export default function Dashboard() {
                   </div>
                   {unlinkStep === 0 ? (
                     <button
+                      type="button"
                       onClick={() => setUnlinkStep(1)}
-                      className="font-mts-wide shrink-0 h-8 px-3 text-[11px] text-black/45 hover:text-black/80 transition-colors"
+                      className="as-btn as-btn-compact as-btn-ghost shrink-0"
                     >
                       Отвязать
                     </button>
                   ) : unlinkStep === 1 ? (
-                    <div className="shrink-0 flex gap-1.5">
+                    <div className="shrink-0 flex gap-2">
                       <button
+                        type="button"
                         onClick={() => setUnlinkStep(0)}
-                        className="font-mts-wide h-8 px-3 rounded-lg text-[11px] font-medium border border-black/[0.10] text-black/70 hover:bg-black/[0.04]"
+                        className="as-btn as-btn-compact as-btn-plain"
                       >
                         Отмена
                       </button>
                       <button
+                        type="button"
                         onClick={handleUnlinkTelegram}
                         disabled={unlinking}
-                        className="font-mts-wide h-8 px-3 rounded-lg text-[11px] font-medium bg-[#EF4444] text-white disabled:opacity-50"
+                        className="as-btn as-btn-compact as-btn-danger"
                       >
-                        {unlinking ? "..." : "Отвязать"}
+                        {unlinking ? "…" : "Отвязать"}
                       </button>
                     </div>
                   ) : null}
@@ -389,12 +395,13 @@ export default function Dashboard() {
               </div>
 
               {/* ═══ Utility row — About · Admin · Logout ═══ */}
-              <div className="dv2-rise dv2-rise-6 lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+              <div className="dv2-rise dv2-rise-6 lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <button
+                  type="button"
                   onClick={() => router.push("/about")}
-                  className="font-mts-wide h-[52px] rounded-2xl bg-white border border-black/[0.06] text-black/85 font-medium text-[13px] hover:border-black/[0.14] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+                  className="as-btn as-btn-secondary as-btn-ghost as-btn-block"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 17V11M12 7h.01" />
                   </svg>
@@ -403,10 +410,12 @@ export default function Dashboard() {
 
                 {data.isAdmin && (
                   <button
+                    type="button"
                     onClick={() => router.push("/admin")}
-                    className="font-mts-wide h-[52px] rounded-2xl bg-[#5E6AD2]/10 border border-[#5E6AD2]/30 text-[#5E6AD2] font-medium text-[13px] hover:bg-[#5E6AD2]/15 transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+                    className="as-btn as-btn-secondary as-btn-ghost as-btn-block"
+                    style={{ color: "#5E6AD2", borderColor: "rgba(94,106,210,0.30)" }}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                       <path d="M9 12l2 2 4-4" />
                     </svg>
@@ -415,15 +424,16 @@ export default function Dashboard() {
                 )}
 
                 <button
+                  type="button"
                   onClick={() => setShowLogoutConfirm(true)}
-                  className={`font-mts-wide h-[52px] rounded-2xl bg-white border border-black/[0.06] text-black/60 font-medium text-[13px] hover:bg-[#EF4444]/8 hover:border-[#EF4444]/30 hover:text-[#EF4444] transition-all active:scale-[0.985] flex items-center justify-center gap-2 ${!data.isAdmin ? "sm:col-span-1" : ""}`}
+                  className="as-btn as-btn-secondary as-btn-ghost as-btn-block group"
                 >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="text-black/55 group-hover:text-[#EF4444] transition-colors">
                     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
                     <polyline points="16 17 21 12 16 7" />
                     <line x1="21" y1="12" x2="9" y2="12" />
                   </svg>
-                  Выйти
+                  <span className="text-black/70 group-hover:text-[#EF4444] transition-colors">Выйти</span>
                 </button>
               </div>
             </div>
@@ -454,16 +464,18 @@ export default function Dashboard() {
 
                 <div className="flex gap-3">
                   <button
+                    type="button"
                     onClick={() => setShowLogoutConfirm(false)}
                     disabled={loggingOut}
-                    className="font-mts-wide flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base bg-black/[0.04] border border-black/[0.08] text-black hover:bg-black/[0.06] transition-all active:scale-[0.985] disabled:opacity-40"
+                    className="as-btn as-btn-secondary as-btn-plain flex-1"
                   >
                     Нет
                   </button>
                   <button
+                    type="button"
                     onClick={handleLogout}
                     disabled={loggingOut}
-                    className="font-mts-wide flex-1 h-11 sm:h-12 rounded-xl font-medium text-sm sm:text-base bg-[#EF4444] text-white hover:bg-[#EF4444]/90 transition-all active:scale-[0.985] disabled:opacity-40 flex items-center justify-center gap-2"
+                    className="as-btn as-btn-secondary as-btn-danger flex-1"
                   >
                     {loggingOut ? (
                       <>

@@ -114,33 +114,35 @@ export default function SubscriptionCard({
           </div>
         </div>
 
-        {/* CTAs — both 56 px on mobile so they read as one clear
-            action pair. Open (white) wins by weight. */}
-        <div className="flex flex-col gap-2.5">
+        {/* CTAs — primary (Open) wins by weight; Copy is a dark
+            secondary living on the same focal surface. */}
+        <div className="flex flex-col gap-3">
           <button
+            type="button"
             onClick={openHapp}
-            className="font-mts-wide h-14 rounded-2xl bg-white text-black font-semibold text-[15px] flex items-center justify-center gap-2 transition-all hover:bg-white/95 active:scale-[0.985]"
+            className="as-btn as-btn-primary as-btn-accent as-btn-block"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
             Открыть в приложении
           </button>
 
           <button
+            type="button"
             onClick={handleCopy}
-            className="font-mts-wide h-12 rounded-2xl bg-white/[0.05] border border-white/[0.10] text-white/85 font-medium text-[13px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.08] hover:border-white/[0.16] active:scale-[0.985]"
+            className="as-btn as-btn-secondary as-btn-dark as-btn-block"
           >
             {copied ? (
               <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
                 <span className="text-[#22C55E]">Скопировано</span>
               </>
             ) : (
               <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" />
                   <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                 </svg>

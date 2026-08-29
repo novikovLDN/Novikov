@@ -143,13 +143,14 @@ export default function ReferralSection({
       </div>
 
       {/* CTAs */}
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-3">
         <button
+          type="button"
           onClick={handleShare}
           disabled={sharing}
-          className="flex-1 h-12 rounded-2xl bg-white text-black font-medium text-[14px] flex items-center justify-center gap-2 transition-all hover:bg-white/95 active:scale-[0.985] disabled:opacity-60"
+          className="as-btn as-btn-primary as-btn-solid as-btn-block flex-1"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="18" cy="5" r="3" />
             <circle cx="6" cy="12" r="3" />
             <circle cx="18" cy="19" r="3" />
@@ -159,19 +160,20 @@ export default function ReferralSection({
           Поделиться
         </button>
         <button
+          type="button"
           onClick={() => onCopy(shareUrl)}
-          className="flex-1 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[13px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.07] hover:border-white/[0.12] active:scale-[0.985]"
+          className="as-btn as-btn-secondary as-btn-plain as-btn-block flex-1"
         >
           {copiedRef ? (
             <>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              <span className="text-[#34D399]">Скопировано</span>
+              <span style={{ color: "#22C55E" }}>Скопировано</span>
             </>
           ) : (
             <>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="9" y="9" width="13" height="13" rx="2" />
                 <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
               </svg>
