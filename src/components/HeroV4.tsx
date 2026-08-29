@@ -4,25 +4,26 @@ import Link from "next/link";
 import { useState } from "react";
 
 /**
- * Landing hero, v4 — modeled on the provod.ai reference.
+ * Landing hero — v5.
  *
- * Layout:
- *   - Sticky top brand row (logo left, minimal nav right)
- *   - Green "status" pill top-of-hero
- *   - Big MTS-Wide headline in 2 lines
- *   - Lede paragraph
- *   - Two CTAs (orange primary, outlined secondary)
- *   - Scattered outlined labels ("Чат", "API", "Изображения", "Видео")
- *     tied together with a hand-drawn SVG curve overlay
+ * Redesign brief:
+ *   - Kill the four scattered pills + hand-drawn bezier overlay. On
+ *     phones they landed in a random order and made the first screen
+ *     read as decoration instead of product.
+ *   - Give the hero one gravity centre: status pill → the two-line
+ *     display headline → a short lede → two CTAs → a single fact-bar
+ *     grounded in real numbers (4 стран, SLA, задержка).
+ *   - Everything the visitor needs to decide "open an account" sits
+ *     above the fold on a 375-wide phone.
  *
- * Content is Atlas-Secure-branded — the layout is the reference, not
- * the copy. Font faces are already wired via /public/fonts + globals.css;
- * if the MTS Wide files aren't uploaded yet the fallback Inter stack
- * still renders the same layout cleanly.
+ * The dark bg + rounded-bottom corners stay — the section is the one
+ * dark focal surface of the landing (all other sections are light).
+ * Content font is MTS Wide throughout so the hero reads as one voice
+ * with the rest of the marketing surface.
  */
 export default function HeroV4({
   brand = "atlas.secure",
-  statusText = "Доступ без ограничений",
+  statusText = "Стабильный интернет 24/7",
   headlineTop = "Ускоритель",
   headlineBottom = "интернета",
   lede = "Стабильное соединение и низкий пинг на любом устройстве. Настройка за минуту, дальше работает автоматически.",
@@ -30,12 +31,17 @@ export default function HeroV4({
   primaryHref = "/auth",
   secondaryCta = "Посмотреть тарифы",
   secondaryHref = "/pricing",
-  pills = ["Игры", "Стриминг", "Работа", "Учёба"],
+  factbar = [
+    { value: "4",       label: "страны" },
+    { value: "99,98 %", label: "аптайм" },
+    { value: "< 5 мс",  label: "в регионе" },
+    { value: "6",       label: "платформ" },
+  ],
   navLinks = [
-    { label: "Тарифы", href: "/pricing" },
+    { label: "Тарифы",       href: "/pricing" },
     { label: "Безопасность", href: "/security" },
-    { label: "О нас", href: "/about" },
-    { label: "Поддержка", href: "/contact" },
+    { label: "О нас",        href: "/about" },
+    { label: "Поддержка",    href: "/contact" },
   ],
 }: {
   brand?: string;
@@ -47,13 +53,13 @@ export default function HeroV4({
   primaryHref?: string;
   secondaryCta?: string;
   secondaryHref?: string;
-  pills?: string[];
+  factbar?: Array<{ value: string; label: string }>;
   navLinks?: Array<{ label: string; href: string }>;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <section className="hero-v4">
-      {/* Brand + status row */}
+      {/* Brand + nav row */}
       <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
         <div className="flex items-center gap-2">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -62,14 +68,11 @@ export default function HeroV4({
             <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span
-            className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-white/85"
-          >
+          <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-white/85">
             {brand}
           </span>
         </div>
 
-        {/* Desktop nav — inline links */}
         <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-white/70">
           {navLinks.map((l) => (
             <Link key={l.href} href={l.href} className="hover:text-white transition-colors">
@@ -84,7 +87,6 @@ export default function HeroV4({
           </Link>
         </nav>
 
-        {/* Mobile hamburger */}
         <button
           className="md:hidden w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center active:scale-[0.95] transition-transform"
           onClick={() => setMenuOpen(true)}
@@ -98,7 +100,7 @@ export default function HeroV4({
 
       {menuOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8 font-mts-wide"
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center gap-8 font-mts-wide"
           onClick={() => setMenuOpen(false)}
         >
           <button
@@ -125,9 +127,10 @@ export default function HeroV4({
         </div>
       )}
 
-      {/* Copy block */}
-      <div className="flex-1 flex flex-col justify-center px-5 sm:px-8 pt-10 pb-16 sm:pt-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
-        <div className="mb-6">
+      {/* Central column — everything above the fold on a 375 phone */}
+      <div className="flex-1 flex flex-col justify-center px-5 sm:px-8 pt-8 pb-12 sm:pt-14 sm:pb-16 max-w-[1120px] mx-auto w-full">
+        <div className="mb-6 flex items-center gap-2">
+          <span className="hero-v4-status-dot" aria-hidden />
           <span className="hero-v4-status-pill">{statusText}</span>
         </div>
 
@@ -137,9 +140,9 @@ export default function HeroV4({
           {headlineBottom}
         </h1>
 
-        <p className="hero-v4-lede mt-6 sm:mt-8">{lede}</p>
+        <p className="hero-v4-lede mt-5 sm:mt-7">{lede}</p>
 
-        <div className="mt-8 sm:mt-10 flex flex-wrap gap-3 sm:gap-4">
+        <div className="mt-7 sm:mt-9 flex flex-wrap gap-3 sm:gap-4">
           <Link href={primaryHref} className="hero-v4-cta-primary">
             {primaryCta}
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -150,40 +153,20 @@ export default function HeroV4({
             {secondaryCta}
           </Link>
         </div>
+      </div>
 
-        {/* Scattered pills with hand-drawn curves — reference layout */}
-        <div className="relative mt-14 sm:mt-20 h-[220px] sm:h-[280px]">
-          <svg
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            viewBox="0 0 800 300"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            {/* Loose bezier lines linking the four pills */}
-            <path
-              d="M 110 60 Q 260 140 420 100 Q 560 60 700 170"
-              stroke="rgba(255,255,255,0.14)"
-              strokeWidth="1.2"
-              fill="none"
-            />
-            <path
-              d="M 130 200 Q 280 130 460 220 Q 620 300 720 240"
-              stroke="rgba(255,255,255,0.12)"
-              strokeWidth="1.2"
-              fill="none"
-            />
-            <path
-              d="M 60 110 Q 200 260 380 170 Q 540 90 780 130"
-              stroke="rgba(255,255,255,0.10)"
-              strokeWidth="1.2"
-              fill="none"
-            />
-          </svg>
-
-          <div className="absolute left-[4%] top-[10%]"><span className="hero-v4-pill">{pills[0]}</span></div>
-          <div className="absolute right-[8%] top-[30%]"><span className="hero-v4-pill">{pills[1]}</span></div>
-          <div className="absolute left-[12%] bottom-[15%]"><span className="hero-v4-pill">{pills[2]}</span></div>
-          <div className="absolute right-[14%] bottom-[20%]"><span className="hero-v4-pill">{pills[3]}</span></div>
+      {/* Factbar — grounded in real numbers, one visual anchor.
+          Mobile: 2×2 grid so cells stay tappable and legible;
+          sm+: horizontal 4-up row that mirrors the "one continuous
+          bar" reading. */}
+      <div className="px-5 sm:px-8 pb-8 sm:pb-10 max-w-[1120px] mx-auto w-full">
+        <div className="hero-v4-factbar">
+          {factbar.map((f) => (
+            <div key={f.label} className="hero-v4-fact">
+              <div className="hero-v4-fact-value">{f.value}</div>
+              <div className="hero-v4-fact-label">{f.label}</div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
