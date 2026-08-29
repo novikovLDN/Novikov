@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface SubscriptionHeroProps {
@@ -14,10 +13,7 @@ interface SubscriptionHeroProps {
 }
 
 /**
- * Russian-aware pluralization: 1 год / 2-4 года / 5+ лет, with
- * special-case overrides for 11..14 (always "лет"). Returns the
- * largest meaningful chunk: years if >= 1, else months if >= 1,
- * else days, else hours.
+ * Russian-aware pluralization.
  */
 function plural(n: number, one: string, few: string, many: string): string {
   const mod100 = n % 100;
@@ -28,8 +24,11 @@ function plural(n: number, one: string, few: string, many: string): string {
   return many;
 }
 
-function humanRemaining(totalDays: number): string {
-  if (totalDays <= 0) return "0 дней";
+function humanRemaining(totalDays: number, hoursLeft: number): string {
+  if (totalDays <= 0) {
+    if (hoursLeft > 0) return `${hoursLeft} ${plural(hoursLeft, "час", "часа", "часов")}`;
+    return "менее часа";
+  }
   const years = Math.floor(totalDays / 365);
   if (years >= 1) {
     const months = Math.floor((totalDays - years * 365) / 30);
@@ -48,18 +47,21 @@ function humanRemaining(totalDays: number): string {
 }
 
 /**
- * Hero subscription card on the dashboard.
+ * SubscriptionHero — v5.
  *
- * Layered visual:
- *   - Soft radial gradient backdrop with subtle grid mask
- *   - Animated status orb (active / expiring / expired)
- *   - Plan name + status pill
- *   - Big "valid until" date in tabular numbers
- *   - Days countdown with crisp typography
- *   - Two primary CTAs: Connect (light, dominant) / Extend (ghost)
- *
- * No images, no third-party gradients — everything is CSS so it stays
- * sharp on retina and animates GPU-cheap.
+ * Redesign brief:
+ *   - Drop the animated radial-gradient backdrops + dot grid mask.
+ *     They read as noise on mobile and don't survive well against a
+ *     light shell.
+ *   - Hierarchy on phone (top-to-bottom, what the user actually
+ *     needs): plan chip → date → time / remaining → two big CTAs.
+ *   - The "perks strip" (Трафик / Порт / Шифрование) moved out;
+ *     hero speaks about ONE thing — how long the subscription still
+ *     runs and how to connect. Perks belong on the pricing page.
+ *   - Both CTAs are 56 px tall on mobile so the whole card acts like
+ *     one clear "next action" — Connect wins by weight (orange fill,
+ *     bigger), Extend is a hairline ghost that stacks below it on
+ *     phones and sits beside it on desktop.
  */
 export default function SubscriptionHero({
   isExpired,
@@ -67,16 +69,9 @@ export default function SubscriptionHero({
   subscriptionEnd,
   daysLeft,
   hoursLeft,
-  minutesLeft,
   isTrial,
 }: SubscriptionHeroProps) {
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 30);
-    return () => clearTimeout(t);
-  }, []);
 
   const isExpiring = !isExpired && daysLeft < 3;
 
@@ -84,18 +79,18 @@ export default function SubscriptionHero({
     ? "#EF4444"
     : isExpiring
     ? "#F59E0B"
-    : "#34D399";
+    : "#22C55E";
 
   const statusLabel = isExpired
-    ? "Подписка истекла"
+    ? "Не активна"
     : isExpiring
     ? "Скоро истечёт"
     : isTrial
     ? "Пробный период"
-    : "Подписка активна";
+    : "Активна";
 
   const planLabel = isExpired
-    ? "Не активна"
+    ? "Подписка"
     : isTrial
     ? "Trial · 24 часа"
     : subscriptionPlan === "plus"
@@ -115,150 +110,77 @@ export default function SubscriptionHero({
     minute: "2-digit",
   });
 
-  // hoursLeft / minutesLeft are read by humanRemaining via daysLeft;
-  // the inline countdown was replaced by the focal date + remaining label.
-  void hoursLeft;
-  void minutesLeft;
-
   return (
-    <section
-      className={`dv2-dark dv2-elevate relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0F0F12] transition-all duration-700 ease-out ${
-        mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
-      }`}
-    >
-      {/* Animated backdrop layer */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        {/* radial accent */}
-        <div
-          className="absolute -top-20 -left-20 h-80 w-80 rounded-full blur-3xl opacity-50"
-          style={{
-            background: `radial-gradient(closest-side, ${statusColor}22, transparent 70%)`,
-            animation: "heroPulse 6s ease-in-out infinite",
-          }}
-        />
-        <div
-          className="absolute -bottom-32 -right-32 h-80 w-80 rounded-full blur-3xl opacity-30"
-          style={{
-            background: `radial-gradient(closest-side, #5E6AD244, transparent 70%)`,
-            animation: "heroPulse 7s ease-in-out infinite reverse",
-          }}
-        />
-        {/* dot grid */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.7) 1px, transparent 0)",
-            backgroundSize: "20px 20px",
-            maskImage:
-              "radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 80%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 80%)",
-          }}
-        />
-      </div>
-
-      <div className="relative p-6 sm:p-8">
-        {/* Top row: plan label + status pill */}
-        <div className="flex items-center justify-between mb-8 sm:mb-10">
-          <div className="flex items-center gap-2">
+    <section className="dv2-dark dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px] border border-white/[0.06] bg-[#0F0F12]">
+      <div className="relative p-5 sm:p-7 lg:p-8">
+        {/* Row 1 — plan chip · status chip. Tightly kerned so both
+            chips read as one strip of metadata rather than two
+            unrelated labels. */}
+        <div className="flex items-center gap-2 flex-wrap mb-6 sm:mb-8">
+          <span className="font-mts-wide inline-flex items-center px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-white text-[11px] tracking-[0.06em] font-medium">
+            {planLabel}
+          </span>
+          <span
+            className="font-mts-wide inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium"
+            style={{
+              background: `${statusColor}18`,
+              border: `1px solid ${statusColor}40`,
+              color: statusColor,
+            }}
+          >
             <span
-              className="text-[10px] font-medium tracking-[0.18em] uppercase text-white/40"
-              style={{ fontFamily: "var(--pl-mono)" }}
-            >
-              {planLabel}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.06]">
-            <span
-              className="relative h-1.5 w-1.5 rounded-full"
-              style={{ background: statusColor, boxShadow: `0 0 8px ${statusColor}` }}
-            >
-              <span
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: statusColor,
-                  animation: "heroPing 2s cubic-bezier(0, 0, 0.2, 1) infinite",
-                  opacity: 0.5,
-                }}
-              />
-            </span>
-            <span className="text-[11px] font-medium text-white/80">{statusLabel}</span>
-          </div>
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: statusColor, boxShadow: `0 0 6px ${statusColor}` }}
+            />
+            {statusLabel}
+          </span>
         </div>
 
-        {/* Focal date — the new accent */}
+        {/* Row 2 — the focal fact: WHEN it ends. */}
         {isExpired ? (
-          <div className="mb-6">
-            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40 mb-2">
+          <div className="mb-6 sm:mb-8">
+            <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-white/40 mb-2">
               Истекла
             </div>
-            <div className="text-[34px] sm:text-[44px] font-light tracking-tight leading-[1.05] text-white/40">
-              Подписка<br /><span className="text-white/30">не активна</span>
+            <div className="font-mts-wide text-[34px] sm:text-[42px] lg:text-[52px] font-bold tracking-tight leading-[1.02] text-white">
+              Подписка<br /><span className="text-white/45">не активна</span>
             </div>
           </div>
         ) : (
-          <div className="mb-6">
-            <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-white/40 mb-2">
+          <div className="mb-6 sm:mb-8">
+            <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-white/40 mb-2">
               Действует до
             </div>
-            <div className="text-[34px] sm:text-[44px] font-light tracking-tight leading-[1.05] text-white">
+            <div className="font-mts-wide text-[34px] sm:text-[42px] lg:text-[52px] font-bold tracking-tight leading-[1.02] text-white">
               {endDateLabel}
             </div>
-            <div className="flex items-center gap-2 mt-2 text-[12px] text-white/45">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              <span>{endTimeLabel} · осталось {humanRemaining(daysLeft)}</span>
+            <div className="font-mts-wide text-[13px] text-white/50 mt-3 tabular-nums">
+              {endTimeLabel} · осталось {humanRemaining(daysLeft, hoursLeft)}
             </div>
           </div>
         )}
 
-        {/* Subscription perks strip — only verifiable facts */}
-        {!isExpired && (
-          <div className="grid grid-cols-3 gap-2 mb-6">
-            {[
-              { label: "Трафик", value: "Безлимит" },
-              { label: "Порт", value: "до 75 Гбит/с" },
-              { label: "Шифрование", value: "AES-256" },
-            ].map((p) => (
-              <div key={p.label} className="rounded-xl bg-white/[0.025] border border-white/[0.05] px-3 py-2.5">
-                <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-white/35 mb-0.5 truncate">{p.label}</div>
-                <div className="text-[12px] sm:text-[13px] font-medium text-white/90 truncate">{p.value}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* CTAs — chunky on mobile for easy tapping, refined on desktop */}
+        {/* Row 3 — CTAs. On mobile they stack (both full-width,
+            56 px tall); from sm+ Connect keeps flexing and Extend
+            becomes a fixed 160 px ghost sitting beside it. */}
         <div className="flex flex-col sm:flex-row gap-2.5">
           {!isExpired ? (
             <>
               <button
                 onClick={() => router.push("/devices")}
-                className="group relative flex-1 h-[96px] sm:h-[60px] rounded-2xl font-semibold text-[19px] sm:text-[15px] flex items-center justify-center gap-2.5 overflow-hidden transition-all active:scale-[0.985] text-white"
-                style={{
-                  background: "linear-gradient(135deg, #5E6AD2 0%, #8F8FD9 100%)",
-                  boxShadow: "0 12px 32px -10px rgba(94,106,210,0.60), inset 0 1px 0 rgba(255,255,255,0.20)",
-                }}
+                className="font-mts-wide group relative flex-1 h-14 rounded-2xl bg-[#F97316] text-black font-semibold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] hover:bg-[#FB923C]"
               >
-                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{ background: "linear-gradient(135deg, #6E7AE2 0%, #9F9FE9 100%)" }} />
-                <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{ background: "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%)" }} />
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative sm:w-[18px] sm:h-[18px]">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                 </svg>
-                <span className="relative">Подключить</span>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:translate-x-0.5 sm:w-4 sm:h-4">
+                Подключить
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </button>
               <button
                 onClick={() => router.push("/subscribe")}
-                className="h-[48px] sm:h-[60px] sm:w-[160px] rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/80 font-medium text-[13px] sm:text-[14px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.07] hover:border-white/[0.14] active:scale-[0.985]"
+                className="font-mts-wide h-12 sm:h-14 sm:w-[160px] rounded-2xl bg-white/[0.05] border border-white/[0.10] text-white font-medium text-[14px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.08] active:scale-[0.985]"
               >
                 Продлить
               </button>
@@ -266,31 +188,16 @@ export default function SubscriptionHero({
           ) : (
             <button
               onClick={() => router.push("/subscribe")}
-              className="group relative flex-1 h-[96px] sm:h-[60px] rounded-2xl font-semibold text-[19px] sm:text-[15px] flex items-center justify-center gap-2 overflow-hidden transition-all active:scale-[0.985] text-white"
-              style={{
-                background: "linear-gradient(135deg, #5E6AD2 0%, #8F8FD9 100%)",
-                boxShadow: "0 12px 32px -10px rgba(94,106,210,0.60), inset 0 1px 0 rgba(255,255,255,0.20)",
-              }}
+              className="font-mts-wide group relative flex-1 h-14 rounded-2xl bg-[#F97316] text-black font-semibold text-[15px] flex items-center justify-center gap-2 transition-all active:scale-[0.985] hover:bg-[#FB923C]"
             >
-              <span className="relative">Купить подписку</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="relative transition-transform group-hover:translate-x-0.5 sm:w-4 sm:h-4">
+              Купить подписку
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </button>
           )}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes heroPulse {
-          0%, 100% { transform: scale(1); opacity: 0.5; }
-          50% { transform: scale(1.08); opacity: 0.7; }
-        }
-        @keyframes heroPing {
-          0% { transform: scale(1); opacity: 0.6; }
-          80%, 100% { transform: scale(2.8); opacity: 0; }
-        }
-      `}</style>
     </section>
   );
 }

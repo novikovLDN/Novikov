@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 interface SubscriptionCardProps {
@@ -18,6 +18,20 @@ function happDeepLink(subscriptionUrl: string, happCryptoLink: string | null): s
   return `happ://add/${b64}`;
 }
 
+/**
+ * SubscriptionCard — v5.
+ *
+ * Redesign brief:
+ *   - Dropped the animated radial gradient + dot-grid backdrop. On
+ *     phones they added visual noise without carrying any signal.
+ *   - Cleaner header: "Ключ подписки" eyebrow only; public-id chip
+ *     moved down under the QR to keep the top of the card tidy.
+ *   - Two CTAs stack vertically on mobile at 56 px each so they read
+ *     as one clear "next action" pair — Open (white fill, primary)
+ *     above Copy (hairline ghost).
+ *   - The "no app? App Store / Google Play" strip stays but sits on
+ *     its own dividing line to avoid competing with the CTAs.
+ */
 export default function SubscriptionCard({
   subscriptionUrl,
   happCryptoLink,
@@ -26,12 +40,6 @@ export default function SubscriptionCard({
   const [copied, setCopied] = useState(false);
   const [showFallback, setShowFallback] = useState(false);
   const [showQr, setShowQr] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 80);
-    return () => clearTimeout(t);
-  }, []);
 
   if (!subscriptionUrl) {
     return (
@@ -67,41 +75,16 @@ export default function SubscriptionCard({
   };
 
   return (
-    <section
-      className={`dv2-dark dv2-elevate relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-[#0F0F12] transition-all duration-700 ease-out ${
-        mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
-      }`}
-    >
-      {/* Backdrop */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
-        <div
-          className="absolute top-0 right-0 h-64 w-64 rounded-full blur-3xl opacity-30"
-          style={{ background: "radial-gradient(closest-side, #5E6AD244, transparent 70%)" }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.7) 1px, transparent 0)",
-            backgroundSize: "18px 18px",
-          }}
-        />
-      </div>
-
-      <div className="relative p-6 sm:p-7">
+    <section className="dv2-dark dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px] border border-white/[0.06] bg-[#0F0F12]">
+      <div className="relative p-5 sm:p-7">
+        {/* Header — one eyebrow, one QR toggle */}
         <div className="flex items-center justify-between mb-5">
-          <div>
-            <div className="text-[10px] font-medium tracking-[0.18em] uppercase text-white/40" style={{ fontFamily: "var(--pl-mono)" }}>
-              Ключ подписки
-            </div>
-            {publicId && (
-              <div className="text-[11px] font-mono text-white/30 mt-1 tracking-wider">
-                {publicId}
-              </div>
-            )}
+          <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-white/45">
+            Ключ подписки
           </div>
           <button
             onClick={() => setShowQr((v) => !v)}
-            className="h-9 px-3 rounded-xl bg-white/[0.04] border border-white/[0.06] text-white/70 hover:text-white hover:border-white/[0.12] hover:bg-white/[0.07] text-[12px] font-medium transition-all flex items-center gap-1.5"
+            className="font-mts-wide h-9 px-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/75 hover:text-white hover:border-white/[0.16] text-[12px] font-medium transition-all flex items-center gap-1.5"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -113,9 +96,9 @@ export default function SubscriptionCard({
           </button>
         </div>
 
-        {/* QR (collapsible) */}
+        {/* Collapsible QR panel */}
         <div
-          className="grid transition-all duration-500 ease-out"
+          className="grid transition-all duration-400 ease-out"
           style={{ gridTemplateRows: showQr ? "1fr" : "0fr" }}
         >
           <div className="overflow-hidden">
@@ -131,28 +114,29 @@ export default function SubscriptionCard({
           </div>
         </div>
 
-        {/* CTAs */}
+        {/* CTAs — both 56 px on mobile so they read as one clear
+            action pair. Open (white) wins by weight. */}
         <div className="flex flex-col gap-2.5">
           <button
             onClick={openHapp}
-            className="group relative h-13 sm:h-14 rounded-2xl bg-white text-black font-medium text-[14px] sm:text-[15px] flex items-center justify-center gap-2 transition-all hover:bg-white/95 active:scale-[0.985]"
+            className="font-mts-wide h-14 rounded-2xl bg-white text-black font-semibold text-[15px] flex items-center justify-center gap-2 transition-all hover:bg-white/95 active:scale-[0.985]"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
             </svg>
-            Открыть в Happ
+            Открыть в приложении
           </button>
 
           <button
             onClick={handleCopy}
-            className="h-11 rounded-2xl bg-white/[0.04] border border-white/[0.08] text-white/85 font-medium text-[13px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.07] hover:border-white/[0.12] active:scale-[0.985]"
+            className="font-mts-wide h-12 rounded-2xl bg-white/[0.05] border border-white/[0.10] text-white/85 font-medium text-[13px] flex items-center justify-center gap-2 transition-all hover:bg-white/[0.08] hover:border-white/[0.16] active:scale-[0.985]"
           >
             {copied ? (
               <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <span className="text-[#34D399]">Скопировано</span>
+                <span className="text-[#22C55E]">Скопировано</span>
               </>
             ) : (
               <>
@@ -167,23 +151,29 @@ export default function SubscriptionCard({
         </div>
 
         {showFallback && (
-          <div className="mt-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-            <p className="text-[10px] text-white/40 mb-1.5">Скопируйте вручную:</p>
-            <code className="block text-[10px] font-mono break-all text-white/70 bg-black/30 p-2 rounded-lg">
+          <div className="mt-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+            <p className="font-mts-wide text-[10px] text-white/45 mb-1.5">Скопируйте вручную:</p>
+            <code className="block text-[10px] font-mono break-all text-white/75 bg-black/40 p-2 rounded-lg">
               {subscriptionUrl}
             </code>
           </div>
         )}
 
-        {/* App store row */}
-        <div className="mt-5 pt-5 border-t border-white/[0.06] flex items-center justify-between text-[11px]">
-          <span className="text-white/40">Нет приложения Happ?</span>
-          <div className="flex gap-3">
+        {publicId && (
+          <div className="mt-5 pt-5 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
+            <span className="font-mts-wide text-white/40 tracking-[0.12em] uppercase text-[10px]">ID</span>
+            <span className="font-mono text-white/70 tracking-wider">{publicId}</span>
+          </div>
+        )}
+
+        <div className="mt-5 pt-5 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
+          <span className="font-mts-wide text-white/45">Нет приложения?</span>
+          <div className="flex gap-3 font-mts-wide">
             <a
               href="https://apps.apple.com/app/happ-proxy-utility/id6504287215"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/70 hover:text-white transition-colors"
+              className="text-white/75 hover:text-white transition-colors"
             >
               App Store
             </a>
@@ -192,7 +182,7 @@ export default function SubscriptionCard({
               href="https://play.google.com/store/apps/details?id=com.happproxy"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/70 hover:text-white transition-colors"
+              className="text-white/75 hover:text-white transition-colors"
             >
               Google Play
             </a>

@@ -19,15 +19,21 @@ import PushToggleButton from "@/components/PushToggleButton";
 import type { SubscriptionData } from "@/types";
 
 /**
- * Dashboard — v4 light shell.
+ * Dashboard — v5 mobile-first restructure.
  *
- * The two focal cards (SubscriptionHero, SubscriptionCard) stay dark
- * as accent surfaces. Every other card is a white surface on the
- * off-white body bg, matching the language of /about, /pricing,
- * /support. Legacy dark-glass Header/Footer/PageContainer wrappers
- * are replaced with an inline top bar (mirroring the landing/about
- * pattern) so the dashboard breathes visually the same way as the
- * rest of the site.
+ * Design brief:
+ *   - Mobile is the primary target: everything cascades top-to-bottom
+ *     in the order of importance for a phone user (subscription →
+ *     key → actions → balance → referral → trust widgets → settings).
+ *   - Server status + Telegram-linked confirmation moved OUT of the
+ *     top of the page (they were decoration for a phone user, not
+ *     signal). Server status becomes a bottom "always alive" widget;
+ *     linked-Telegram collapses to a tiny confirmation strip and only
+ *     shows the full CTA card when NOT linked.
+ *   - Balance is a full-width horizontal strip on mobile (with big
+ *     tabular-num digits), an inline sidebar block on lg+.
+ *   - Utility buttons (About / Admin / Logout) grouped as one row on
+ *     desktop so they don't take four separate stripes at the base.
  */
 export default function Dashboard() {
   const router = useRouter();
@@ -108,7 +114,6 @@ export default function Dashboard() {
     router.push("/auth");
   };
 
-  // ─── Loading State ─────────────────────────────────────────────
   if (loading) {
     return (
       <div className="dashboard-v2 min-h-dvh flex flex-col">
@@ -135,11 +140,11 @@ export default function Dashboard() {
           onNotifications={() => setShowNotifications((prev) => !prev)}
         />
 
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-12 sm:pb-16">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-3 sm:pt-6 pb-14 sm:pb-16">
           <div className="max-w-[1240px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-12 lg:items-start gap-3 sm:gap-4 lg:gap-5">
 
-              {/* ═══ Row 1: Hero (dark focal) · Server status (light) ═══ */}
+              {/* ═══ Hero — subscription status ═══ */}
               <div className="dv2-rise lg:col-span-8">
                 <SubscriptionHero
                   isExpired={isExpired}
@@ -152,11 +157,17 @@ export default function Dashboard() {
                 />
               </div>
 
-              <div className="dv2-rise dv2-rise-1 lg:col-span-4 lg:self-stretch">
-                <ServerStatusCard />
+              {/* ═══ Quick actions — 3-up on mobile, sidebar on lg+ ═══ */}
+              <div className="dv2-rise dv2-rise-1 lg:col-span-4">
+                <QuickActionsRow
+                  cashbackPercent={data.cashbackPercent}
+                  paidReferrals={data.paidReferrals}
+                  unread={unreadCount}
+                  onNotifications={() => setShowNotifications(true)}
+                />
               </div>
 
-              {/* ═══ Row 2: Subscription key (dark focal) · Balance (light) ═══ */}
+              {/* ═══ Key — connect / open in app ═══ */}
               {!isExpired && data.subscriptionUrl && (
                 <div className="dv2-rise dv2-rise-2 lg:col-span-8">
                   <SubscriptionCard
@@ -169,16 +180,12 @@ export default function Dashboard() {
                 </div>
               )}
 
-              <div className="dv2-rise dv2-rise-3 dv2-card p-5 sm:p-6 lg:col-span-4 lg:self-stretch flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="dv2-eyebrow">Баланс</div>
-                    <span className="font-mts-wide text-[10px] text-black/35 tracking-wider">
-                      {data.balance > 0 ? "ACTIVE" : "EMPTY"}
-                    </span>
-                  </div>
-                  <div className="flex items-baseline gap-2 mb-1">
-                    <span className="font-mts-wide text-[40px] sm:text-[48px] font-bold tracking-tight leading-none text-black tabular-nums">
+              {/* ═══ Balance strip ═══ */}
+              <div className="dv2-rise dv2-rise-3 dv2-card p-5 sm:p-6 lg:col-span-4 lg:self-stretch flex sm:flex-col items-center sm:items-start justify-between sm:justify-center gap-4 sm:gap-0">
+                <div className="flex-1 sm:flex-none">
+                  <div className="dv2-eyebrow mb-2 sm:mb-3">Баланс</div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-mts-wide text-[32px] sm:text-[40px] lg:text-[48px] font-bold tracking-tight leading-none text-black tabular-nums">
                       {data.balance.toLocaleString("ru-RU", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
@@ -187,26 +194,19 @@ export default function Dashboard() {
                     <span className="font-mts-wide text-lg text-black/45">₽</span>
                   </div>
                 </div>
-                <p className="font-mts-wide text-[12px] text-black/45 mt-3 flex items-center gap-1.5">
+                <p className="hidden sm:flex font-mts-wide text-[12px] text-black/45 mt-4 items-center gap-1.5">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 8v4M12 16h.01" />
                   </svg>
-                  Пополнение и оплата — через Telegram-бот
+                  Пополнение — через Telegram-бот
                 </p>
+                <span className="sm:hidden font-mts-wide text-[10px] text-black/40 tracking-[0.1em] uppercase">
+                  {data.balance > 0 ? "Активен" : "Пусто"}
+                </span>
               </div>
 
-              {/* ═══ Row 3: Quick actions ═══ */}
-              <div className="dv2-rise dv2-rise-4 lg:col-span-12">
-                <QuickActionsRow
-                  cashbackPercent={data.cashbackPercent}
-                  paidReferrals={data.paidReferrals}
-                  unread={unreadCount}
-                  onNotifications={() => setShowNotifications(true)}
-                />
-              </div>
-
-              {/* ═══ Referral Program ═══ */}
+              {/* ═══ Referral programme ═══ */}
               <div className="dv2-rise dv2-rise-4 lg:col-span-12">
                 <ReferralSection
                   referralCode={data.referralCode}
@@ -219,84 +219,24 @@ export default function Dashboard() {
                 />
               </div>
 
-              {/* ═══ Telegram Bot ═══ */}
-              <div className="dv2-rise dv2-rise-5 dv2-card p-5 sm:p-6 lg:col-span-8 lg:col-start-3">
-                <div className="flex items-start gap-3.5 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-[#2AABEE]/12 border border-[#2AABEE]/25 flex items-center justify-center shrink-0">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#2AABEE">
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
-                    </svg>
+              {/* ═══ Telegram — full CTA if NOT linked, quiet chip if linked ═══ */}
+              {!data.telegramLinked ? (
+                <div className="dv2-rise dv2-rise-5 dv2-card p-5 sm:p-6 lg:col-span-8 lg:col-start-3">
+                  <div className="flex items-start gap-3.5 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-[#2AABEE]/12 border border-[#2AABEE]/25 flex items-center justify-center shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="#2AABEE">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="dv2-eyebrow mb-1">Telegram-бот</div>
+                      <h3 className="font-mts-wide text-[15px] font-medium text-black leading-tight">Atlas Secure Bot</h3>
+                      <p className="font-mts-wide text-[12px] text-black/50 mt-1 leading-snug">
+                        Управление подпиской с любого устройства
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="dv2-eyebrow mb-1">Telegram-бот</div>
-                    <h3 className="font-mts-wide text-[15px] font-medium text-black leading-tight">Atlas Secure Bot</h3>
-                    <p className="font-mts-wide text-[12px] text-black/50 mt-1 leading-snug">
-                      {data.telegramLinked
-                        ? "Подписка синхронизирована с ботом"
-                        : "Управление подпиской с любого устройства"}
-                    </p>
-                  </div>
-                  {data.telegramLinked && (
-                    <span className="relative h-2 w-2 rounded-full bg-[#22C55E] shrink-0 mt-1.5" style={{ boxShadow: "0 0 8px #22C55E" }} />
-                  )}
-                </div>
 
-                {data.telegramLinked ? (
-                  <div className="space-y-2">
-                    {unlinkStep === 0 && (
-                      <button
-                        onClick={() => setUnlinkStep(1)}
-                        className="font-mts-wide w-full h-9 text-[11px] text-black/45 hover:text-black/70 transition-colors"
-                      >
-                        Отвязать Telegram
-                      </button>
-                    )}
-                    {unlinkStep === 1 && (
-                      <div className="rounded-xl bg-black/[0.03] border border-black/[0.08] p-3">
-                        <p className="font-mts-wide text-[12px] text-black/70 mb-3 text-center">
-                          Синхронизация с ботом будет остановлена. Продолжить?
-                        </p>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setUnlinkStep(0)}
-                            className="font-mts-wide flex-1 h-9 rounded-lg text-[12px] font-medium border border-black/[0.10] text-black/80 hover:bg-black/[0.04] transition-all"
-                          >
-                            Отмена
-                          </button>
-                          <button
-                            onClick={() => setUnlinkStep(2)}
-                            className="font-mts-wide flex-1 h-9 rounded-lg text-[12px] font-medium bg-[#EF4444]/12 border border-[#EF4444]/30 text-[#EF4444] hover:bg-[#EF4444]/18 transition-all"
-                          >
-                            Отвязать
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {unlinkStep === 2 && (
-                      <div className="rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 p-3">
-                        <p className="font-mts-wide text-[12px] text-[#EF4444] mb-3 text-center font-medium">
-                          Подтвердите отвязку Telegram
-                        </p>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setUnlinkStep(0)}
-                            disabled={unlinking}
-                            className="font-mts-wide flex-1 h-9 rounded-lg text-[12px] font-medium border border-black/[0.10] text-black/80 hover:bg-black/[0.04] transition-all disabled:opacity-50"
-                          >
-                            Оставить
-                          </button>
-                          <button
-                            onClick={handleUnlinkTelegram}
-                            disabled={unlinking}
-                            className="font-mts-wide flex-1 h-9 rounded-lg text-[12px] font-medium bg-[#EF4444] text-white hover:bg-[#EF4444]/90 transition-all disabled:opacity-50"
-                          >
-                            {unlinking ? "..." : "Подтвердить"}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
                   <a
                     href={`https://t.me/atlas_suppbot?start=${data.telegramLinkToken || ""}`}
                     target="_blank"
@@ -308,59 +248,99 @@ export default function Dashboard() {
                     </svg>
                     Привязать Telegram
                   </a>
-                )}
+                </div>
+              ) : (
+                <div className="dv2-rise dv2-rise-5 dv2-card p-4 sm:p-5 lg:col-span-8 lg:col-start-3 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#22C55E]/12 border border-[#22C55E]/30 flex items-center justify-center shrink-0">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-mts-wide text-[13px] font-medium text-black leading-tight">Telegram привязан</div>
+                    <div className="font-mts-wide text-[11px] text-black/50 mt-0.5">Подписка синхронизирована с ботом</div>
+                  </div>
+                  {unlinkStep === 0 ? (
+                    <button
+                      onClick={() => setUnlinkStep(1)}
+                      className="font-mts-wide shrink-0 h-8 px-3 text-[11px] text-black/45 hover:text-black/80 transition-colors"
+                    >
+                      Отвязать
+                    </button>
+                  ) : unlinkStep === 1 ? (
+                    <div className="shrink-0 flex gap-1.5">
+                      <button
+                        onClick={() => setUnlinkStep(0)}
+                        className="font-mts-wide h-8 px-3 rounded-lg text-[11px] font-medium border border-black/[0.10] text-black/70 hover:bg-black/[0.04]"
+                      >
+                        Отмена
+                      </button>
+                      <button
+                        onClick={handleUnlinkTelegram}
+                        disabled={unlinking}
+                        className="font-mts-wide h-8 px-3 rounded-lg text-[11px] font-medium bg-[#EF4444] text-white disabled:opacity-50"
+                      >
+                        {unlinking ? "..." : "Отвязать"}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+
+              {/* ═══ Server status — quiet "alive" widget at the bottom ═══ */}
+              <div className="dv2-rise dv2-rise-5 lg:col-span-12">
+                <ServerStatusCard />
               </div>
 
-              {/* ═══ Settings + Theme + Push ═══ */}
+              {/* ═══ Settings row — Theme · Push · Advanced ═══ */}
               <div className="dv2-rise dv2-rise-6 grid grid-cols-1 sm:grid-cols-3 gap-2.5 lg:col-span-12 lg:self-start">
                 <ThemeToggleButton />
                 <PushToggleButton />
                 <SettingsCard />
               </div>
 
-              {/* ═══ About ═══ */}
-              <div className="dv2-rise dv2-rise-6 lg:col-span-12">
+              {/* ═══ Utility row — About · Admin · Logout ═══ */}
+              <div className="dv2-rise dv2-rise-6 lg:col-span-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 <button
                   onClick={() => router.push("/about")}
-                  className="font-mts-wide h-[52px] w-full rounded-2xl bg-white border border-black/[0.06] text-black/85 font-medium text-[13px] hover:border-black/[0.14] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+                  className="font-mts-wide h-[52px] rounded-2xl bg-white border border-black/[0.06] text-black/85 font-medium text-[13px] hover:border-black/[0.14] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 17V11M12 7h.01" />
                   </svg>
-                  О нас
+                  О компании
+                </button>
+
+                {data.isAdmin && (
+                  <button
+                    onClick={() => router.push("/admin")}
+                    className="font-mts-wide h-[52px] rounded-2xl bg-[#5E6AD2]/10 border border-[#5E6AD2]/30 text-[#5E6AD2] font-medium text-[13px] hover:bg-[#5E6AD2]/15 transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      <path d="M9 12l2 2 4-4" />
+                    </svg>
+                    Админ-панель
+                  </button>
+                )}
+
+                <button
+                  onClick={() => setShowLogoutConfirm(true)}
+                  className={`font-mts-wide h-[52px] rounded-2xl bg-white border border-black/[0.06] text-black/60 font-medium text-[13px] hover:bg-[#EF4444]/8 hover:border-[#EF4444]/30 hover:text-[#EF4444] transition-all active:scale-[0.985] flex items-center justify-center gap-2 ${!data.isAdmin ? "sm:col-span-1" : ""}`}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  Выйти
                 </button>
               </div>
-
-              {data.isAdmin && (
-                <button
-                  onClick={() => router.push("/admin")}
-                  className="dv2-rise font-mts-wide w-full h-12 rounded-2xl bg-[#5E6AD2]/10 border border-[#5E6AD2]/30 text-[#5E6AD2] font-medium text-[13px] hover:bg-[#5E6AD2]/15 transition-all active:scale-[0.985] flex items-center justify-center gap-2 lg:col-span-12"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    <path d="M9 12l2 2 4-4" />
-                  </svg>
-                  Админ-панель
-                </button>
-              )}
-
-              {/* ═══ Logout ═══ */}
-              <button
-                onClick={() => setShowLogoutConfirm(true)}
-                className="dv2-rise font-mts-wide w-full h-12 rounded-2xl bg-white border border-black/[0.06] text-black/55 font-medium text-[13px] hover:bg-[#EF4444]/8 hover:border-[#EF4444]/30 hover:text-[#EF4444] transition-all active:scale-[0.985] flex items-center justify-center gap-2 lg:col-span-12 lg:max-w-md lg:mx-auto"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                Выйти из аккаунта
-              </button>
             </div>
           </div>
 
-          {/* ═══ Logout Confirm Modal ═══ */}
+          {/* Logout confirm modal */}
           {showLogoutConfirm && (
             <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => !loggingOut && setShowLogoutConfirm(false)}>
               <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
@@ -380,7 +360,7 @@ export default function Dashboard() {
 
                 <h3 className="font-mts-wide text-base sm:text-lg font-bold text-center mb-2 text-black">Выйти из аккаунта?</h3>
                 <p className="font-mts-wide text-black/55 text-xs sm:text-sm text-center mb-6 leading-relaxed">
-                  Вы уверены, что хотите выйти из аккаунта? Для повторного входа потребуется подтверждение по email.
+                  Для повторного входа потребуется подтверждение по email.
                 </p>
 
                 <div className="flex gap-3">
@@ -421,9 +401,8 @@ export default function Dashboard() {
 }
 
 /**
- * Dashboard top bar — light shell, matches the language of /about,
- * /pricing, /support. Bell button on the right when notifications
- * are wired up.
+ * Dashboard top bar — mirrors the landing/about pattern so the
+ * dashboard breathes visually the same as the rest of the site.
  */
 function DashboardTopBar({
   unreadCount,
