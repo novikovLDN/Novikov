@@ -682,12 +682,7 @@ function SetupStep({
                   <button
                     key={a.id}
                     onClick={() => onSelectApp(i)}
-                    className={
-                      "font-mts-wide px-4 py-2 rounded-full text-[13px] transition-colors " +
-                      (active
-                        ? "bg-black text-white"
-                        : "bg-white border border-black/[0.10] text-black/70 hover:bg-black/[0.04]")
-                    }
+                    className={"as-btn as-btn-compact " + (active ? "as-btn-solid" : "as-btn-ghost")}
                   >
                     {a.name}
                   </button>
@@ -712,7 +707,7 @@ function SetupStep({
             href={currentApp.downloadUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mts-wide inline-flex items-center gap-2 h-12 sm:h-13 px-5 rounded-2xl bg-black text-white font-semibold text-[14px] hover:bg-neutral-800 transition-colors active:scale-[0.98]"
+            className="as-btn as-btn-secondary as-btn-solid"
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
@@ -757,7 +752,7 @@ function SetupStep({
               <button
                 onClick={onAutoInstall}
                 disabled={!keyUrl}
-                className="font-mts-wide inline-flex items-center justify-center gap-2 h-14 flex-1 sm:flex-none sm:min-w-[240px] px-5 rounded-2xl bg-[#F97316] text-black font-semibold text-[15px] hover:bg-[#FB923C] transition-colors active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                className="as-btn as-btn-primary as-btn-accent as-btn-block"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
@@ -768,12 +763,7 @@ function SetupStep({
             <button
               onClick={onCopy}
               disabled={!keyUrl}
-              className={
-                "font-mts-wide inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-5 rounded-2xl font-semibold text-[14px] transition-colors active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed " +
-                (copied
-                  ? "bg-white border border-black/15 text-black"
-                  : "bg-white border border-black/[0.12] text-black hover:bg-black/[0.04]")
-              }
+              className="as-btn as-btn-secondary as-btn-ghost"
             >
               {copied ? (
                 <>
@@ -796,7 +786,7 @@ function SetupStep({
               onClick={onToggleQR}
               disabled={!keyUrl}
               aria-pressed={showQR}
-              className="font-mts-wide inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-5 rounded-2xl border border-black/[0.12] text-black/75 font-semibold text-[14px] hover:bg-black/[0.04] hover:border-black/25 transition-colors active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+              className="as-btn as-btn-secondary as-btn-ghost"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -856,7 +846,7 @@ function SetupStep({
             <button
               type="button"
               onClick={onBack}
-              className="font-mts-wide inline-flex items-center gap-2 h-11 px-4 rounded-2xl border border-black/[0.12] text-black/75 font-semibold text-[13px] hover:bg-black/[0.04] hover:border-black/25 transition-colors active:scale-[0.98]"
+              className="as-btn as-btn-compact as-btn-ghost"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M15 18l-6-6 6-6" />
@@ -865,7 +855,7 @@ function SetupStep({
             </button>
             <Link
               href="/dashboard"
-              className="font-mts-wide inline-flex items-center gap-2 h-11 px-4 rounded-2xl bg-black text-white font-semibold text-[13px] hover:bg-neutral-800 transition-colors active:scale-[0.98]"
+              className="as-btn as-btn-compact as-btn-solid"
             >
               В кабинет
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -883,7 +873,7 @@ function SetupStep({
           </div>
           <Link
             href="/contact"
-            className="font-mts-wide inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-black text-white font-semibold text-[13px] hover:bg-neutral-800 transition-colors active:scale-[0.98] self-start sm:self-auto shrink-0"
+            className="as-btn as-btn-secondary as-btn-solid self-start sm:self-auto shrink-0"
           >
             Написать в поддержку
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
