@@ -5,7 +5,7 @@
 
 import { pool } from "./db";
 import { normalizeEmail } from "./email-normalize";
-import { createTrialUser, encryptHappLink } from "./remnawave";
+import { createTrialUser, encryptHappLink, TRIAL_DURATION_MS, TRIAL_DURATION_DAYS } from "./remnawave";
 import { getUserById } from "./store";
 import { startFlow, endFlow, info, warn } from "./panel-log";
 
@@ -110,11 +110,14 @@ export async function issueTrial(
   const happLink = await encryptHappLink(rwUser.subscriptionUrl);
   info(ctx, "trial.happ_link", { present: Boolean(happLink) });
 
-  // Trial duration is OUR contract — exactly 24 h from now. Don't trust
-  // the panel echo for this field; some Remnawave templates / squads
-  // override expireAt to far-future values and we'd silently grant
-  // multi-year "trials" otherwise.
-  const trialEnd = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  // Trial duration is OUR contract — TRIAL_DURATION_DAYS from now.
+  // Don't trust the panel echo for this field; some Remnawave templates
+  // / squads override expireAt to far-future values and we'd silently
+  // grant multi-year "trials" otherwise. TRIAL_DURATION_MS is the single
+  // source of truth for how long a trial runs — bump it in remnawave.ts
+  // and both server (this write) and panel (createTrialUser) stay in sync.
+  const trialEnd = new Date(Date.now() + TRIAL_DURATION_MS);
+  void TRIAL_DURATION_DAYS;
 
   await pool.query(
     `UPDATE users SET

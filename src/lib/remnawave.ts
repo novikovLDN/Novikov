@@ -623,16 +623,36 @@ export async function createUserWithExpire(
   return null;
 }
 
-/** 24h unlimited trial wrapper. */
+/**
+ * Trial duration — 3 days, unlimited traffic.
+ *
+ * Product decision: we want a trial long enough for someone to
+ * actually try the service across a weekend and see it work on
+ * multiple devices. 24 hours (the previous value) was too short —
+ * users would forget they even started and never come back to
+ * convert. Three days matches the mainstream trial length in the
+ * Russian VPN market (Дядя Ваня VPN's "Ванечка", Amnezia, etc).
+ */
+export const TRIAL_DURATION_DAYS = 3;
+export const TRIAL_DURATION_MS = TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000;
+
+/** 3-day unlimited trial wrapper. */
 export async function createTrialUser(email: string, panelId?: string | null): Promise<RemnawaveUser | null> {
-  const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-  return createUserWithExpire(email, expireAt, "site signup, trial 1d unlimited", panelId, "trial");
+  const expireAt = new Date(Date.now() + TRIAL_DURATION_MS).toISOString();
+  return createUserWithExpire(
+    email,
+    expireAt,
+    `site signup, trial ${TRIAL_DURATION_DAYS}d unlimited`,
+    panelId,
+    "trial"
+  );
 }
 
 export const REMNAWAVE_CONFIG = {
   apiUrl: API_URL,
   mainSquadUuid: MAIN_SQUAD,
-  trialDurationMs: 24 * 60 * 60 * 1000,
+  trialDurationMs: TRIAL_DURATION_MS,
+  trialDurationDays: TRIAL_DURATION_DAYS,
   isConfigured: Boolean(API_TOKEN),
 };
 

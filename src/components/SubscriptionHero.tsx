@@ -92,7 +92,7 @@ export default function SubscriptionHero({
   const planLabel = isExpired
     ? "Подписка"
     : isTrial
-    ? "Trial · 24 часа"
+    ? "Trial · 3 дня"
     : subscriptionPlan === "plus"
     ? "Plus"
     : subscriptionPlan === "basic"

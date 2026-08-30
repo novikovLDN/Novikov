@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       createNotificationForUser(
         user.id,
         "Добро пожаловать в Atlas Secure!",
-        "Ваш пробный период активирован на 24 часа. В личном кабинете доступен QR-код и кнопки для подключения в Happ и V2RayTun."
+        "Ваш пробный период активирован на 3 дня. В личном кабинете доступен QR-код и кнопки для подключения в Happ и V2RayTun."
       ).catch(() => {});
     }
 
