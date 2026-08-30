@@ -1,32 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import SiteHeader from "@/components/landing/SiteHeader";
-import { useRevealFallback } from "@/components/landing/motion";
-import HeroSection from "@/components/landing/HeroSection";
-import DevicesSection from "@/components/landing/DevicesSection";
-import BenefitsSection from "@/components/landing/BenefitsSection";
-import HowItWorksSection from "@/components/landing/HowItWorksSection";
-import PricingSection from "@/components/landing/PricingSection";
-import LocationsSection from "@/components/landing/LocationsSection";
-import SiteOutro from "@/components/landing/SiteOutro";
+import SiteHeader from "@/components/pixel/SiteHeader";
+import HeroSection from "@/components/pixel/HeroSection";
+import MetricsBand from "@/components/pixel/MetricsBand";
+import BenefitsSection from "@/components/pixel/BenefitsSection";
+import DevicesSection from "@/components/pixel/DevicesSection";
+import HowItWorksSection from "@/components/pixel/HowItWorksSection";
+import PricingSection from "@/components/pixel/PricingSection";
+import LocationsSection from "@/components/pixel/LocationsSection";
+import SiteOutro from "@/components/pixel/SiteOutro";
+import { useReveal } from "@/components/pixel/motion";
 
 /**
  * / — публичный лендинг.
  *
- * Дизайн-концепция и обоснование каждого решения: research/concept.md.
- * Формула: «приборная панель, а не рекламный плакат».
- *
- * Ритм поверхностей — светлое тело в тёмных скобках:
- *
- *   тёмный герой
- *     ↓ светлое тело: устройства → выгоды → шаги → тарифы → локации
- *   тёмный финал: призыв + футер на одной поверхности
- *
- * Каждая секция — отдельный компонент в src/components/landing/:
- * правка одного блока не требует чтения всей страницы. Общие примитивы
- * (Icon, SectionHeading, SiteHeader) живут там же, поэтому иконки,
- * шапки секций и навигация существуют в единственном экземпляре.
+ * Направление и обоснование: research/concept.md.
+ * Тёмный технологичный минимализм, пиксельная сетка, один тёплый
+ * акцент, фирменный мотив — живые кубики.
  */
 interface LandingPageProps {
   referralCode?: string;
@@ -34,9 +25,7 @@ interface LandingPageProps {
 
 export default function LandingPage({ referralCode }: LandingPageProps) {
   const [refCode, setRefCode] = useState<string | null>(referralCode ?? null);
-
-  // Каскад появления работает и там, где нет scroll-driven анимаций.
-  useRevealFallback();
+  useReveal();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -54,13 +43,14 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
   const primaryHref = refCode ? `/auth?ref=${encodeURIComponent(refCode)}` : "/auth";
 
   return (
-    <div className="ls-page">
-      <SiteHeader primaryHref={primaryHref} />
-
+    <div className="px-page">
+      <div className="px-grid-bg" aria-hidden />
+      <SiteHeader />
       <main>
         <HeroSection primaryHref={primaryHref} />
-        <DevicesSection />
+        <MetricsBand />
         <BenefitsSection />
+        <DevicesSection />
         <HowItWorksSection />
         <PricingSection />
         <LocationsSection />

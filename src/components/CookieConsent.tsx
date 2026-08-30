@@ -3,6 +3,20 @@
 import { useState, useEffect } from "react";
 import { CONSENT_KEY, announceConsentSettled } from "@/lib/overlay-queue";
 
+/**
+ * Согласие на cookie.
+ *
+ * Приведено к дизайн-системе: поверхности --px-surface/--px-surface-2,
+ * мягкий радиус, кнопки .px-btn. Раньше блок жил на прежней палитре и
+ * читался как деталь другого сайта поверх новой страницы.
+ *
+ * Правовой текст сохранён дословно — он согласован и не является
+ * предметом редизайна.
+ *
+ * Крестики в списке «чего мы не делаем» заменены собственным глифом:
+ * типографский знак ✗ рисуется по-разному в разных ОС и выпадает из
+ * единого набора иконок.
+ */
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -26,28 +40,25 @@ export default function CookieConsent() {
 
   return (
     <>
-      {/* ─── Banner ─── */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-40 px-4 pb-[max(16px,env(safe-area-inset-bottom))] transition-transform duration-500 ease-out ${
-          showDetails ? "translate-y-full" : "translate-y-0"
-        }`}
-        style={{ animation: "slideUp 0.5s ease-out" }}
+        className={`px-consent${showDetails ? " px-consent-hidden" : ""}`}
+        role="region"
+        aria-label="Использование cookie"
       >
-        <div className="max-w-2xl mx-auto bg-card border border-border/50 rounded-2xl p-4 sm:p-5 shadow-lg shadow-black/30">
-          <p className="text-xs sm:text-sm text-muted-light leading-relaxed mb-3">
-            Мы используем минимально необходимые файлы cookie для обеспечения работы сервиса: авторизации и
-            безопасности вашей учётной записи. Мы не используем рекламные или аналитические cookie.
+        <div className="px-consent-card">
+          <p className="px-body">
+            Мы используем минимально необходимые файлы cookie для обеспечения работы сервиса:
+            авторизации и безопасности вашей учётной записи. Мы не используем рекламные или
+            аналитические cookie.
           </p>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleAccept}
-              className="flex-1 h-10 sm:h-11 rounded-xl bg-foreground text-background font-medium text-sm hover:bg-foreground/90 transition-all btn-press"
-            >
+          <div className="mt-4 flex items-center gap-3">
+            <button type="button" onClick={handleAccept} className="px-btn px-btn-sm px-btn-primary flex-1">
               Принять
             </button>
             <button
+              type="button"
               onClick={() => setShowDetails(true)}
-              className="h-10 sm:h-11 px-4 sm:px-5 rounded-xl bg-card-hover border border-border text-muted-light font-medium text-sm hover:bg-card-active hover:text-foreground transition-all btn-press"
+              className="px-btn px-btn-sm px-btn-secondary"
             >
               Подробнее
             </button>
@@ -55,32 +66,34 @@ export default function CookieConsent() {
         </div>
       </div>
 
-      {/* ─── Details Overlay ─── */}
       {showDetails && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={() => setShowDetails(false)}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" />
+        <div className="px-sheet" onClick={() => setShowDetails(false)}>
+          <div className="px-sheet-scrim" aria-hidden />
           <div
-            className="relative bg-card border border-border/50 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto"
-            style={{ animation: "slideUp 0.4s ease-out" }}
+            className="px-sheet-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cookie-policy-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-card border-b border-border/30 px-5 py-4 flex items-center justify-between z-10">
-              <h2 className="font-bold text-base sm:text-lg">Политика использования cookie</h2>
+            <div className="px-sheet-head">
+              <h2 id="cookie-policy-title" className="px-h3">Политика использования cookie</h2>
               <button
+                type="button"
                 onClick={() => setShowDetails(false)}
-                className="w-8 h-8 rounded-full bg-card-hover flex items-center justify-center hover:bg-card-active transition-colors"
+                className="px-icon-btn"
+                aria-label="Закрыть"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            <div className="px-5 py-4 space-y-5 text-sm text-muted-light leading-relaxed">
+            <div className="px-sheet-body">
               <section>
-                <h3 className="text-foreground font-semibold mb-2">Какие данные мы обрабатываем</h3>
-                <p>
+                <h3 className="px-sheet-h">Какие данные мы обрабатываем</h3>
+                <p className="px-body">
                   Atlas Secure использует исключительно функциональные cookie-файлы, необходимые
                   для корректной работы сервиса. Мы не собираем и не обрабатываем данные в рекламных
                   или маркетинговых целях.
@@ -88,68 +101,35 @@ export default function CookieConsent() {
               </section>
 
               <section>
-                <h3 className="text-foreground font-semibold mb-2">Типы используемых cookie</h3>
-                <div className="space-y-3">
-                  <div className="bg-background rounded-xl p-3.5">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-foreground font-medium text-sm">Сессионный cookie</span>
-                      <span className="text-[10px] bg-primary-light text-primary px-2 py-0.5 rounded-full font-medium">Обязательный</span>
+                <h3 className="px-sheet-h">Типы используемых cookie</h3>
+                <div className="flex flex-col gap-3">
+                  {COOKIE_TYPES.map((c) => (
+                    <div key={c.name} className="px-card-2 p-4">
+                      <div className="flex items-center justify-between gap-3 mb-1.5">
+                        <span className="text-[14px] font-medium text-[color:var(--px-text)]">{c.name}</span>
+                        <span className="px-tag">{c.tag}</span>
+                      </div>
+                      <p className="px-caption">{c.text}</p>
                     </div>
-                    <p className="text-xs text-muted leading-relaxed">
-                      Идентифицирует вашу авторизованную сессию. Без него вход в личный кабинет невозможен.
-                      Хранится 3 часа и автоматически удаляется. Передаётся только по защищённому HTTPS-соединению.
-                    </p>
-                  </div>
-
-                  <div className="bg-background rounded-xl p-3.5">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-foreground font-medium text-sm">Cookie верификации</span>
-                      <span className="text-[10px] bg-primary-light text-primary px-2 py-0.5 rounded-full font-medium">Обязательный</span>
-                    </div>
-                    <p className="text-xs text-muted leading-relaxed">
-                      Временный cookie для процесса подтверждения email. Хранится 10 минут и удаляется
-                      сразу после завершения верификации.
-                    </p>
-                  </div>
-
-                  <div className="bg-background rounded-xl p-3.5">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-foreground font-medium text-sm">Согласие на cookie</span>
-                      <span className="text-[10px] bg-warning-light text-warning px-2 py-0.5 rounded-full font-medium">Локальное</span>
-                    </div>
-                    <p className="text-xs text-muted leading-relaxed">
-                      Сохраняется в localStorage вашего браузера для запоминания вашего выбора.
-                      Не передаётся на сервер.
-                    </p>
-                  </div>
+                  ))}
                 </div>
               </section>
 
               <section>
-                <h3 className="text-foreground font-semibold mb-2">Чего мы НЕ делаем</h3>
-                <ul className="space-y-1.5 text-xs text-muted">
-                  <li className="flex items-start gap-2">
-                    <span className="text-danger mt-0.5 shrink-0">&#x2717;</span>
-                    Не используем рекламные или аналитические cookie
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-danger mt-0.5 shrink-0">&#x2717;</span>
-                    Не отслеживаем поведение пользователей на сайте
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-danger mt-0.5 shrink-0">&#x2717;</span>
-                    Не передаём данные третьим лицам и рекламным сетям
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-danger mt-0.5 shrink-0">&#x2717;</span>
-                    Не используем пиксели отслеживания и фингерпринтинг
-                  </li>
+                <h3 className="px-sheet-h">Чего мы не делаем</h3>
+                <ul className="flex flex-col gap-2">
+                  {NEVER.map((t) => (
+                    <li key={t} className="flex items-start gap-2.5 px-caption">
+                      <NoMark />
+                      {t}
+                    </li>
+                  ))}
                 </ul>
               </section>
 
               <section>
-                <h3 className="text-foreground font-semibold mb-2">Правовое основание</h3>
-                <p className="text-xs text-muted leading-relaxed">
+                <h3 className="px-sheet-h">Правовое основание</h3>
+                <p className="px-caption">
                   Обработка данных осуществляется на основании законного интереса оператора в обеспечении
                   функционирования сервиса (статья 6(1)(f) GDPR). Используемые cookie являются строго
                   необходимыми для предоставления запрошенной вами услуги и не требуют отдельного
@@ -159,8 +139,8 @@ export default function CookieConsent() {
               </section>
 
               <section>
-                <h3 className="text-foreground font-semibold mb-2">Управление cookie</h3>
-                <p className="text-xs text-muted leading-relaxed">
+                <h3 className="px-sheet-h">Управление cookie</h3>
+                <p className="px-caption">
                   Вы можете в любой момент удалить cookie через настройки вашего браузера. Обратите
                   внимание, что удаление сессионного cookie приведёт к необходимости повторной
                   авторизации в сервисе.
@@ -168,10 +148,11 @@ export default function CookieConsent() {
               </section>
             </div>
 
-            <div className="sticky bottom-0 bg-card border-t border-border/30 px-5 py-4">
+            <div className="px-sheet-foot">
               <button
+                type="button"
                 onClick={() => { handleAccept(); setShowDetails(false); }}
-                className="w-full h-11 sm:h-12 rounded-xl bg-foreground text-background font-medium text-sm sm:text-base hover:bg-foreground/90 transition-all btn-press"
+                className="px-btn px-btn-md px-btn-primary px-btn-block"
               >
                 Принять и закрыть
               </button>
@@ -180,5 +161,44 @@ export default function CookieConsent() {
         </div>
       )}
     </>
+  );
+}
+
+const COOKIE_TYPES = [
+  {
+    name: "Сессионный cookie",
+    tag: "Обязательный",
+    text: "Идентифицирует вашу авторизованную сессию. Без него вход в личный кабинет невозможен. Хранится 3 часа и автоматически удаляется. Передаётся только по защищённому HTTPS-соединению.",
+  },
+  {
+    name: "Cookie верификации",
+    tag: "Обязательный",
+    text: "Временный cookie для процесса подтверждения email. Хранится 10 минут и удаляется сразу после завершения верификации.",
+  },
+  {
+    name: "Согласие на cookie",
+    tag: "Локальное",
+    text: "Сохраняется в localStorage вашего браузера для запоминания вашего выбора. Не передаётся на сервер.",
+  },
+];
+
+const NEVER = [
+  "Не используем рекламные или аналитические cookie",
+  "Не отслеживаем поведение пользователей на сайте",
+  "Не передаём данные третьим лицам и рекламным сетям",
+  "Не используем пиксели отслеживания и фингерпринтинг",
+];
+
+/** Собственный глиф отрицания — вместо типографского знака ✗. */
+function NoMark() {
+  return (
+    <svg
+      width="13" height="13" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"
+      className="mt-[3px] shrink-0 opacity-45"
+      aria-hidden
+    >
+      <path d="M6 6 18 18M18 6 6 18" />
+    </svg>
   );
 }

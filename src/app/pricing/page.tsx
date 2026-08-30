@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import SiteHeader from "@/components/landing/SiteHeader";
-import PageHero from "@/components/landing/PageHero";
-import PeriodSelector from "@/components/landing/PeriodSelector";
-import PlanCard from "@/components/landing/PlanCard";
-import SectionHeading from "@/components/landing/SectionHeading";
-import Faq, { type FaqItem } from "@/components/landing/Faq";
-import SiteOutro from "@/components/landing/SiteOutro";
-import Icon from "@/components/landing/Icon";
-import { useRevealFallback } from "@/components/landing/motion";
+import SiteHeader from "@/components/pixel/SiteHeader";
+import PageHero from "@/components/pixel/PageHero";
+import PeriodSelector from "@/components/pixel/PeriodSelector";
+import PlanCard from "@/components/pixel/PlanCard";
+import SectionHeading from "@/components/pixel/SectionHeading";
+import Faq, { type FaqItem } from "@/components/pixel/Faq";
+import SiteOutro from "@/components/pixel/SiteOutro";
+import Icon from "@/components/pixel/Icon";
+import { useReveal } from "@/components/pixel/motion";
 import { PERIODS, PLAN_CONTENT, type Period } from "@/lib/plans";
 
 /**
@@ -33,11 +33,12 @@ import { PERIODS, PLAN_CONTENT, type Period } from "@/lib/plans";
  */
 export default function PricingPage() {
   const [period, setPeriod] = useState<Period>(12);
-  useRevealFallback();
+  useReveal();
 
   return (
-    <div className="ls-page">
-      <SiteHeader primaryHref="/auth" />
+    <div className="px-page">
+      <div className="px-grid-bg" aria-hidden />
+      <SiteHeader />
 
       <main>
         <PageHero
@@ -47,15 +48,15 @@ export default function PricingPage() {
         />
 
         {/* Тарифы */}
-        <section className="ls-section ls-section-after-hero" aria-labelledby="plans-title">
-          <div className="ls-shell">
+        <section className="px-section px-section-after-hero" aria-labelledby="plans-title">
+          <div className="px-shell">
             <h2 id="plans-title" className="sr-only">Тарифные планы</h2>
 
-            <div className="ls-reveal mb-10 sm:mb-12">
+            <div className="px-reveal mb-10 sm:mb-12">
               <PeriodSelector periods={PERIODS} value={period} onChange={setPeriod} />
             </div>
 
-            <div className="ls-stagger grid md:grid-cols-2 gap-4 lg:gap-5">
+            <div className="px-stagger grid md:grid-cols-2 gap-4">
               <PlanCard plan="basic" period={period} />
               <PlanCard plan="plus" period={period} featured />
             </div>
@@ -64,14 +65,14 @@ export default function PricingPage() {
 
         <ComparisonSection />
 
-        <section className="ls-section" aria-labelledby="faq-title">
-          <div className="ls-shell max-w-[860px]">
+        <section className="px-section" aria-labelledby="faq-title">
+          <div className="px-shell max-w-[860px]">
             <SectionHeading
               eyebrow="Вопросы"
               title={["Что обычно", "спрашивают"]}
               titleId="faq-title"
             />
-            <div className="ls-reveal">
+            <div className="px-reveal">
               <Faq items={FAQ} />
             </div>
           </div>
@@ -100,30 +101,30 @@ const COMPARE_ROWS: Array<{ label: string; basic: boolean }> = [
 
 function ComparisonSection() {
   return (
-    <section className="ls-section" aria-labelledby="compare-title">
-      <div className="ls-shell">
+    <section className="px-section" aria-labelledby="compare-title">
+      <div className="px-shell">
         <SectionHeading
           eyebrow="Сравнение"
           title={["Что входит", "в каждый тариф"]}
           titleId="compare-title"
         />
 
-        <div className="ls-card ls-reveal overflow-hidden">
-          <table className="ls-table">
+        <div className="px-card px-reveal overflow-hidden">
+          <table className="px-table">
             <caption className="sr-only">Состав тарифов Basic и Plus</caption>
             <thead>
               <tr>
-                <th scope="col" className="ls-table-lead">Возможность</th>
+                <th scope="col" className="px-table-lead">Возможность</th>
                 <th scope="col">Basic</th>
-                <th scope="col" className="ls-table-featured">Plus</th>
+                <th scope="col" className="px-table-featured">Plus</th>
               </tr>
             </thead>
             <tbody>
               {COMPARE_ROWS.map((row) => (
                 <tr key={row.label}>
-                  <th scope="row" className="ls-table-lead">{row.label}</th>
+                  <th scope="row" className="px-table-lead">{row.label}</th>
                   <td><Mark on={row.basic} /></td>
-                  <td className="ls-table-featured"><Mark on /></td>
+                  <td className="px-table-featured"><Mark on /></td>
                 </tr>
               ))}
             </tbody>
@@ -138,12 +139,12 @@ function ComparisonSection() {
 function Mark({ on }: { on: boolean }) {
   return on ? (
     <>
-      <Icon name="check" size={18} className="ls-ink-2 mx-auto" />
+      <Icon name="check" size={18} className="px-accent mx-auto" />
       <span className="sr-only">есть</span>
     </>
   ) : (
     <>
-      <span aria-hidden className="ls-ink-4">—</span>
+      <span aria-hidden className="px-text-4">—</span>
       <span className="sr-only">нет</span>
     </>
   );
