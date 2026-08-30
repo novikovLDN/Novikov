@@ -58,6 +58,40 @@ export function tagForPlan(plan: string | null | undefined): string | null {
   return PLAN_TAG[plan.toLowerCase()] ?? null;
 }
 
+/**
+ * Synthetic-Telegram-ID namespace.
+ *
+ * Remnawave 3.x exposes `GET /api/users/by-telegram-id/{tgId}` — a
+ * lookup that reliably returns exactly ONE record when the tgId is
+ * unique per user. We piggy-back on it: at CREATE time we set
+ * `telegramId = 9_000_000_000 + public_id_num` on every panel user
+ * the site provisions, so no matter what happens to the panel's
+ * `uuid` (integer PK renamed, migration, …) we can always look our
+ * user back up by that synthetic id and get the freshest handles.
+ *
+ * The offset — 9 billion — lives above the entire real Telegram
+ * user-id range (~2.1B for legacy int32, well below 9e9 even for
+ * modern int64 ids), so a synthetic id will never collide with a
+ * real Telegram user's id that a person separately linked. If the
+ * real Telegram-bot integration later assigns a genuine tgId to
+ * the same panel user, it'll overwrite ours — that's the correct
+ * outcome: the real link wins.
+ */
+export const PANEL_SYNTHETIC_TG_OFFSET = 9_000_000_000;
+
+/**
+ * Derive the synthetic tgId from our public_id ("ST00000123" → 9_000_000_123).
+ * Returns null if the input isn't a well-formed ST-prefixed id.
+ */
+export function syntheticTelegramId(publicId: string | null | undefined): number | null {
+  if (!publicId) return null;
+  const m = /^ST(\d+)$/.exec(publicId);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return PANEL_SYNTHETIC_TG_OFFSET + n;
+}
+
 export interface RemnawaveUser {
   /**
    * Legacy alias — the "handle" we store in `users.remnawave_user_uuid`
@@ -259,6 +293,32 @@ export async function getUserByEmail(email: string): Promise<RemnawaveUser | nul
   return null;
 }
 
+/**
+ * Look up a user by telegramId — used as an additional fallback in
+ * syncSubscriptionToPanel when uuid lookups fail.
+ *
+ * The panel endpoint is `GET /api/users/by-telegram-id/{tgId}` and
+ * documented as returning "an array of users OR 404" — because a
+ * real Telegram user can theoretically link multiple panel accounts.
+ * For our synthetic tgIds (namespace 9_000_000_000+) that ambiguity
+ * should never happen — one panel account per site user — so we
+ * pick the first record and log a warning if more than one comes
+ * back.
+ */
+export async function getUserByTelegramId(telegramId: number): Promise<RemnawaveUser | null> {
+  const res = await rwFetch(`/api/users/by-telegram-id/${telegramId}`);
+  if (!res?.ok) return null;
+  const data = await res.json().catch(() => null);
+  const list = extractUserList(data);
+  if (list.length === 0) return null;
+  if (list.length > 1) {
+    console.warn(
+      `[REMNAWAVE] getUserByTelegramId(${telegramId}) returned ${list.length} records — using the first`
+    );
+  }
+  return list[0];
+}
+
 /** Return ALL panel users with matching email — STRICT exact match. */
 export async function getAllUsersByEmail(email: string): Promise<RemnawaveUser[]> {
   const target = email.toLowerCase();
@@ -323,6 +383,11 @@ export async function setUserExpire(
      *  the panel's `uuid` field. When we know both, we try both as
      *  body identifiers so PATCH lands whatever shape zod expects. */
     uuidString?: string | null;
+    /** Backfill the synthetic telegramId on the panel record. Used
+     *  when we sync an existing legacy user who was created before
+     *  the site started assigning synthetic tgIds — one PATCH heals
+     *  the record so all future syncs can use the tgId lookup path. */
+    telegramId?: number | null;
   }
 ): Promise<RemnawaveUser | null> {
   const safeExpireAt = clampExpireAt(expireAtIso);
@@ -339,6 +404,7 @@ export async function setUserExpire(
     else if (opts.plan === null) extra.tag = null;
   }
   if (opts && "description" in opts) extra.description = opts.description;
+  if (opts && "telegramId" in opts) extra.telegramId = opts.telegramId;
 
   // Try each documented + observed shape in sequence. Every attempt
   // that ISN'T 200 gets logged verbatim so ops can see exactly what
@@ -634,10 +700,16 @@ export async function createUserWithExpire(
   }
 
   const tag = tagForPlan(plan);
+  // Every panel user we create gets a synthetic telegramId in the
+  // 9-billion namespace derived from public_id. This gives us a
+  // second identifier we can look the user up by later — useful
+  // when the panel's `uuid` field drifts (v3 migrations, renamings)
+  // and body-based PATCH starts rejecting our cached handle.
+  const syntheticTgId = syntheticTelegramId(panelId ?? username);
   const body: Record<string, unknown> = {
     username,
     email,
-    telegramId: null,
+    telegramId: syntheticTgId,
     expireAt: safeExpireAt,
     status: "ACTIVE",
     trafficLimitBytes: 0,

@@ -27,6 +27,7 @@ import {
   isOurPanelUser,
   getUser,
   getUserByUsername,
+  getUserByTelegramId,
   createUserWithExpire,
   setUserExpire,
   encryptHappLink,
@@ -35,6 +36,8 @@ import {
   activateUser,
   disableUser,
   revokeUserSubscription,
+  syntheticTelegramId,
+  PANEL_SYNTHETIC_TG_OFFSET,
 } from "../remnawave";
 
 // ─── fetch mock helpers ─────────────────────────────────────────
@@ -418,6 +421,82 @@ describe("createUserWithExpire — plan tag", () => {
     expect("tag" in body).toBe(false);
     // status:ACTIVE is unconditional — new panel users must be active
     expect(body.status).toBe("ACTIVE");
+  });
+});
+
+// ─── syntheticTelegramId + tgId lookup ──────────────────────────
+
+describe("syntheticTelegramId (namespace 9_000_000_000+)", () => {
+  it("maps ST00000000 → 9_000_000_000 (offset floor)", () => {
+    expect(syntheticTelegramId("ST00000000")).toBe(PANEL_SYNTHETIC_TG_OFFSET);
+  });
+  it("maps ST00000123 → 9_000_000_123", () => {
+    expect(syntheticTelegramId("ST00000123")).toBe(9_000_000_123);
+  });
+  it("handles the maximum realistic 8-digit tail", () => {
+    expect(syntheticTelegramId("ST99999999")).toBe(9_099_999_999);
+  });
+  it("returns null on missing / malformed publicId", () => {
+    expect(syntheticTelegramId(null)).toBeNull();
+    expect(syntheticTelegramId(undefined)).toBeNull();
+    expect(syntheticTelegramId("")).toBeNull();
+    expect(syntheticTelegramId("panelhex")).toBeNull();
+    expect(syntheticTelegramId("ST-abc")).toBeNull();
+  });
+  it("stays well above the entire real Telegram user-id range", () => {
+    // Real Telegram ids as of 2026 fit in int64 but empirically top
+    // out around ~8B; our floor at 9B guarantees no collision.
+    expect(PANEL_SYNTHETIC_TG_OFFSET).toBeGreaterThan(8_000_000_000);
+  });
+});
+
+describe("getUserByTelegramId (GET /api/users/by-telegram-id/{tgId})", () => {
+  it("hits the panel endpoint with the tgId and returns the parsed user", async () => {
+    mockOk({ response: [{ id: 42, username: "ST00000042", email: "u@x", shortUuid: "s", subscriptionUrl: "sub", expireAt: "", telegramId: 9_000_000_042 }] });
+    const rw = await getUserByTelegramId(9_000_000_042);
+    expect(rw!.uuid).toBe("42");
+    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/by-telegram-id/9000000042");
+  });
+
+  it("returns null on 404 / no records", async () => {
+    mockStatus(404);
+    expect(await getUserByTelegramId(9_000_000_999)).toBeNull();
+  });
+
+  it("returns the first when the endpoint yields multiple (log-warns but proceeds)", async () => {
+    mockOk({
+      response: [
+        { id: 10, username: "ST00000010", email: null, shortUuid: "s10", subscriptionUrl: "sub10", expireAt: "" },
+        { id: 11, username: "ST00000011", email: null, shortUuid: "s11", subscriptionUrl: "sub11", expireAt: "" },
+      ],
+    });
+    const rw = await getUserByTelegramId(9_000_000_010);
+    expect(rw!.uuid).toBe("10");
+  });
+});
+
+// ─── createUserWithExpire: synthetic tgId on CREATE ─────────────
+
+describe("createUserWithExpire — synthetic tgId", () => {
+  it("sends the derived synthetic telegramId when publicId is ST-prefixed", async () => {
+    mockStatus(404); mockStatus(404); mockStatus(404); mockStatus(404);
+    mockOk({ response: { id: 300, username: "ST00000300", email: "u@x", shortUuid: "s", subscriptionUrl: "sub", telegramId: 9_000_000_300 } });
+
+    await createUserWithExpire("u@x", new Date(Date.now() + 86400000).toISOString(), "test", "ST00000300", "basic");
+    const post = calls.find((c) => c.method === "POST" && c.url.endsWith("/api/users"));
+    expect(post).toBeDefined();
+    const body = post!.body as Record<string, unknown>;
+    expect(body.telegramId).toBe(9_000_000_300);
+  });
+
+  it("leaves telegramId null when the panelId is a legacy hex form (no ST prefix)", async () => {
+    mockStatus(404); mockStatus(404); mockStatus(404); mockStatus(404);
+    mockOk({ response: { id: 301, username: "legacyhex", email: "u@x", shortUuid: "s", subscriptionUrl: "sub" } });
+
+    await createUserWithExpire("u@x", new Date(Date.now() + 86400000).toISOString(), "test", "legacyhex", "basic");
+    const post = calls.find((c) => c.method === "POST" && c.url.endsWith("/api/users"));
+    const body = post!.body as Record<string, unknown>;
+    expect(body.telegramId).toBeNull();
   });
 });
 
