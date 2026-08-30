@@ -121,7 +121,7 @@ export async function sendTrialActivatedEmail(email: string, dashboardUrl: strin
     email,
     "Пробный период активирован",
     wrapHtml(
-      "Пробный период на 24 часа активирован",
+      "Пробный период на 3 дня активирован",
       `<p>Ваш доступ к Atlas Secure открыт. В личном кабинете отсканируйте QR-код или нажмите кнопку «Открыть в Happ» / «Открыть в V2RayTun».</p>
        <p style="margin-top:16px"><a href="${dashboardUrl}" style="display:inline-block;background:#111;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600">Открыть личный кабинет</a></p>
        <p style="margin-top:16px;color:#666">Если кнопки не работают — скопируйте ссылку подписки на странице и добавьте её в приложении вручную.</p>`

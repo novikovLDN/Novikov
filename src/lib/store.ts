@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 import { pool } from "./db";
 import { generateXrayUuid, buildConnectionUri, xrayRemoveUser, generateSubToken, generateSubId, buildSubscriptionUrl } from "./xray";
+import { TRIAL_DURATION_MS } from "./remnawave";
 
 // Hard ceiling on subscription_end mutations. Anything beyond ~13 months
 // from now is a caller-side bug (10-year "lifetime" datapoints from the
@@ -153,8 +154,12 @@ export async function getOrCreateUser(email: string, referredByCode?: string, ip
 
   // Create new user
   const now = new Date();
-  const trialHours = 24;
-  const trialEnd = new Date(now.getTime() + trialHours * 60 * 60 * 1000);
+  // Trial duration comes from remnawave.ts single source of truth so
+  // local subscription_end and the panel-side expireAt agree from the
+  // very first row insert. Previously this was hardcoded 24h while
+  // issueTrial provisioned 3d — a race where local briefly disagreed
+  // with the panel until issueTrial finished writing.
+  const trialEnd = new Date(now.getTime() + TRIAL_DURATION_MS);
   const xrayUuid = generateXrayUuid();
   const referralCode = generateReferralCode();
   const telegramLinkToken = uuidv4().replace(/-/g, "").slice(0, 16);
