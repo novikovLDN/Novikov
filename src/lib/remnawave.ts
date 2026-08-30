@@ -388,6 +388,11 @@ export async function setUserExpire(
      *  the site started assigning synthetic tgIds — one PATCH heals
      *  the record so all future syncs can use the tgId lookup path. */
     telegramId?: number | null;
+    /** The panel username — required as a fallback identifier when
+     *  the primary handle isn't numeric (panel v3.3.0 rejects
+     *  `{id: <string>}` outright). Almost always our STxxxxxxxx
+     *  public_id. */
+    username?: string;
   }
 ): Promise<RemnawaveUser | null> {
   const safeExpireAt = clampExpireAt(expireAtIso);
@@ -416,26 +421,44 @@ export async function setUserExpire(
   // the panel renamed the column but kept the alias. Older 2.x uses
   // PATCH /api/users/{uuid}. Beyond that we try PUT variants — some
   // 3.x forks accept PUT where PATCH is blocked at the proxy layer.
-  const uuidStr = opts?.uuidString ?? null;
+  // Panel v3.3.0 contract confirmed from real error responses:
+  //   PATCH /api/users
+  //     body must include `id` (NUMBER) OR `username` (STRING).
+  //     `uuid` in the body is ignored — validator returns "At least
+  //     one of username, id must be provided". `id` as a STRING is
+  //     also rejected — "expected number, received string". Legacy
+  //     URL-based PATCH /api/users/{id} returns 404, and PUT is not
+  //     supported at all. Two variants suffice; anything else is
+  //     dead code.
+  const numericId = /^\d+$/.test(uuid) ? parseInt(uuid, 10) : null;
   const variants: Array<{ label: string; method: string; path: string; body: Record<string, unknown> }> = [];
 
-  // If we know the panel's real UUID string (v3 split identity),
-  // prefer it — that's what body-based PATCH validates against.
-  if (uuidStr) {
-    variants.push({ label: "v3 PATCH body{uuid: UUID-string}", method: "PATCH", path: "/api/users", body: { uuid: uuidStr, ...extra } });
+  if (numericId !== null && Number.isSafeInteger(numericId)) {
+    variants.push({
+      label: "PATCH body{id: <number>}",
+      method: "PATCH",
+      path: "/api/users",
+      body: { id: numericId, ...extra },
+    });
   }
-  variants.push(
-    { label: "v3 PATCH body{uuid: handle}", method: "PATCH", path: "/api/users", body: { uuid, ...extra } },
-    { label: "v3 PATCH body{id: handle}",   method: "PATCH", path: "/api/users", body: { id: uuid, ...extra } },
-    { label: "legacy PATCH url/{id}", method: "PATCH", path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
-    { label: "PUT body{uuid: handle}", method: "PUT", path: "/api/users", body: { uuid, ...extra } },
-    { label: "PUT url/{id}",           method: "PUT", path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
-  );
-  if (uuidStr) {
-    variants.push(
-      { label: "PUT body{uuid: UUID-string}", method: "PUT", path: "/api/users", body: { uuid: uuidStr, ...extra } },
-      { label: "PUT url/{uuid: UUID-string}", method: "PUT", path: `/api/users/${encodeURIComponent(uuidStr)}`, body: { ...extra } },
-    );
+  if (opts?.username) {
+    variants.push({
+      label: `PATCH body{username: ${opts.username}}`,
+      method: "PATCH",
+      path: "/api/users",
+      body: { username: opts.username, ...extra },
+    });
+  }
+  // Very last resort — if we somehow have no numeric id and no
+  // username, try the raw handle as-is. Almost certainly won't
+  // work, but leaves a diagnostic trace instead of returning early.
+  if (variants.length === 0) {
+    variants.push({
+      label: "PATCH body{id: <raw handle string>}",
+      method: "PATCH",
+      path: "/api/users",
+      body: { id: uuid, ...extra },
+    });
   }
 
   let lastStatus = 0;
@@ -695,6 +718,7 @@ export async function createUserWithExpire(
       status: "ACTIVE",
       plan,
       uuidString: existing.uuidString ?? undefined,
+      username: existing.username || username,
     });
     return updated || existing;
   }

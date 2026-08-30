@@ -299,62 +299,50 @@ describe("createUserWithExpire (v3 dropped `internalSquads`)", () => {
 
 // ─── setUserExpire: v3 → v2 fallback ────────────────────────────
 
-describe("setUserExpire (v3 PATCH /api/users with {uuid, expireAt}, PUT fallbacks)", () => {
-  it("sends the v3 `{uuid, expireAt}` body first (matches CreateUserRequestDto contract) and succeeds on 200", async () => {
+describe("setUserExpire (v3.3.0 real contract: PATCH /api/users with {id: number} or {username})", () => {
+  it("sends `{id: <NUMBER>}` when the handle parses as a positive integer", async () => {
     const expire = new Date(Date.now() + 86400000).toISOString();
-    mockOk({ response: { id: 42, username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
+    mockOk({ response: { id: 42, username: "ST00000042", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
 
     const rw = await setUserExpire("42", expire);
     expect(rw!.uuid).toBe("42");
     const patch = calls[0];
     expect(patch.method).toBe("PATCH");
     expect(patch.url).toBe("https://rmnw.test.example/api/users");
-    expect(patch.body).toMatchObject({ uuid: "42" });
-    // expireAt clamp-tolerant assertion
-    expect(typeof (patch.body as Record<string, string>).expireAt).toBe("string");
+    // Critical: id MUST be a number, not a string — panel rejects strings.
+    expect((patch.body as Record<string, unknown>).id).toBe(42);
+    expect(typeof (patch.body as Record<string, unknown>).id).toBe("number");
+    expect((patch.body as Record<string, unknown>).uuid).toBeUndefined();
   });
 
-  it("falls back to `{id, expireAt}` body when `{uuid,…}` returns 400 (field-name variance across forks)", async () => {
+  it("falls back to `{username}` body when `{id}` PATCH returns 400", async () => {
     const expire = new Date(Date.now() + 86400000).toISOString();
-    mockStatus(400, { message: "uuid: field not allowed" }); // v3 fork rejects uuid
-    mockOk({ response: { id: 55, username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
+    mockStatus(400, { message: "Validation failed", errors: [{ path: ["id"], message: "does not exist" }] });
+    mockOk({ response: { id: 55, username: "ST00000055", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
 
-    const rw = await setUserExpire("55", expire);
+    const rw = await setUserExpire("55", expire, { username: "ST00000055" });
     expect(rw!.uuid).toBe("55");
-    expect(calls[0].body).toMatchObject({ uuid: "55" });
-    expect(calls[1].body).toMatchObject({ id: "55" });
+    expect((calls[0].body as Record<string, unknown>).id).toBe(55);
+    expect((calls[1].body as Record<string, unknown>).username).toBe("ST00000055");
     expect(calls[1].url).toBe("https://rmnw.test.example/api/users");
   });
 
-  it("falls back to legacy `PATCH /api/users/{id}` when both body-based PATCH attempts 404", async () => {
+  it("uses `{username}` alone when the handle is not numeric (no username fallback needed)", async () => {
     const expire = new Date(Date.now() + 86400000).toISOString();
-    mockStatus(404); // PATCH /api/users {uuid,...}
-    mockStatus(404); // PATCH /api/users {id,...}
-    mockOk({ response: { uuid: "abc", username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
+    mockOk({ response: { id: 88, username: "ST00000088", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
 
-    const rw = await setUserExpire("abc", expire);
-    expect(rw!.uuid).toBe("abc");
-    expect(calls[2].method).toBe("PATCH");
-    expect(calls[2].url).toBe("https://rmnw.test.example/api/users/abc");
-  });
-
-  it("falls back to PUT variants when every PATCH shape 404s (some 3.x forks block PATCH at proxy layer)", async () => {
-    const expire = new Date(Date.now() + 86400000).toISOString();
-    mockStatus(404); // PATCH /api/users {uuid}
-    mockStatus(404); // PATCH /api/users {id}
-    mockStatus(404); // PATCH /api/users/{id}
-    mockOk({ response: { id: 99, username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
-
-    const rw = await setUserExpire("99", expire);
-    expect(rw!.uuid).toBe("99");
-    expect(calls[3].method).toBe("PUT");
-    expect(calls[3].url).toBe("https://rmnw.test.example/api/users");
-    expect(calls[3].body).toMatchObject({ uuid: "99" });
+    // Handle is non-numeric string like a UUID → we skip `{id}` entirely.
+    const rw = await setUserExpire("cc824ff7-2996-42db-b0c3-7f97162bda46", expire, { username: "ST00000088" });
+    expect(rw!.uuid).toBe("88");
+    expect(calls).toHaveLength(1);
+    expect((calls[0].body as Record<string, unknown>).username).toBe("ST00000088");
+    // id shouldn't be sent at all for non-numeric handles
+    expect((calls[0].body as Record<string, unknown>).id).toBeUndefined();
   });
 
   it("returns null and does NOT retry on real errors like 401 unauthorized", async () => {
     mockStatus(401, { message: "unauthorized" });
-    const rw = await setUserExpire("x", new Date(Date.now() + 86400000).toISOString());
+    const rw = await setUserExpire("42", new Date(Date.now() + 86400000).toISOString());
     expect(rw).toBeNull();
     expect(calls).toHaveLength(1);
   });
@@ -366,7 +354,7 @@ describe("setUserExpire (v3 PATCH /api/users with {uuid, expireAt}, PUT fallback
     const rw = await setUserExpire("99", expire, { status: "ACTIVE", plan: "plus" });
     expect(rw!.uuid).toBe("99");
     const body = calls[0].body as Record<string, unknown>;
-    expect(body.uuid).toBe("99");
+    expect(body.id).toBe(99);
     expect(body.status).toBe("ACTIVE");
     expect(body.tag).toBe("PLUS");
   });
