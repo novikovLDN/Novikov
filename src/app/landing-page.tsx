@@ -1,77 +1,80 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import HeroV4 from "@/components/HeroV4";
-import DeviceGallerySection from "@/components/DeviceGallerySection";
-import ThreePillarsSection from "@/components/ThreePillarsSection";
-import HowItWorksSection from "@/components/HowItWorksSection";
-import PricingPreviewSection from "@/components/PricingPreviewSection";
-import ServerLocationsSection from "@/components/ServerLocationsSection";
-import FinalCtaSection from "@/components/FinalCtaSection";
-import LandingFooter from "@/components/LandingFooter";
+import SiteHeader from "@/components/landing/SiteHeader";
+import { useRevealFallback } from "@/components/landing/motion";
+import HeroSection from "@/components/landing/HeroSection";
+import DevicesSection from "@/components/landing/DevicesSection";
+import BenefitsSection from "@/components/landing/BenefitsSection";
+import HowItWorksSection from "@/components/landing/HowItWorksSection";
+import PricingSection from "@/components/landing/PricingSection";
+import LocationsSection from "@/components/landing/LocationsSection";
+import FinalCtaSection from "@/components/landing/FinalCtaSection";
+import SiteFooter from "@/components/landing/SiteFooter";
 
 /**
- * / — public landing page (v4 redesign, provod.ai-inspired).
+ * / — публичный лендинг.
  *
- * Every section is a self-contained component under src/components/,
- * so tweaks to one don't require reading the whole page. Dark cards
- * float on the light body-bg, giving the visual rhythm of the
- * reference: dark card → light open section → dark card → light open
- * → orange CTA → dark footer.
+ * Дизайн-концепция и обоснование каждого решения: research/concept.md.
+ * Формула: «приборная панель, а не рекламный плакат».
  *
- * Legacy `pl-*` marketing sections (isometric 3-card, feature 1/2/3,
- * security, about, manifesto) are removed — they used a different
- * design language and duplicated content the new sections cover
- * cleanly. Nothing is missing that a customer needs: pricing has its
- * own /pricing page, security lives at /security, about at /about.
+ * Ритм поверхностей — светлое тело в тёмных скобках:
+ *
+ *   тёмный герой
+ *     ↓ светлое тело: устройства → выгоды → шаги → тарифы → локации
+ *   тёмный финал: призыв + футер на одной поверхности
+ *
+ * Каждая секция — отдельный компонент в src/components/landing/:
+ * правка одного блока не требует чтения всей страницы. Общие примитивы
+ * (Icon, SectionHeading, SiteHeader) живут там же, поэтому иконки,
+ * шапки секций и навигация существуют в единственном экземпляре.
  */
-interface LandingProps {
+interface LandingPageProps {
   referralCode?: string;
 }
 
-export default function LandingPage({ referralCode }: LandingProps) {
+export default function LandingPage({ referralCode }: LandingPageProps) {
   const [refCode, setRefCode] = useState<string | null>(referralCode ?? null);
+
+  // Каскад появления работает и там, где нет scroll-driven анимаций.
+  useRevealFallback();
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (referralCode) {
-      try { localStorage.setItem("atlas-ref", referralCode); } catch { /* ignore */ }
+      try { localStorage.setItem("atlas-ref", referralCode); } catch { /* приватный режим */ }
       setRefCode(referralCode);
       return;
     }
     try {
       const saved = localStorage.getItem("atlas-ref");
       if (saved) setRefCode(saved);
-    } catch { /* ignore */ }
+    } catch { /* приватный режим */ }
   }, [referralCode]);
 
   const primaryHref = refCode ? `/auth?ref=${encodeURIComponent(refCode)}` : "/auth";
 
   return (
-    <div className="bg-[#f5f5f0] min-h-dvh flex flex-col">
-      {/* Screen 1 — Hero (dark, rounded bottom, top flush) */}
-      <HeroV4 primaryHref={primaryHref} />
+    <div className="ls-page">
+      <SiteHeader primaryHref={primaryHref} />
 
-      {/* Screen 2 — Devices (dark rounded card) */}
-      <DeviceGallerySection />
+      <main>
+        <HeroSection primaryHref={primaryHref} />
+        <DevicesSection />
+        <BenefitsSection />
+        <HowItWorksSection />
+        <PricingSection />
+        <LocationsSection />
+      </main>
 
-      {/* Screen 3 — Three pillars (light full-bleed, ambient) */}
-      <ThreePillarsSection />
-
-      {/* Screen 4 — How it works (dark rounded card) */}
-      <HowItWorksSection />
-
-      {/* Screen 5 — Pricing preview (dark rounded card) */}
-      <PricingPreviewSection />
-
-      {/* Screen 6 — Server locations (light full-bleed) */}
-      <ServerLocationsSection />
-
-      {/* Screen 7 — Final CTA (orange rounded card) */}
-      <FinalCtaSection />
-
-      {/* Footer (dark rounded card at bottom) */}
-      <LandingFooter />
+      <div className="ls-focal ls-outro">
+        <div className="ls-aurora" aria-hidden>
+          <span />
+          <span />
+        </div>
+        <FinalCtaSection primaryHref={primaryHref} />
+        <SiteFooter />
+      </div>
     </div>
   );
 }

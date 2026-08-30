@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { CONSENT_KEY, announceConsentSettled } from "@/lib/overlay-queue";
 
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-    const accepted = localStorage.getItem("cookie_consent");
+    const accepted = localStorage.getItem(CONSENT_KEY);
     if (!accepted) {
       const timer = setTimeout(() => setVisible(true), 1000);
       return () => clearTimeout(timer);
@@ -15,8 +16,10 @@ export default function CookieConsent() {
   }, []);
 
   const handleAccept = () => {
-    localStorage.setItem("cookie_consent", "1");
+    localStorage.setItem(CONSENT_KEY, "1");
     setVisible(false);
+    // Низ экрана освободился — промпты установки могут показаться.
+    announceConsentSettled();
   };
 
   if (!visible) return null;

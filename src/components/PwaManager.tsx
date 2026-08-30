@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { whenConsentSettled } from "@/lib/overlay-queue";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -25,14 +26,18 @@ export default function PwaManager() {
     const handler = (e: Event) => {
       e.preventDefault();
       setInstallPrompt(e as BeforeInstallPromptEvent);
-      // Don't show immediately — wait a bit
-      setTimeout(() => {
-        const dismissedAt = localStorage.getItem("pwa-install-dismissed");
-        const expired = !dismissedAt || (Date.now() - Number(dismissedAt)) > 24 * 60 * 60 * 1000;
-        if (expired) {
-          setShowInstall(true);
-        }
-      }, 5000);
+      // Показываем не сразу и только после того, как посетитель
+      // разобрался с обязательным согласием на cookie: иначе две
+      // карточки рисуются в одной точке внизу экрана.
+      whenConsentSettled(() => {
+        setTimeout(() => {
+          const dismissedAt = localStorage.getItem("pwa-install-dismissed");
+          const expired = !dismissedAt || (Date.now() - Number(dismissedAt)) > 24 * 60 * 60 * 1000;
+          if (expired) {
+            setShowInstall(true);
+          }
+        }, 5000);
+      });
     };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);

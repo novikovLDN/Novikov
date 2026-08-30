@@ -1521,157 +1521,10 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .plx-stack-pill { padding: 10px 18px; border: 1px solid var(--pl-border); border-radius: 100px; font-family: var(--pl-mono); font-size: 12px; color: var(--pl-t2); letter-spacing: 0.04em; }
 .plx-stack-pill.accent { color: var(--pl-accent); border-color: rgba(94,106,210,0.25); background: rgba(94,106,210,0.05); }
 
-/* HERO V3 — fullscreen video hero (Securify-style) */
-.hero-title { font-family: 'Readex Pro', system-ui, -apple-system, sans-serif; letter-spacing: -0.04em; line-height: 0.95; }
-.hero-readex { font-family: 'Readex Pro', system-ui, -apple-system, sans-serif; }
-
 /* MTS Wide — corporate wide sans for hero / display copy. Files
  * ship under /public/fonts/; declared as @font-face at the top of
  * this file. When files are missing the stack falls back to Inter. */
 .font-mts-wide { font-family: var(--font-mts-wide); }
-
-/* ─── Landing hero v4 (provod.ai-inspired) ─────────────────────
- * Modern AI-service aesthetic: big wide-sans headline, pill CTAs,
- * scattered outlined labels connected by hand-drawn curves. */
-.hero-v4 {
-  position: relative;
-  background: #000;
-  color: #fff;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  /* Rounded bottom corners — the hero reads as a container/card,
-   * with the light body-bg peeking through underneath. Top edge stays
-   * flush with the viewport (no radius). Reference: provod.ai hero. */
-  border-bottom-left-radius: 32px;
-  border-bottom-right-radius: 32px;
-}
-@media (min-width: 640px) {
-  .hero-v4 {
-    border-bottom-left-radius: 48px;
-    border-bottom-right-radius: 48px;
-  }
-}
-.hero-v4-title {
-  font-family: var(--font-mts-wide);
-  font-weight: 700;
-  font-size: clamp(40px, 9vw, 88px);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-  color: #fff;
-}
-.hero-v4-lede {
-  font-family: var(--font-mts-wide);
-  font-weight: 400;
-  font-size: clamp(15px, 1.9vw, 20px);
-  line-height: 1.45;
-  color: rgba(255,255,255,0.55);
-  max-width: 44ch;
-}
-.hero-v4-cta-primary {
-  display: inline-flex; align-items: center; gap: 12px;
-  padding: 14px 22px; border-radius: 18px;
-  background: #F97316; /* orange like reference */
-  color: #0a0a0a; font-weight: 600; font-size: 15px;
-  font-family: var(--font-mts-wide);
-  transition: transform .15s ease, background .2s ease;
-}
-.hero-v4-cta-primary:hover { background: #FB923C; }
-.hero-v4-cta-primary:active { transform: scale(0.98); }
-.hero-v4-cta-secondary {
-  display: inline-flex; align-items: center; gap: 12px;
-  padding: 14px 22px; border-radius: 18px;
-  background: transparent; color: #fff;
-  border: 1px solid rgba(255,255,255,0.18);
-  font-weight: 500; font-size: 15px;
-  font-family: var(--font-mts-wide);
-  transition: background .2s ease, border-color .2s ease;
-}
-.hero-v4-cta-secondary:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.28); }
-/* Legacy scattered decorative pill (kept for back-compat if any
- * caller still uses it; the v5 hero doesn't). */
-.hero-v4-pill {
-  display: inline-flex; align-items: center;
-  padding: 12px 22px; border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(255,255,255,0.02);
-  color: rgba(255,255,255,0.75);
-  font-family: var(--font-mts-wide);
-  font-weight: 400; font-size: 15px;
-  backdrop-filter: blur(4px);
-}
-/* v5 status: outlined pill with a live-dot outside it. The pill
- * itself is quiet (fine hairline) so the pulsing dot carries the
- * "live" signal — matches how a status bar in a control-room UI
- * reads. */
-.hero-v4-status-pill {
-  display: inline-flex; align-items: center;
-  padding: 6px 14px; border-radius: 999px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.82);
-  font-family: var(--font-mts-wide);
-  font-weight: 500; font-size: 12.5px;
-  letter-spacing: 0.01em;
-}
-.hero-v4-status-dot {
-  display: inline-block;
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #22C55E;
-  box-shadow: 0 0 0 4px rgba(34,197,94,0.16), 0 0 8px rgba(34,197,94,0.6);
-  animation: heroDotPulse 2.4s ease-in-out infinite;
-}
-@keyframes heroDotPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.75; transform: scale(0.9); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-v4-status-dot { animation: none; }
-}
-
-/* Factbar — one grounding strip below the CTAs. Mobile 2×2,
- * desktop 4-across with hairline dividers between cells so the
- * whole thing reads as one bar, not four disconnected cards. */
-.hero-v4-factbar {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-@media (min-width: 640px) {
-  .hero-v4-factbar { grid-template-columns: repeat(4, 1fr); }
-}
-.hero-v4-fact {
-  padding: 18px 4px;
-  text-align: left;
-  border-right: 1px solid rgba(255,255,255,0.08);
-}
-.hero-v4-fact:nth-child(2n) { border-right: none; }
-@media (min-width: 640px) {
-  .hero-v4-fact { padding: 22px 8px; }
-  .hero-v4-fact:nth-child(2n) { border-right: 1px solid rgba(255,255,255,0.08); }
-  .hero-v4-fact:last-child { border-right: none; }
-}
-.hero-v4-fact-value {
-  font-family: var(--font-mts-wide);
-  font-weight: 700;
-  font-size: clamp(22px, 3.6vw, 32px);
-  line-height: 1;
-  letter-spacing: -0.01em;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-}
-.hero-v4-fact-label {
-  font-family: var(--font-mts-wide);
-  font-weight: 500;
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.42);
-  margin-top: 8px;
-}
 
 /* ═══════════════════════════════════════════════════════════════════════
    Auth shell v4 — light MTS Wide theme, wraps /auth flow
@@ -2420,4 +2273,1049 @@ html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
   background-color: var(--as-ink) !important;
   color: #fff !important;
   border-color: transparent;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LANDING 2027 — единый слой публичного лендинга
+   Концепция и обоснование: research/concept.md
+
+   Именование: .ls-* (landing surface). Слой самодостаточен — не зависит
+   от .pl-* / .plx-* / .dv2-* и не переопределяет их.
+
+   Принципы, закодированные здесь:
+     2. иерархия размером/воздухом/трекингом (два начертания MTS Wide)
+     3. шкала кратно 8, вертикальный ритм 88 → 160
+     4. три поверхности + один акцент, глубина hairline'ами
+     5. motion-контракт: одна кривая, один вектор, только transform/opacity
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Motion-контракт — принцип 5. Одни и те же значения на весь лендинг. */
+  --ls-dur-hover: 160ms;
+  --ls-dur-exit:  180ms;
+  --ls-dur-enter: 420ms;
+  --ls-dur-block: 520ms;
+  --ls-ease:      cubic-bezier(0.16, 1, 0.3, 1);
+  --ls-ease-out:  cubic-bezier(0.33, 1, 0.68, 1);
+
+  /* Вертикальный ритм секций — принцип 3 (внешнее ≥ внутреннего). */
+  --ls-section-y: 88px;
+
+  /* Горизонтальные поля страницы. Одно значение на весь лендинг, чтобы
+     левый край заголовков совпадал во всех секциях без исключения. */
+  --ls-gutter: 20px;
+  --ls-shell: 1200px;
+
+  /* Высота липкой шапки — используется и для scroll-margin якорей. */
+  --ls-header-h: 64px;
+}
+
+@media (min-width: 640px) {
+  :root { --ls-section-y: 120px; --ls-gutter: 32px; --ls-header-h: 72px; }
+}
+@media (min-width: 1024px) {
+  :root { --ls-section-y: 160px; --ls-gutter: 40px; }
+}
+
+/* ─── Каркас ───────────────────────────────────────────────────────── */
+
+.ls-page {
+  background: var(--as-ground);
+  color: var(--as-ink);
+  font-family: var(--font-mts-wide);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /* Ни один потомок не имеет права расширить документ по горизонтали:
+     это единственная надёжная страховка от бокового скролла на 320px. */
+  overflow-x: clip;
+}
+
+.ls-shell {
+  width: 100%;
+  max-width: var(--ls-shell);
+  margin-inline: auto;
+  padding-inline: var(--ls-gutter);
+}
+
+.ls-section { padding-block: var(--ls-section-y); }
+
+/* Модификатор, а не утилита Tailwind: этот файл подключается ПОСЛЕ
+   Tailwind, поэтому .ls-section переопределяет любые отступные утилиты
+   на том же элементе. Всё, что спорит с .ls-section за padding, обязано
+   жить здесь же. */
+.ls-section-flush-bottom { padding-bottom: 0; }
+
+/* Тёмная фокальная поверхность — принцип 4.
+   Глубина строится плёнкой шума + очень слабым радиальным свечением,
+   а не mesh-градиентом (клише категории, см. research/03.md §7). */
+.ls-focal {
+  position: relative;
+  background: var(--as-ink);
+  color: #fff;
+  isolation: isolate;
+  overflow: hidden;
+}
+.ls-focal::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 70%;
+  z-index: -1;
+  background: radial-gradient(
+    52% 60% at 50% 0%,
+    rgba(249, 115, 22, 0.13) 0%,
+    rgba(249, 115, 22, 0.045) 38%,
+    transparent 72%
+  );
+  pointer-events: none;
+}
+.ls-focal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.035;
+  pointer-events: none;
+  /* 120×120 tile фрактального шума — ~0.4 КБ, без сетевого запроса. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ─── Типографика ──────────────────────────────────────────────────
+   Иерархия — размером, воздухом и трекингом. Вес не участвует:
+   у MTS Wide лицензированы только Medium 500 и Bold 700. */
+
+.ls-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--as-ink-4);
+}
+@media (min-width: 640px) { .ls-eyebrow { font-size: 12px; } }
+
+.ls-display {
+  font-weight: 700;
+  font-size: clamp(34px, 6.6vw, 72px);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.ls-h3 {
+  font-weight: 700;
+  font-size: clamp(19px, 2.4vw, 26px);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+
+.ls-lede {
+  font-weight: 400;
+  font-size: clamp(15px, 1.7vw, 19px);
+  line-height: 1.5;
+  color: var(--as-ink-3);
+  max-width: 56ch;      /* мера — принцип 2 */
+  text-wrap: pretty;
+}
+
+.ls-body {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--as-ink-3);
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+@media (min-width: 640px) { .ls-body { font-size: 15px; } }
+
+.ls-num { font-variant-numeric: tabular-nums; }
+
+/* Инверсия на тёмной поверхности — один набор правил, не дубли в JSX. */
+.ls-focal .ls-eyebrow, .ls-card-dark .ls-eyebrow { color: rgba(255, 255, 255, 0.45); }
+.ls-focal .ls-lede,    .ls-card-dark .ls-lede    { color: rgba(255, 255, 255, 0.58); }
+.ls-focal .ls-body,    .ls-card-dark .ls-body    { color: rgba(255, 255, 255, 0.55); }
+
+/* ─── Асимметричная шапка секции — принцип 3 ────────────────────────
+   Заголовок слева, действие справа по нижней базовой линии. На узких
+   экранах пара разворачивается в колонку. */
+.ls-head {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 48px;
+}
+.ls-head-title { max-width: 18ch; }
+@media (min-width: 768px) {
+  .ls-head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 64px;
+  }
+  .ls-head-aside { flex-shrink: 0; padding-bottom: 4px; }
+}
+@media (min-width: 1024px) { .ls-head { margin-bottom: 80px; } }
+
+/* ─── Карточка — принцип 4: hairline вместо тени ───────────────────── */
+.ls-card {
+  background: var(--as-surface);
+  border: 1px solid var(--as-hairline);
+  border-radius: 24px;
+  transition:
+    border-color var(--ls-dur-hover) var(--ls-ease-out),
+    transform var(--ls-dur-hover) var(--ls-ease-out),
+    box-shadow var(--ls-dur-hover) var(--ls-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ls-card:hover {
+    border-color: var(--as-hairline-2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px -18px rgba(15, 15, 18, 0.35);
+  }
+}
+@media (min-width: 640px) { .ls-card { border-radius: 28px; } }
+
+/* ─── Motion: reveal при скролле ────────────────────────────────────
+   Нативный scroll-driven timeline — ноль JS, ноль библиотек.
+
+   Направление фолбэка выбрано безопасное: базовое состояние —
+   ВИДИМОЕ. Браузер без поддержки animation-timeline (в т.ч. Safari
+   старых версий) просто показывает контент, а не прячет его навсегда.
+   Ровно эта ошибка чаще всего ломает reveal-анимации в проде. */
+.ls-reveal { opacity: 1; transform: none; }
+
+@keyframes lsReveal {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .ls-reveal {
+      animation: lsReveal var(--ls-dur-block) var(--ls-ease) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 52%;
+    }
+    /* Каскад по порядку чтения — принцип 5. Сдвигается не задержкой
+       (на scroll-таймлайне её нет), а окном диапазона: каждая
+       следующая ячейка «доезжает» чуть позже. */
+    .ls-stagger > *:nth-child(1) { animation-range: entry 0% entry 46%; }
+    .ls-stagger > *:nth-child(2) { animation-range: entry 0% entry 54%; }
+    .ls-stagger > *:nth-child(3) { animation-range: entry 0% entry 62%; }
+    .ls-stagger > *:nth-child(4) { animation-range: entry 0% entry 70%; }
+    .ls-stagger > *:nth-child(5) { animation-range: entry 0% entry 78%; }
+    .ls-stagger > *:nth-child(6) { animation-range: entry 0% entry 86%; }
+  }
+}
+
+/* ─── Motion: вход первого экрана ───────────────────────────────────
+   Герой виден сразу, поэтому здесь обычный time-based каскад.
+   Тот же вектор (снизу вверх) и та же кривая, что у reveal. */
+@keyframes lsEnter {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+.ls-enter {
+  animation: lsEnter var(--ls-dur-enter) var(--ls-ease) both;
+  animation-delay: calc(var(--ls-i, 0) * 70ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-enter { animation: none; }
+}
+
+/* ─── Липкая шапка — принцип 6 ───────────────────────────────────────
+   Точка входа в конверсию присутствует на всём протяжении страницы.
+   Над героем прозрачная и светлая; ниже — стеклянная и тёмная по тексту. */
+.ls-header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 60;
+  height: var(--ls-header-h);
+  display: flex;
+  align-items: center;
+  color: #fff;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color var(--ls-dur-exit) var(--ls-ease-out),
+    border-color var(--ls-dur-exit) var(--ls-ease-out),
+    color var(--ls-dur-exit) var(--ls-ease-out);
+}
+.ls-header-solid {
+  color: var(--as-ink);
+  background: rgba(245, 245, 240, 0.82);
+  border-bottom-color: var(--as-hairline);
+  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+}
+
+.ls-navlink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 500;
+  color: currentColor;
+  opacity: 0.68;
+  transition: opacity var(--ls-dur-hover) var(--ls-ease-out);
+}
+.ls-navlink:hover { opacity: 1; }
+.ls-navlink:focus-visible { opacity: 1; outline: 2px solid currentColor; outline-offset: 4px; border-radius: 6px; }
+
+/* ─── Метрическая полоса ────────────────────────────────────────────
+   Один визуальный якорь: непрерывная линейка, а не N отдельных карточек.
+   Мобильный 2×2 → десктоп 4 в ряд с волосяными разделителями. */
+.ls-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--ls-metric-line, rgba(255, 255, 255, 0.1));
+  border-bottom: 1px solid var(--ls-metric-line, rgba(255, 255, 255, 0.1));
+}
+.ls-metric {
+  padding: 18px 4px;
+  border-right: 1px solid var(--ls-metric-line, rgba(255, 255, 255, 0.1));
+  border-top: 1px solid var(--ls-metric-line, rgba(255, 255, 255, 0.1));
+}
+.ls-metric:nth-child(-n + 2) { border-top: none; }
+.ls-metric:nth-child(2n) { border-right: none; }
+@media (min-width: 640px) {
+  .ls-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ls-metric { padding: 24px 8px; border-top: none; }
+  .ls-metric:nth-child(2n) { border-right: 1px solid var(--ls-metric-line, rgba(255, 255, 255, 0.1)); }
+  .ls-metric:last-child { border-right: none; }
+}
+.ls-metric-value {
+  font-weight: 700;
+  font-size: clamp(21px, 3.2vw, 30px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.ls-metric-label {
+  margin-top: 8px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+@media (min-width: 640px) { .ls-metric-label { font-size: 11px; } }
+
+/* Светлый вариант той же полосы. */
+.ls-metrics-light { --ls-metric-line: var(--as-hairline); }
+.ls-metrics-light .ls-metric-label { color: var(--as-ink-4); }
+
+/* ─── Живой индикатор ───────────────────────────────────────────────
+   Единственная бесконечная анимация на лендинге. Она допустима, потому
+   что несёт смысл — «сеть сейчас жива», — а не украшает. */
+.ls-dot {
+  position: relative;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--as-good);
+  flex-shrink: 0;
+}
+.ls-dot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--as-good);
+  opacity: 0;
+  animation: lsDot 2.6s var(--ls-ease-out) infinite;
+}
+@keyframes lsDot {
+  0%   { transform: scale(0.6); opacity: 0.7; }
+  70%  { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ls-dot::after { animation: none; }
+}
+
+/* ─── Герой ─────────────────────────────────────────────────────────
+   Отдельный размер дисплея: крупнее .ls-display, но с нижней границей
+   32px. Граница подобрана под 320px — на самом узком экране строка
+   «без просадок» (12 знаков широкого начертания) должна умещаться в
+   поля без переноса и без горизонтального скролла. */
+.ls-hero {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: calc(var(--ls-header-h) + 40px);
+  padding-bottom: 40px;
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+}
+@media (min-width: 640px) {
+  .ls-hero {
+    padding-top: calc(var(--ls-header-h) + 56px);
+    padding-bottom: 56px;
+    border-bottom-left-radius: 44px;
+    border-bottom-right-radius: 44px;
+  }
+}
+
+.ls-hero-title {
+  font-weight: 700;
+  font-size: clamp(32px, 8vw, 76px);
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+  color: #fff;
+}
+
+/* Строка снятия возражений под парой CTA — research/03.md §3.
+   Каждый пункт помечен галочкой. Разделители-точки убраны: при
+   переносе на узком экране они вставали в начало строки и читались
+   как маркеры списка, конфликтуя с галочкой первого пункта. */
+.ls-friction {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+}
+.ls-friction > li { display: flex; align-items: center; gap: 8px; }
+
+/* Превью личного кабинета — принцип 1: показываем продукт, а не
+   рассказываем о нём. Это живой DOM, а не скриншот: он резкий на
+   любом DPI, тянется по ширине и весит ноль байт. */
+.ls-preview {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.ls-preview-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Фокус на тёмной поверхности. Базовый .as-btn:focus-visible рисует
+   контур цветом --as-ink (почти чёрный) — на тёмном фокальном фоне он
+   невидим, то есть клавиатурная навигация по герою и меню теряется
+   полностью. Здесь контур перекрашивается в белый. */
+.ls-focal .as-btn:focus-visible,
+.ls-focal a:focus-visible,
+.ls-focal button:focus-visible,
+.ls-card-dark .as-btn:focus-visible,
+.ls-card-dark a:focus-visible,
+.ls-card-dark button:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 3px;
+}
+
+/* Неинтерактивная кнопка внутри превью: выглядит как элемент
+   интерфейса, но не притворяется кликабельной — ни курсором, ни
+   hover-состоянием, ни фокусом. */
+.ls-preview-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: default;
+  user-select: none;
+}
+
+/* Градации чернил как готовые утилиты. Нужны потому, что цвет текста
+   в секциях задаётся токеном, а не палитрой Tailwind: держать это
+   классом надёжнее, чем повторять arbitrary-значение в каждом блоке. */
+.ls-ink-2 { color: var(--as-ink-2); }
+.ls-ink-3 { color: var(--as-ink-3); }
+.ls-ink-4 { color: var(--as-ink-4); }
+.ls-focal .ls-ink-2, .ls-card-dark .ls-ink-2 { color: rgba(255, 255, 255, 0.72); }
+.ls-focal .ls-ink-3, .ls-card-dark .ls-ink-3 { color: rgba(255, 255, 255, 0.55); }
+.ls-focal .ls-ink-4, .ls-card-dark .ls-ink-4 { color: rgba(255, 255, 255, 0.40); }
+
+/* ─── Редакционный список (блок «Что вы получаете») ──────────────────
+   Форма намеренно не карточная: до редизайна три секции подряд шли
+   одинаковыми сетками карточек, и страница читалась как один длинный
+   однородный блок. Здесь — строки с волосяными разделителями. */
+.ls-rows > li { border-top: 1px solid var(--as-hairline); }
+.ls-rows > li:first-child { border-top: none; }
+
+/* ─── Шаги (блок «Как это работает») ─────────────────────────────────
+   Последовательность с направляющей: на телефоне вертикальная рельса
+   слева, на десктопе — горизонтальная между узлами. Прогрессия видна
+   формой, а не только цифрами в углу карточек. */
+.ls-steps { display: grid; gap: 40px; }
+.ls-step { position: relative; padding-left: 60px; }
+.ls-step-node {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--as-hairline-2);
+  background: var(--as-surface);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.ls-step::before {
+  content: "";
+  position: absolute;
+  left: 21px;
+  top: 50px;
+  bottom: -48px;
+  width: 1px;
+  background: var(--as-hairline);
+}
+.ls-step:last-child::before { display: none; }
+
+@media (min-width: 1024px) {
+  .ls-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; }
+  .ls-step { padding-left: 0; padding-top: 66px; }
+  .ls-step::before {
+    left: 54px;
+    right: -40px;
+    top: 21px;
+    bottom: auto;
+    width: auto;
+    height: 1px;
+  }
+}
+
+/* ─── Тёмная карточка ────────────────────────────────────────────────
+   Выделение тарифа Plus. Раньше он был залит оранжевым во всю площадь —
+   это крупнейшее акцентное пятно страницы, из-за которого главная
+   кнопка внутри той же карточки переставала выделяться (нарушение
+   принципа 4: один акцент в кадре). Теперь премиальность несёт тёмная
+   поверхность, а оранжевый остаётся только на самой кнопке. */
+.ls-card-dark {
+  position: relative;
+  background: var(--as-ink);
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 24px;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    transform var(--ls-dur-hover) var(--ls-ease-out),
+    box-shadow var(--ls-dur-hover) var(--ls-ease-out);
+}
+.ls-card-dark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.05;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (hover: hover) and (pointer: fine) {
+  .ls-card-dark:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 36px -20px rgba(15, 15, 18, 0.6);
+  }
+}
+@media (min-width: 640px) { .ls-card-dark { border-radius: 28px; } }
+
+/* Переключатель периода — сегментированный контрол.
+   Кнопки одинаковой ширины, чтобы подпись «−17%» не сдвигала соседний
+   сегмент при переключении (это была бы дрожь макета). */
+.ls-segment {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--as-surface);
+  border: 1px solid var(--as-hairline);
+}
+.ls-segment-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-family: var(--font-mts-wide);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--as-ink-3);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background-color var(--ls-dur-hover) var(--ls-ease-out),
+    color var(--ls-dur-hover) var(--ls-ease-out);
+}
+.ls-segment-btn:hover { color: var(--as-ink); }
+.ls-segment-btn[aria-pressed="true"] {
+  background: var(--as-ink);
+  color: #fff;
+}
+.ls-segment-btn:focus-visible {
+  outline: 2px solid var(--as-ink);
+  outline-offset: 2px;
+}
+
+/* Чип экономии — единственное место, где зелёный работает как «выгода».
+   Он не конкурирует с оранжевым: разная роль, разная площадь. */
+.ls-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--as-ink-2);
+  background: rgba(15, 15, 18, 0.05);
+  border: 1px solid var(--as-hairline);
+}
+.ls-card-dark .ls-save {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* ─── Строка локации ─────────────────────────────────────────────────
+   Форма приборной панели: непрерывный список с волосяными
+   разделителями вместо четырёх карточек с мелкой таблицей внутри.
+   Прошлая версия давала 12 значений кеглем 10–11px — нечитаемо на
+   телефоне и визуально шумно на десктопе. */
+.ls-loc {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 16px 18px;
+  padding: 22px 0;
+  border-top: 1px solid var(--as-hairline);
+}
+.ls-loc:first-child { border-top: none; }
+.ls-loc-figures {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .ls-loc {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 24px;
+    padding: 26px 0;
+  }
+  .ls-loc-figures {
+    grid-column: auto;
+    grid-template-columns: repeat(3, minmax(96px, auto));
+    gap: 32px;
+  }
+}
+.ls-loc-mono {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--as-ink);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.ls-figure-label {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--as-ink-4);
+}
+.ls-figure-value {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--as-ink-2);
+}
+
+/* ─── Финальная тёмная зона ──────────────────────────────────────────
+   Финальный CTA и футер живут на ОДНОЙ тёмной поверхности.
+
+   Раньше это были два отдельных блока: сплошь оранжевая секция, а под
+   ней тёмный футер. Оранжевый во весь экран — крупнейшее акцентное
+   пятно страницы, из-за которого кнопка внутри него переставала быть
+   акцентом (принцип 4). Теперь страница закрывается тем же тёмным
+   материалом, которым открывается: светлое тело в тёмных скобках. */
+.ls-outro {
+  border-top-left-radius: 32px;
+  border-top-right-radius: 32px;
+}
+@media (min-width: 640px) {
+  .ls-outro { border-top-left-radius: 44px; border-top-right-radius: 44px; }
+}
+
+/* ─── Шапка на узких экранах ─────────────────────────────────────────
+   На 320px в строку должны поместиться марка, CTA и кнопка меню.
+   Полный набор (марка + словесный знак + «Начать бесплатно» + меню)
+   требует ~355px при доступных 276px, из-за чего кнопка меню уезжала
+   за пределы экрана и становилась недоступной.
+
+   Правила живут в CSS, а не в утилитах Tailwind, намеренно: вариант
+   вида max-[380px]: в этой сборке не генерируется, и молчаливо
+   неприменённый класс здесь означает недоступную навигацию. */
+/* Словесный знак появляется только с 768px. Ниже в строку обязаны
+   помещаться марка, CTA и кнопка меню, и словесный знак — первое, чем
+   можно пожертвовать: марка опознаётся и без него.
+   Подбирать пороги «на глаз» здесь нельзя: на 414 и 768 такой подход
+   уже давал переполнение и уводил кнопку меню за экран. */
+.ls-wordmark { display: none; }
+@media (min-width: 768px) {
+  .ls-wordmark { display: inline; }
+}
+.ls-cta-short { display: none; }
+@media (max-width: 359px) {
+  .ls-cta-full  { display: none; }
+  .ls-cta-short { display: inline; }
+  .ls-header .as-btn-compact { padding-inline: 14px; }
+}
+
+
+/* ─── Тап-зоны ───────────────────────────────────────────────────────
+   Ссылки в колонках футера и знак бренда рисуются мелко (14px и 20px),
+   но нажимать по ним приходится пальцем. Отбивка добавляется padding'ом,
+   а не увеличением кегля: визуальный ритм сохраняется, зона нажатия
+   вырастает до 44px.
+
+   Отрицательные поля у знака бренда компенсируют горизонтальный padding,
+   чтобы левый край марки остался на линии сетки .ls-shell. */
+.ls-tap {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.ls-tap-brand {
+  margin-inline: -12px;
+  padding-inline: 12px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MOTION-СЛОЙ ЛЕНДИНГА — принцип 5 (research/concept.md)
+
+   Логика в src/components/landing/motion.tsx: она только пишет
+   CSS-переменные (--ls-parallax, --ls-progress, --ls-mx/--ls-my,
+   --ls-glow). Всё рисование — здесь. Такое разделение даёт две вещи:
+   JS не трогает style.transform (и потому не конфликтует с CSS-анимациями
+   появления), а любой эффект можно отключить одной медиа-строкой.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── Раскрытие дисплейного текста по маске ──────────────────────────
+   Строка выезжает из-под обреза, а не проявляется прозрачностью.
+   Вертикальные поля компенсируют обрез выносных элементов («р», «у»):
+   без них хвосты букв срезаются рамкой overflow. */
+.ls-line {
+  display: block;
+  overflow: hidden;
+  padding-block: 0.09em;
+  margin-block: -0.09em;
+}
+.ls-line-in {
+  display: block;
+  animation: lsLineUp 900ms var(--ls-ease) both;
+  animation-delay: calc(var(--ls-i, 0) * 90ms);
+}
+@keyframes lsLineUp {
+  from { transform: translateY(105%); }
+  to   { transform: translateY(0); }
+}
+
+/* ─── Оживший фон тёмных поверхностей ────────────────────────────────
+   Два пятна разной температуры медленно дрейфуют навстречу друг другу.
+   Рисуются радиальными градиентами, а не blur-фильтром: filter: blur()
+   на площади в пол-экрана — самый дорогой способ получить тот же
+   результат, и именно он роняет кадры на слабом Android.
+
+   Холодное пятно намеренно очень слабое (α ≈ 0.12): оно не второй
+   акцент, а температура воздуха, из-за которой тёплый оранжевый
+   читается насыщеннее. */
+.ls-aurora {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.ls-aurora > span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+}
+.ls-aurora > span:nth-child(1) {
+  width: 78vw; height: 78vw;
+  left: -18vw; top: -30vw;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.20), transparent 68%);
+  animation: lsDriftA 28s ease-in-out infinite alternate;
+}
+.ls-aurora > span:nth-child(2) {
+  width: 62vw; height: 62vw;
+  right: -16vw; top: 18vh;
+  background: radial-gradient(circle, rgba(122, 162, 255, 0.12), transparent 70%);
+  animation: lsDriftB 37s ease-in-out infinite alternate;
+}
+@keyframes lsDriftA {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(7vw, 5vh, 0) scale(1.14); }
+}
+@keyframes lsDriftB {
+  from { transform: translate3d(0, 0, 0) scale(1.08); }
+  to   { transform: translate3d(-6vw, -6vh, 0) scale(0.94); }
+}
+
+/* ─── Параллакс ──────────────────────────────────────────────────────
+   Смещение приходит переменной, поэтому элемент может одновременно
+   участвовать в анимации появления — они не спорят за transform. */
+.ls-parallax {
+  transform: translate3d(0, var(--ls-parallax, 0px), 0);
+}
+
+/* ─── Прожектор под курсором ─────────────────────────────────────────
+   Поверхность реагирует на присутствие указателя. Включается только
+   при точном указателе — атрибут ставит сам компонент. */
+[data-spotlight="on"] { position: relative; }
+[data-spotlight="on"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: var(--ls-glow, 0);
+  transition: opacity var(--ls-dur-enter) var(--ls-ease-out);
+  background: radial-gradient(
+    240px circle at var(--ls-mx, 50%) var(--ls-my, 50%),
+    rgba(249, 115, 22, 0.10),
+    transparent 62%
+  );
+}
+.ls-card-dark[data-spotlight="on"]::before,
+.ls-focal [data-spotlight="on"]::before {
+  background: radial-gradient(
+    260px circle at var(--ls-mx, 50%) var(--ls-my, 50%),
+    rgba(255, 255, 255, 0.09),
+    transparent 62%
+  );
+}
+
+/* ─── Блик по кнопке ─────────────────────────────────────────────────
+   Полоса света проходит по кнопке за курсором. Ограничена .ls-page,
+   чтобы не менять поведение кнопок в личном кабинете. */
+.ls-page .as-btn { position: relative; overflow: hidden; }
+.ls-page .as-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.30) 50%,
+    transparent 62%
+  );
+  transform: translateX(-130%);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ls-page .as-btn:hover::after {
+    transform: translateX(130%);
+    transition: transform 680ms var(--ls-ease);
+  }
+}
+
+/* ─── Отсчёт чисел ───────────────────────────────────────────────────
+   Призрачная копия конечного значения держит ширину ячейки: без неё
+   отсчёт «99,98» от нуля двигал бы соседей — тот самый layout shift,
+   который запрещён контрактом. */
+.ls-counter { position: relative; display: inline-block; }
+.ls-counter-ghost { visibility: hidden; }
+.ls-counter-live {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+/* ─── Прорисовка направляющей между шагами ───────────────────────────
+   Линия вычерчивается по мере прокрутки секции. Коэффициенты подобраны
+   так, чтобы рельса успевала дорисоваться, пока последний шаг ещё в
+   кадре, а не в момент ухода секции за верх экрана. */
+.ls-steps { --ls-progress: 1; }
+.ls-step::before {
+  transform-origin: top center;
+  transform: scaleY(clamp(0, calc(var(--ls-progress) * 2.1 - 0.5), 1));
+  transition: transform 120ms linear;
+}
+@media (min-width: 1024px) {
+  .ls-step::before {
+    transform-origin: left center;
+    transform: scaleX(clamp(0, calc(var(--ls-progress) * 2.1 - 0.5), 1));
+  }
+}
+
+/* ─── Резервный reveal ───────────────────────────────────────────────
+   Класс на <html> ставится только тогда, когда браузер не умеет
+   scroll-driven анимации. Пока его нет, .ls-reveal остаётся видимым —
+   поэтому отказ обоих механизмов не может спрятать контент. */
+.ls-js-reveal .ls-reveal { opacity: 0; transform: translateY(18px); }
+.ls-js-reveal .ls-reveal.ls-revealed {
+  animation: lsReveal var(--ls-dur-block) var(--ls-ease) both;
+}
+
+/* ─── Общий тормоз ───────────────────────────────────────────────────
+   Всё движение упрощается одним правилом. Контент остаётся на месте и
+   полностью читаемым — упрощение, а не поломка. */
+@media (prefers-reduced-motion: reduce) {
+  .ls-line-in { animation: none; }
+  .ls-aurora > span { animation: none; }
+  .ls-parallax { transform: none; }
+  .ls-page .as-btn::after { display: none; }
+  [data-spotlight="on"]::before { display: none; }
+  .ls-step::before { transform: none; transition: none; }
+}
+
+/* ─── Микровзаимодействия ────────────────────────────────────────────
+   Мелкие отклики, из которых складывается ощущение отзывчивого
+   интерфейса. Все — на transform/color, все — в рамках контракта
+   длительностей. */
+
+/* Иконка платформы приподнимается и слегка отклоняется. Наклон малый
+   (2°) намеренно: больше — и жест из «отклика» превращается в трюк. */
+.ls-icon-lift {
+  transition:
+    transform var(--ls-dur-enter) var(--ls-ease),
+    color var(--ls-dur-hover) var(--ls-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .ls-icon-lift { transform: translateY(-4px) rotate(-2deg); }
+}
+
+/* Строка локации: монограмма подаётся вперёд при наведении на строку. */
+.ls-loc-mono {
+  transition: transform var(--ls-dur-enter) var(--ls-ease),
+              background-color var(--ls-dur-hover) var(--ls-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ls-loc:hover .ls-loc-mono { transform: translateY(-3px) scale(1.04); }
+}
+
+/* Строка выгоды: иконка сдвигается к тексту — жест «этот пункт». */
+.ls-rows > li .ls-row-icon {
+  transition: transform var(--ls-dur-enter) var(--ls-ease),
+              color var(--ls-dur-hover) var(--ls-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ls-rows > li:hover .ls-row-icon { transform: translateX(3px); }
+}
+
+/* Ссылка навигации: подчёркивание выезжает слева направо. */
+.ls-navlink { position: relative; }
+.ls-navlink::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 11px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--ls-dur-enter) var(--ls-ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ls-navlink:hover::after { transform: scaleX(1); }
+}
+
+/* Переключатель периода: тёмная плашка едет между сегментами, а не
+   перекрашивается скачком. Позиция приходит переменной --ls-seg
+   (0 — левый сегмент, 1 — правый). */
+.ls-segment { position: relative; }
+.ls-segment::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc((100% - 12px) / 2);
+  border-radius: 999px;
+  background: var(--as-ink);
+  transform: translateX(calc(var(--ls-seg, 0) * (100% + 4px)));
+  transition: transform var(--ls-dur-enter) var(--ls-ease);
+}
+.ls-segment-btn { position: relative; z-index: 1; }
+.ls-segment-btn[aria-pressed="true"] { background: transparent; color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-icon-lift,
+  .ls-loc-mono,
+  .ls-rows > li .ls-row-icon,
+  .ls-navlink::after,
+  .ls-segment::before { transition: none; }
+}
+
+/* Дисплейный кегль для узкой колонки.
+   Основной .ls-display рассчитан на полную ширину контейнера. В колонке
+   4/12 (≈360px на 1440) он переполнял свой трек, и текст наезжал на
+   соседнюю колонку. Здесь верхняя граница снижена, а трекинг чуть
+   ослаблен: на меньшем кегле плотный трекинг читается тяжелее. */
+.ls-display-col {
+  font-weight: 700;
+  font-size: clamp(30px, 3.4vw, 46px);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+/* ─── Крупная ячейка bento ───────────────────────────────────────────
+   В ячейке 2×2 значок в углу оставлял пустой центр: карточка читалась
+   как незаполненная. Здесь глиф становится элементом композиции —
+   крупный, бледный, во всю площадь, с подписью поверх него.
+   Это плакатный приём, а не декор: изображён ровно тот предмет, о
+   котором ячейка. */
+/* Плакатный глиф включается только там, где ячейка действительно
+   крупная (2×2 на десктопе). На телефоне карточка вдвое меньше, и
+   крупная графика наезжала на подпись — вместо композиции получалась
+   каша. Ниже lg работает обычный значок в углу. */
+.ls-device-art { display: none; }
+@media (min-width: 1024px) {
+  .ls-device-art { display: grid; }
+  .ls-device-mini { display: none; }
+}
+.ls-device-art {
+  position: absolute;
+  inset: 0 0 22% 0;
+  display: grid;
+  place-items: center;
+  color: rgba(15, 15, 18, 0.12);
+  pointer-events: none;
+  transition:
+    transform var(--ls-dur-block) var(--ls-ease),
+    color var(--ls-dur-enter) var(--ls-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .ls-device-art {
+    transform: scale(1.05) translateY(-4px);
+    color: rgba(15, 15, 18, 0.2);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ls-device-art { transition: none; }
 }

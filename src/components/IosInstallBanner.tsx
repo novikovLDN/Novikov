@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { whenConsentSettled } from "@/lib/overlay-queue";
 
 export default function IosInstallBanner() {
   const [show, setShow] = useState(false);
@@ -25,9 +26,16 @@ export default function IosInstallBanner() {
     const dismissedAt = localStorage.getItem("ios-install-dismissed");
     if (dismissedAt && Date.now() - Number(dismissedAt) < 60 * 60 * 1000) return;
 
-    // Delay appearance
-    const timer = setTimeout(() => setShow(true), 3000);
-    return () => clearTimeout(timer);
+    // Ждём, пока посетитель закроет обязательный куки-баннер, иначе
+    // обе карточки рисуются в одной точке внизу экрана.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const unsubscribe = whenConsentSettled(() => {
+      timer = setTimeout(() => setShow(true), 3000);
+    });
+    return () => {
+      unsubscribe();
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   const handleDismiss = () => {

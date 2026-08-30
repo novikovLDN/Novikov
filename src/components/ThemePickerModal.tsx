@@ -1,19 +1,43 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
+
+/**
+ * Маршруты, на которых выбор темы вообще имеет смысл — то есть личный
+ * кабинет и всё, что за авторизацией.
+ *
+ * Раньше модалка всплывала через 800 мс на ЛЮБОЙ странице, включая
+ * главную. Незнакомого посетителя на первом же экране просили выбрать
+ * тему — поверх затемнённого и размытого героя, до того как он узнал,
+ * что вообще за продукт. Это стоило первого впечатления и части
+ * конверсии.
+ *
+ * К публичным страницам выбор темы и не применяется: их палитра
+ * зафиксирована арт-дирекцией (см. research/concept.md, принцип 4), и
+ * переключатель на них ничего не менял.
+ */
+const THEMED_ROUTES = ["/dashboard", "/subscribe", "/add-device", "/admin"];
 
 export default function ThemePickerModal() {
   const { theme, setTheme } = useTheme();
+  const pathname = usePathname();
   const [show, setShow] = useState(false);
   const [selected, setSelected] = useState<"dark" | "light" | "auto">("auto");
 
   useEffect(() => {
+    const themed = THEMED_ROUTES.some(
+      (r) => pathname === r || pathname.startsWith(`${r}/`)
+    );
+    if (!themed) return;
+
     const picked = localStorage.getItem("theme-picked");
-    if (!picked) {
-      setTimeout(() => setShow(true), 800);
-    }
-  }, []);
+    if (picked) return;
+
+    const timer = setTimeout(() => setShow(true), 800);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   const applySelection = () => {
     if (selected === "auto") {
