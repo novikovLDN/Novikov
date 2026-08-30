@@ -11,11 +11,13 @@ export default function FeatureCard({
   title,
   description,
   className = "",
-  iconBg = "bg-card-hover",
+  iconBg = "bg-[color:var(--px-accent-dim)]",
 }: FeatureCardProps) {
   return (
     <div
-      className={`bg-card border border-border/50 rounded-2xl p-3.5 sm:p-4 flex items-center gap-3.5 sm:gap-4 transition-all duration-300 ease-out hover:bg-card-hover hover:scale-[1.02] hover:border-purple-500/30 hover:shadow-[0_0_20px_rgba(168,85,247,0.08)] ${className}`}
+      /* Фиолетовое свечение при наведении убрано: в системе один
+         акцент, и это оранжевый. */
+      className={`px-card p-3.5 sm:p-4 flex items-center gap-3.5 sm:gap-4 ${className}`}
     >
       <div
         className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl ${iconBg} flex items-center justify-center shrink-0`}
@@ -23,10 +25,10 @@ export default function FeatureCard({
         {icon}
       </div>
       <div className="min-w-0">
-        <h3 className="font-semibold text-sm sm:text-base text-foreground leading-tight">
+        <h3 className="font-bold text-sm sm:text-base text-[color:var(--px-text)] leading-tight">
           {title}
         </h3>
-        <p className="text-xs sm:text-sm text-muted mt-0.5 leading-snug">{description}</p>
+        <p className="text-xs sm:text-sm text-[color:var(--px-text-3)] mt-0.5 leading-snug">{description}</p>
       </div>
     </div>
   );

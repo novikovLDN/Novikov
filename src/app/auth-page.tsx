@@ -7,6 +7,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import PasswordInput from "@/components/PasswordInput";
 import { startAuthentication } from "@simplewebauthn/browser";
 import { sendCodeAction, verifyCodeAction } from "./actions";
+import BrandMark from "@/components/pixel/BrandMark";
 
 type AuthStep =
   | "email"
@@ -29,7 +30,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex items-center gap-1.5 text-muted-light hover:text-foreground transition-colors mb-6 sm:mb-8 btn-press py-1"
+      className="px-link -ml-1 gap-1.5 mb-6 sm:mb-8"
     >
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M15 18l-6-6 6-6" />
@@ -41,7 +42,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
 
 function ErrorMessage({ error }: { error: string }) {
   return (
-    <p className="text-danger text-xs sm:text-sm flex items-center gap-1.5 animate-fade-in">
+    <p className="text-[#FF6B6B] text-xs sm:text-sm flex items-center gap-1.5 animate-fade-in">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
         <circle cx="12" cy="12" r="10" />
         <line x1="12" y1="8" x2="12" y2="12" />
@@ -475,6 +476,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
   return (
     <div className="auth-shell">
+      <div className="px-grid-bg" aria-hidden />
       <AuthTopBar />
       <div className="flex-1 flex items-start sm:items-center justify-center px-4 sm:px-6 pt-6 sm:pt-10 pb-16">
         <div className="w-full max-w-[520px]">
@@ -482,11 +484,11 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
         {step === "email" && (
           <div className="animate-fade-in-up pt-2 sm:pt-6">
             <div className="dv2-eyebrow mb-2">ВХОД ИЛИ РЕГИСТРАЦИЯ</div>
-            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
+            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
               Введите<br />
-              <span className="text-black/50">почту</span>
+              <span className="text-[color:var(--px-text-3)]">почту</span>
             </h1>
-            <p className="text-[13px] text-black/55 mb-6 sm:mb-8">
+            <p className="text-[13px] text-[color:var(--px-text-3)] mb-6 sm:mb-8">
               Отправим одноразовый код для подтверждения
             </p>
 
@@ -511,7 +513,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
               {emailError && <ErrorMessage error={emailError} />}
 
-              <button type="submit" disabled={sendPending} className="as-btn as-btn-primary as-btn-solid as-btn-block">
+              <button type="submit" disabled={sendPending} className="px-btn px-btn-md px-btn-primary px-btn-block">
                 {sendPending ? (
                   <><LoadingSpinner size="sm" /> Отправка…</>
                 ) : (
@@ -522,17 +524,17 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-black/[0.08]" />
+                <div className="w-full border-t border-[color:var(--px-line)]" />
               </div>
               <div className="relative flex justify-center">
-                <span className="px-3 text-[10px] font-mono tracking-wider uppercase text-black/40 bg-white">или</span>
+                <span className="px-3 text-[10px] font-mono tracking-wider uppercase text-[color:var(--px-text-4)] bg-[color:var(--px-surface)]">или</span>
               </div>
             </div>
 
             <div className="space-y-2.5">
               <button
                 onClick={() => { setStep("login"); setLoginError(""); }}
-                className="as-btn as-btn-secondary as-btn-ghost as-btn-block"
+                className="px-btn px-btn-md px-btn-secondary px-btn-block"
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -544,8 +546,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 onClick={handlePasskeyLogin}
                 disabled={passkeyLoading}
-                className="as-btn as-btn-secondary as-btn-ghost as-btn-block"
-                style={{ borderColor: "rgba(94,106,210,0.3)", color: "#8F8FD9" }}
+                className="px-btn px-btn-md px-btn-secondary px-btn-block"
               >
                 {passkeyLoading ? (
                   <><LoadingSpinner size="sm" /> Проверка…</>
@@ -562,37 +563,37 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             </div>
 
             {passkeyError && (
-              <p className="text-danger text-xs text-center mt-2 animate-fade-in">{passkeyError}</p>
+              <p className="text-[#FF6B6B] text-xs text-center mt-2 animate-fade-in">{passkeyError}</p>
             )}
 
             {/* Features */}
             <div className="mt-8 sm:mt-10 space-y-2.5 sm:space-y-3">
               <FeatureCard
-                icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#3b82f6" strokeWidth="1.5" /><path d="M9 12l2 2 4-4" stroke="#3b82f6" strokeWidth="2" /></svg>}
-                iconBg="bg-primary-light"
-                title="Enterprise Spectrum Protection"
-                description="Наивысший класс защиты от атак с многоуровневой фильтрацией трафика"
+                icon={<svg width="22" height="22" className="text-[color:var(--px-accent)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" /></svg>}
+                iconBg="bg-[color:var(--px-accent-dim)]"
+                title="Магистраль до 200 Гбит/с"
+                description="Вечерний час пик и нагрузка соседей по каналу не превращаются в фризы"
                 className="animate-fade-in-up animate-delay-1"
               />
               <FeatureCard
-                icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="7" rx="2" stroke="#8b5cf6" strokeWidth="1.5" /><rect x="2" y="14" width="20" height="7" rx="2" stroke="#8b5cf6" strokeWidth="1.5" /><circle cx="6" cy="6.5" r="1" fill="#8b5cf6" /><circle cx="6" cy="17.5" r="1" fill="#8b5cf6" /><line x1="10" y1="6.5" x2="18" y2="6.5" stroke="#8b5cf6" strokeWidth="1.5" /><line x1="10" y1="17.5" x2="18" y2="17.5" stroke="#8b5cf6" strokeWidth="1.5" /></svg>}
-                iconBg="bg-accent-light"
-                title="Выделенные серверы до 75 Гбит/с"
-                description="Премиум-инфраструктура с минимальной задержкой и 99.9% аптаймом"
+                icon={<svg width="22" height="22" className="text-[color:var(--px-accent)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" /><rect x="2" y="14" width="20" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" /><circle cx="6" cy="6.5" r="1" fill="currentColor" /><circle cx="6" cy="17.5" r="1" fill="currentColor" /><line x1="10" y1="6.5" x2="18" y2="6.5" stroke="currentColor" strokeWidth="1.5" /><line x1="10" y1="17.5" x2="18" y2="17.5" stroke="currentColor" strokeWidth="1.5" /></svg>}
+                iconBg="bg-[color:var(--px-accent-dim)]"
+                title="Пинг меньше 5 мс"
+                description="В регионе присутствия — игры и созвоны без задержки и эха"
                 className="animate-fade-in-up animate-delay-2"
               />
               <FeatureCard
-                icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="#22c55e" strokeWidth="1.5" /><circle cx="12" cy="12" r="1" fill="#22c55e" /></svg>}
-                iconBg="bg-success-light"
-                title="Непрерывная работа 24/7"
-                description="Резервные каналы и автопереключение — соединение не прервётся"
+                icon={<svg width="22" height="22" className="text-[color:var(--px-accent)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="12" r="1" fill="currentColor" /></svg>}
+                iconBg="bg-[color:var(--px-accent-dim)]"
+                title="Соединение держится"
+                description="Резервные каналы и автопереключение. Целевая доступность 99,98%"
                 className="animate-fade-in-up animate-delay-3"
               />
               <FeatureCard
-                icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" stroke="#f59e0b" strokeWidth="1.5" /><path d="M7 11V7a5 5 0 0110 0v4" stroke="#f59e0b" strokeWidth="1.5" /><circle cx="12" cy="16" r="1.5" fill="#f59e0b" /></svg>}
-                iconBg="bg-warning-light"
-                title="Конфиденциальность без компромиссов"
-                description="Нулевое логирование. Шифрование военного класса на всех соединениях"
+                icon={<svg width="22" height="22" className="text-[color:var(--px-accent)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" /><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="16" r="1.5" fill="currentColor" /></svg>}
+                iconBg="bg-[color:var(--px-accent-dim)]"
+                title="Ничего не записываем"
+                description="Ни посещённых сайтов, ни DNS-запросов, ни истории подключений"
                 className="animate-fade-in-up animate-delay-4"
               />
             </div>
@@ -605,15 +606,15 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div>
               <div className="dv2-eyebrow mb-2">ШАГ 2 — КОД</div>
-              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
+              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
                 Введите<br />
-                <span className="text-black/50">код из письма</span>
+                <span className="text-[color:var(--px-text-3)]">код из письма</span>
               </h1>
-              <p className="text-[13px] text-black/55 mb-1">
+              <p className="text-[13px] text-[color:var(--px-text-3)] mb-1">
                 Отправили на{" "}
-                <span className="text-black/85 font-medium break-all">{email}</span>
+                <span className="text-[color:var(--px-text)] font-medium break-all">{email}</span>
               </p>
-              <p className="text-[11px] text-black/40 mb-6">
+              <p className="text-[11px] text-[color:var(--px-text-4)] mb-6">
                 Проверьте папку «Спам», если письмо не пришло
               </p>
             </div>
@@ -659,7 +660,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={verifyPending}
-                className="as-btn as-btn-primary as-btn-solid as-btn-block mb-5"
+                className="px-btn px-btn-md px-btn-primary px-btn-block mb-5"
               >
                 {verifyPending ? (
                   <span className="inline-flex items-center gap-2">
@@ -685,7 +686,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                   type="button"
                   onClick={handleResendCode}
                   disabled={resendLoading}
-                  className="as-btn as-btn-secondary as-btn-plain"
+                  className="px-btn px-btn-sm px-btn-secondary"
                 >
                   {resendLoading ? "Отправляем..." : "Отправить код повторно"}
                 </button>
@@ -697,8 +698,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
         {step === "set-password" && (
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="w-16 h-16 rounded-2xl bg-[color:var(--px-accent-dim)] flex items-center justify-center">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-accent)]">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
@@ -707,8 +708,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div className="text-center">
               <div className="dv2-eyebrow mb-2">ШАГ 3 — ПАРОЛЬ</div>
-              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
-                Создайте<br /><span className="text-black/50">пароль</span>
+              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
+                Создайте<br /><span className="text-[color:var(--px-text-3)]">пароль</span>
               </h1>
               <p className="text-muted text-sm sm:text-base mb-8">
                 Придумайте пароль для входа в личный кабинет. В дальнейшем вы сможете войти по почте и паролю.
@@ -740,7 +741,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={setPasswordLoading}
-                className="as-btn as-btn-primary as-btn-solid as-btn-block"
+                className="px-btn px-btn-md px-btn-primary px-btn-block"
               >
                 {setPasswordLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -755,7 +756,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <button
               onClick={() => router.push("/dashboard")}
-              className="as-btn as-btn-secondary as-btn-plain as-btn-block mt-3"
+              className="px-btn px-btn-md px-btn-secondary px-btn-block mt-3"
             >
               Пропустить
             </button>
@@ -767,7 +768,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             <BackButton onClick={() => setStep("email")} />
 
             <div className="dv2-eyebrow mb-2">ВХОД</div>
-            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
+            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
               С возвращением
             </h1>
             <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
@@ -806,7 +807,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                       setResetEmail(loginEmail);
                       setResetError("");
                     }}
-                    className="as-btn as-btn-compact as-btn-plain"
+                    className="px-btn px-btn-sm px-btn-secondary"
                   >
                     Сбросить пароль
                   </button>
@@ -816,7 +817,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="as-btn as-btn-primary as-btn-solid as-btn-block"
+                className="px-btn px-btn-md px-btn-primary px-btn-block"
               >
                 {loginLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -837,7 +838,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                   setResetEmail(loginEmail);
                   setResetError("");
                 }}
-                className="as-btn as-btn-compact as-btn-plain"
+                className="px-btn px-btn-sm px-btn-secondary"
               >
                 Забыли пароль?
               </button>
@@ -850,8 +851,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             <BackButton onClick={() => setStep("login")} />
 
             <div className="dv2-eyebrow mb-2">ВОССТАНОВЛЕНИЕ</div>
-            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
-              Восстановление<br /><span className="text-black/50">пароля</span>
+            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
+              Восстановление<br /><span className="text-[color:var(--px-text-3)]">пароля</span>
             </h1>
             <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
               Введите почту, привязанную к аккаунту
@@ -875,7 +876,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="as-btn as-btn-primary as-btn-solid as-btn-block"
+                className="px-btn px-btn-md px-btn-primary px-btn-block"
               >
                 {resetLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -896,7 +897,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div className="text-center sm:text-left">
               <div className="dv2-eyebrow mb-2">КОД ИЗ ПИСЬМА</div>
-              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
+              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
                 Введите код
               </h1>
               <p className="text-muted text-sm sm:text-base mb-1">
@@ -942,7 +943,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
               <button
                 type="submit"
-                className="as-btn as-btn-primary as-btn-solid as-btn-block mb-5"
+                className="px-btn px-btn-md px-btn-primary px-btn-block mb-5"
               >
                 Подтвердить
               </button>
@@ -958,7 +959,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                   </span>
                 </p>
               ) : (
-                <button type="button" onClick={handleResendResetCode} className="as-btn as-btn-secondary as-btn-plain">
+                <button type="button" onClick={handleResendResetCode} className="px-btn px-btn-sm px-btn-secondary">
                   Отправить код повторно
                 </button>
               )}
@@ -971,8 +972,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             <BackButton onClick={() => setStep("reset-code")} />
 
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="w-16 h-16 rounded-2xl bg-[color:var(--px-accent-dim)] flex items-center justify-center">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-accent)]">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
@@ -981,8 +982,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div className="text-center">
               <div className="dv2-eyebrow mb-2">НОВЫЙ ПАРОЛЬ</div>
-              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-black mb-2">
-                Придумайте<br /><span className="text-black/50">новый пароль</span>
+              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
+                Придумайте<br /><span className="text-[color:var(--px-text-3)]">новый пароль</span>
               </h1>
               <p className="text-muted text-sm sm:text-base mb-8">
                 Придумайте новый пароль для аккаунта
@@ -1014,7 +1015,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="as-btn as-btn-primary as-btn-solid as-btn-block"
+                className="px-btn px-btn-md px-btn-primary px-btn-block"
               >
                 {resetLoading ? (
                   <span className="inline-flex items-center gap-2">
@@ -1032,8 +1033,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
         {step === "reset-success" && (
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <div className="flex justify-center mb-6 mt-8">
-              <div className="w-20 h-20 rounded-full bg-success/15 flex items-center justify-center animate-scale-in">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className="w-20 h-20 rounded-full bg-[color:var(--px-good-dim)] flex items-center justify-center animate-scale-in">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
@@ -1053,7 +1054,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                 setLoginPassword("");
                 setLoginError("");
               }}
-              className="as-btn as-btn-primary as-btn-solid as-btn-block"
+              className="px-btn px-btn-md px-btn-primary px-btn-block"
             >
               Войти в аккаунт
             </button>
@@ -1067,32 +1068,32 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   );
 }
 
+/**
+ * Шапка экрана входа.
+ *
+ * Намеренно минимальна: полная навигация здесь отвлекает от
+ * единственного действия. Логотип возвращает на главную, вторая ссылка
+ * отвечает на самый частый вопрос перед регистрацией — сколько стоит.
+ */
 function AuthTopBar() {
   return (
-    <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
-      <a href="/" className="flex items-center gap-2">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-        <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
+    <div className="px-shell flex items-center justify-between pt-6 sm:pt-8">
+      <a href="/" className="px-brand" aria-label="Atlas Secure — на главную">
+        <BrandMark size={20} />
+        <span className="px-wordmark">atlas.secure</span>
       </a>
-      <a href="/pricing" className="font-mts-wide text-[13px] text-black/60 hover:text-black transition-colors">
-        Тарифы →
-      </a>
+      <a href="/pricing" className="px-chip">Тарифы</a>
     </div>
   );
 }
 
 function AuthFooterBar() {
   return (
-    <div className="px-5 sm:px-8 pb-8 sm:pb-10">
-      <div className="max-w-[520px] mx-auto flex flex-wrap justify-center gap-x-6 gap-y-2 font-mts-wide text-[12px] text-black/40">
-        <a href="/terms"   className="hover:text-black/70 transition-colors">Условия</a>
-        <a href="/privacy" className="hover:text-black/70 transition-colors">Приватность</a>
-        <a href="/support" className="hover:text-black/70 transition-colors">Поддержка</a>
+    <div className="px-shell pb-8 sm:pb-10">
+      <div className="max-w-[520px] mx-auto flex flex-wrap justify-center gap-x-6">
+        <a href="/terms" className="px-link text-[12px]">Условия</a>
+        <a href="/privacy" className="px-link text-[12px]">Приватность</a>
+        <a href="/support" className="px-link text-[12px]">Поддержка</a>
       </div>
     </div>
   );

@@ -1527,94 +1527,130 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .font-mts-wide { font-family: var(--font-mts-wide); }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   Auth shell v4 — light MTS Wide theme, wraps /auth flow
+   Оболочка входа — на дизайн-системе PIXEL
+
+   Была светлой: белые карточки на off-white. После смены направления
+   она осталась единственным светлым экраном сайта, и переход с любой
+   страницы на вход бил по глазам вспышкой. Здесь она переведена на
+   тёмные поверхности и токены системы.
+
+   Форма ввода кода намеренно сохраняет крупные отдельные ячейки: это
+   самый частый экран флоу, и попадание пальцем по нему важнее
+   компактности.
    ═══════════════════════════════════════════════════════════════════════ */
 
 .auth-shell {
-  background: #f5f5f0;
-  color: #111;
+  position: relative;
+  background: var(--px-bg);
+  color: var(--px-text);
   font-family: var(--font-mts-wide);
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow-x: clip;
 }
 
-/* Override auth-input inside the light shell — inputs need a
- * white sunken card with black text, not the dark-theme translucent
- * whites of the original. */
-.auth-shell .auth-input {
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  color: #111;
-}
-.auth-shell .auth-input::placeholder { color: rgba(0,0,0,0.35); }
-.auth-shell .auth-input:hover  { background: #fff; border-color: rgba(0,0,0,0.16); }
-.auth-shell .auth-input:focus  {
-  background: #fff;
-  border-color: rgba(0,0,0,0.55);
-  box-shadow: 0 0 0 4px rgba(0,0,0,0.06);
-}
-.auth-shell .auth-input-error       { border-color: rgba(239,68,68,0.55); }
-.auth-shell .auth-input-error:focus { border-color: rgba(239,68,68,0.75); box-shadow: 0 0 0 4px rgba(239,68,68,0.10); }
-
-/* Code input cells */
-.auth-shell .auth-code-cell {
-  background: #fff;
-  border-color: rgba(0,0,0,0.08);
-  color: #111;
-}
-.auth-shell .auth-code-cell:focus {
-  border-color: rgba(0,0,0,0.55);
-  box-shadow: 0 0 0 4px rgba(0,0,0,0.06);
-}
-
-/* Primary CTA — black solid rounded pill matching landing */
-.auth-shell .auth-cta {
-  background: #111;
-  color: #fff;
-  border-radius: 16px;
-  height: 52px;
-  font-family: var(--font-mts-wide);
-  font-weight: 600;
-  font-size: 15px;
-  transition: background .2s ease, transform .12s ease;
-}
-.auth-shell .auth-cta:hover    { background: #000; }
-.auth-shell .auth-cta:active   { transform: scale(0.98); }
-.auth-shell .auth-cta:disabled { opacity: .45; cursor: not-allowed; }
-
-/* Ghost / secondary CTA */
-.auth-shell .auth-cta-ghost {
-  background: transparent;
-  color: #111;
-  border: 1px solid rgba(0,0,0,0.15);
-  border-radius: 16px;
-  height: 52px;
-  font-family: var(--font-mts-wide);
-  font-weight: 500;
-  font-size: 15px;
-  transition: background .2s ease, border-color .2s ease;
-}
-.auth-shell .auth-cta-ghost:hover { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.25); }
-
-/* Eyebrow label — reuse dv2-eyebrow's shape but invert colour */
-.auth-shell .dv2-eyebrow {
-  color: rgba(0,0,0,0.5);
-  font-family: var(--font-mts-wide);
-  font-weight: 500;
-}
-
-/* Rounded content card in the middle of the page */
+/* Карточка формы */
 .auth-shell .auth-card {
-  background: #fff;
-  border: 1px solid rgba(0,0,0,0.04);
-  border-radius: 28px;
-  padding: 28px 24px;
+  position: relative;
+  background: var(--px-surface);
+  border: 1px solid var(--px-line);
+  border-radius: var(--px-r-card);
+  padding: 28px 22px;
 }
 @media (min-width: 640px) {
-  .auth-shell .auth-card { padding: 40px 36px; border-radius: 32px; }
+  .auth-shell .auth-card { padding: 40px 36px; }
 }
 
+/* Поля ввода */
+.auth-shell .auth-input {
+  background: var(--px-surface-2);
+  border: 1px solid var(--px-line-2);
+  color: var(--px-text);
+  border-radius: var(--px-r-btn);
+  transition:
+    border-color var(--px-fast) var(--px-ease-out),
+    box-shadow var(--px-fast) var(--px-ease-out);
+}
+.auth-shell .auth-input::placeholder { color: var(--px-text-4); }
+.auth-shell .auth-input:hover  { border-color: rgba(255, 255, 255, 0.2); }
+.auth-shell .auth-input:focus  {
+  outline: none;
+  border-color: var(--px-accent);
+  box-shadow: 0 0 0 3px var(--px-accent-dim);
+}
+.auth-shell .auth-input-error       { border-color: rgba(239, 68, 68, 0.6); }
+.auth-shell .auth-input-error:focus { border-color: #EF4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16); }
+
+/* Ячейки кода */
+.auth-shell .auth-code-cell {
+  background: var(--px-surface-2);
+  border: 1px solid var(--px-line-2);
+  color: var(--px-text);
+  border-radius: var(--px-r-btn);
+  transition:
+    border-color var(--px-fast) var(--px-ease-out),
+    box-shadow var(--px-fast) var(--px-ease-out);
+}
+.auth-shell .auth-code-cell:focus {
+  outline: none;
+  border-color: var(--px-accent);
+  box-shadow: 0 0 0 3px var(--px-accent-dim);
+}
+.auth-shell .auth-code-cell-error { border-color: rgba(239, 68, 68, 0.6); }
+
+/* Главное действие — акцентная кнопка системы */
+.auth-shell .auth-cta {
+  background: var(--px-accent);
+  color: #101010;
+  border: 1px solid transparent;
+  border-radius: var(--px-r-btn);
+  height: 54px;
+  font-family: var(--font-mts-wide);
+  font-weight: 700;
+  font-size: 15px;
+  transition:
+    background-color var(--px-fast) var(--px-ease-out),
+    box-shadow var(--px-base) var(--px-ease-out),
+    transform var(--px-base) var(--px-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .auth-shell .auth-cta:hover:not(:disabled) {
+    background: var(--px-accent-hi);
+    box-shadow: var(--px-glow);
+    transform: scale(1.02);
+  }
+}
+.auth-shell .auth-cta:active:not(:disabled) { transform: scale(0.99); }
+.auth-shell .auth-cta:disabled { opacity: 0.5; cursor: not-allowed; }
+.auth-shell .auth-cta:focus-visible { outline: 2px solid var(--px-accent); outline-offset: 3px; }
+
+/* Второстепенное действие */
+.auth-shell .auth-cta-ghost {
+  background: var(--px-surface-2);
+  color: var(--px-text);
+  border: 1px solid var(--px-line);
+  border-radius: var(--px-r-btn);
+  height: 54px;
+  font-family: var(--font-mts-wide);
+  font-weight: 500;
+  font-size: 15px;
+  transition:
+    background-color var(--px-fast) var(--px-ease-out),
+    border-color var(--px-fast) var(--px-ease-out);
+}
+.auth-shell .auth-cta-ghost:hover { background: var(--px-surface); border-color: var(--px-accent); }
+.auth-shell .auth-cta-ghost:focus-visible { outline: 2px solid var(--px-accent); outline-offset: 3px; }
+
+/* Надзаголовок внутри оболочки */
+.auth-shell .dv2-eyebrow {
+  font-family: var(--font-mts-wide);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--px-text-4);
+}
 /* ═══════════════════════════════════════════════════════════════════════
    Dashboard v2 — light shell with white cards and dark accent cards.
 
@@ -3388,3 +3424,8 @@ html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
    странице уже занят кнопкой в карточке Plus. */
 .px-table-featured { background: rgba(255, 255, 255, 0.03); }
 .px-table thead .px-table-featured { color: var(--px-text); font-weight: 700; }
+
+/* Подложка сетки внутри оболочки входа: у .auth-shell нет общего
+   правила позиционирования потомков, поэтому слой объявляется явно. */
+.auth-shell > .px-grid-bg { position: absolute; inset: 0 0 auto 0; z-index: 0; }
+.auth-shell > *:not(.px-grid-bg) { position: relative; z-index: 1; }
