@@ -58,8 +58,57 @@ export function tagForPlan(plan: string | null | undefined): string | null {
   return PLAN_TAG[plan.toLowerCase()] ?? null;
 }
 
+/**
+ * Synthetic-Telegram-ID namespace.
+ *
+ * Remnawave 3.x exposes `GET /api/users/by-telegram-id/{tgId}` — a
+ * lookup that reliably returns exactly ONE record when the tgId is
+ * unique per user. We piggy-back on it: at CREATE time we set
+ * `telegramId = 9_000_000_000 + public_id_num` on every panel user
+ * the site provisions, so no matter what happens to the panel's
+ * `uuid` (integer PK renamed, migration, …) we can always look our
+ * user back up by that synthetic id and get the freshest handles.
+ *
+ * The offset — 9 billion — lives above the entire real Telegram
+ * user-id range (~2.1B for legacy int32, well below 9e9 even for
+ * modern int64 ids), so a synthetic id will never collide with a
+ * real Telegram user's id that a person separately linked. If the
+ * real Telegram-bot integration later assigns a genuine tgId to
+ * the same panel user, it'll overwrite ours — that's the correct
+ * outcome: the real link wins.
+ */
+export const PANEL_SYNTHETIC_TG_OFFSET = 9_000_000_000;
+
+/**
+ * Derive the synthetic tgId from our public_id ("ST00000123" → 9_000_000_123).
+ * Returns null if the input isn't a well-formed ST-prefixed id.
+ */
+export function syntheticTelegramId(publicId: string | null | undefined): number | null {
+  if (!publicId) return null;
+  const m = /^ST(\d+)$/.exec(publicId);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return PANEL_SYNTHETIC_TG_OFFSET + n;
+}
+
 export interface RemnawaveUser {
+  /**
+   * Legacy alias — the "handle" we store in `users.remnawave_user_uuid`
+   * and route GET / DELETE calls with. Historically this was the panel's
+   * external UUID string; on v3+ it's an integer PK. Kept as an opaque
+   * string throughout so callers don't have to know which era wrote it.
+   */
   uuid: string;
+  /**
+   * v3 split the old `uuid` column into `id` (integer PK) and `uuid`
+   * (UUID string). Some 3.x endpoints — notably body-based PATCH —
+   * validate the identifier as UUID-format and reject an integer with
+   * 400. When the panel returns a separate `uuid` field alongside
+   * `id`, we capture it here so PATCH can send the right shape.
+   * Falls back to `null` on 2.x, where there's only the one identifier.
+   */
+  uuidString: string | null;
   shortUuid: string;
   username: string;
   email: string | null;
@@ -125,18 +174,29 @@ export function parseUser(data: any): RemnawaveUser | null {
   // Both handled here with a fallback chain.
   const u = data?.response?.user ?? data?.response ?? data?.user ?? data?.data ?? data;
   if (!u || typeof u !== "object") return null;
-  // v3 dropped the `uuid` column and renamed it to `id` (drop user uuid,
-  // rename user id column — v3.0 release note). Accept both so we can
-  // parse responses from either version without crashing.
+  // v3 split identity: `id` is the integer PK, `uuid` is a separate
+  // UUID string. Depending on the endpoint one or the other is what
+  // the panel expects on the wire. On 2.x there's only one identifier
+  // (either name); v3.3.0 responses include both.
+  //
+  // Our `.uuid` alias keeps the "handle we store in the DB" contract
+  // stable: prefer `id` (works for GET/DELETE against v3), fall back
+  // to `uuid` (works for everything on 2.x).
   const rawId = u.id ?? u.uuid;
   if (rawId == null) return null;
   const id = String(rawId);
+  // Capture the second identifier separately when both are present.
+  // Body-based PATCH on v3 sometimes needs the UUID string
+  // specifically — an integer id gets rejected as "wrong format".
+  const uuidString: string | null =
+    typeof u.uuid === "string" && u.uuid !== id ? u.uuid : null;
   return {
     // Legacy alias — most of our callers still say `.uuid` and store the
     // value in `users.remnawave_user_uuid`. Keep them working; the string
     // stored is now the v3 numeric-ish id, not a UUID, but treated the
     // same by our code (opaque handle).
     uuid: id,
+    uuidString,
     shortUuid: u.shortUuid || u.short_uuid || u.subscriptionUuid || "",
     username: u.username || "",
     email: u.email ?? null,
@@ -233,6 +293,32 @@ export async function getUserByEmail(email: string): Promise<RemnawaveUser | nul
   return null;
 }
 
+/**
+ * Look up a user by telegramId — used as an additional fallback in
+ * syncSubscriptionToPanel when uuid lookups fail.
+ *
+ * The panel endpoint is `GET /api/users/by-telegram-id/{tgId}` and
+ * documented as returning "an array of users OR 404" — because a
+ * real Telegram user can theoretically link multiple panel accounts.
+ * For our synthetic tgIds (namespace 9_000_000_000+) that ambiguity
+ * should never happen — one panel account per site user — so we
+ * pick the first record and log a warning if more than one comes
+ * back.
+ */
+export async function getUserByTelegramId(telegramId: number): Promise<RemnawaveUser | null> {
+  const res = await rwFetch(`/api/users/by-telegram-id/${telegramId}`);
+  if (!res?.ok) return null;
+  const data = await res.json().catch(() => null);
+  const list = extractUserList(data);
+  if (list.length === 0) return null;
+  if (list.length > 1) {
+    console.warn(
+      `[REMNAWAVE] getUserByTelegramId(${telegramId}) returned ${list.length} records — using the first`
+    );
+  }
+  return list[0];
+}
+
 /** Return ALL panel users with matching email — STRICT exact match. */
 export async function getAllUsersByEmail(email: string): Promise<RemnawaveUser[]> {
   const target = email.toLowerCase();
@@ -291,6 +377,17 @@ export async function setUserExpire(
     plan?: string | null;
     /** Free-text panel description; `null` clears. */
     description?: string | null;
+    /** The panel's UUID string when it's known to be different from
+     *  the primary handle. v3+ split identity: `id` (integer PK) is
+     *  what we store as `uuid`; the actual UUID-format string sits in
+     *  the panel's `uuid` field. When we know both, we try both as
+     *  body identifiers so PATCH lands whatever shape zod expects. */
+    uuidString?: string | null;
+    /** Backfill the synthetic telegramId on the panel record. Used
+     *  when we sync an existing legacy user who was created before
+     *  the site started assigning synthetic tgIds — one PATCH heals
+     *  the record so all future syncs can use the tgId lookup path. */
+    telegramId?: number | null;
   }
 ): Promise<RemnawaveUser | null> {
   const safeExpireAt = clampExpireAt(expireAtIso);
@@ -307,48 +404,78 @@ export async function setUserExpire(
     else if (opts.plan === null) extra.tag = null;
   }
   if (opts && "description" in opts) extra.description = opts.description;
+  if (opts && "telegramId" in opts) extra.telegramId = opts.telegramId;
 
-  // Remnawave 3.x renamed the identifier column from `uuid` to `id`.
-  // We keep `uuid` as our internal alias but must send `id` on the
-  // wire for v3. Try `{id,...}` first; fall back to `{uuid,...}` for
-  // panels still on 2.x; final fallback to the URL-in-path shape for
-  // pre-2.x. Only route-not-found (404/405) and bad-request (400,
-  // which fires when the panel rejects an unknown field) trigger the
-  // next variant — real errors surface as-is.
-  const variants: Array<{ path: string; body: Record<string, unknown> }> = [
-    { path: "/api/users", body: { id: uuid, ...extra } },
-    { path: "/api/users", body: { uuid, ...extra } },
-    { path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
-  ];
+  // Try each documented + observed shape in sequence. Every attempt
+  // that ISN'T 200 gets logged verbatim so ops can see exactly what
+  // the panel returned — no more "final HTTP 404" that hides the
+  // real first-attempt response.
+  //
+  // v3.x contract (docs.rw) uses PATCH /api/users with `{uuid,...}`
+  // in the body. Some 3.3.0 builds also accept `{id,...}` because
+  // the panel renamed the column but kept the alias. Older 2.x uses
+  // PATCH /api/users/{uuid}. Beyond that we try PUT variants — some
+  // 3.x forks accept PUT where PATCH is blocked at the proxy layer.
+  const uuidStr = opts?.uuidString ?? null;
+  const variants: Array<{ label: string; method: string; path: string; body: Record<string, unknown> }> = [];
+
+  // If we know the panel's real UUID string (v3 split identity),
+  // prefer it — that's what body-based PATCH validates against.
+  if (uuidStr) {
+    variants.push({ label: "v3 PATCH body{uuid: UUID-string}", method: "PATCH", path: "/api/users", body: { uuid: uuidStr, ...extra } });
+  }
+  variants.push(
+    { label: "v3 PATCH body{uuid: handle}", method: "PATCH", path: "/api/users", body: { uuid, ...extra } },
+    { label: "v3 PATCH body{id: handle}",   method: "PATCH", path: "/api/users", body: { id: uuid, ...extra } },
+    { label: "legacy PATCH url/{id}", method: "PATCH", path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
+    { label: "PUT body{uuid: handle}", method: "PUT", path: "/api/users", body: { uuid, ...extra } },
+    { label: "PUT url/{id}",           method: "PUT", path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
+  );
+  if (uuidStr) {
+    variants.push(
+      { label: "PUT body{uuid: UUID-string}", method: "PUT", path: "/api/users", body: { uuid: uuidStr, ...extra } },
+      { label: "PUT url/{uuid: UUID-string}", method: "PUT", path: `/api/users/${encodeURIComponent(uuidStr)}`, body: { ...extra } },
+    );
+  }
 
   let lastStatus = 0;
   let lastBodyText = "";
+  const attemptLog: string[] = [];
 
   for (const variant of variants) {
     const res = await rwFetch(variant.path, {
-      method: "PATCH",
+      method: variant.method,
       body: JSON.stringify(variant.body),
     });
-    if (!res) continue;
+    if (!res) {
+      attemptLog.push(`${variant.label}: no response (panel unreachable / no token)`);
+      continue;
+    }
     if (res.ok) {
       const data = await res.json().catch(() => null);
       const parsed = parseUser(data);
-      if (parsed) return parsed;
+      if (parsed) {
+        console.log(`[REMNAWAVE] setUserExpire succeeded via ${variant.label} for uuid=${uuid.slice(0, 12)}…`);
+        return parsed;
+      }
+      attemptLog.push(`${variant.label}: 200 but empty parse`);
+      continue;
     }
-    lastStatus = res?.status || 0;
+    lastStatus = res.status || 0;
     lastBodyText = await res.text().catch(() => "");
-    // 404/405 = wrong endpoint, 400 = unknown-field rejection —
-    // both merit trying the next variant. Anything else is real.
-    if (res.status !== 404 && res.status !== 405 && res.status !== 400) break;
+    attemptLog.push(`${variant.label}: ${res.status} ${lastBodyText.slice(0, 150)}`);
+    // Retry-next on any "route/shape doesn't fit here" class of
+    // error. 404 = wrong route/id, 405 = method not allowed, 400 =
+    // schema rejection, 422 = validation error.
+    if (![404, 405, 400, 422].includes(res.status)) break;
   }
 
-  lastRwError = `PATCH user ${uuid.slice(0, 8)}… → HTTP ${lastStatus} ${lastBodyText.slice(0, 200)}`;
+  lastRwError =
+    `PATCH user ${uuid.slice(0, 12)}… — all ${variants.length} variants failed:\n  ` +
+    attemptLog.join("\n  ");
   console.warn(
-    "[REMNAWAVE] setUserExpire failed:",
-    lastStatus,
-    "expireAt=",
-    safeExpireAt,
-    lastBodyText.slice(0, 300)
+    `[REMNAWAVE] setUserExpire FAILED for uuid=${uuid.slice(0, 12)}… expireAt=${safeExpireAt}\n` +
+    attemptLog.map((l) => `  ${l}`).join("\n")
   );
   return null;
 }
@@ -567,15 +694,22 @@ export async function createUserWithExpire(
     const updated = await setUserExpire(existing.uuid, safeExpireAt, {
       status: "ACTIVE",
       plan,
+      uuidString: existing.uuidString ?? undefined,
     });
     return updated || existing;
   }
 
   const tag = tagForPlan(plan);
+  // Every panel user we create gets a synthetic telegramId in the
+  // 9-billion namespace derived from public_id. This gives us a
+  // second identifier we can look the user up by later — useful
+  // when the panel's `uuid` field drifts (v3 migrations, renamings)
+  // and body-based PATCH starts rejecting our cached handle.
+  const syntheticTgId = syntheticTelegramId(panelId ?? username);
   const body: Record<string, unknown> = {
     username,
     email,
-    telegramId: null,
+    telegramId: syntheticTgId,
     expireAt: safeExpireAt,
     status: "ACTIVE",
     trafficLimitBytes: 0,
@@ -613,6 +747,7 @@ export async function createUserWithExpire(
       const updated = await setUserExpire(raceWinner.uuid, safeExpireAt, {
         status: "ACTIVE",
         plan,
+        uuidString: raceWinner.uuidString ?? undefined,
       });
       return updated || raceWinner;
     }

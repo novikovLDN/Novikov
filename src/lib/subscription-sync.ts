@@ -27,6 +27,8 @@ import {
   encryptHappLink,
   getUser,
   getUserByUsername,
+  getUserByTelegramId,
+  syntheticTelegramId,
   getLastRwError,
   RemnawaveUser,
 } from "./remnawave";
@@ -238,10 +240,27 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
     log("info", userId, `have uuid=${user.remnawaveUserUuid.slice(0, 8)}…, checking panel`);
     const live = await getUser(user.remnawaveUserUuid);
     if (live) {
-      log("info", userId, "panel user exists, patching expireAt + plan tag + status");
+      log(
+        "info",
+        userId,
+        `panel user exists (uuidString=${live.uuidString ? live.uuidString.slice(0, 12) + "…" : "—"}, tgId=${live.telegramId ?? "—"}), patching expireAt + plan tag + status`
+      );
+      // Backfill the synthetic tgId only when the panel record has
+      // no telegramId at all — never overwrite a real Telegram
+      // user's id that a person separately linked. Keeps the
+      // synthetic-namespace approach compatible with real Telegram
+      // bot integration if it ever gets added.
+      const backfillTgId = live.telegramId == null ? syntheticTelegramId(publicId) : null;
       const updated = await setUserExpire(user.remnawaveUserUuid, expireIso, {
         status: desiredStatus,
         plan: user.subscriptionPlan || "trial",
+        // Pass v3's UUID-string handle (from live GET) so setUserExpire
+        // can try `{uuid: <UUID>, ...}` — some 3.x builds validate the
+        // body identifier as UUID-format and reject integer PKs.
+        uuidString: live.uuidString ?? undefined,
+        // Send tgId only when there's a value to backfill. `undefined`
+        // means "don't touch the field", `null` would clear a real one.
+        ...(backfillTgId !== null ? { telegramId: backfillTgId } : {}),
       });
       if (updated) {
         // Refresh cached subscriptionUrl + panel_username in case
@@ -276,8 +295,50 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
           panelUsername: finalUser.username || null,
         };
       }
-      const panelError = getLastRwError() || undefined;
-      log("warn", userId, "PATCH failed", panelError ? { panelError } : undefined);
+      // PATCH failed with the cached handle. Before giving up, try
+      // to re-discover the same panel user via the two secondary
+      // lookups — tgId then username. Either returns a fresh
+      // RemnawaveUser with the panel's current `uuid` string, which
+      // may unblock the body-based PATCH (v3.x sometimes rejects a
+      // stale integer identifier).
+      const cachedPatchError = getLastRwError() || undefined;
+      log("warn", userId, "PATCH via cached handle failed — trying tgId / username re-discovery", cachedPatchError ? { cachedPatchError } : undefined);
+
+      let rediscovered: RemnawaveUser | null = null;
+      const tgId = syntheticTelegramId(publicId);
+      if (tgId !== null) {
+        rediscovered = await getUserByTelegramId(tgId);
+        if (rediscovered) log("info", userId, `re-discovered by tgId=${tgId} → uuid=${rediscovered.uuid} uuidString=${rediscovered.uuidString ?? "—"}`);
+      }
+      if (!rediscovered) {
+        rediscovered = await getUserByUsername(publicId);
+        if (rediscovered) log("info", userId, `re-discovered by username=${publicId} → uuid=${rediscovered.uuid} uuidString=${rediscovered.uuidString ?? "—"}`);
+      }
+
+      if (rediscovered) {
+        const retry = await setUserExpire(rediscovered.uuid, expireIso, {
+          status: desiredStatus,
+          plan: user.subscriptionPlan || "trial",
+          uuidString: rediscovered.uuidString ?? undefined,
+        });
+        if (retry) {
+          const happLink = await encryptHappLink(retry.subscriptionUrl).catch(() => null);
+          await persistPanelUser(userId, retry, happLink);
+          log("info", userId, `patched via re-discovered handle in ${Date.now() - t0}ms`);
+          return {
+            ok: true,
+            publicId,
+            uuid: retry.uuid,
+            subscriptionUrl: retry.subscriptionUrl,
+            expireAt: retry.expireAt,
+            action: "patched",
+            panelUsername: retry.username || null,
+          };
+        }
+      }
+
+      const panelError = getLastRwError() || cachedPatchError;
+      log("error", userId, "PATCH failed after re-discovery too", panelError ? { panelError } : undefined);
       return {
         ok: false,
         publicId,
@@ -305,9 +366,18 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
     if (refreshed) user = refreshed;
   }
 
-  // ─── Look up by public_id (username) in case panel already has us ───
-  log("info", userId, `lookup panel by username=${publicId}`);
-  const existing = await getUserByUsername(publicId);
+  // ─── Look up in the panel — try tgId first (fastest single-shot
+  //     endpoint), fall back to username (multi-URL scan) ───
+  const tgIdForLookup = syntheticTelegramId(publicId);
+  let existing: RemnawaveUser | null = null;
+  if (tgIdForLookup !== null) {
+    log("info", userId, `lookup panel by tgId=${tgIdForLookup}`);
+    existing = await getUserByTelegramId(tgIdForLookup);
+  }
+  if (!existing) {
+    log("info", userId, `lookup panel by username=${publicId}`);
+    existing = await getUserByUsername(publicId);
+  }
   if (existing?.uuid) {
     log("info", userId, `found existing panel user uuid=${existing.uuid.slice(0, 8)}…, adopting`);
     // Conflict check
@@ -322,6 +392,7 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
     const patched = await setUserExpire(existing.uuid, expireIso, {
       status: desiredStatus,
       plan: user.subscriptionPlan || "trial",
+      uuidString: existing.uuidString ?? undefined,
     });
     const finalUser = patched || existing;
     const happLink = await encryptHappLink(finalUser.subscriptionUrl).catch(() => null);

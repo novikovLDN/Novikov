@@ -27,6 +27,7 @@ function localOk(overrides: Partial<{
 function panelOk(overrides: Partial<RemnawaveUser> = {}): RemnawaveUser {
   return {
     uuid: "uuid-123",
+    uuidString: null,
     shortUuid: "s123",
     username: "ST00000001",
     email: "u@x",
