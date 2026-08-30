@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import SiteHeader from "@/components/pixel/SiteHeader";
+import SiteFooter from "@/components/pixel/SiteFooter";
+import Icon from "@/components/pixel/Icon";
 
 /**
  * /support — quick access to support channels (Telegram + VK).
@@ -14,38 +17,23 @@ export default function Support() {
   const router = useRouter();
 
   return (
-    <div className="min-h-dvh bg-[#f5f5f0] text-black flex flex-col font-mts-wide">
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
-        <button
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-1.5 text-[14px] text-black/60 hover:text-black transition-colors"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+    <div className="px-page">
+      <div className="px-grid-bg" aria-hidden />
+      <SiteHeader />
+      <div className="px-header-spacer" aria-hidden />
+
+      <div className="flex-1 px-shell max-w-[600px] pt-8 pb-16 sm:pt-12 sm:pb-24">
+        <button type="button" onClick={() => router.back()} className="px-chip mb-10">
+          <Icon name="arrow-right" size={14} className="rotate-180" />
           Назад
         </button>
-        <Link href="/" className="flex items-center gap-2">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
-        </Link>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 px-5 sm:px-8 py-16 sm:py-24 max-w-[560px] mx-auto w-full">
-        <div className="text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">
+        <div className="text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">
           Поддержка
         </div>
         <h1 className="text-[36px] sm:text-[48px] lg:text-[56px] leading-[1.02] tracking-tight font-bold mb-4">
           Нужна помощь?
         </h1>
-        <p className="text-[15px] sm:text-[16px] leading-[1.5] text-black/55 mb-10 max-w-[40ch]">
+        <p className="text-[15px] sm:text-[16px] leading-[1.5] text-[color:var(--px-text-3)] mb-10 max-w-[40ch]">
           Мы всегда на связи и готовы помочь с любыми вопросами по настройке и работе сервиса.
         </p>
 
@@ -54,7 +42,7 @@ export default function Support() {
           href="https://t.me/atlas_suppbot"
           target="_blank"
           rel="noopener noreferrer"
-          className="block bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6 mb-3 hover:border-black/[0.15] hover:-translate-y-0.5 transition-all"
+          className="block bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6 mb-3 hover:border-[color:var(--px-line-2)] hover:-translate-y-0.5 transition-all"
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#2AABEE]/12 flex items-center justify-center shrink-0">
@@ -64,9 +52,9 @@ export default function Support() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[16px] sm:text-[17px] font-bold">Telegram</div>
-              <div className="text-[13px] text-black/55 mt-0.5">Быстрый ответ в чате поддержки</div>
+              <div className="text-[13px] text-[color:var(--px-text-3)] mt-0.5">Быстрый ответ в чате поддержки</div>
             </div>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-black/30 shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-[color:var(--px-text)]/30 shrink-0">
               <path d="M7 17l10-10M7 7h10v10" />
             </svg>
           </div>
@@ -77,7 +65,7 @@ export default function Support() {
           href="https://vk.com/atlassecure"
           target="_blank"
           rel="noopener noreferrer"
-          className="block bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6 mb-6 hover:border-black/[0.15] hover:-translate-y-0.5 transition-all"
+          className="block bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6 mb-6 hover:border-[color:var(--px-line-2)] hover:-translate-y-0.5 transition-all"
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#0077FF]/12 flex items-center justify-center shrink-0">
@@ -87,27 +75,22 @@ export default function Support() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[16px] sm:text-[17px] font-bold">ВКонтакте</div>
-              <div className="text-[13px] text-black/55 mt-0.5">Сообщество Atlas Secure</div>
+              <div className="text-[13px] text-[color:var(--px-text-3)] mt-0.5">Сообщество Atlas Secure</div>
             </div>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-black/30 shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-[color:var(--px-text)]/30 shrink-0">
               <path d="M7 17l10-10M7 7h10v10" />
             </svg>
           </div>
         </a>
 
-        <div className="bg-black/[0.03] rounded-2xl p-4 sm:p-5 text-center">
-          <p className="text-[13px] leading-relaxed text-black/60">
+        <div className="bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] rounded-2xl p-4 sm:p-5 text-center">
+          <p className="text-[13px] leading-relaxed text-[color:var(--px-text-3)]">
             Самый быстрый способ получить помощь — написать в Telegram. Отвечаем в течение часа даже ночью.
           </p>
         </div>
       </div>
 
-      {/* Bottom mini-footer */}
-      <div className="px-5 sm:px-8 pb-8 pt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-[12px] text-black/40">
-        <Link href="/terms"   className="hover:text-black/70 transition-colors">Условия</Link>
-        <Link href="/privacy" className="hover:text-black/70 transition-colors">Приватность</Link>
-        <Link href="/contact" className="hover:text-black/70 transition-colors">Контакты</Link>
-      </div>
+      <SiteFooter />
     </div>
   );
 }

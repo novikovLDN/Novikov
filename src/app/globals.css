@@ -3429,3 +3429,7 @@ html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
    правила позиционирования потомков, поэтому слой объявляется явно. */
 .auth-shell > .px-grid-bg { position: absolute; inset: 0 0 auto 0; z-index: 0; }
 .auth-shell > *:not(.px-grid-bg) { position: relative; z-index: 1; }
+
+/* Разделитель под фиксированной шапкой: без него первый экран каждой
+   страницы уезжает под неё. */
+.px-header-spacer { height: var(--px-header-h); flex-shrink: 0; }
