@@ -31,6 +31,10 @@ import {
   setUserExpire,
   encryptHappLink,
   deleteUser,
+  tagForPlan,
+  activateUser,
+  disableUser,
+  revokeUserSubscription,
 } from "../remnawave";
 
 // ─── fetch mock helpers ─────────────────────────────────────────
@@ -335,6 +339,101 @@ describe("setUserExpire (v3 PATCH /api/users with {id, expireAt}, fallbacks)", (
     const rw = await setUserExpire("x", new Date(Date.now() + 86400000).toISOString());
     expect(rw).toBeNull();
     expect(calls).toHaveLength(1);
+  });
+
+  it("passes plan tag + explicit ACTIVE status to the PATCH body when opts are provided", async () => {
+    const expire = new Date(Date.now() + 30 * 86400000).toISOString();
+    mockOk({ response: { id: 99, username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub", status: "ACTIVE", tag: "PLUS" } });
+
+    const rw = await setUserExpire("99", expire, { status: "ACTIVE", plan: "plus" });
+    expect(rw!.uuid).toBe("99");
+    const body = calls[0].body as Record<string, unknown>;
+    expect(body.id).toBe("99");
+    expect(body.status).toBe("ACTIVE");
+    expect(body.tag).toBe("PLUS");
+  });
+
+  it("omits tag when plan is not provided (renewal without plan change)", async () => {
+    const expire = new Date(Date.now() + 86400000).toISOString();
+    mockOk({ response: { id: 7, username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
+
+    await setUserExpire("7", expire);
+    const body = calls[0].body as Record<string, unknown>;
+    expect("tag" in body).toBe(false);
+    expect("status" in body).toBe(false);
+  });
+
+  it("maps plan slugs to uppercase tags", () => {
+    expect(tagForPlan("trial")).toBe("TRIAL");
+    expect(tagForPlan("basic")).toBe("BASIC");
+    expect(tagForPlan("plus")).toBe("PLUS");
+    expect(tagForPlan(null)).toBeNull();
+    expect(tagForPlan("")).toBeNull();
+    expect(tagForPlan("unknown_plan")).toBeNull();
+  });
+});
+
+// ─── createUserWithExpire: plan tag on POST ─────────────────────
+
+describe("createUserWithExpire — plan tag", () => {
+  it("sends the tag field derived from the plan slug on CREATE", async () => {
+    mockStatus(404); mockStatus(404); mockStatus(404); mockStatus(404);
+    mockOk({ response: { id: 200, username: "ST00000200", email: "u@x", shortUuid: "s", subscriptionUrl: "sub", tag: "BASIC" } });
+
+    const expire = new Date(Date.now() + 30 * 86400000).toISOString();
+    await createUserWithExpire("u@x", expire, "test", "ST00000200", "basic");
+
+    const post = calls.find((c) => c.method === "POST" && c.url.endsWith("/api/users"));
+    expect(post).toBeDefined();
+    const body = post!.body as Record<string, unknown>;
+    expect(body.tag).toBe("BASIC");
+    expect(body.status).toBe("ACTIVE");
+    expect(body.trafficLimitBytes).toBe(0);
+    expect(body.trafficLimitStrategy).toBe("NO_RESET");
+    expect(body.activeInternalSquads).toEqual(["squad-uuid-xyz"]);
+  });
+
+  it("omits tag when no plan is passed (legacy call sites)", async () => {
+    mockStatus(404); mockStatus(404); mockStatus(404); mockStatus(404);
+    mockOk({ response: { id: 201, username: "ST00000201", email: "u@x", shortUuid: "s", subscriptionUrl: "sub" } });
+
+    await createUserWithExpire("u@x", new Date(Date.now() + 86400000).toISOString(), "test", "ST00000201");
+    const post = calls.find((c) => c.method === "POST" && c.url.endsWith("/api/users"));
+    const body = post!.body as Record<string, unknown>;
+    expect("tag" in body).toBe(false);
+    // status:ACTIVE is unconditional — new panel users must be active
+    expect(body.status).toBe("ACTIVE");
+  });
+});
+
+// ─── action endpoints: enable / disable / revoke ────────────────
+
+describe("action endpoints", () => {
+  it("activateUser POSTs /api/users/{uuid}/actions/enable and returns parsed user", async () => {
+    mockOk({ response: { id: 10, username: "u", email: null, expireAt: "", shortUuid: "s", subscriptionUrl: "sub", status: "ACTIVE" } });
+    const rw = await activateUser("10");
+    expect(rw!.status).toBe("ACTIVE");
+    expect(calls[0].method).toBe("POST");
+    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/10/actions/enable");
+  });
+
+  it("disableUser POSTs /api/users/{uuid}/actions/disable and returns parsed user", async () => {
+    mockOk({ response: { id: 11, username: "u", email: null, expireAt: "", shortUuid: "s", subscriptionUrl: "sub", status: "DISABLED" } });
+    const rw = await disableUser("11");
+    expect(rw!.status).toBe("DISABLED");
+    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/11/actions/disable");
+  });
+
+  it("revokeUserSubscription POSTs /api/users/{uuid}/actions/revoke", async () => {
+    mockOk({ response: { id: 12, username: "u", email: null, expireAt: "", shortUuid: "new-s", subscriptionUrl: "new-sub" } });
+    const rw = await revokeUserSubscription("12");
+    expect(rw!.subscriptionUrl).toBe("new-sub");
+    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/12/actions/revoke");
+  });
+
+  it("returns null when panel replies with an error", async () => {
+    mockStatus(500);
+    expect(await activateUser("x")).toBeNull();
   });
 });
 

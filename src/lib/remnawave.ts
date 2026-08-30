@@ -29,6 +29,35 @@ const MAX_RETRIES = 2;
 let lastRwError: string | null = null;
 export function getLastRwError(): string | null { return lastRwError; }
 
+/**
+ * Plan → panel tag map.
+ *
+ * Remnawave 3.x `tag` field is `^[A-Z0-9_]+$`, max 16 chars. Setting
+ * it means the admin sees "TRIAL / BASIC / PLUS" in the panel next to
+ * every user — no more guessing which local plan a panel record maps
+ * to. Only three values so the mapping is exhaustive.
+ */
+const PLAN_TAG: Record<string, string> = {
+  trial: "TRIAL",
+  basic: "BASIC",
+  plus: "PLUS",
+};
+
+/**
+ * Panel-visible status of a user account.
+ *
+ * The panel manages EXPIRED / LIMITED transitions internally (once
+ * expireAt or trafficLimitBytes is crossed) — PATCH /api/users only
+ * accepts ACTIVE | DISABLED as an operator-driven state. That's why
+ * we use one of those two here.
+ */
+export type RemnawaveStatus = "ACTIVE" | "DISABLED" | "LIMITED" | "EXPIRED";
+
+export function tagForPlan(plan: string | null | undefined): string | null {
+  if (!plan) return null;
+  return PLAN_TAG[plan.toLowerCase()] ?? null;
+}
+
 export interface RemnawaveUser {
   uuid: string;
   shortUuid: string;
@@ -38,8 +67,12 @@ export interface RemnawaveUser {
   expireAt: string;
   trafficLimitBytes: number;
   usedTrafficBytes: number;
-  status: string;
+  status: RemnawaveStatus | string;
   vlessUuid?: string;
+  tag?: string | null;
+  description?: string | null;
+  telegramId?: number | null;
+  hwidDeviceLimit?: number | null;
 }
 
 /** Fetch with timeout + retry + exponential backoff. */
@@ -119,6 +152,10 @@ export function parseUser(data: any): RemnawaveUser | null {
     ),
     status: u.status || "ACTIVE",
     vlessUuid: u.vlessUuid || u.vless_uuid,
+    tag: u.tag ?? null,
+    description: u.description ?? null,
+    telegramId: u.telegramId ?? u.telegram_id ?? null,
+    hwidDeviceLimit: u.hwidDeviceLimit ?? u.hwid_device_limit ?? null,
   };
 }
 
@@ -238,11 +275,38 @@ export async function getAllUsersByEmail(email: string): Promise<RemnawaveUser[]
  * an immediate revoke, so we clamp to `now + 30s` rather than skip —
  * the panel auto-disables once it ticks past.
  */
-export async function setUserExpire(uuid: string, expireAtIso: string): Promise<RemnawaveUser | null> {
+export async function setUserExpire(
+  uuid: string,
+  expireAtIso: string,
+  opts?: {
+    /** ACTIVE reactivates a user the panel had auto-transitioned to
+     *  EXPIRED or LIMITED. Send it on every renewal so a user who
+     *  paid AFTER their expiry actually gets their key working again
+     *  — pushing expireAt alone doesn't flip status back on 3.x.
+     *  DISABLED lets an admin freeze an account without deleting. */
+    status?: "ACTIVE" | "DISABLED";
+    /** Plan slug ("trial" | "basic" | "plus"). Maps to a `tag` on the
+     *  panel side so an admin sees which plan each user is on at a
+     *  glance. Pass `null` explicitly to clear. */
+    plan?: string | null;
+    /** Free-text panel description; `null` clears. */
+    description?: string | null;
+  }
+): Promise<RemnawaveUser | null> {
   const safeExpireAt = clampExpireAt(expireAtIso);
   if (safeExpireAt !== expireAtIso) {
     console.log("[REMNAWAVE] setUserExpire: clamped past expireAt", expireAtIso, "→", safeExpireAt);
   }
+
+  const extra: Record<string, unknown> = { expireAt: safeExpireAt };
+  if (opts?.status) extra.status = opts.status;
+  if (opts && "plan" in opts) {
+    // `plan` was explicitly passed — set or clear the tag accordingly.
+    const t = tagForPlan(opts.plan);
+    if (t !== null) extra.tag = t;
+    else if (opts.plan === null) extra.tag = null;
+  }
+  if (opts && "description" in opts) extra.description = opts.description;
 
   // Remnawave 3.x renamed the identifier column from `uuid` to `id`.
   // We keep `uuid` as our internal alias but must send `id` on the
@@ -252,9 +316,9 @@ export async function setUserExpire(uuid: string, expireAtIso: string): Promise<
   // which fires when the panel rejects an unknown field) trigger the
   // next variant — real errors surface as-is.
   const variants: Array<{ path: string; body: Record<string, unknown> }> = [
-    { path: "/api/users", body: { id: uuid, expireAt: safeExpireAt } },
-    { path: "/api/users", body: { uuid, expireAt: safeExpireAt } },
-    { path: `/api/users/${encodeURIComponent(uuid)}`, body: { expireAt: safeExpireAt } },
+    { path: "/api/users", body: { id: uuid, ...extra } },
+    { path: "/api/users", body: { uuid, ...extra } },
+    { path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
   ];
 
   let lastStatus = 0;
@@ -287,6 +351,49 @@ export async function setUserExpire(uuid: string, expireAtIso: string): Promise<
     lastBodyText.slice(0, 300)
   );
   return null;
+}
+
+/**
+ * Explicit action endpoints — POST /api/users/{uuid}/actions/…
+ *
+ * PATCH-with-status covers most cases (reactivate on renewal, freeze
+ * on operator action). These action endpoints are the belt-and-braces
+ * form the panel documents for the same transitions — one-shot POST
+ * that returns the full user object.
+ *
+ * Kept as separate helpers because ops sometimes wants a hard toggle
+ * without touching any of the user's other fields.
+ */
+export async function activateUser(uuid: string): Promise<RemnawaveUser | null> {
+  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}/actions/enable`, {
+    method: "POST",
+  });
+  if (!res?.ok) return null;
+  const data = await res.json().catch(() => null);
+  return parseUser(data);
+}
+
+export async function disableUser(uuid: string): Promise<RemnawaveUser | null> {
+  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}/actions/disable`, {
+    method: "POST",
+  });
+  if (!res?.ok) return null;
+  const data = await res.json().catch(() => null);
+  return parseUser(data);
+}
+
+/**
+ * Revoke a user's subscription — panel rotates the subscription URL /
+ * short UUID so any client with the old URL immediately stops working
+ * (needed when a device is lost / password reset / suspicious activity).
+ */
+export async function revokeUserSubscription(uuid: string): Promise<RemnawaveUser | null> {
+  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}/actions/revoke`, {
+    method: "POST",
+  });
+  if (!res?.ok) return null;
+  const data = await res.json().catch(() => null);
+  return parseUser(data);
 }
 
 /**
@@ -437,7 +544,8 @@ export async function createUserWithExpire(
   email: string,
   expireAtIso: string,
   description?: string,
-  panelId?: string | null
+  panelId?: string | null,
+  plan?: string | null
 ): Promise<RemnawaveUser | null> {
   const username = (panelId && panelId.trim()) || email.replace(/[^a-z0-9_-]/gi, "_").slice(0, 32);
 
@@ -452,15 +560,24 @@ export async function createUserWithExpire(
 
   const existing = await getUserByUsername(username);
   if (existing?.uuid) {
-    const updated = await setUserExpire(existing.uuid, safeExpireAt);
+    // Adoption path: user already exists in the panel with our
+    // username. Sync BOTH expireAt AND plan-derived tag/status so the
+    // adopted record reflects the current local plan, not whatever
+    // stale state the panel had.
+    const updated = await setUserExpire(existing.uuid, safeExpireAt, {
+      status: "ACTIVE",
+      plan,
+    });
     return updated || existing;
   }
 
-  const body = {
+  const tag = tagForPlan(plan);
+  const body: Record<string, unknown> = {
     username,
     email,
     telegramId: null,
     expireAt: safeExpireAt,
+    status: "ACTIVE",
     trafficLimitBytes: 0,
     trafficLimitStrategy: "NO_RESET",
     // v3 dropped `internalSquads` — validator rejects unknown fields
@@ -470,6 +587,7 @@ export async function createUserWithExpire(
     activeInternalSquads: [MAIN_SQUAD],
     description: description || "atlas-secure site",
   };
+  if (tag !== null) body.tag = tag;
 
   const res = await rwFetch("/api/users", { method: "POST", body: JSON.stringify(body) });
   if (!res) return null;
@@ -492,7 +610,10 @@ export async function createUserWithExpire(
     // be that other service's user — which we must not modify.
     const raceWinner = await getUserByUsername(username);
     if (raceWinner?.uuid) {
-      const updated = await setUserExpire(raceWinner.uuid, safeExpireAt);
+      const updated = await setUserExpire(raceWinner.uuid, safeExpireAt, {
+        status: "ACTIVE",
+        plan,
+      });
       return updated || raceWinner;
     }
   }
@@ -505,7 +626,7 @@ export async function createUserWithExpire(
 /** 24h unlimited trial wrapper. */
 export async function createTrialUser(email: string, panelId?: string | null): Promise<RemnawaveUser | null> {
   const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-  return createUserWithExpire(email, expireAt, "site signup, trial 1d unlimited", panelId);
+  return createUserWithExpire(email, expireAt, "site signup, trial 1d unlimited", panelId, "trial");
 }
 
 export const REMNAWAVE_CONFIG = {

@@ -225,15 +225,24 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
   const panelTargetMs =
     localEndMs <= nowMs ? nowMs + 24 * 60 * 60 * 1000 : localEndMs;
   const expireIso = new Date(panelTargetMs).toISOString();
-  log("info", userId, `target expireAt=${expireIso} (subscription_end)`);
+  // Explicit ACTIVE reactivates a user the panel had auto-transitioned
+  // to EXPIRED / LIMITED on prior expiry. When local subscription_end
+  // is in the future we WANT the user's key to work — pushing expireAt
+  // alone doesn't flip a panel-side EXPIRED back to ACTIVE on 3.x.
+  const desiredStatus: "ACTIVE" | undefined =
+    localEndMs > nowMs ? "ACTIVE" : undefined;
+  log("info", userId, `target expireAt=${expireIso} plan=${user.subscriptionPlan || "trial"} status=${desiredStatus ?? "(unchanged)"}`);
 
   // ─── Have a UUID? Try PATCH first ───
   if (user.remnawaveUserUuid) {
     log("info", userId, `have uuid=${user.remnawaveUserUuid.slice(0, 8)}…, checking panel`);
     const live = await getUser(user.remnawaveUserUuid);
     if (live) {
-      log("info", userId, "panel user exists, patching expireAt");
-      const updated = await setUserExpire(user.remnawaveUserUuid, expireIso);
+      log("info", userId, "panel user exists, patching expireAt + plan tag + status");
+      const updated = await setUserExpire(user.remnawaveUserUuid, expireIso, {
+        status: desiredStatus,
+        plan: user.subscriptionPlan || "trial",
+      });
       if (updated) {
         // Refresh cached subscriptionUrl + panel_username in case
         // either changed since last sync.
@@ -310,7 +319,10 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
       log("error", userId, `uuid ${existing.uuid.slice(0, 8)}… already owned by ${conflict.rows[0].email}`);
       return { ok: false, publicId, uuid: existing.uuid, subscriptionUrl: existing.subscriptionUrl, expireAt: null, action: "failed", reason: "persist_conflict" };
     }
-    const patched = await setUserExpire(existing.uuid, expireIso);
+    const patched = await setUserExpire(existing.uuid, expireIso, {
+      status: desiredStatus,
+      plan: user.subscriptionPlan || "trial",
+    });
     const finalUser = patched || existing;
     const happLink = await encryptHappLink(finalUser.subscriptionUrl).catch(() => null);
     await persistPanelUser(userId, finalUser, happLink);
@@ -327,8 +339,14 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
   }
 
   // ─── Create fresh ───
-  log("info", userId, `creating new panel user with username=${publicId}`);
-  const rwUser = await createUserWithExpire(user.email, expireIso, `atlas-secure site (${publicId})`, publicId);
+  log("info", userId, `creating new panel user with username=${publicId} plan=${user.subscriptionPlan || "trial"}`);
+  const rwUser = await createUserWithExpire(
+    user.email,
+    expireIso,
+    `atlas-secure site (${publicId})`,
+    publicId,
+    user.subscriptionPlan || "trial"
+  );
   if (!rwUser) {
     const panelError = getLastRwError() || undefined;
     log("error", userId, "createUser failed", panelError ? { panelError } : undefined);
