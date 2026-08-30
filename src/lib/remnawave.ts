@@ -59,7 +59,22 @@ export function tagForPlan(plan: string | null | undefined): string | null {
 }
 
 export interface RemnawaveUser {
+  /**
+   * Legacy alias — the "handle" we store in `users.remnawave_user_uuid`
+   * and route GET / DELETE calls with. Historically this was the panel's
+   * external UUID string; on v3+ it's an integer PK. Kept as an opaque
+   * string throughout so callers don't have to know which era wrote it.
+   */
   uuid: string;
+  /**
+   * v3 split the old `uuid` column into `id` (integer PK) and `uuid`
+   * (UUID string). Some 3.x endpoints — notably body-based PATCH —
+   * validate the identifier as UUID-format and reject an integer with
+   * 400. When the panel returns a separate `uuid` field alongside
+   * `id`, we capture it here so PATCH can send the right shape.
+   * Falls back to `null` on 2.x, where there's only the one identifier.
+   */
+  uuidString: string | null;
   shortUuid: string;
   username: string;
   email: string | null;
@@ -125,18 +140,29 @@ export function parseUser(data: any): RemnawaveUser | null {
   // Both handled here with a fallback chain.
   const u = data?.response?.user ?? data?.response ?? data?.user ?? data?.data ?? data;
   if (!u || typeof u !== "object") return null;
-  // v3 dropped the `uuid` column and renamed it to `id` (drop user uuid,
-  // rename user id column — v3.0 release note). Accept both so we can
-  // parse responses from either version without crashing.
+  // v3 split identity: `id` is the integer PK, `uuid` is a separate
+  // UUID string. Depending on the endpoint one or the other is what
+  // the panel expects on the wire. On 2.x there's only one identifier
+  // (either name); v3.3.0 responses include both.
+  //
+  // Our `.uuid` alias keeps the "handle we store in the DB" contract
+  // stable: prefer `id` (works for GET/DELETE against v3), fall back
+  // to `uuid` (works for everything on 2.x).
   const rawId = u.id ?? u.uuid;
   if (rawId == null) return null;
   const id = String(rawId);
+  // Capture the second identifier separately when both are present.
+  // Body-based PATCH on v3 sometimes needs the UUID string
+  // specifically — an integer id gets rejected as "wrong format".
+  const uuidString: string | null =
+    typeof u.uuid === "string" && u.uuid !== id ? u.uuid : null;
   return {
     // Legacy alias — most of our callers still say `.uuid` and store the
     // value in `users.remnawave_user_uuid`. Keep them working; the string
     // stored is now the v3 numeric-ish id, not a UUID, but treated the
     // same by our code (opaque handle).
     uuid: id,
+    uuidString,
     shortUuid: u.shortUuid || u.short_uuid || u.subscriptionUuid || "",
     username: u.username || "",
     email: u.email ?? null,
@@ -291,6 +317,12 @@ export async function setUserExpire(
     plan?: string | null;
     /** Free-text panel description; `null` clears. */
     description?: string | null;
+    /** The panel's UUID string when it's known to be different from
+     *  the primary handle. v3+ split identity: `id` (integer PK) is
+     *  what we store as `uuid`; the actual UUID-format string sits in
+     *  the panel's `uuid` field. When we know both, we try both as
+     *  body identifiers so PATCH lands whatever shape zod expects. */
+    uuidString?: string | null;
   }
 ): Promise<RemnawaveUser | null> {
   const safeExpireAt = clampExpireAt(expireAtIso);
@@ -318,13 +350,27 @@ export async function setUserExpire(
   // the panel renamed the column but kept the alias. Older 2.x uses
   // PATCH /api/users/{uuid}. Beyond that we try PUT variants — some
   // 3.x forks accept PUT where PATCH is blocked at the proxy layer.
-  const variants: Array<{ label: string; method: string; path: string; body: Record<string, unknown> }> = [
-    { label: "v3 PATCH body{uuid}", method: "PATCH", path: "/api/users", body: { uuid, ...extra } },
-    { label: "v3 PATCH body{id}",   method: "PATCH", path: "/api/users", body: { id: uuid, ...extra } },
+  const uuidStr = opts?.uuidString ?? null;
+  const variants: Array<{ label: string; method: string; path: string; body: Record<string, unknown> }> = [];
+
+  // If we know the panel's real UUID string (v3 split identity),
+  // prefer it — that's what body-based PATCH validates against.
+  if (uuidStr) {
+    variants.push({ label: "v3 PATCH body{uuid: UUID-string}", method: "PATCH", path: "/api/users", body: { uuid: uuidStr, ...extra } });
+  }
+  variants.push(
+    { label: "v3 PATCH body{uuid: handle}", method: "PATCH", path: "/api/users", body: { uuid, ...extra } },
+    { label: "v3 PATCH body{id: handle}",   method: "PATCH", path: "/api/users", body: { id: uuid, ...extra } },
     { label: "legacy PATCH url/{id}", method: "PATCH", path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
-    { label: "PUT body{uuid}",      method: "PUT",   path: "/api/users", body: { uuid, ...extra } },
-    { label: "PUT url/{id}",         method: "PUT",   path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
-  ];
+    { label: "PUT body{uuid: handle}", method: "PUT", path: "/api/users", body: { uuid, ...extra } },
+    { label: "PUT url/{id}",           method: "PUT", path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
+  );
+  if (uuidStr) {
+    variants.push(
+      { label: "PUT body{uuid: UUID-string}", method: "PUT", path: "/api/users", body: { uuid: uuidStr, ...extra } },
+      { label: "PUT url/{uuid: UUID-string}", method: "PUT", path: `/api/users/${encodeURIComponent(uuidStr)}`, body: { ...extra } },
+    );
+  }
 
   let lastStatus = 0;
   let lastBodyText = "";
@@ -582,6 +628,7 @@ export async function createUserWithExpire(
     const updated = await setUserExpire(existing.uuid, safeExpireAt, {
       status: "ACTIVE",
       plan,
+      uuidString: existing.uuidString ?? undefined,
     });
     return updated || existing;
   }
@@ -628,6 +675,7 @@ export async function createUserWithExpire(
       const updated = await setUserExpire(raceWinner.uuid, safeExpireAt, {
         status: "ACTIVE",
         plan,
+        uuidString: raceWinner.uuidString ?? undefined,
       });
       return updated || raceWinner;
     }

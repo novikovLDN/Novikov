@@ -238,10 +238,18 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
     log("info", userId, `have uuid=${user.remnawaveUserUuid.slice(0, 8)}…, checking panel`);
     const live = await getUser(user.remnawaveUserUuid);
     if (live) {
-      log("info", userId, "panel user exists, patching expireAt + plan tag + status");
+      log(
+        "info",
+        userId,
+        `panel user exists (uuidString=${live.uuidString ? live.uuidString.slice(0, 12) + "…" : "—"}), patching expireAt + plan tag + status`
+      );
       const updated = await setUserExpire(user.remnawaveUserUuid, expireIso, {
         status: desiredStatus,
         plan: user.subscriptionPlan || "trial",
+        // Pass v3's UUID-string handle (from live GET) so setUserExpire
+        // can try `{uuid: <UUID>, ...}` — some 3.x builds validate the
+        // body identifier as UUID-format and reject integer PKs.
+        uuidString: live.uuidString ?? undefined,
       });
       if (updated) {
         // Refresh cached subscriptionUrl + panel_username in case
@@ -322,6 +330,7 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
     const patched = await setUserExpire(existing.uuid, expireIso, {
       status: desiredStatus,
       plan: user.subscriptionPlan || "trial",
+      uuidString: existing.uuidString ?? undefined,
     });
     const finalUser = patched || existing;
     const happLink = await encryptHappLink(finalUser.subscriptionUrl).catch(() => null);
