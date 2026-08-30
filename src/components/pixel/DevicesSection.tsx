@@ -8,8 +8,9 @@ import SectionHeading from "./SectionHeading";
  * получают имя приложения, остальные — по одной. Сетка заполняется без
  * «дырок» на каждом брейкпоинте: 2 колонки → 3 → 6.
  *
- * Список синхронизирован с src/app/devices/page.tsx — единственным
- * источником правды о поддержке. Прошлые версии лендинга рекламировали
+ * Список и названия приложений синхронизированы с
+ * src/app/devices/page.tsx — единственным источником правды о
+ * поддержке. Для Android там первым идёт V2RayTun, а не Happ. Прошлые версии лендинга рекламировали
  * Linux и роутеры, которых в инструкциях по настройке нет.
  */
 interface Platform {
@@ -23,7 +24,7 @@ interface Platform {
 
 const PLATFORMS: Platform[] = [
   { name: "iPhone / iPad", detail: "iOS 16+", icon: "iphone", app: "Happ", span: "col-span-2 md:col-span-2 lg:col-span-2 lg:row-span-2", featured: true },
-  { name: "Android", detail: "10 и новее", icon: "android", app: "Happ", span: "col-span-1 md:col-span-1 lg:col-span-2 lg:row-span-2", featured: true },
+  { name: "Android", detail: "10 и новее", icon: "android", app: "V2RayTun", span: "col-span-1 md:col-span-1 lg:col-span-2 lg:row-span-2", featured: true },
   { name: "macOS", detail: "M1 / Intel", icon: "macos", span: "col-span-1 md:col-span-1 lg:col-span-2" },
   { name: "Windows", detail: "10 / 11", icon: "windows", span: "col-span-1 md:col-span-1 lg:col-span-1" },
   { name: "Android TV", detail: "все модели", icon: "tv", span: "col-span-1 md:col-span-1 lg:col-span-1" },
