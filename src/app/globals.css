@@ -2831,7 +2831,11 @@ html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
 /* Переключатель периода — сегментированный контрол.
    Кнопки одинаковой ширины, чтобы подпись «−17%» не сдвигала соседний
    сегмент при переключении (это была бы дрожь макета). */
+/* Число сегментов задаётся переменной: на главной их два (год/месяц),
+   на /pricing — четыре периода. Ширина бегунка считается из неё, а не
+   зашита в правило. */
 .ls-segment {
+  --ls-seg-count: 2;
   display: inline-grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
@@ -3254,7 +3258,7 @@ html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
   top: 4px;
   bottom: 4px;
   left: 4px;
-  width: calc((100% - 12px) / 2);
+  width: calc((100% - 8px - (var(--ls-seg-count) - 1) * 4px) / var(--ls-seg-count));
   border-radius: 999px;
   background: var(--as-ink);
   transform: translateX(calc(var(--ls-seg, 0) * (100% + 4px)));
@@ -3319,3 +3323,149 @@ html.light .fixed > .rounded-\[20px\].bg-\[\#111114\] {
 @media (prefers-reduced-motion: reduce) {
   .ls-device-art { transition: none; }
 }
+
+/* ─── Аккордеон вопросов ─────────────────────────────────────────── */
+.ls-faq-item { border-top: 1px solid var(--as-hairline); }
+.ls-faq-item:first-child { border-top: none; }
+
+.ls-faq-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-block: 26px;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+.ls-faq-trigger:focus-visible {
+  outline: 2px solid var(--as-ink);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+.ls-faq-question {
+  font-size: clamp(16px, 1.9vw, 19px);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.ls-faq-sign {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--as-hairline-2);
+  display: grid;
+  place-items: center;
+  transition:
+    transform var(--ls-dur-enter) var(--ls-ease),
+    background-color var(--ls-dur-hover) var(--ls-ease-out),
+    color var(--ls-dur-hover) var(--ls-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ls-faq-trigger:hover .ls-faq-sign { border-color: var(--as-ink); }
+}
+.ls-faq-sign-open {
+  transform: rotate(135deg);
+  background: var(--as-ink);
+  border-color: var(--as-ink);
+  color: #fff;
+}
+/* Раскрытие «до высоты контента» без замеров в JS. */
+.ls-faq-panel {
+  display: grid;
+  transition: grid-template-rows var(--ls-dur-enter) var(--ls-ease);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ls-faq-sign, .ls-faq-panel { transition: none; }
+}
+
+/* На узком экране контрол занимает всю ширину: четыре периода в
+   inline-раскладке не помещаются в 320px и выталкивали бы друг друга. */
+@media (max-width: 639px) {
+  .ls-segment { display: grid; width: 100%; }
+  .ls-segment-btn { padding-inline: 6px; font-size: 12px; }
+}
+
+/* ─── Первый экран внутренней страницы ───────────────────────────── */
+.ls-page-hero {
+  padding-top: calc(var(--ls-header-h) + 56px);
+  padding-bottom: 72px;
+  border-bottom-left-radius: 32px;
+  border-bottom-right-radius: 32px;
+}
+@media (min-width: 640px) {
+  .ls-page-hero {
+    padding-top: calc(var(--ls-header-h) + 88px);
+    padding-bottom: 104px;
+    border-bottom-left-radius: 44px;
+    border-bottom-right-radius: 44px;
+  }
+}
+.ls-page-hero-title {
+  font-weight: 700;
+  font-size: clamp(32px, 6.4vw, 68px);
+  line-height: 1.02;
+  letter-spacing: -0.032em;
+  color: #fff;
+}
+
+/* ─── Таблица сравнения ──────────────────────────────────────────────
+   Настоящая таблица, а не сетка из <div>: содержание здесь табличное,
+   и озвучка «строка — столбец» нужна по существу. Колонки отметок
+   узкие и фиксированные, чтобы на 320px оставалось место под подпись
+   возможности. */
+.ls-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: center;
+}
+@media (min-width: 640px) { .ls-table { font-size: 14px; } }
+
+.ls-table th,
+.ls-table td {
+  padding: 16px 8px;
+  vertical-align: middle;
+}
+@media (min-width: 640px) {
+  .ls-table th, .ls-table td { padding: 18px 16px; }
+}
+
+.ls-table thead th {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--as-ink-4);
+}
+
+.ls-table-lead {
+  width: auto;
+  text-align: left;
+  font-weight: 400;
+  color: var(--as-ink-2);
+  line-height: 1.35;
+}
+.ls-table thead .ls-table-lead { color: var(--as-ink-4); }
+
+.ls-table th:not(.ls-table-lead),
+.ls-table td:not(.ls-table-lead) { width: 72px; }
+@media (min-width: 640px) {
+  .ls-table th:not(.ls-table-lead),
+  .ls-table td:not(.ls-table-lead) { width: 120px; }
+}
+
+.ls-table tbody tr { border-top: 1px solid var(--as-hairline); }
+
+/* Колонка Plus подсвечена самой слабой заливкой чернил, а не
+   оранжевым: акцент на странице уже занят кнопкой в карточке Plus. */
+.ls-table-featured { background: rgba(15, 15, 18, 0.035); }
+.ls-table thead .ls-table-featured { color: var(--as-ink-2); font-weight: 700; }
+.ls-faq { border-top: 1px solid var(--as-hairline); }
+
+/* Первая секция сразу под первым экраном.
+   Нижний отступ героя и верхний отступ секции складывались в ~260px
+   пустоты — воздух переставал быть ритмом и становился провалом. */
+.ls-section-after-hero { padding-top: clamp(56px, 7vw, 96px); }

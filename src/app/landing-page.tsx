@@ -9,8 +9,7 @@ import BenefitsSection from "@/components/landing/BenefitsSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import PricingSection from "@/components/landing/PricingSection";
 import LocationsSection from "@/components/landing/LocationsSection";
-import FinalCtaSection from "@/components/landing/FinalCtaSection";
-import SiteFooter from "@/components/landing/SiteFooter";
+import SiteOutro from "@/components/landing/SiteOutro";
 
 /**
  * / — публичный лендинг.
@@ -67,14 +66,7 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
         <LocationsSection />
       </main>
 
-      <div className="ls-focal ls-outro">
-        <div className="ls-aurora" aria-hidden>
-          <span />
-          <span />
-        </div>
-        <FinalCtaSection primaryHref={primaryHref} />
-        <SiteFooter />
-      </div>
+      <SiteOutro primaryHref={primaryHref} />
     </div>
   );
 }

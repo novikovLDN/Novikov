@@ -2,12 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { getUserById, createPaymentRecord } from "@/lib/store";
 import { createPayment } from "@/lib/yookassa";
-
-// Plan pricing configuration (RUB)
-const PLANS: Record<string, Record<number, number>> = {
-  basic: { 1: 199, 3: 499, 6: 899, 12: 1599 },
-  plus: { 1: 349, 3: 899, 6: 1499, 12: 2599 },
-};
+import { PLANS, isPeriod, isPlanId } from "@/lib/plans";
 
 const PAYMENT_LIFETIME_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -31,7 +26,10 @@ export async function POST(request: NextRequest) {
 
     const { plan, period } = await request.json();
 
-    if (!plan || !period || !PLANS[plan] || !PLANS[plan][period]) {
+    // Обе величины приходят от клиента и до этой проверки не имеют
+    // типа: без сужения ошибочное имя тарифа дало бы undefined, а
+    // сумма платежа — NaN.
+    if (!isPlanId(plan) || !isPeriod(period)) {
       return NextResponse.json(
         { success: false, error: "Неверный тариф или срок" },
         { status: 400 }

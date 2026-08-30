@@ -14,22 +14,33 @@ import Icon from "./Icon";
  */
 interface FinalCtaSectionProps {
   primaryHref: string;
+  /** Строки заголовка: перенос — решение вёрстки, а не часть текста. */
+  title?: string[];
+  lede?: string;
 }
 
-export default function FinalCtaSection({ primaryHref }: FinalCtaSectionProps) {
+const DEFAULT_TITLE = ["Стабильный интернет —", "за минуту"];
+const DEFAULT_LEDE =
+  "Регистрация занимает 30 секунд, первые три дня бесплатно. Дальше соединение поднимается само на каждом устройстве.";
+
+export default function FinalCtaSection({
+  primaryHref,
+  title = DEFAULT_TITLE,
+  lede = DEFAULT_LEDE,
+}: FinalCtaSectionProps) {
   return (
     <section className="ls-section ls-section-flush-bottom" aria-labelledby="final-title">
       <div className="ls-shell max-w-[760px] text-center">
         <h2 id="final-title" className="ls-display ls-reveal">
-          Стабильный интернет —
-          <br />
-          за минуту
+          {title.map((line, i) => (
+            <span key={line} className="block">
+              {line}
+              {i < title.length - 1 ? " " : ""}
+            </span>
+          ))}
         </h2>
 
-        <p className="ls-lede ls-reveal mx-auto mt-6">
-          Регистрация занимает 30 секунд, первые три дня бесплатно.
-          Дальше соединение поднимается само на каждом устройстве.
-        </p>
+        <p className="ls-lede ls-reveal mx-auto mt-6">{lede}</p>
 
         <div className="ls-reveal mt-10 flex flex-col sm:flex-row sm:justify-center gap-3">
           <Link href={primaryHref} className="as-btn as-btn-xl as-btn-accent as-btn-block sm:w-auto group">
