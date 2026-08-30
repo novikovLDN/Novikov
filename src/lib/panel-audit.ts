@@ -177,8 +177,22 @@ export async function auditPanelSync(): Promise<AuditReport> {
 
   for (const row of rows) {
     let panelUser: RemnawaveUser | null = null;
+    // Per-row try/catch: one bad panel record (dead uuid causing a
+    // malformed URL, a transient 502, a JSON-parse error somewhere)
+    // must never take down the entire audit. Treat any throw here
+    // as "panel unreachable for this row" — the audit still runs to
+    // completion and the row shows up as `missing_in_panel`, which
+    // the fix pass then re-creates cleanly.
     if (row.remnawave_user_uuid) {
-      panelUser = await getUser(row.remnawave_user_uuid);
+      try {
+        panelUser = await getUser(row.remnawave_user_uuid);
+      } catch (err) {
+        console.warn(
+          `[AUDIT] getUser threw for ${row.email} (uuid=${row.remnawave_user_uuid.slice(0, 8)}…):`,
+          err instanceof Error ? err.message : String(err)
+        );
+        panelUser = null;
+      }
     }
     const diff = diffUser(row, panelUser);
 
