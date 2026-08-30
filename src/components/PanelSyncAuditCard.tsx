@@ -98,15 +98,30 @@ export default function PanelSyncAuditCard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ apply }),
       });
-      const json = await res.json();
-      if (json.success) {
+      // Parse defensively: if the server crashed and returned an HTML
+      // error page, `.json()` throws a Safari-specific "did not match
+      // the expected pattern" that hides the real HTTP status. Read
+      // once as text, try to parse as JSON, else surface the raw text.
+      const raw = await res.text();
+      let json: { success?: boolean; data?: AuditReport; error?: string } | null = null;
+      try {
+        json = raw ? JSON.parse(raw) : null;
+      } catch {
+        json = null;
+      }
+      if (json && json.success) {
         setReport(json.data as AuditReport);
+      } else if (json && json.error) {
+        setError(json.error);
+        setErrorModalOpen(true);
       } else {
-        setError(json.error || "Ошибка на сервере");
+        setError(
+          `HTTP ${res.status} ${res.statusText || ""} — сервер вернул не-JSON:\n\n${raw.slice(0, 2000)}${raw.length > 2000 ? "\n… (обрезано)" : ""}`
+        );
         setErrorModalOpen(true);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(err instanceof Error ? `${err.name}: ${err.message}` : String(err));
       setErrorModalOpen(true);
     } finally {
       setLoading(null);
