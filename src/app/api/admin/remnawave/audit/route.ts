@@ -37,19 +37,34 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json().catch(() => ({}));
     const apply = body?.apply === true;
+    // Process a chunk per call so nginx doesn't 504. Default chunk 25:
+    // ~4-5 sec per user × 25 = ~2 min headroom well under most reverse
+    // proxy timeouts. UI iterates calls with `offset` until `hasMore`
+    // is false.
+    const chunk = Number.isFinite(body?.chunk) && body.chunk > 0 && body.chunk <= 100 ? body.chunk : 25;
+    const offset = Number.isFinite(body?.offset) && body.offset >= 0 ? body.offset : 0;
 
     const report: AuditReport = await auditPanelSync();
 
     if (!apply) {
-      return NextResponse.json({ success: true, data: report });
+      return NextResponse.json({ success: true, data: { ...report, hasMore: false } });
     }
 
     // ─── Apply pass ───
     let fixed = 0;
     let fixFailed = 0;
-
+    // Only touch rows in the current chunk window whose problems > 0.
+    // Skip rows before `offset` and stop after `chunk` broken rows
+    // fixed. Rows outside the window retain their pre-apply diff.
+    let brokenSeen = 0;
+    let brokenProcessedInChunk = 0;
     for (const row of report.rows) {
       if (row.problems.length === 0) continue;
+      const localIndex = brokenSeen;
+      brokenSeen += 1;
+      if (localIndex < offset) continue;
+      if (brokenProcessedInChunk >= chunk) continue;
+      brokenProcessedInChunk += 1;
 
       try {
         const syncResult = await syncSubscriptionToPanel(row.userId);
@@ -119,7 +134,7 @@ export async function POST(request: NextRequest) {
       else broken += 1;
     }
 
-    const finalReport: AuditReport = {
+    const finalReport: AuditReport & { hasMore: boolean; nextOffset: number } = {
       scanned: report.scanned,
       ok,
       broken,
@@ -127,6 +142,8 @@ export async function POST(request: NextRequest) {
       fixFailed,
       byProblem,
       rows: report.rows,
+      hasMore: broken > offset + brokenProcessedInChunk,
+      nextOffset: offset + brokenProcessedInChunk,
     };
 
     return NextResponse.json({ success: true, data: finalReport });

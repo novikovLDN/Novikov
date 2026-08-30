@@ -35,6 +35,8 @@ interface AuditReport {
   fixFailed: number;
   byProblem: Record<AuditProblem, number>;
   rows: AuditRow[];
+  hasMore?: boolean;
+  nextOffset?: number;
 }
 
 const PROBLEM_LABEL: Record<AuditProblem, string> = {
@@ -77,12 +79,28 @@ export default function PanelSyncAuditCard() {
   const [error, setError] = useState<string | null>(null);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+
+  const callOnce = async (body: object): Promise<{ ok: boolean; data?: AuditReport; error?: string; rawText?: string; status?: number }> => {
+    const res = await fetch("/api/admin/remnawave/audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    // Parse defensively — server crash returns HTML.
+    const raw = await res.text();
+    let json: { success?: boolean; data?: AuditReport; error?: string } | null = null;
+    try { json = raw ? JSON.parse(raw) : null; } catch { json = null; }
+    if (json?.success && json.data) return { ok: true, data: json.data };
+    if (json?.error) return { ok: false, error: json.error };
+    return { ok: false, rawText: raw, status: res.status };
+  };
 
   const run = async (apply: boolean) => {
     if (apply) {
       const ok = window.confirm(
         report
-          ? `Починить ${report.broken} проблемных пользователей? Каждому запустится полный sync (repair ghost-даты + push expireAt + ACTIVE + tag). Действие не деструктивное — только приведение панели в соответствие с локальной БД.`
+          ? `Починить ${report.broken} проблемных пользователей? Каждому запустится полный sync (repair ghost-даты + push expireAt + ACTIVE + tag). Действие не деструктивное — только приведение панели в соответствие с локальной БД.\n\nОбработка идёт батчами по 25 — займёт около ${Math.ceil(report.broken / 25 * 40 / 60)} мин.`
           : "Запустить починку? Сначала лучше запустить проверку."
       );
       if (!ok) return;
@@ -90,41 +108,61 @@ export default function PanelSyncAuditCard() {
 
     setLoading(apply ? "apply" : "audit");
     setError(null);
+    setProgress(null);
     if (!apply) setReport(null);
 
     try {
-      const res = await fetch("/api/admin/remnawave/audit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apply }),
-      });
-      // Parse defensively: if the server crashed and returned an HTML
-      // error page, `.json()` throws a Safari-specific "did not match
-      // the expected pattern" that hides the real HTTP status. Read
-      // once as text, try to parse as JSON, else surface the raw text.
-      const raw = await res.text();
-      let json: { success?: boolean; data?: AuditReport; error?: string } | null = null;
-      try {
-        json = raw ? JSON.parse(raw) : null;
-      } catch {
-        json = null;
+      if (!apply) {
+        const first = await callOnce({ apply: false });
+        if (first.ok && first.data) {
+          setReport(first.data);
+        } else if (first.error) {
+          setError(first.error);
+          setErrorModalOpen(true);
+        } else {
+          setError(
+            `HTTP ${first.status ?? "?"} — сервер вернул не-JSON:\n\n${(first.rawText || "").slice(0, 2000)}${(first.rawText || "").length > 2000 ? "\n… (обрезано)" : ""}`
+          );
+          setErrorModalOpen(true);
+        }
+        return;
       }
-      if (json && json.success) {
-        setReport(json.data as AuditReport);
-      } else if (json && json.error) {
-        setError(json.error);
-        setErrorModalOpen(true);
-      } else {
-        setError(
-          `HTTP ${res.status} ${res.statusText || ""} — сервер вернул не-JSON:\n\n${raw.slice(0, 2000)}${raw.length > 2000 ? "\n… (обрезано)" : ""}`
-        );
-        setErrorModalOpen(true);
+
+      // Apply — chunked loop. Server returns hasMore=true while more
+      // broken rows remain past this offset; we keep calling with
+      // updated offset until the chunk pass says we're done.
+      let offset = 0;
+      let lastData: AuditReport | null = null;
+      const total = report?.broken ?? 0;
+      // Hard cap on iterations so a server-side bug can't cause an
+      // infinite loop from the browser.
+      for (let iter = 0; iter < 40; iter++) {
+        setProgress({ done: offset, total });
+        const step = await callOnce({ apply: true, offset, chunk: 25 });
+        if (!step.ok) {
+          if (step.error) {
+            setError(step.error);
+          } else {
+            setError(
+              `HTTP ${step.status ?? "?"} — сервер вернул не-JSON:\n\n${(step.rawText || "").slice(0, 2000)}${(step.rawText || "").length > 2000 ? "\n… (обрезано)" : ""}`
+            );
+          }
+          setErrorModalOpen(true);
+          if (lastData) setReport(lastData);
+          return;
+        }
+        lastData = step.data as AuditReport;
+        setReport(lastData);
+        offset = lastData.nextOffset ?? offset + 25;
+        if (!lastData.hasMore) break;
       }
+      setProgress({ done: total, total });
     } catch (err) {
       setError(err instanceof Error ? `${err.name}: ${err.message}` : String(err));
       setErrorModalOpen(true);
     } finally {
       setLoading(null);
+      setTimeout(() => setProgress(null), 2500);
     }
   };
 
@@ -228,6 +266,23 @@ export default function PanelSyncAuditCard() {
           {loading === "apply" ? "Чиним…" : "Починить всех"}
         </button>
       </div>
+
+      {progress && progress.total > 0 && (
+        <div>
+          <div className="flex items-center justify-between text-[10px] text-muted mb-1">
+            <span>Прогресс починки</span>
+            <span className="font-mono">
+              {progress.done} / {progress.total}
+            </span>
+          </div>
+          <div className="h-1.5 rounded-full bg-card-hover overflow-hidden">
+            <div
+              className="h-full bg-warning transition-all duration-300"
+              style={{ width: `${Math.min(100, Math.round((progress.done / Math.max(1, progress.total)) * 100))}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {report && (
         <div className="space-y-2">

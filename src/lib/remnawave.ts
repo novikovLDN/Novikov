@@ -308,47 +308,62 @@ export async function setUserExpire(
   }
   if (opts && "description" in opts) extra.description = opts.description;
 
-  // Remnawave 3.x renamed the identifier column from `uuid` to `id`.
-  // We keep `uuid` as our internal alias but must send `id` on the
-  // wire for v3. Try `{id,...}` first; fall back to `{uuid,...}` for
-  // panels still on 2.x; final fallback to the URL-in-path shape for
-  // pre-2.x. Only route-not-found (404/405) and bad-request (400,
-  // which fires when the panel rejects an unknown field) trigger the
-  // next variant — real errors surface as-is.
-  const variants: Array<{ path: string; body: Record<string, unknown> }> = [
-    { path: "/api/users", body: { id: uuid, ...extra } },
-    { path: "/api/users", body: { uuid, ...extra } },
-    { path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
+  // Try each documented + observed shape in sequence. Every attempt
+  // that ISN'T 200 gets logged verbatim so ops can see exactly what
+  // the panel returned — no more "final HTTP 404" that hides the
+  // real first-attempt response.
+  //
+  // v3.x contract (docs.rw) uses PATCH /api/users with `{uuid,...}`
+  // in the body. Some 3.3.0 builds also accept `{id,...}` because
+  // the panel renamed the column but kept the alias. Older 2.x uses
+  // PATCH /api/users/{uuid}. Beyond that we try PUT variants — some
+  // 3.x forks accept PUT where PATCH is blocked at the proxy layer.
+  const variants: Array<{ label: string; method: string; path: string; body: Record<string, unknown> }> = [
+    { label: "v3 PATCH body{uuid}", method: "PATCH", path: "/api/users", body: { uuid, ...extra } },
+    { label: "v3 PATCH body{id}",   method: "PATCH", path: "/api/users", body: { id: uuid, ...extra } },
+    { label: "legacy PATCH url/{id}", method: "PATCH", path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
+    { label: "PUT body{uuid}",      method: "PUT",   path: "/api/users", body: { uuid, ...extra } },
+    { label: "PUT url/{id}",         method: "PUT",   path: `/api/users/${encodeURIComponent(uuid)}`, body: { ...extra } },
   ];
 
   let lastStatus = 0;
   let lastBodyText = "";
+  const attemptLog: string[] = [];
 
   for (const variant of variants) {
     const res = await rwFetch(variant.path, {
-      method: "PATCH",
+      method: variant.method,
       body: JSON.stringify(variant.body),
     });
-    if (!res) continue;
+    if (!res) {
+      attemptLog.push(`${variant.label}: no response (panel unreachable / no token)`);
+      continue;
+    }
     if (res.ok) {
       const data = await res.json().catch(() => null);
       const parsed = parseUser(data);
-      if (parsed) return parsed;
+      if (parsed) {
+        console.log(`[REMNAWAVE] setUserExpire succeeded via ${variant.label} for uuid=${uuid.slice(0, 12)}…`);
+        return parsed;
+      }
+      attemptLog.push(`${variant.label}: 200 but empty parse`);
+      continue;
     }
-    lastStatus = res?.status || 0;
+    lastStatus = res.status || 0;
     lastBodyText = await res.text().catch(() => "");
-    // 404/405 = wrong endpoint, 400 = unknown-field rejection —
-    // both merit trying the next variant. Anything else is real.
-    if (res.status !== 404 && res.status !== 405 && res.status !== 400) break;
+    attemptLog.push(`${variant.label}: ${res.status} ${lastBodyText.slice(0, 150)}`);
+    // Retry-next on any "route/shape doesn't fit here" class of
+    // error. 404 = wrong route/id, 405 = method not allowed, 400 =
+    // schema rejection, 422 = validation error.
+    if (![404, 405, 400, 422].includes(res.status)) break;
   }
 
-  lastRwError = `PATCH user ${uuid.slice(0, 8)}… → HTTP ${lastStatus} ${lastBodyText.slice(0, 200)}`;
+  lastRwError =
+    `PATCH user ${uuid.slice(0, 12)}… — all ${variants.length} variants failed:\n  ` +
+    attemptLog.join("\n  ");
   console.warn(
-    "[REMNAWAVE] setUserExpire failed:",
-    lastStatus,
-    "expireAt=",
-    safeExpireAt,
-    lastBodyText.slice(0, 300)
+    `[REMNAWAVE] setUserExpire FAILED for uuid=${uuid.slice(0, 12)}… expireAt=${safeExpireAt}\n` +
+    attemptLog.map((l) => `  ${l}`).join("\n")
   );
   return null;
 }

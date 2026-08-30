@@ -296,8 +296,8 @@ describe("createUserWithExpire (v3 dropped `internalSquads`)", () => {
 
 // ─── setUserExpire: v3 → v2 fallback ────────────────────────────
 
-describe("setUserExpire (v3 PATCH /api/users with {id, expireAt}, fallbacks)", () => {
-  it("sends the v3 `{id, expireAt}` body first and succeeds on 200", async () => {
+describe("setUserExpire (v3 PATCH /api/users with {uuid, expireAt}, PUT fallbacks)", () => {
+  it("sends the v3 `{uuid, expireAt}` body first (matches CreateUserRequestDto contract) and succeeds on 200", async () => {
     const expire = new Date(Date.now() + 86400000).toISOString();
     mockOk({ response: { id: 42, username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
 
@@ -306,32 +306,47 @@ describe("setUserExpire (v3 PATCH /api/users with {id, expireAt}, fallbacks)", (
     const patch = calls[0];
     expect(patch.method).toBe("PATCH");
     expect(patch.url).toBe("https://rmnw.test.example/api/users");
-    expect(patch.body).toMatchObject({ id: "42" });
+    expect(patch.body).toMatchObject({ uuid: "42" });
     // expireAt clamp-tolerant assertion
     expect(typeof (patch.body as Record<string, string>).expireAt).toBe("string");
   });
 
-  it("falls back to `{uuid, expireAt}` when v3 attempt returns 400 (unknown field)", async () => {
+  it("falls back to `{id, expireAt}` body when `{uuid,…}` returns 400 (field-name variance across forks)", async () => {
     const expire = new Date(Date.now() + 86400000).toISOString();
-    mockStatus(400, { message: "id: field not allowed" });   // v3 shape rejected
-    mockOk({ response: { uuid: "old-uuid", username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
+    mockStatus(400, { message: "uuid: field not allowed" }); // v3 fork rejects uuid
+    mockOk({ response: { id: 55, username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
 
-    const rw = await setUserExpire("old-uuid", expire);
-    expect(rw!.uuid).toBe("old-uuid");
-    expect(calls[0].body).toMatchObject({ id: "old-uuid" });
-    expect(calls[1].body).toMatchObject({ uuid: "old-uuid" });
+    const rw = await setUserExpire("55", expire);
+    expect(rw!.uuid).toBe("55");
+    expect(calls[0].body).toMatchObject({ uuid: "55" });
+    expect(calls[1].body).toMatchObject({ id: "55" });
     expect(calls[1].url).toBe("https://rmnw.test.example/api/users");
   });
 
-  it("falls back to `PATCH /api/users/{id}` (pre-v2) when both body-based attempts 404", async () => {
+  it("falls back to legacy `PATCH /api/users/{id}` when both body-based PATCH attempts 404", async () => {
     const expire = new Date(Date.now() + 86400000).toISOString();
-    mockStatus(404);   // /api/users {id,...}
-    mockStatus(404);   // /api/users {uuid,...}
+    mockStatus(404); // PATCH /api/users {uuid,...}
+    mockStatus(404); // PATCH /api/users {id,...}
     mockOk({ response: { uuid: "abc", username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
 
     const rw = await setUserExpire("abc", expire);
     expect(rw!.uuid).toBe("abc");
+    expect(calls[2].method).toBe("PATCH");
     expect(calls[2].url).toBe("https://rmnw.test.example/api/users/abc");
+  });
+
+  it("falls back to PUT variants when every PATCH shape 404s (some 3.x forks block PATCH at proxy layer)", async () => {
+    const expire = new Date(Date.now() + 86400000).toISOString();
+    mockStatus(404); // PATCH /api/users {uuid}
+    mockStatus(404); // PATCH /api/users {id}
+    mockStatus(404); // PATCH /api/users/{id}
+    mockOk({ response: { id: 99, username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
+
+    const rw = await setUserExpire("99", expire);
+    expect(rw!.uuid).toBe("99");
+    expect(calls[3].method).toBe("PUT");
+    expect(calls[3].url).toBe("https://rmnw.test.example/api/users");
+    expect(calls[3].body).toMatchObject({ uuid: "99" });
   });
 
   it("returns null and does NOT retry on real errors like 401 unauthorized", async () => {
@@ -348,7 +363,7 @@ describe("setUserExpire (v3 PATCH /api/users with {id, expireAt}, fallbacks)", (
     const rw = await setUserExpire("99", expire, { status: "ACTIVE", plan: "plus" });
     expect(rw!.uuid).toBe("99");
     const body = calls[0].body as Record<string, unknown>;
-    expect(body.id).toBe("99");
+    expect(body.uuid).toBe("99");
     expect(body.status).toBe("ACTIVE");
     expect(body.tag).toBe("PLUS");
   });
