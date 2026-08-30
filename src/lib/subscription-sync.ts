@@ -258,6 +258,11 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
         // can try `{uuid: <UUID>, ...}` — some 3.x builds validate the
         // body identifier as UUID-format and reject integer PKs.
         uuidString: live.uuidString ?? undefined,
+        // Panel v3.3.0 accepts `id` (number) OR `username` (string) as
+        // the identifier — send both so whichever the panel binds to
+        // works. `live.username` is the freshest one; `publicId` is
+        // our ST-form.
+        username: live.username || publicId,
         // Send tgId only when there's a value to backfill. `undefined`
         // means "don't touch the field", `null` would clear a real one.
         ...(backfillTgId !== null ? { telegramId: backfillTgId } : {}),
@@ -320,6 +325,7 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
           status: desiredStatus,
           plan: user.subscriptionPlan || "trial",
           uuidString: rediscovered.uuidString ?? undefined,
+          username: rediscovered.username || publicId,
         });
         if (retry) {
           const happLink = await encryptHappLink(retry.subscriptionUrl).catch(() => null);
@@ -393,6 +399,7 @@ export async function syncSubscriptionToPanel(userId: string): Promise<SyncResul
       status: desiredStatus,
       plan: user.subscriptionPlan || "trial",
       uuidString: existing.uuidString ?? undefined,
+      username: existing.username || publicId,
     });
     const finalUser = patched || existing;
     const happLink = await encryptHappLink(finalUser.subscriptionUrl).catch(() => null);
