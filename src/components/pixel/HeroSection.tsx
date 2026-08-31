@@ -6,23 +6,24 @@ import Icon from "./Icon";
 import { AnimatedNumber } from "./motion";
 
 /**
- * Первый экран.
+ * Первый экран — редакционная композиция.
  *
- * Композиция: слева очень крупный заголовок, короткий подзаголовок и
- * блок действий — широкая акцентная панель сверху и две тёмные под ней
- * в ряд. Справа — живой кластер кубиков, стоящий в ячейках той же
- * фоновой сетки, что и вся страница.
+ * Заголовок больше не строка внутри колонки: он занимает всю ширину
+ * экрана и задаёт композицию страницы. Вторая строка смещена вправо —
+ * намеренный слом сетки, который читается как приём только потому, что
+ * вся остальная страница выровнена строго (research/06.md §3).
  *
- * Метрики встроены в нижнюю полосу героя, а не вынесены отдельной
- * секцией. Так первый экран читается как показание прибора: обещание
- * сверху, подтверждающие числа под ним, всё в одном кадре. Отдельная
- * секция метрик заставляла пролистывать ради того же самого и
- * разрывала связку «утверждение — доказательство».
+ * ЧТО ЭТО ЗА ПРОДУКТ — главный вопрос, на который экран обязан
+ * ответить. Раньше он говорил «интернет без просадок»: это про
+ * качество, но не про категорию, и посетитель не понимал, что покупает.
+ * Теперь функция названа прямо в первых двух строках после заголовка:
+ * открывает заблокированные сайты, меняет страну, шифрует трафик.
+ * Слово «VPN» при этом не используется — таково правило публичной
+ * части (research/concept.md, принцип «два языка продукта»).
  *
- * Числа сверены с кодом: платформы — src/app/devices/page.tsx,
- * локации — LocationsSection. `from` задаёт стартовую точку отсчёта:
- * аптайм не должен на секунду показать «0 %», а задержка, наоборот,
- * убывает с большего значения — жест читается как «пинг падает».
+ * Кластер кубиков ушёл из-под заголовка вниз, за карточку продукта:
+ * на первом экране одновременно крупный шрифт и крупная графика
+ * дерутся за внимание, и проигрывают оба.
  */
 interface HeroSectionProps {
   primaryHref: string;
@@ -39,25 +40,27 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
   return (
     <section className="px-hero" aria-labelledby="hero-title">
       <div className="px-hero-body">
-        <div className="px-shell grid lg:grid-cols-12 gap-14 lg:gap-10 items-center w-full">
-          <div className="lg:col-span-7">
-            <p className="px-status px-reveal">
-              <span className="px-status-dot" aria-hidden />
-              <span className="px-eyebrow">Сеть работает штатно</span>
+        {/* Типографический блок — вне контейнера, во всю ширину. */}
+        <div className="px-hero-type">
+          <p className="px-status px-reveal">
+            <span className="px-status-dot" aria-hidden />
+            <span className="px-eyebrow">Ускоритель интернета · сеть работает штатно</span>
+          </p>
+
+          <h1 id="hero-title" className="px-display px-reveal">
+            <span className="px-display-a">Открывает</span>
+            <span className="px-display-b">интернет</span>
+          </h1>
+        </div>
+
+        <div className="px-hero-grid">
+          <div className="px-hero-copy px-reveal">
+            <p className="px-hero-lede">
+              Заблокированные сайты и сервисы открываются снова. Страна
+              меняется в одно касание, трафик шифруется, скорость не падает.
             </p>
 
-            <h1 id="hero-title" className="px-h1 px-reveal mt-6">
-              Интернет
-              <br />
-              без просадок
-            </h1>
-
-            <p className="px-lede px-reveal mt-6">
-              Игры, созвоны и стриминг без фризов — сразу на всех устройствах.
-              Подключение занимает полминуты.
-            </p>
-
-            <div className="px-cta px-reveal mt-9">
+            <div className="px-cta mt-8">
               <Link href={primaryHref} className="px-btn px-btn-xl px-btn-primary px-btn-block group">
                 Начать бесплатно
                 <Icon
@@ -66,18 +69,13 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
                   className="transition-transform duration-200 ease-out group-hover:translate-x-1"
                 />
               </Link>
-
               <div className="grid grid-cols-2 gap-3 mt-3">
-                <Link href="/pricing" className="px-btn px-btn-md px-btn-secondary">
-                  Тарифы
-                </Link>
-                <Link href="/auth" className="px-btn px-btn-md px-btn-secondary">
-                  Войти
-                </Link>
+                <Link href="/pricing" className="px-btn px-btn-md px-btn-secondary">Тарифы</Link>
+                <Link href="/auth" className="px-btn px-btn-md px-btn-secondary">Войти</Link>
               </div>
             </div>
 
-            <ul className="px-friction px-reveal mt-6">
+            <ul className="px-friction mt-6">
               {["Три дня бесплатно", "Без карты", "Отмена в один клик"].map((t) => (
                 <li key={t}>
                   <Icon name="check" size={13} className="px-accent" />
@@ -87,13 +85,14 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
             </ul>
           </div>
 
-          <div className="lg:col-span-5 flex justify-center lg:justify-end px-reveal">
+          {/* Кластер наезжает на типографический блок — намеренное
+              наложение вместо аккуратной колонки рядом. */}
+          <div className="px-hero-art px-reveal" aria-hidden>
             <CubeCluster />
           </div>
         </div>
       </div>
 
-      {/* Нижняя полоса героя — показания сети. */}
       <div className="px-hero-rail">
         <div className="px-shell">
           <dl className="px-rail-metrics">

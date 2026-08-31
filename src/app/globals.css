@@ -2432,10 +2432,14 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 /* ═══ Первый экран ═════════════════════════════════════════════════ */
 
-/* Первый экран занимает высоту вьюпорта целиком, но делится на две
-   зоны: смысловую и полосу показаний внизу. Полоса прижата к низу
-   экрана — она читается как приборная шкала под содержанием, а не как
-   ещё один блок контента. */
+/* ═══ Первый экран — редакционная композиция ═══════════════════════
+   Заголовок вынесен из контейнера и живёт по своим полям: он не
+   элемент колонки, а сама композиция. Вторая строка смещена вправо —
+   слом сетки, который работает только на фоне строгого выравнивания
+   всей остальной страницы.
+
+   Полоса показаний прижата к низу экрана и читается как приборная
+   шкала под содержанием. */
 .px-hero {
   min-height: 100svh;
   display: flex;
@@ -2444,51 +2448,79 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .px-hero-body {
   flex: 1;
   display: flex;
-  align-items: center;
-  padding-top: calc(var(--px-header-h) + 40px);
-  padding-bottom: 48px;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: calc(var(--px-header-h) + 28px);
+  padding-bottom: 40px;
 }
 @media (min-width: 640px) {
-  .px-hero-body { padding-top: calc(var(--px-header-h) + 56px); padding-bottom: 64px; }
+  .px-hero-body { padding-top: calc(var(--px-header-h) + 40px); padding-bottom: 56px; }
 }
 
-.px-hero-rail {
-  border-top: 1px solid var(--px-line);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  padding-block: 20px;
+/* Типографический блок: собственные поля, уже контейнера по бокам,
+   чтобы строка могла подойти вплотную к краю экрана. */
+.px-hero-type { padding-inline: var(--px-gutter); }
+@media (min-width: 1400px) {
+  .px-hero-type { padding-inline: max(var(--px-gutter), calc((100vw - var(--px-shell)) / 2)); }
 }
-@media (min-width: 640px) { .px-hero-rail { padding-block: 26px; } }
 
-.px-rail-metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px 16px;
-}
-@media (min-width: 768px) {
-  .px-rail-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
-}
-/* Подпись стоит НАД числом: сначала «что измеряем», потом показание —
-   так читается шкала прибора, а не подпись к картинке. */
-.px-rail-metric-label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--px-text-4);
-}
-.px-rail-metric-value {
-  margin-top: 8px;
+.px-display {
+  margin-top: 18px;
   font-weight: 700;
-  font-size: clamp(20px, 2.4vw, 28px);
-  line-height: 1;
-  letter-spacing: -0.03em;
+  /* Кегль подобран так, чтобы длинная строка почти доходила до края
+     экрана на любой ширине и при этом НЕ обрезалась на 320px. */
+  font-size: clamp(42px, 12.6vw, 186px);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
   color: var(--px-text);
+  text-transform: none;
+}
+.px-display-a,
+.px-display-b { display: block; }
+/* Смещение второй строки — тот самый намеренный слом. На узком экране
+   его нет: там сдвиг съел бы и без того скудную ширину. */
+@media (min-width: 768px) {
+  .px-display-b { margin-left: 14%; }
+}
+.px-display-b { color: var(--px-accent); }
+
+/* Нижняя часть первого экрана: узкая колонка текста напротив пустоты
+   и наезжающая на неё графика. */
+.px-hero-grid {
+  margin-top: 40px;
+  padding-inline: var(--px-gutter);
+  display: grid;
+  gap: 40px;
+}
+@media (min-width: 1400px) {
+  .px-hero-grid { padding-inline: max(var(--px-gutter), calc((100vw - var(--px-shell)) / 2)); }
+}
+@media (min-width: 900px) {
+  .px-hero-grid {
+    margin-top: 8px;
+    grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
+    align-items: start;
+    gap: 56px;
+  }
+}
+.px-hero-copy { max-width: 440px; }
+.px-hero-lede {
+  font-weight: 500;
+  font-size: clamp(16px, 1.6vw, 19px);
+  line-height: 1.45;
+  color: var(--px-text-2);
+  text-wrap: pretty;
 }
 
-/* Блок действий: акцентная панель во всю ширину колонки и две тёмные
-   под ней. Ширина ограничена — на десктопе колонка 7/12 шире, чем
-   должна быть кнопка, иначе панель читается как баннер, а не как
-   действие. */
+.px-hero-art { display: flex; justify-content: center; }
+@media (min-width: 900px) {
+  .px-hero-art {
+    justify-content: flex-end;
+    /* Наложение: графика заходит вверх, под типографический блок. */
+    margin-top: -18%;
+  }
+}
+
 .px-cta { max-width: 440px; }
 
 .px-status { display: flex; align-items: center; gap: 10px; }
@@ -3170,4 +3202,135 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
     grid-template-rows: repeat(3, minmax(0, auto));
   }
   .px-bento-lead { grid-row: 1 / span 3; }
+}
+
+/* ═══ Sticky-сцена шагов ═══════════════════════════════════════════
+   Блок закреплён во вьюпорте на время прокрутки своей же высокой
+   полосы; активная панель переключается дискретно по тому, какая
+   треть полосы в центре экрана (JS в компоненте).
+
+   Только для широких экранов и только при полном движении: на
+   телефоне высоту так не выкроить, а reduced-motion отключает JS
+   переключения, поэтому там сцена тоже не нужна — виден список.
+
+   Сцена помечена aria-hidden в разметке: она декоративна и дублирует
+   px-steps-plain, единственный источник содержания для AT. */
+.px-scene { display: none; }
+@media (min-width: 1024px) {
+  .px-scene {
+    display: block;
+    position: relative;
+    /* Высота прокрутки — по одному экрану на шаг: у последовательности
+       из N шагов ровно N-1 переход, финальный экран держит N-й шаг. */
+    height: calc((var(--px-steps, 3) - 1) * 100vh);
+  }
+}
+.px-scene-trigger { position: absolute; left: 0; right: 0; height: 100vh; pointer-events: none; }
+.px-scene-trigger[data-step="0"] { top: 0; }
+.px-scene-trigger[data-step="1"] { top: 100vh; }
+.px-scene-trigger[data-step="2"] { top: 200vh; }
+
+.px-scene-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+}
+.px-scene-stage {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 56px;
+  max-width: 720px;
+}
+.px-scene-index {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--px-accent);
+}
+.px-scene-of { color: var(--px-text-4); font-weight: 500; }
+
+.px-scene-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 28px;
+}
+.px-scene-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--px-line-2);
+  transition: background-color var(--px-enter) var(--px-ease), transform var(--px-enter) var(--px-ease);
+}
+.px-scene-dot-active { background: var(--px-accent); transform: scale(1.4); }
+
+.px-scene-panel { max-width: 460px; }
+
+/* Обычная последовательность — единственная версия на телефоне,
+   единственная доступная AT-версия на десктопе (clip, а не
+   display:none: скрытие через display убрало бы её из дерева
+   доступности). */
+.px-steps-plain { display: flex; flex-direction: column; gap: 28px; padding-block: 48px; }
+.px-steps-plain > li { display: flex; align-items: flex-start; gap: 20px; }
+.px-steps-plain .px-num { font-size: 13px; font-weight: 700; flex-shrink: 0; padding-top: 2px; }
+
+@media (min-width: 1024px) {
+  .px-steps-plain {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* ═══ Бегущая строка локаций ══════════════════════════════════════ */
+.px-marquee {
+  overflow: hidden;
+  border-block: 1px solid var(--px-line);
+  padding-block: 18px;
+  margin-bottom: var(--px-section-y);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+}
+.px-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: pxMarquee 48s linear infinite;
+}
+@keyframes pxMarquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.px-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: 28px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--px-text-3);
+  white-space: nowrap;
+}
+.px-marquee-code {
+  font-weight: 700;
+  color: var(--px-text);
+  letter-spacing: 0.04em;
+}
+.px-marquee-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--px-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .px-marquee-track { animation: none; }
 }
