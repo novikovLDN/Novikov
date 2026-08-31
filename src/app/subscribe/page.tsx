@@ -69,7 +69,7 @@ export default function SubscribePage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-[#101010] min-h-dvh flex items-center justify-center">
+        <div className="bg-[color:var(--px-bg)] min-h-dvh flex items-center justify-center">
           <LoadingSpinner size="lg" className="text-black" />
         </div>
       }
@@ -196,7 +196,7 @@ function SubscribeContent() {
   const showSteps = step === "plans" || step === "periods" || step === "payment-methods";
 
   return (
-    <div className="bg-[#101010] min-h-dvh flex flex-col text-black">
+    <div className="bg-[color:var(--px-bg)] min-h-dvh flex flex-col text-black">
       <TopBar
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}

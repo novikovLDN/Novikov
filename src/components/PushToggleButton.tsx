@@ -81,13 +81,13 @@ export default function PushToggleButton() {
     return (
       <div className="dv2-card h-[52px] w-full rounded-2xl px-4 flex items-center justify-between gap-3 opacity-50 cursor-not-allowed">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="h-8 w-8 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-white/60 shrink-0">
+          <div className="h-8 w-8 rounded-xl bg-black/[0.04] border border-black/[0.08] flex items-center justify-center text-black/60 shrink-0">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 01-3.46 0" />
             </svg>
           </div>
-          <div className="text-[13px] font-medium text-white/55 truncate">Push не поддерживается</div>
+          <div className="text-[13px] font-medium text-black/55 truncate">Push не поддерживается</div>
         </div>
       </div>
     );
@@ -100,17 +100,17 @@ export default function PushToggleButton() {
       className="dv2-card h-[52px] w-full rounded-2xl px-4 flex items-center justify-between gap-3 transition-all active:scale-[0.985] disabled:opacity-60"
     >
       <div className="flex items-center gap-3 min-w-0">
-        <div className="h-8 w-8 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-white/80 shrink-0">
+        <div className="h-8 w-8 rounded-xl bg-black/[0.04] border border-black/[0.08] flex items-center justify-center text-black/70 shrink-0">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 01-3.46 0" />
           </svg>
         </div>
-        <div className="text-[13px] font-medium text-white/90 truncate">Push-уведомления</div>
+        <div className="text-[13px] font-medium text-black/85 truncate">Push-уведомления</div>
       </div>
       <div
         className={`relative w-10 h-6 rounded-full transition-colors duration-300 shrink-0 ${
-          enabled ? "bg-[color:var(--px-accent)]" : "bg-white/[0.10]"
+          enabled ? "bg-[color:var(--px-accent)]" : "bg-black/[0.10]"
         }`}
       >
         <div

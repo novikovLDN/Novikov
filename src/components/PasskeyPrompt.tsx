@@ -111,12 +111,12 @@ export default function PasskeyPrompt({ forceShow }: PasskeyPromptProps) {
                 </svg>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm">Быстрый вход</p>
+                <p className="font-semibold text-sm text-[color:var(--color-foreground)]">Быстрый вход</p>
                 <p className="text-muted text-xs mt-0.5">Входите по Face ID, Touch ID или отпечатку пальца — без пароля и кодов</p>
               </div>
               <button
                 onClick={handleDismiss}
-                className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-card-hover transition-colors shrink-0"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-[color:var(--color-foreground)]/50 hover:text-[color:var(--color-foreground)] hover:bg-card-hover transition-colors shrink-0"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <line x1="18" y1="6" x2="6" y2="18" />

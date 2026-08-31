@@ -62,7 +62,7 @@ export default function ServerStatusCard() {
     return () => clearInterval(id);
   }, []);
 
-  const trendColor = delta > 0 ? "var(--px-good)" : delta < 0 ? "var(--px-accent)" : "rgba(255,255,255,0.4)";
+  const trendColor = delta > 0 ? "var(--px-good)" : delta < 0 ? "var(--px-accent)" : "var(--px-text-4)";
   const trendArrow = delta > 0 ? "↗" : delta < 0 ? "↘" : "·";
 
   // Sparkline normalization across actual range, not min/max bounds.
@@ -159,27 +159,27 @@ export default function ServerStatusCard() {
         {/* Online counter */}
         <div className="mb-1">
           <div className="flex items-baseline gap-2">
-            <div className="text-[40px] sm:text-[44px] font-light tracking-tight leading-none text-white tabular-nums">
+            <div className="text-[40px] sm:text-[44px] font-light tracking-tight leading-none text-black tabular-nums">
               {formatNumber(online)}
             </div>
             <div className="text-[11px] font-mono tabular-nums" style={{ color: trendColor }}>
               {trendArrow} {delta !== 0 ? (delta > 0 ? "+" : "") + delta : ""}
             </div>
           </div>
-          <div className="text-[12px] text-white/45 mt-1.5">человек подключены прямо сейчас</div>
+          <div className="text-[12px] text-black/45 mt-1.5">человек подключены прямо сейчас</div>
         </div>
 
         {/* Server pills at the bottom */}
         <div className="mt-auto">
           <div className="flex items-center justify-between mb-3">
-            <span className="font-mts-wide text-[11px] uppercase tracking-[0.14em] text-white/40">Сервера</span>
+            <span className="font-mts-wide text-[11px] uppercase tracking-[0.14em] text-black/45">Сервера</span>
             <span className="font-mts-wide text-[12px] text-[color:var(--px-good)]/85 font-medium">Активны</span>
           </div>
           <div className="grid grid-cols-4 gap-2">
             {SERVER_REGIONS.map((s, i) => (
               <div
                 key={i}
-                className="flex items-center justify-center gap-2 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08]"
+                className="flex items-center justify-center gap-2 h-10 rounded-xl bg-black/[0.04] border border-black/[0.08]"
                 title={s.label}
               >
                 <span
@@ -189,7 +189,7 @@ export default function ServerStatusCard() {
                     animation: `serverPulse ${1.8 + i * 0.4}s ease-in-out infinite`,
                   }}
                 />
-                <span className="font-mts-wide text-[12px] font-semibold text-white/85 tracking-[0.06em]">{s.code}</span>
+                <span className="font-mts-wide text-[12px] font-semibold text-black/85 tracking-[0.06em]">{s.code}</span>
               </div>
             ))}
           </div>

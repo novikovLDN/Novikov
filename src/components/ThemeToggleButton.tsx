@@ -18,7 +18,7 @@ export default function ThemeToggleButton() {
       aria-label="Переключить тему"
     >
       <div className="flex items-center gap-3 min-w-0">
-        <div className="h-8 w-8 rounded-xl bg-white/[0.05] border border-white/[0.08] flex items-center justify-center text-white/80 shrink-0">
+        <div className="h-8 w-8 rounded-xl bg-black/[0.04] border border-black/[0.08] flex items-center justify-center text-black/70 shrink-0">
           {isDark ? (
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
@@ -30,13 +30,13 @@ export default function ThemeToggleButton() {
             </svg>
           )}
         </div>
-        <div className="font-mts-wide text-[13px] font-medium text-white/90 truncate">
+        <div className="font-mts-wide text-[13px] font-medium text-black/85 truncate">
           {isDark ? "Тёмная тема" : "Светлая тема"}
         </div>
       </div>
       <div
         className={`relative w-10 h-6 rounded-full transition-colors duration-300 shrink-0 ${
-          !isDark ? "bg-[color:var(--px-accent)]" : "bg-white/[0.10]"
+          !isDark ? "bg-[color:var(--px-accent)]" : "bg-black/[0.10]"
         }`}
       >
         <div
