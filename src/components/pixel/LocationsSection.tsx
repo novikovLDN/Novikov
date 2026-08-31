@@ -1,5 +1,4 @@
 import SectionHeading from "./SectionHeading";
-import LocationMarquee from "./LocationMarquee";
 
 /**
  * Локации.
@@ -34,11 +33,6 @@ const LOCATIONS: Location[] = [
 export default function LocationsSection() {
   return (
     <section className="px-section" aria-labelledby="locations-title">
-      {/* Бегущая строка — редакционное движение поверх настоящего
-          содержания: те же города и задержки, что в списке ниже, а не
-          отдельный декоративный текст (research/06.md §5). */}
-      <LocationMarquee locations={LOCATIONS} />
-
       <div className="px-shell">
         <SectionHeading
           eyebrow="Инфраструктура"

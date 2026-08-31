@@ -3204,93 +3204,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .px-bento-lead { grid-row: 1 / span 3; }
 }
 
-/* ═══ Sticky-сцена шагов ═══════════════════════════════════════════
-   Блок закреплён во вьюпорте на время прокрутки своей же высокой
-   полосы; активная панель переключается дискретно по тому, какая
-   треть полосы в центре экрана (JS в компоненте).
-
-   Только для широких экранов и только при полном движении: на
-   телефоне высоту так не выкроить, а reduced-motion отключает JS
-   переключения, поэтому там сцена тоже не нужна — виден список.
-
-   Сцена помечена aria-hidden в разметке: она декоративна и дублирует
-   px-steps-plain, единственный источник содержания для AT. */
-.px-scene { display: none; }
-@media (min-width: 1024px) {
-  .px-scene {
-    display: block;
-    position: relative;
-    /* Высота прокрутки — по одному экрану на шаг: у последовательности
-       из N шагов ровно N-1 переход, финальный экран держит N-й шаг. */
-    height: calc((var(--px-steps, 3) - 1) * 100vh);
-  }
-}
-.px-scene-trigger { position: absolute; left: 0; right: 0; height: 100vh; pointer-events: none; }
-.px-scene-trigger[data-step="0"] { top: 0; }
-.px-scene-trigger[data-step="1"] { top: 100vh; }
-.px-scene-trigger[data-step="2"] { top: 200vh; }
-
-.px-scene-sticky {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  display: flex;
-  align-items: center;
-}
-.px-scene-stage {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 56px;
-  max-width: 720px;
-}
-.px-scene-index {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--px-accent);
-}
-.px-scene-of { color: var(--px-text-4); font-weight: 500; }
-
-.px-scene-dots {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 28px;
-}
-.px-scene-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--px-line-2);
-  transition: background-color var(--px-enter) var(--px-ease), transform var(--px-enter) var(--px-ease);
-}
-.px-scene-dot-active { background: var(--px-accent); transform: scale(1.4); }
-
-.px-scene-panel { max-width: 460px; }
-
-/* Обычная последовательность — единственная версия на телефоне,
-   единственная доступная AT-версия на десктопе (clip, а не
-   display:none: скрытие через display убрало бы её из дерева
-   доступности). */
-.px-steps-plain { display: flex; flex-direction: column; gap: 28px; padding-block: 48px; }
-.px-steps-plain > li { display: flex; align-items: flex-start; gap: 20px; }
-.px-steps-plain .px-num { font-size: 13px; font-weight: 700; flex-shrink: 0; padding-top: 2px; }
-
-@media (min-width: 1024px) {
-  .px-steps-plain {
-    position: absolute;
-    width: 1px; height: 1px;
-    padding: 0; margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-}
-
 /* ═══ Бегущая строка локаций ══════════════════════════════════════ */
 .px-marquee {
   overflow: hidden;
@@ -3333,4 +3246,117 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 @media (prefers-reduced-motion: reduce) {
   .px-marquee-track { animation: none; }
+}
+
+/* ═══ Степпер «Как это работает» ═══════════════════════════════════
+   Горизонтальный раскрывающийся ряд вместо sticky-сцены. Прежняя
+   версия закрепляла блок во вьюпорте на время прокрутки собственной
+   высокой полосы — это создавало долгую неподвижную зону при обычной
+   прокрутке колесом/трекпадом и вело себя непредсказуемо в разных
+   движках. Степпер даёт ту же редакционную подачу (крупный номер,
+   один активный панель) без единого пикселя скролл-зависимой высоты:
+   переключение происходит по клику/фокусу, высота ряда постоянна.
+
+   На узком экране раскладка становится вертикальным аккордеоном —
+   горизонтальные пропорции там всё равно не работают. */
+.px-stepper {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--px-line);
+  border-radius: var(--px-r-card);
+  overflow: hidden;
+}
+@media (min-width: 1024px) {
+  .px-stepper { flex-direction: row; height: 420px; }
+}
+
+.px-step-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--px-line);
+  background-color: var(--px-surface-2);
+  transition: background-color var(--px-base) var(--px-ease-out), flex-grow 480ms var(--px-ease);
+}
+.px-step-panel:first-child { border-top: none; }
+@media (min-width: 1024px) {
+  .px-step-panel {
+    flex: 0 0 96px;
+    border-top: none;
+    border-left: 1px solid var(--px-line);
+  }
+  .px-step-panel:first-child { border-left: none; }
+}
+
+.px-step-panel-active {
+  background-color: var(--px-surface);
+  background-image: linear-gradient(180deg, var(--px-lift-2) 0%, rgba(255, 255, 255, 0.014) 100%);
+}
+@media (min-width: 1024px) {
+  .px-step-panel-active { flex: 1 1 auto; }
+}
+
+/* Кнопка-заголовок — единственный интерактивный элемент панели.
+   Занимает весь свёрнутый блок как зону нажатия, а в развёрнутом
+   состоянии — верхнюю полосу над текстом. */
+.px-step-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  padding: 28px 24px;
+  min-height: 44px;
+}
+@media (min-width: 1024px) {
+  .px-step-trigger { flex: 1 0 auto; padding: 36px 28px; }
+}
+.px-step-trigger:focus-visible { outline: 2px solid var(--px-accent); outline-offset: -2px; }
+
+.px-step-num {
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--px-text-4);
+  transition: color var(--px-base) var(--px-ease-out);
+}
+.px-step-panel-active .px-step-num { color: var(--px-accent); }
+
+.px-step-body {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  padding-inline: 24px;
+  transition: grid-template-rows var(--px-enter) var(--px-ease), opacity var(--px-fast) var(--px-ease-out);
+}
+@media (min-width: 1024px) { .px-step-body { padding-inline: 28px; } }
+.px-step-panel-active .px-step-body { grid-template-rows: 1fr; opacity: 1; transition-delay: 80ms; padding-bottom: 28px; }
+.px-step-body > div { overflow: hidden; }
+
+.px-step-title {
+  margin-top: 14px;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+@media (min-width: 1024px) {
+  /* Заголовок свёрнутой панели повёрнут вдоль короткой стороны —
+     тот же приём наборной колонцифры, что у номеров разделов. */
+  .px-step-panel:not(.px-step-panel-active) .px-step-title {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    margin-top: 0;
+    margin-left: 14px;
+    font-size: 14px;
+    color: var(--px-text-3);
+  }
+  .px-step-panel:not(.px-step-panel-active) .px-step-num { writing-mode: horizontal-tb; }
+}
+
+.px-step-panel:hover:not(.px-step-panel-active) { background-color: var(--px-surface); }
+
+@media (prefers-reduced-motion: reduce) {
+  .px-step-panel, .px-step-body, .px-step-num { transition: none; }
 }

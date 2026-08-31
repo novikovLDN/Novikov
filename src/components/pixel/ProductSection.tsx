@@ -45,7 +45,7 @@ export default function ProductSection() {
           eyebrow="Личный кабинет"
           title={["Всё управление —", "на одном экране"]}
           titleId="product-title"
-          index="01"
+          index="02"
         />
 
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center">

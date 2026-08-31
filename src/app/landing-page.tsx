@@ -3,10 +3,11 @@
 import { useEffect, useState } from "react";
 import SiteHeader from "@/components/pixel/SiteHeader";
 import HeroSection from "@/components/pixel/HeroSection";
-import ProductSection from "@/components/pixel/ProductSection";
+import TrustBand from "@/components/pixel/TrustBand";
 import BenefitsSection from "@/components/pixel/BenefitsSection";
-import DevicesSection from "@/components/pixel/DevicesSection";
+import ProductSection from "@/components/pixel/ProductSection";
 import HowItWorksSection from "@/components/pixel/HowItWorksSection";
+import DevicesSection from "@/components/pixel/DevicesSection";
 import PricingSection from "@/components/pixel/PricingSection";
 import LocationsSection from "@/components/pixel/LocationsSection";
 import SiteOutro from "@/components/pixel/SiteOutro";
@@ -18,6 +19,13 @@ import { useReveal } from "@/components/pixel/motion";
  * Направление и обоснование: research/concept.md.
  * Тёмный технологичный минимализм, пиксельная сетка, один тёплый
  * акцент, фирменный мотив — живые кубики.
+ *
+ * Порядок повествования: обещание (герой) → ранний сигнал доверия
+ * (полоса локаций) → доказательство скорости (преимущества) →
+ * сам продукт (превью кабинета) → как его получить (шаги) → где
+ * работает (устройства) → сколько стоит → где физически стоят
+ * серверы → финальный призыв. Доказательство идёт раньше цены —
+ * решение принимается до того, как читатель увидит цифру.
  */
 interface LandingPageProps {
   referralCode?: string;
@@ -48,10 +56,11 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
       <SiteHeader />
       <main>
         <HeroSection primaryHref={primaryHref} />
-        <ProductSection />
+        <TrustBand />
         <BenefitsSection />
-        <DevicesSection />
+        <ProductSection />
         <HowItWorksSection />
+        <DevicesSection />
         <PricingSection />
         <LocationsSection />
       </main>

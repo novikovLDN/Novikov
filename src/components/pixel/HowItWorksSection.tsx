@@ -1,25 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Icon, { type IconName } from "./Icon";
 import SectionHeading from "./SectionHeading";
 
 /**
- * Как это работает — sticky-сцена, а не ряд из трёх карточек.
+ * Как это работает — горизонтальный степпер (disclosure-паттерн).
  *
- * Блок закрепляется во вьюпорте, пока прокручивается его собственная
- * высокая полоса; активный шаг переключается по тому, какая треть
- * полосы сейчас в центре экрана. Три шага — последовательные и должны
- * быть прочитаны по порядку, поэтому ряд, который можно пролистать по
- * диагонали одним взглядом, был неверной формой для этого содержания
- * (research/06.md §4).
+ * Заменяет прежнюю sticky-сцену: та закрепляла блок во вьюпорте на
+ * время прокрутки собственной высокой полосы (2 экрана высоты для трёх
+ * шагов) и создавала долгую неподвижную зону при обычной прокрутке
+ * колесом мыши или трекпадом — тем более непредсказуемую, что высота
+ * сцены завязана на `100vh`, а `vh` пересчитывается по-разному в
+ * разных браузерах при появлении/скрытии панелей адресной строки.
  *
- * На узком экране (нет курсора-скролла «по шагам» и мало места для
- * sticky-сцены) — обычная последовательность с номерами, читается
- * сверху вниз естественно.
- *
- * Наблюдатель, а не scroll-timeline: переключение шага должно быть
- * дискретным (0/1/2), а не непрерывной анимацией.
+ * Здесь высота ряда постоянна независимо от контента и вьюпорта:
+ * переключение — по клику или фокусу заголовка, а не по позиции
+ * скролла. Разметка — обычный disclosure (кнопка-заголовок раскрывает
+ * соседнюю панель), а не ARIA tabs: помещать role="tabpanel" внутрь
+ * role="tab" было бы невалидной вложенностью.
  */
 const STEPS: Array<{ n: string; title: string; body: string; icon: IconName }> = [
   {
@@ -43,28 +42,7 @@ const STEPS: Array<{ n: string; title: string; body: string; icon: IconName }> =
 ];
 
 export default function HowItWorksSection() {
-  const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    const panels = Array.from(track.querySelectorAll<HTMLElement>("[data-step]"));
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActive(Number(entry.target.getAttribute("data-step")));
-          }
-        });
-      },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0 }
-    );
-    panels.forEach((p) => observer.observe(p));
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <section className="px-section" aria-labelledby="how-title">
@@ -73,58 +51,41 @@ export default function HowItWorksSection() {
           eyebrow="Как это работает"
           title={["От почты до подключения —", "одна минута"]}
           titleId="how-title"
-          index="04"
+          index="03"
         />
-      </div>
 
-      {/* Sticky-сцена: скролл-высота задаётся числом шагов, само
-          содержимое закреплено и меняется дискретно. */}
-      <div ref={trackRef} className="px-scene" aria-hidden="true" style={{ ["--px-steps" as string]: STEPS.length }}>
-        {STEPS.map((s, i) => (
-          <div key={s.n} data-step={i} className="px-scene-trigger" aria-hidden />
-        ))}
+        <div className="px-stepper px-reveal">
+          {STEPS.map((s, i) => {
+            const isActive = i === active;
+            const panelId = `step-panel-${s.n}`;
+            const buttonId = `step-trigger-${s.n}`;
+            return (
+              <div key={s.n} className={`px-step-panel${isActive ? " px-step-panel-active" : ""}`}>
+                <button
+                  type="button"
+                  id={buttonId}
+                  aria-expanded={isActive}
+                  aria-controls={panelId}
+                  onClick={() => setActive(i)}
+                  onFocus={() => setActive(i)}
+                  className="px-step-trigger"
+                >
+                  <span className="px-step-num px-num">{s.n}</span>
+                  <span className="px-step-title">{s.title}</span>
+                </button>
 
-        <div className="px-scene-sticky">
-          <div className="px-shell w-full">
-            <div className="px-scene-stage">
-              <div className="px-scene-index" aria-hidden>
-                <span className="px-num">{STEPS[active].n}</span>
-                <span className="px-scene-of">/ 0{STEPS.length}</span>
+                <div id={panelId} role="region" aria-labelledby={buttonId} className="px-step-body">
+                  <div>
+                    <span className="px-benefit-icon mt-5" aria-hidden>
+                      <Icon name={s.icon} size={20} />
+                    </span>
+                    <p className="px-body mt-4 max-w-[42ch]">{s.body}</p>
+                  </div>
+                </div>
               </div>
-
-              <div className="px-scene-dots">
-                {STEPS.map((s, i) => (
-                  <span key={s.n} className={`px-scene-dot${i === active ? " px-scene-dot-active" : ""}`} />
-                ))}
-              </div>
-
-              <div className="px-scene-panel">
-                <span className="px-benefit-icon" aria-hidden>
-                  <Icon name={STEPS[active].icon} size={22} />
-                </span>
-                <h3 className="px-h2 mt-6">{STEPS[active].title}</h3>
-                <p className="px-lede mt-4">{STEPS[active].body}</p>
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
-      </div>
-
-      {/* Та же последовательность текстом — снимает зависимость от
-          JS/IntersectionObserver и служит развёрнутой альтернативой
-          для скринридера и печати. */}
-      <div className="px-shell">
-        <ol className="px-steps-plain" aria-label="Шаги подключения">
-          {STEPS.map((s) => (
-            <li key={s.n}>
-              <span className="px-num px-accent">{s.n}</span>
-              <div>
-                <h4 className="text-[15px] font-bold">{s.title}</h4>
-                <p className="px-body mt-1">{s.body}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
       </div>
     </section>
   );
