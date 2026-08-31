@@ -2961,11 +2961,11 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 /* ═══ Первый экран внутренней страницы ═════════════════════════════ */
 .px-page-hero {
-  padding-top: calc(var(--px-header-h) + 56px);
-  padding-bottom: 72px;
+  padding-top: calc(var(--px-header-h) + 48px);
+  padding-bottom: 40px;
 }
 @media (min-width: 640px) {
-  .px-page-hero { padding-top: calc(var(--px-header-h) + 88px); padding-bottom: 96px; }
+  .px-page-hero { padding-top: calc(var(--px-header-h) + 76px); padding-bottom: 56px; }
 }
 .px-page-hero-title {
   font-weight: 700;
