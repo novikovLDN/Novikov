@@ -38,7 +38,7 @@ export default function LocationsSection() {
           eyebrow="Инфраструктура"
           title={["Серверы там,", "где вам нужно"]}
           titleId="locations-title"
-          index="06"
+          index="05"
           action={{ label: "Об инфраструктуре", href: "/infrastructure" }}
         />
 

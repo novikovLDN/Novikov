@@ -1,29 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import CubeCluster from "./CubeCluster";
+import AccountPreview from "./AccountPreview";
 import Icon from "./Icon";
+import { MiniCubes } from "./CubeCluster";
 import { AnimatedNumber } from "./motion";
 
 /**
- * Первый экран — редакционная композиция.
+ * Первый экран.
  *
- * Заголовок больше не строка внутри колонки: он занимает всю ширину
- * экрана и задаёт композицию страницы. Вторая строка смещена вправо —
- * намеренный слом сетки, который читается как приём только потому, что
- * вся остальная страница выровнена строго (research/06.md §3).
+ * Разбор VK Cloud / Yandex Cloud / Selectel (research/07.md) сходится
+ * в одном приёме: справа в герое — настоящий интерфейс продукта, а не
+ * абстрактная графика. Раньше здесь стоял кластер кубиков во всю
+ * высоту; теперь его место занимает та же карточка кабинета, что
+ * покупатель увидит после регистрации — это единственная копия на
+ * странице, не дубликат отдельной секции «продукт».
  *
- * ЧТО ЭТО ЗА ПРОДУКТ — главный вопрос, на который экран обязан
- * ответить. Раньше он говорил «интернет без просадок»: это про
- * качество, но не про категорию, и посетитель не понимал, что покупает.
- * Теперь функция названа прямо в первых двух строках после заголовка:
- * открывает заблокированные сайты, меняет страну, шифрует трафик.
- * Слово «VPN» при этом не используется — таково правило публичной
- * части (research/concept.md, принцип «два языка продукта»).
+ * Заголовок называет функцию, а не только качество: «Открывает
+ * интернет» отвечает на вопрос категории, вторая строка — на вопрос
+ * качества («без просадок»). Слово «VPN» не используется — правило
+ * публичной части (research/concept.md, «два языка продукта»).
  *
- * Кластер кубиков ушёл из-под заголовка вниз, за карточку продукта:
- * на первом экране одновременно крупный шрифт и крупная графика
- * дерутся за внимание, и проигрывают оба.
+ * Цена появляется уже в герое («от 199 ₽/мес»), а не только на
+ * /pricing — у Selectel цена входит в первый экран прямым текстом
+ * (research/07.md §2).
+ *
+ * Тёмная фокальная поверхность (`.px-focal`) — одна из двух на
+ * странице (вторая — финальный блок). Основа сайта светлая.
  */
 interface HeroSectionProps {
   primaryHref: string;
@@ -38,57 +41,60 @@ const METRICS = [
 
 export default function HeroSection({ primaryHref }: HeroSectionProps) {
   return (
-    <section className="px-hero" aria-labelledby="hero-title">
+    <section className="px-hero px-focal" aria-labelledby="hero-title">
       <div className="px-hero-body">
-        {/* Типографический блок — вне контейнера, во всю ширину. */}
-        <div className="px-hero-type">
-          <p className="px-status px-reveal">
-            <span className="px-status-dot" aria-hidden />
-            <span className="px-eyebrow">Ускоритель интернета · сеть работает штатно</span>
-          </p>
+        <div className="px-shell w-full">
+          <div className="grid lg:grid-cols-12 gap-12 lg:gap-10 items-center">
+            <div className="lg:col-span-7">
+              <p className="px-status px-reveal">
+                <span className="px-status-dot" aria-hidden />
+                <span className="px-eyebrow flex items-center gap-2">
+                  <MiniCubes />
+                  Ускоритель интернета · сеть работает штатно
+                </span>
+              </p>
 
-          <h1 id="hero-title" className="px-display px-reveal">
-            <span className="px-display-a">Открывает</span>
-            <span className="px-display-b">интернет</span>
-          </h1>
-        </div>
+              <h1 id="hero-title" className="px-hero-title px-reveal mt-6">
+                Открывает интернет
+                <br />
+                <span className="px-accent">без просадок</span>
+              </h1>
 
-        <div className="px-hero-grid">
-          <div className="px-hero-copy px-reveal">
-            <p className="px-hero-lede">
-              Заблокированные сайты и сервисы открываются снова. Страна
-              меняется в одно касание, трафик шифруется, скорость не падает.
-            </p>
+              <p className="px-lede px-reveal mt-6">
+                Заблокированные сайты и сервисы открываются снова. Страна
+                меняется в одно касание, трафик шифруется, скорость не падает.
+              </p>
 
-            <div className="px-cta mt-8">
-              <Link href={primaryHref} className="px-btn px-btn-xl px-btn-primary px-btn-block group">
-                Начать бесплатно
-                <Icon
-                  name="arrow-right"
-                  size={18}
-                  className="transition-transform duration-200 ease-out group-hover:translate-x-1"
-                />
-              </Link>
-              <div className="grid grid-cols-2 gap-3 mt-3">
-                <Link href="/pricing" className="px-btn px-btn-md px-btn-secondary">Тарифы</Link>
-                <Link href="/auth" className="px-btn px-btn-md px-btn-secondary">Войти</Link>
+              <div className="px-cta px-reveal mt-8">
+                <Link href={primaryHref} className="px-btn px-btn-xl px-btn-primary px-btn-block group">
+                  Начать бесплатно
+                  <Icon
+                    name="arrow-right"
+                    size={18}
+                    className="transition-transform duration-200 ease-out group-hover:translate-x-1"
+                  />
+                </Link>
+                <div className="grid grid-cols-2 gap-3 mt-3">
+                  <Link href="/pricing" className="px-btn px-btn-md px-btn-secondary">
+                    Тарифы от 199 ₽
+                  </Link>
+                  <Link href="/auth" className="px-btn px-btn-md px-btn-secondary">Войти</Link>
+                </div>
               </div>
+
+              <ul className="px-friction px-reveal mt-6">
+                {["Три дня бесплатно", "Без карты", "Отмена в один клик"].map((t) => (
+                  <li key={t}>
+                    <Icon name="check" size={13} className="px-accent" />
+                    {t}
+                  </li>
+                ))}
+              </ul>
             </div>
 
-            <ul className="px-friction mt-6">
-              {["Три дня бесплатно", "Без карты", "Отмена в один клик"].map((t) => (
-                <li key={t}>
-                  <Icon name="check" size={13} className="px-accent" />
-                  {t}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Кластер наезжает на типографический блок — намеренное
-              наложение вместо аккуратной колонки рядом. */}
-          <div className="px-hero-art px-reveal" aria-hidden>
-            <CubeCluster />
+            <div className="lg:col-span-5 px-reveal">
+              <AccountPreview />
+            </div>
           </div>
         </div>
       </div>

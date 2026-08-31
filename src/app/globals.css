@@ -1573,7 +1573,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
     box-shadow var(--px-fast) var(--px-ease-out);
 }
 .auth-shell .auth-input::placeholder { color: var(--px-text-4); }
-.auth-shell .auth-input:hover  { border-color: rgba(255, 255, 255, 0.2); }
+.auth-shell .auth-input:hover  { border-color: rgba(20, 20, 15, 0.24); }
 .auth-shell .auth-input:focus  {
   outline: none;
   border-color: var(--px-accent);
@@ -1602,7 +1602,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 /* Главное действие — акцентная кнопка системы */
 .auth-shell .auth-cta {
   background: var(--px-accent);
-  color: #101010;
+  color: var(--px-accent-ink);
   border: 1px solid transparent;
   border-radius: var(--px-r-btn);
   height: 54px;
@@ -1738,12 +1738,15 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 }
 /* ═══════════════════════════════════════════════════════════════════════
    PIXEL — дизайн-система публичной части и личного кабинета
-   Направление и обоснование: research/concept.md
+   Направление и обоснование: research/concept.md, research/07.md
 
-   Тёмный технологичный минимализм: почти чёрный фон с едва заметной
-   пиксельной сеткой, крупная уверенная типографика, много воздуха и
-   ровно один тёплый акцент. Фирменный мотив — скруглённые кубики,
-   живущие в ячейках этой сетки.
+   Светлый корпоративный минимализм — направление подтверждено разбором
+   VK Cloud, Yandex Cloud и Selectel (research/07.md): все три независимо
+   держат светлый фон с одним дисциплинированным акцентом, а тёмные
+   поверхности используют точечно, как фокальные вставки (герой,
+   финальный блок), а не как основу всей страницы. Прежняя версия
+   (тёмный фон целиком) визуально была смелее всего рынка инфраструктурных
+   провайдеров и поэтому не считывалась как «тот же тип продукта».
 
    Префикс .px-*. Слой самодостаточен: не зависит от прежних слоёв
    и ничего в них не переопределяет. Все значения ниже — токены; ни
@@ -1752,80 +1755,86 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Поверхности ────────────────────────────────────────────────── */
-  --px-bg:          #0E100D;  /* фон страницы: почти чёрный с холодным подмесом */
-  --px-surface:     #24261F;  /* карточки и панели */
-  --px-surface-2:   #191B16;  /* вторичные поверхности, secondary-кнопки */
+  /* ── Поверхности — светлый корпус ─────────────────────────────────
+     Тело страницы. Тёплый почти-белый, не чистый #FFF: чистый белый
+     на весь экран режет глаз и читается дёшево, лёгкий тёплый подмес
+     (research/07.md — все три провайдера держат `#F5F5F5`-диапазон,
+     не чистый белый). */
+  --px-bg:          #F6F5F2;  /* фон страницы */
+  --px-surface:     #FFFFFF;  /* карточки и панели */
+  --px-surface-2:   #EFEEEA;  /* вторичные поверхности, secondary-кнопки */
+
+  /* Тёмная фокальная поверхность — герой и финальный блок. Не основа
+     сайта, а точечная вставка: ровно два места на странице. */
+  --px-focal:       #14140F;
+  --px-focal-2:     #1E1E17;
 
   /* ── Акцент. На экране он ровно один ──────────────────────────────
      Замкнутый набор: любое место системы обращается только к этим
      переменным и ни к одному «своему» хексу. Смена акцента бренда —
-     правка одного блока, а не поиск цвета по файлам. */
-  --px-accent:      #C6F24E;  /* база — кислотный лайм */
-  --px-accent-hi:   #D6FA70;  /* hover — тот же цвет, чуть ярче */
-  --px-accent-lo:   #A8D92F;  /* низ градиента заливки */
-  --px-accent-top:  #D8FA6E;  /* верх градиента заливки */
-  --px-accent-ink:  #0E1206;  /* текст на акцентной заливке */
-  --px-accent-dim:  rgba(198, 242, 78, 0.14);
-  --px-accent-line: rgba(198, 242, 78, 0.38);  /* акцентная граница */
-  --px-accent-lite: rgba(220, 250, 140, 0.26); /* блик по кромке */
-  --px-accent-rgb:  198, 242, 78;              /* для произвольных альф */
-  --px-brick:       #5C6B2A;  /* тёмные кубики: глубина паттерна */
-  --px-brick-2:     #46521F;
+     правка одного блока, а не поиск цвета по файлам.
+
+     Тёплый коралл, не синий: у обоих ориентиров (VK, Yandex Cloud) и
+     у Selectel акцент синий/циановый — это уже язык категории. Коралл
+     сообщает энергию и скорость и не сливается с конкурентным полем
+     (research/05.md, research/07.md). */
+  --px-accent:      #FF6B45;
+  --px-accent-hi:   #FF7F5C;  /* hover — тот же цвет, чуть ярче */
+  --px-accent-lo:   #E85530;  /* низ градиента заливки */
+  --px-accent-top:  #FF8563;  /* верх градиента заливки */
+  --px-accent-ink:  #1A0800;  /* текст на акцентной заливке */
+  --px-accent-dim:  rgba(255, 107, 69, 0.10);
+  --px-accent-line: rgba(255, 107, 69, 0.42);  /* акцентная граница */
+  --px-accent-lite: rgba(255, 150, 120, 0.30); /* блик по кромке */
+  --px-accent-rgb:  255, 107, 69;              /* для произвольных альф */
+  --px-brick:       #FFB199;  /* тёмные кубики: глубина паттерна */
+  --px-brick-2:     #14140F;
 
   /* Статус «подключено/активно/успех». Только состояние системы,
-     декоративно не применяется.
+     декоративно не применяется. Бирюзовый, а не зелёный: рядом с
+     тёплым акцентом обычный зелёный конкурировал бы с ним по
+     температуре; холодный бирюзовый однозначно читается как другой
+     смысл (состояние, а не бренд). */
+  --px-good:        #0EA394;
+  --px-good-dim:    rgba(14, 163, 148, 0.12);
 
-     Бирюзовый, а не зелёный: акцент бренда — кислотный лайм, и
-     обычный зелёный рядом с ним перестаёт читаться как отдельный
-     смысл. Пользователь должен отличать «это акцент» от «это
-     подключено» без раздумий, поэтому статус уведён по тону
-     примерно на 100° от акцента. */
-  --px-good:        #2DD4BF;
-  --px-good-dim:    rgba(45, 212, 191, 0.16);
-
-  /* ── Текст ──────────────────────────────────────────────────────── */
-  --px-text:        #FFFFFF;                    /* заголовки */
-  --px-text-2:      #B9B9BD;                    /* body */
-  --px-text-3:      rgba(185, 185, 189, 0.66);  /* подписи */
-  --px-text-4:      rgba(185, 185, 189, 0.44);  /* надзаголовки, мета */
+  /* ── Текст — тёмные чернила на светлом ────────────────────────────── */
+  --px-text:        #14140F;                    /* заголовки */
+  --px-text-2:      #4B4A44;                    /* body */
+  --px-text-3:      rgba(20, 20, 15, 0.58);     /* подписи */
+  --px-text-4:      rgba(20, 20, 15, 0.42);     /* надзаголовки, мета */
 
   /* ── Линии ──────────────────────────────────────────────────────── */
-  --px-line:        rgba(255, 255, 255, 0.08);
-  --px-line-2:      rgba(255, 255, 255, 0.16);
+  --px-line:        rgba(20, 20, 15, 0.09);
+  --px-line-2:      rgba(20, 20, 15, 0.16);
 
-  /* ── Лестница поверхностей (research/04.md §1) ───────────────────
-     На тёмном фоне тень невидима, поэтому подъём обозначается светом:
-     чем ближе поверхность к зрителю, тем больше в ней подмешано
-     белого. Альфа, а не готовый hex, — тогда поверхность собирает
-     верный оттенок на любом основании. */
-  --px-lift-1:      rgba(255, 255, 255, 0.030);  /* тихая панель */
-  --px-lift-2:      rgba(255, 255, 255, 0.055);  /* карточка */
-  --px-lift-3:      rgba(255, 255, 255, 0.090);  /* парящее: шапка, модалка */
+  /* ── Элевация (research/07.md — светлый корпус поддерживает
+        настоящие тени, в отличие от тёмного из research/04.md, где
+        тень невидима и подъём приходится обозначать светом). ────────
+     Кромка света сверху больше не нужна — здесь работает обычная
+     мягкая тень снизу, физически честная для верхнего источника
+     света на светлой поверхности. */
+  --px-lift-1:      0 1px 2px rgba(20, 20, 15, 0.04);
+  --px-lift-2:      0 2px 8px -2px rgba(20, 20, 15, 0.08), 0 1px 2px rgba(20, 20, 15, 0.04);
+  --px-lift-3:      0 12px 32px -8px rgba(20, 20, 15, 0.14), 0 2px 6px -1px rgba(20, 20, 15, 0.06);
 
-  /* Кромка света сверху и тень снизу — приём, который отличает
-     материал от прямоугольника с заливкой (research/04.md §2). */
-  --px-edge:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
-  --px-edge-strong:
-    inset 0 1px 0 rgba(255, 255, 255, 0.11),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.34);
+  --px-edge:        var(--px-lift-2);
+  --px-edge-strong: var(--px-lift-3);
 
-  /* ── Пиксельная сетка фона ──────────────────────────────────────── */
+  /* ── Пиксельная сетка — только на тёмных фокальных поверхностях
+        (герой, финальный блок), не на всей странице. ─────────────── */
   --px-cell:        clamp(28px, 3.4vw, 48px);    /* шаг сетки = шаг кубика */
-  --px-grid-line:   rgba(255, 255, 255, 0.055);
+  --px-grid-line:   rgba(255, 255, 255, 0.06);
 
   /* ── Радиусы ────────────────────────────────────────────────────── */
-  --px-r-card:      16px;
-  --px-r-btn:       12px;
+  --px-r-card:      14px;
+  --px-r-btn:       10px;
   --px-r-chip:      999px;
   --px-r-cube:      22%;   /* доля от стороны кубика */
 
-  /* ── Свечение. Теней в системе нет: глубина строится поверхностями,
-        а подсветка нужна только акцентной кнопке под курсором. ────── */
-  --px-glow:        0 14px 40px -14px rgba(var(--px-accent-rgb), 0.62);
-  --px-glow-soft:   0 10px 30px -16px rgba(var(--px-accent-rgb), 0.45);
+  /* ── Свечение акцентной кнопки под курсором. ──────────────────────── */
+  --px-glow:        0 14px 32px -12px rgba(var(--px-accent-rgb), 0.45);
+  --px-glow-soft:   0 8px 20px -10px rgba(var(--px-accent-rgb), 0.32);
 
   /* ── Motion ─────────────────────────────────────────────────────── */
   --px-fast:        160ms;   /* цвет, граница */
@@ -1866,30 +1875,44 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   -webkit-font-smoothing: antialiased;
 }
 
-/* Пиксельная сетка. Рисуется двумя градиентами, без картинок и без
-   SVG-запроса. Шаг сетки равен шагу кубика, поэтому кубики визуально
-   стоят в её ячейках, а не «поверх» неё. */
-/* Сетка живёт в верхней зоне страницы и мягко тает вниз.
-   Растягивать её на весь документ незачем: ниже героя контент лежит
-   на карточках, и текстура под ними всё равно не видна, а полноразмерный
-   слой на всю высоту документа — лишняя работа для композитора. */
-.px-grid-bg {
+/* Пиксельная сетка — только внутри тёмных фокальных поверхностей
+   (герой, финальный блок), не на всей странице (research/07.md: у
+   ориентиров текстура фона не используется как основа сайта). Сетка
+   монтируется локально внутри .px-focal, а не глобально в .px-page —
+   поэтому здесь нет отдельного полностраничного слоя. Класс сохранён
+   для обратной совместимости разметки, но по умолчанию пуст на
+   светлом корпусе. */
+.px-grid-bg { display: none; }
+
+.px-page > * { position: relative; z-index: 1; }
+
+/* ═══ Тёмная фокальная поверхность ════════════════════════════════
+   Ровно два места на странице: герой и финальный блок (плюс
+   полноэкранное мобильное меню — оно тоже временная накладка, а не
+   часть тела страницы). Несёт собственную пиксельную сетку — здесь,
+   а не на всём документе (research/07.md). */
+.px-focal {
+  position: relative;
+  background: var(--px-focal);
+  color: #FFFFFF;
+  isolation: isolate;
+  overflow: hidden;
+}
+.px-focal::before {
+  content: "";
   position: absolute;
-  inset: 0 0 auto 0;
-  height: min(1800px, 220vh);
-  z-index: 0;
+  inset: 0;
+  z-index: -1;
   pointer-events: none;
   background-image:
     linear-gradient(to right, var(--px-grid-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--px-grid-line) 1px, transparent 1px);
   background-size: var(--px-cell) var(--px-cell);
-  /* Виньетка: сетка гаснет к краям, иначе она читается как рамка
-     таблицы, а не как текстура воздуха. */
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.6) 55%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.6) 55%, transparent 100%);
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 100%);
+  mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 100%);
 }
-
-.px-page > * { position: relative; z-index: 1; }
+.px-focal .px-text-3, .px-focal .px-ink-3 { color: rgba(255, 255, 255, 0.62); }
+.px-focal .px-text-4, .px-focal .px-ink-4 { color: rgba(255, 255, 255, 0.42); }
 
 /* Зерно — материал, а не текстура ради текстуры: оно снимает
    «пластиковую» ровность больших тёмных плоскостей и прячет полосы
@@ -2177,14 +2200,12 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 .px-btn-secondary {
   background-color: var(--px-surface-2);
-  background-image: linear-gradient(180deg, var(--px-lift-2) 0%, rgba(255, 255, 255, 0.012) 100%);
   color: var(--px-text);
   border: 1px solid var(--px-line);
   box-shadow: var(--px-edge);
 }
 @media (hover: hover) and (pointer: fine) {
   .px-btn-secondary:hover:not(:disabled) {
-    background-image: linear-gradient(180deg, var(--px-lift-3) 0%, rgba(255, 255, 255, 0.02) 100%);
     border-color: var(--px-line-2);
     box-shadow: var(--px-edge-strong);
   }
@@ -2211,7 +2232,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   padding: 0 16px;
   border-radius: var(--px-r-chip);
   background-color: var(--px-surface-2);
-  background-image: linear-gradient(180deg, var(--px-lift-2) 0%, rgba(255, 255, 255, 0.01) 100%);
   border: 1px solid var(--px-line);
   box-shadow: var(--px-edge);
   color: var(--px-text-2);
@@ -2241,18 +2261,18 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 /* ═══ Карточки ═════════════════════════════════════════════════════ */
 
-/* Карточка — уровень 2 лестницы поверхностей.
-   Три слоя вместо плоской заливки (research/04.md §1–3):
-     - базовый цвет поверхности;
-     - альфа-градиент сверху вниз: разница на грани различимости,
-       как только градиент заметен — он становится украшением;
-     - кромка света сверху и тень снизу.
-   Тени вокруг нет намеренно: на тёмном фоне она не читается, а
-   подъём обозначается светом. */
+/* Карточка — уровень 2 элевации. На светлом корпусе (research/07.md)
+   подъём даёт обычная мягкая тень снизу, а не альфа-градиент и кромка
+   света — те приёмы были специфичны для тёмного фона, где тень
+   невидима (research/04.md, актуально только для .px-focal). */
 .px-card {
   position: relative;
+  /* Карточка — светлый остров, даже если стоит внутри тёмной
+     фокальной поверхности (герой, финальный блок): .px-focal красит
+     текст потомков в белый, а белая карточка обязана вернуть себе
+     тёмные чернила явно, а не унаследовать белый от предка. */
   background-color: var(--px-surface);
-  background-image: linear-gradient(180deg, var(--px-lift-2) 0%, rgba(255, 255, 255, 0.018) 100%);
+  color: var(--px-text);
   border: 1px solid var(--px-line);
   border-radius: var(--px-r-card);
   box-shadow: var(--px-edge);
@@ -2272,7 +2292,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 /* Уровень 1 — тихая вложенная панель: подъём заметно меньше. */
 .px-card-2 {
   background-color: var(--px-surface-2);
-  background-image: linear-gradient(180deg, var(--px-lift-1) 0%, rgba(255, 255, 255, 0.008) 100%);
   border: 1px solid var(--px-line);
   border-radius: var(--px-r-card);
   box-shadow: var(--px-edge);
@@ -2283,19 +2302,14 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
    источник света, а не как обводка. */
 .px-card-accent {
   border-color: var(--px-accent-line);
-  background-image:
-    linear-gradient(180deg, rgba(var(--px-accent-rgb), 0.075) 0%, rgba(255, 255, 255, 0.014) 46%);
-  box-shadow:
-    inset 0 1px 0 var(--px-accent-lite),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
+  background-image: linear-gradient(180deg, rgba(var(--px-accent-rgb), 0.06) 0%, transparent 60%);
+  box-shadow: var(--px-lift-2), inset 0 0 0 1px var(--px-accent-line);
 }
 @media (hover: hover) and (pointer: fine) {
   .px-card-accent:hover {
-    border-color: rgba(var(--px-accent-rgb), 0.55);
-    box-shadow:
-      inset 0 1px 0 rgba(var(--px-accent-rgb), 0.34),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.3),
-      var(--px-glow-soft);
+    border-color: rgba(var(--px-accent-rgb), 0.6);
+    box-shadow: var(--px-lift-3), inset 0 0 0 1px rgba(var(--px-accent-rgb), 0.6);
+    transform: translateY(-2px);
   }
 }
 
@@ -2341,6 +2355,13 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 /* ═══ Шапка ════════════════════════════════════════════════════════ */
 
+/* Прозрачное состояние сидит поверх тёмного героя — текст белый.
+   Сплошное состояние сидит поверх светлого тела страницы — текст
+   становится тёмными чернилами. Раньше цвет текста здесь не задавался
+   явно и наследовался от глобального --px-text; пока токен был белым
+   на всей тёмной странице, это работало случайно. На светлом корпусе
+   то же наследование сделало бы прозрачную шапку невидимой (тёмный
+   текст на тёмном герое), поэтому оба состояния объявлены явно. */
 .px-header {
   position: fixed;
   inset: 0 0 auto 0;
@@ -2348,21 +2369,23 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   height: var(--px-header-h);
   display: flex;
   align-items: center;
+  color: #FFFFFF;
   background: transparent;
   border-bottom: 1px solid transparent;
   transition:
     background-color var(--px-base) var(--px-ease-out),
-    border-color var(--px-base) var(--px-ease-out);
+    border-color var(--px-base) var(--px-ease-out),
+    color var(--px-base) var(--px-ease-out);
 }
 /* Шапка — уровень 3: она действительно парит над контентом, поэтому
-   стекло здесь уместно. Обязательная кромка света снизу: без неё
-   стекло читается как грязное пятно, а не как слой (research/04.md §5). */
+   стекло здесь уместно. */
 .px-header-solid {
-  background: rgba(20, 20, 21, 0.72);
+  color: var(--px-text);
+  background: rgba(246, 245, 242, 0.82);
   border-bottom-color: var(--px-line);
   backdrop-filter: blur(18px) saturate(160%);
   -webkit-backdrop-filter: blur(18px) saturate(160%);
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: var(--px-lift-1);
 }
 
 .px-brand {
@@ -2414,8 +2437,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   z-index: 70;
   display: flex;
   flex-direction: column;
-  background: var(--px-bg);
-  color: var(--px-text);
 }
 .px-menu-link {
   display: block;
@@ -2425,21 +2446,16 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.03em;
-  color: var(--px-text);
+  color: #FFFFFF;
   transition: color var(--px-fast) var(--px-ease-out);
 }
 .px-menu-link:hover { color: var(--px-accent); }
 
-/* ═══ Первый экран ═════════════════════════════════════════════════ */
-
-/* ═══ Первый экран — редакционная композиция ═══════════════════════
-   Заголовок вынесен из контейнера и живёт по своим полям: он не
-   элемент колонки, а сама композиция. Вторая строка смещена вправо —
-   слом сетки, который работает только на фоне строгого выравнивания
-   всей остальной страницы.
-
-   Полоса показаний прижата к низу экрана и читается как приборная
-   шкала под содержанием. */
+/* ═══ Первый экран ════════════════════════════════════════════════
+   Обычная колонная композиция (копия слева, реальный интерфейс
+   справа), а не типографика во всю ширину: у всех трёх разобранных
+   провайдеров (research/07.md) герой построен именно так — броский,
+   но конвенциональный, и это работает как узнаваемый язык категории. */
 .px-hero {
   min-height: 100svh;
   display: flex;
@@ -2448,77 +2464,20 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .px-hero-body {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-top: calc(var(--px-header-h) + 28px);
-  padding-bottom: 40px;
+  align-items: center;
+  padding-top: calc(var(--px-header-h) + 40px);
+  padding-bottom: 48px;
 }
 @media (min-width: 640px) {
-  .px-hero-body { padding-top: calc(var(--px-header-h) + 40px); padding-bottom: 56px; }
+  .px-hero-body { padding-top: calc(var(--px-header-h) + 56px); padding-bottom: 64px; }
 }
 
-/* Типографический блок: собственные поля, уже контейнера по бокам,
-   чтобы строка могла подойти вплотную к краю экрана. */
-.px-hero-type { padding-inline: var(--px-gutter); }
-@media (min-width: 1400px) {
-  .px-hero-type { padding-inline: max(var(--px-gutter), calc((100vw - var(--px-shell)) / 2)); }
-}
-
-.px-display {
-  margin-top: 18px;
+.px-hero-title {
   font-weight: 700;
-  /* Кегль подобран так, чтобы длинная строка почти доходила до края
-     экрана на любой ширине и при этом НЕ обрезалась на 320px. */
-  font-size: clamp(42px, 12.6vw, 186px);
-  line-height: 0.9;
-  letter-spacing: -0.05em;
-  color: var(--px-text);
-  text-transform: none;
-}
-.px-display-a,
-.px-display-b { display: block; }
-/* Смещение второй строки — тот самый намеренный слом. На узком экране
-   его нет: там сдвиг съел бы и без того скудную ширину. */
-@media (min-width: 768px) {
-  .px-display-b { margin-left: 14%; }
-}
-.px-display-b { color: var(--px-accent); }
-
-/* Нижняя часть первого экрана: узкая колонка текста напротив пустоты
-   и наезжающая на неё графика. */
-.px-hero-grid {
-  margin-top: 40px;
-  padding-inline: var(--px-gutter);
-  display: grid;
-  gap: 40px;
-}
-@media (min-width: 1400px) {
-  .px-hero-grid { padding-inline: max(var(--px-gutter), calc((100vw - var(--px-shell)) / 2)); }
-}
-@media (min-width: 900px) {
-  .px-hero-grid {
-    margin-top: 8px;
-    grid-template-columns: minmax(0, 440px) minmax(0, 1fr);
-    align-items: start;
-    gap: 56px;
-  }
-}
-.px-hero-copy { max-width: 440px; }
-.px-hero-lede {
-  font-weight: 500;
-  font-size: clamp(16px, 1.6vw, 19px);
-  line-height: 1.45;
-  color: var(--px-text-2);
-  text-wrap: pretty;
-}
-
-.px-hero-art { display: flex; justify-content: center; }
-@media (min-width: 900px) {
-  .px-hero-art {
-    justify-content: flex-end;
-    /* Наложение: графика заходит вверх, под типографический блок. */
-    margin-top: -18%;
-  }
+  font-size: clamp(34px, 5.2vw, 64px);
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  color: #FFFFFF;
 }
 
 .px-cta { max-width: 440px; }
@@ -2553,13 +2512,48 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   flex-wrap: wrap;
   gap: 8px 20px;
   font-size: 12.5px;
-  color: var(--px-text-3);
+  color: rgba(255, 255, 255, 0.62);
 }
 .px-friction > li { display: flex; align-items: center; gap: 8px; }
 
 @media (prefers-reduced-motion: reduce) {
   .px-status-dot::after { animation: none; }
 }
+
+/* Полоса показаний — прижата к низу героя, читается как приборная
+   шкала под содержанием. */
+.px-hero-rail {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding-block: 20px;
+}
+@media (min-width: 640px) { .px-hero-rail { padding-block: 26px; } }
+
+.px-rail-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 16px;
+}
+@media (min-width: 768px) {
+  .px-rail-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+}
+.px-rail-metric-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--px-text-4);
+}
+.px-focal .px-rail-metric-label { color: rgba(255, 255, 255, 0.44); }
+.px-rail-metric-value {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: clamp(20px, 2.4vw, 28px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--px-text);
+}
+.px-focal .px-rail-metric-value { color: #FFFFFF; }
 
 /* Кнопка меню только до lg. Отдельное правило, а не утилита Tailwind:
    .px-icon-btn задаёт display и в каскаде идёт позже любой утилиты,
@@ -2757,7 +2751,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
     position: absolute;
     inset: 0 0 24% 0;
     place-items: center;
-    color: rgba(255, 255, 255, 0.07);
+    color: rgba(20, 20, 15, 0.06);
     pointer-events: none;
     transition: transform var(--px-block) var(--px-ease), color var(--px-enter) var(--px-ease-out);
   }
@@ -2838,7 +2832,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   width: calc((100% - 8px - (var(--px-seg-count) - 1) * 4px) / var(--px-seg-count));
   border-radius: var(--px-r-chip);
   background-color: var(--px-surface);
-  background-image: linear-gradient(180deg, var(--px-lift-3) 0%, rgba(255, 255, 255, 0.02) 100%);
   border: 1px solid var(--px-line-2);
   box-shadow: var(--px-edge);
   transform: translateX(calc(var(--px-seg, 0) * (100% + 4px)));
@@ -2886,7 +2879,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   font-size: 12px;
   font-weight: 500;
   color: var(--px-text-2);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--px-surface-2);
   border: 1px solid var(--px-line);
 }
 
@@ -3088,7 +3081,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .px-table tbody tr { border-top: 1px solid var(--px-line); }
 /* Колонка Plus подсвечена слабой заливкой, а не оранжевым: акцент на
    странице уже занят кнопкой в карточке Plus. */
-.px-table-featured { background: rgba(255, 255, 255, 0.03); }
+.px-table-featured { background: rgba(var(--px-accent-rgb), 0.05); }
 .px-table thead .px-table-featured { color: var(--px-text); font-weight: 700; }
 
 /* Подложка сетки внутри оболочки входа: у .auth-shell нет общего
@@ -3144,6 +3137,22 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   background: linear-gradient(90deg, var(--px-line-2) 0%, var(--px-line) 40%, transparent 100%);
 }
 
+/* ─── Карточка как светлый остров ────────────────────────────────────
+   .px-card уже возвращает себе тёмные чернила (см. правило .px-card
+   выше), но служебные классы типа .px-rail-metric-label переиспользуются
+   и на тёмном герое напрямую, и внутри белой карточки внутри того же
+   героя (AccountPreview). Правило `.px-focal .px-rail-metric-label`
+   выше по каскаду красит их в белый по одному признаку — «где-то
+   внутри .px-focal», не различая, стоит ли элемент на самой тёмной
+   поверхности или на white-карточке поверх неё. Здесь — более поздний
+   по источнику сброс той же специфичности: он выигрывает каскад и
+   возвращает служебным классам локальные тёмные тона всегда, когда они
+   находятся внутри .px-card, независимо от того, что снаружи. */
+.px-card .px-rail-metric-label { color: var(--px-text-4); }
+.px-card .px-rail-metric-value { color: var(--px-text); }
+.px-card .px-text-3, .px-card .px-ink-3 { color: var(--px-text-3); }
+.px-card .px-text-4, .px-card .px-ink-4 { color: var(--px-text-4); }
+
 /* ─── Превью кабинета ────────────────────────────────────────────── */
 .px-preview-row { border-top: 1px solid var(--px-line); }
 
@@ -3158,7 +3167,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   height: 50px;
   border-radius: var(--px-r-btn);
   background-color: var(--px-surface-2);
-  background-image: linear-gradient(180deg, var(--px-lift-2) 0%, rgba(255, 255, 255, 0.012) 100%);
   border: 1px solid var(--px-line);
   box-shadow: var(--px-edge);
   color: var(--px-text);
@@ -3290,7 +3298,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 .px-step-panel-active {
   background-color: var(--px-surface);
-  background-image: linear-gradient(180deg, var(--px-lift-2) 0%, rgba(255, 255, 255, 0.014) 100%);
 }
 @media (min-width: 1024px) {
   .px-step-panel-active { flex: 1 1 auto; }

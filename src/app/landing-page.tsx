@@ -5,7 +5,6 @@ import SiteHeader from "@/components/pixel/SiteHeader";
 import HeroSection from "@/components/pixel/HeroSection";
 import TrustBand from "@/components/pixel/TrustBand";
 import BenefitsSection from "@/components/pixel/BenefitsSection";
-import ProductSection from "@/components/pixel/ProductSection";
 import HowItWorksSection from "@/components/pixel/HowItWorksSection";
 import DevicesSection from "@/components/pixel/DevicesSection";
 import PricingSection from "@/components/pixel/PricingSection";
@@ -58,7 +57,6 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
         <HeroSection primaryHref={primaryHref} />
         <TrustBand />
         <BenefitsSection />
-        <ProductSection />
         <HowItWorksSection />
         <DevicesSection />
         <PricingSection />
