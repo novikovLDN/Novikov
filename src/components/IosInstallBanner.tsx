@@ -107,7 +107,7 @@ export default function IosInstallBanner() {
                 <div className="flex items-center gap-3 text-muted">
                   <span className="text-xs">Найдите в панели Safari:</span>
                   <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF7350" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--px-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
                       <polyline points="16 6 12 2 8 6" />
                       <line x1="12" y1="2" x2="12" y2="15" />
@@ -170,7 +170,7 @@ export default function IosInstallBanner() {
             <div className="animate-fade-in-up animate-delay-3">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-success/15 flex items-center justify-center shrink-0">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2AC153" strokeWidth="2.5">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--px-good)" strokeWidth="2.5">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>

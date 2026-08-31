@@ -137,7 +137,7 @@ export default function SettingsCard() {
                   <button onClick={() => setConfirmRemove(true)} className="text-[11px] text-white/40 hover:text-[#EF4444] transition-colors px-3 py-1.5 rounded-lg hover:bg-white/[0.05]">Отвязать</button>
                 )
               ) : (
-                <button onClick={handleSetupPasskey} className="text-[11px] text-[#FF8A6B] font-medium px-3 py-1.5 rounded-lg bg-[#FF7350]/10 hover:bg-[#FF7350]/15 transition-colors">Настроить</button>
+                <button onClick={handleSetupPasskey} className="text-[11px] text-[var(--px-accent-hi)] font-medium px-3 py-1.5 rounded-lg bg-[color:var(--px-accent)]/10 hover:bg-[color:var(--px-accent)]/15 transition-colors">Настроить</button>
               )}
             </div>
             {passkeyStatus === "error" && <p className="text-[#EF4444] text-[11px]">Не удалось. Попробуйте позже.</p>}

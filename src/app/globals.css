@@ -1694,7 +1694,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 /* Акцентная карточка — ровно одна на экран. */
 .dv2-card-accent {
   background: var(--px-surface);
-  border-color: rgba(255, 115, 80, 0.35);
+  border-color: rgba(var(--px-accent-rgb), 0.35);
 }
 
 .dv2-eyebrow {
@@ -1753,21 +1753,36 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 :root {
   /* ── Поверхности ────────────────────────────────────────────────── */
-  --px-bg:          #101010;  /* фон страницы */
-  --px-surface:     #28282A;  /* карточки и панели */
-  --px-surface-2:   #1C1C1E;  /* вторичные поверхности, secondary-кнопки */
+  --px-bg:          #0E100D;  /* фон страницы: почти чёрный с холодным подмесом */
+  --px-surface:     #24261F;  /* карточки и панели */
+  --px-surface-2:   #191B16;  /* вторичные поверхности, secondary-кнопки */
 
-  /* ── Акцент. На экране он ровно один ────────────────────────────── */
-  --px-accent:      #FF7350;
-  --px-accent-hi:   #FF8A6B;  /* hover: чуть ярче, не другой цвет */
-  --px-accent-dim:  rgba(255, 115, 80, 0.14);
-  --px-brick:       #9E5240;  /* тёмные кубики: глубина паттерна */
-  --px-brick-2:     #8C4A38;
+  /* ── Акцент. На экране он ровно один ──────────────────────────────
+     Замкнутый набор: любое место системы обращается только к этим
+     переменным и ни к одному «своему» хексу. Смена акцента бренда —
+     правка одного блока, а не поиск цвета по файлам. */
+  --px-accent:      #C6F24E;  /* база — кислотный лайм */
+  --px-accent-hi:   #D6FA70;  /* hover — тот же цвет, чуть ярче */
+  --px-accent-lo:   #A8D92F;  /* низ градиента заливки */
+  --px-accent-top:  #D8FA6E;  /* верх градиента заливки */
+  --px-accent-ink:  #0E1206;  /* текст на акцентной заливке */
+  --px-accent-dim:  rgba(198, 242, 78, 0.14);
+  --px-accent-line: rgba(198, 242, 78, 0.38);  /* акцентная граница */
+  --px-accent-lite: rgba(220, 250, 140, 0.26); /* блик по кромке */
+  --px-accent-rgb:  198, 242, 78;              /* для произвольных альф */
+  --px-brick:       #5C6B2A;  /* тёмные кубики: глубина паттерна */
+  --px-brick-2:     #46521F;
 
-  /* Статусный зелёный. Только «подключено/активно/успех», и только
-     там, где это состояние системы. Декоративно не применяется. */
-  --px-good:        #2AC153;
-  --px-good-dim:    rgba(42, 193, 83, 0.16);
+  /* Статус «подключено/активно/успех». Только состояние системы,
+     декоративно не применяется.
+
+     Бирюзовый, а не зелёный: акцент бренда — кислотный лайм, и
+     обычный зелёный рядом с ним перестаёт читаться как отдельный
+     смысл. Пользователь должен отличать «это акцент» от «это
+     подключено» без раздумий, поэтому статус уведён по тону
+     примерно на 100° от акцента. */
+  --px-good:        #2DD4BF;
+  --px-good-dim:    rgba(45, 212, 191, 0.16);
 
   /* ── Текст ──────────────────────────────────────────────────────── */
   --px-text:        #FFFFFF;                    /* заголовки */
@@ -1809,8 +1824,8 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
   /* ── Свечение. Теней в системе нет: глубина строится поверхностями,
         а подсветка нужна только акцентной кнопке под курсором. ────── */
-  --px-glow:        0 14px 40px -14px rgba(255, 115, 80, 0.62);
-  --px-glow-soft:   0 10px 30px -16px rgba(255, 115, 80, 0.45);
+  --px-glow:        0 14px 40px -14px rgba(var(--px-accent-rgb), 0.62);
+  --px-glow-soft:   0 10px 30px -16px rgba(var(--px-accent-rgb), 0.45);
 
   /* ── Motion ─────────────────────────────────────────────────────── */
   --px-fast:        160ms;   /* цвет, граница */
@@ -2009,7 +2024,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   inset: -22%;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 45%, rgba(255, 115, 80, 0.16) 0%, transparent 62%);
+  background: radial-gradient(circle at 50% 45%, rgba(var(--px-accent-rgb), 0.16) 0%, transparent 62%);
 }
 
 .px-cluster {
@@ -2142,16 +2157,16 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
    появляется по действию, иначе это неон. */
 .px-btn-primary {
   background-color: var(--px-accent);
-  background-image: linear-gradient(180deg, #FF8B6A 0%, var(--px-accent) 52%, #F2643F 100%);
-  color: #14100E;
-  border: 1px solid rgba(255, 190, 170, 0.28);
+  background-image: linear-gradient(180deg, var(--px-accent-top) 0%, var(--px-accent) 52%, var(--px-accent-lo) 100%);
+  color: var(--px-accent-ink);
+  border: 1px solid var(--px-accent-lite);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.34),
     var(--px-glow-soft);
 }
 @media (hover: hover) and (pointer: fine) {
   .px-btn-primary:hover:not(:disabled) {
-    background-image: linear-gradient(180deg, #FF9B7C 0%, var(--px-accent-hi) 52%, #FF7350 100%);
+    background-image: linear-gradient(180deg, var(--px-accent-hi) 0%, var(--px-accent-hi) 46%, var(--px-accent) 100%);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.42),
       var(--px-glow);
@@ -2218,9 +2233,9 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .px-chip:focus-visible { outline: 2px solid var(--px-accent); outline-offset: 3px; }
 .px-chip-active {
   color: var(--px-text);
-  border-color: rgba(255, 115, 80, 0.55);
+  border-color: rgba(var(--px-accent-rgb), 0.55);
   box-shadow:
-    inset 0 1px 0 rgba(255, 160, 130, 0.22),
+    inset 0 1px 0 var(--px-accent-lite),
     inset 0 -1px 0 rgba(0, 0, 0, 0.3);
 }
 
@@ -2267,18 +2282,18 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
    тёплую подсветку по верхней кромке: акцент здесь работает как
    источник света, а не как обводка. */
 .px-card-accent {
-  border-color: rgba(255, 115, 80, 0.38);
+  border-color: var(--px-accent-line);
   background-image:
-    linear-gradient(180deg, rgba(255, 115, 80, 0.075) 0%, rgba(255, 255, 255, 0.014) 46%);
+    linear-gradient(180deg, rgba(var(--px-accent-rgb), 0.075) 0%, rgba(255, 255, 255, 0.014) 46%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 160, 130, 0.22),
+    inset 0 1px 0 var(--px-accent-lite),
     inset 0 -1px 0 rgba(0, 0, 0, 0.28);
 }
 @media (hover: hover) and (pointer: fine) {
   .px-card-accent:hover {
-    border-color: rgba(255, 115, 80, 0.55);
+    border-color: rgba(var(--px-accent-rgb), 0.55);
     box-shadow:
-      inset 0 1px 0 rgba(255, 160, 130, 0.3),
+      inset 0 1px 0 rgba(var(--px-accent-rgb), 0.34),
       inset 0 -1px 0 rgba(0, 0, 0, 0.3),
       var(--px-glow-soft);
   }
@@ -2417,15 +2432,57 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 /* ═══ Первый экран ═════════════════════════════════════════════════ */
 
+/* Первый экран занимает высоту вьюпорта целиком, но делится на две
+   зоны: смысловую и полосу показаний внизу. Полоса прижата к низу
+   экрана — она читается как приборная шкала под содержанием, а не как
+   ещё один блок контента. */
 .px-hero {
   min-height: 100svh;
   display: flex;
+  flex-direction: column;
+}
+.px-hero-body {
+  flex: 1;
+  display: flex;
   align-items: center;
-  padding-top: calc(var(--px-header-h) + 48px);
-  padding-bottom: 64px;
+  padding-top: calc(var(--px-header-h) + 40px);
+  padding-bottom: 48px;
 }
 @media (min-width: 640px) {
-  .px-hero { padding-top: calc(var(--px-header-h) + 64px); padding-bottom: 80px; }
+  .px-hero-body { padding-top: calc(var(--px-header-h) + 56px); padding-bottom: 64px; }
+}
+
+.px-hero-rail {
+  border-top: 1px solid var(--px-line);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  padding-block: 20px;
+}
+@media (min-width: 640px) { .px-hero-rail { padding-block: 26px; } }
+
+.px-rail-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 16px;
+}
+@media (min-width: 768px) {
+  .px-rail-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+}
+/* Подпись стоит НАД числом: сначала «что измеряем», потом показание —
+   так читается шкала прибора, а не подпись к картинке. */
+.px-rail-metric-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--px-text-4);
+}
+.px-rail-metric-value {
+  margin-top: 8px;
+  font-weight: 700;
+  font-size: clamp(20px, 2.4vw, 28px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--px-text);
 }
 
 /* Блок действий: акцентная панель во всю ширину колонки и две тёмные
@@ -2675,7 +2732,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .px-device-mini { display: none; }
   .px-device:hover .px-device-art {
     transform: scale(1.05) translateY(-4px);
-    color: rgba(255, 115, 80, 0.16);
+    color: rgba(var(--px-accent-rgb), 0.16);
   }
 }
 
@@ -2691,7 +2748,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   /* Скругление кубика: узел — тот же фирменный элемент. */
   border-radius: 22%;
   background: var(--px-accent-dim);
-  border: 1px solid rgba(255, 115, 80, 0.28);
+  border: 1px solid rgba(var(--px-accent-rgb), 0.28);
   color: var(--px-accent);
   display: grid;
   place-items: center;
@@ -3053,4 +3110,64 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   flex: 1;
   height: 1px;
   background: linear-gradient(90deg, var(--px-line-2) 0%, var(--px-line) 40%, transparent 100%);
+}
+
+/* ─── Превью кабинета ────────────────────────────────────────────── */
+.px-preview-row { border-top: 1px solid var(--px-line); }
+
+/* Неинтерактивная кнопка внутри превью: выглядит как элемент
+   интерфейса, но не притворяется кликабельной — ни курсором, ни
+   hover-состоянием, ни фокусом. */
+.px-preview-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 50px;
+  border-radius: var(--px-r-btn);
+  background-color: var(--px-surface-2);
+  background-image: linear-gradient(180deg, var(--px-lift-2) 0%, rgba(255, 255, 255, 0.012) 100%);
+  border: 1px solid var(--px-line);
+  box-shadow: var(--px-edge);
+  color: var(--px-text);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: default;
+  user-select: none;
+}
+
+/* Шкала нагрузки: тот же скруглённый модуль, что у кубиков, только
+   вытянутый. Данные декоративны и помечены aria-hidden — это образец
+   интерфейса, а не отчёт. */
+.px-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 84px;
+}
+.px-bars > span {
+  flex: 1;
+  min-width: 0;
+  height: var(--h, 50%);
+  border-radius: 2px;
+  background-color: var(--px-accent);
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(0, 0, 0, 0.12) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  opacity: 0.55;
+}
+.px-bars > span:nth-child(4n) { opacity: 0.34; }
+.px-bars > span:nth-last-child(-n + 6) { opacity: 0.9; }
+
+/* ─── Асимметричное bento преимуществ ────────────────────────────────
+   Ведущая ячейка занимает всю левую колонку и задаёт порядок чтения
+   размером, а не только позицией. На узком экране раскладка
+   становится обычной колонкой: на 320px «крупная ячейка» ничем не
+   отличалась бы от остальных и приём терял бы смысл. */
+.px-bento { display: grid; gap: 16px; }
+@media (min-width: 900px) {
+  .px-bento {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(0, auto));
+  }
+  .px-bento-lead { grid-row: 1 / span 3; }
 }

@@ -343,8 +343,8 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="dv2-rise dv2-rise-5 dv2-card p-4 sm:p-5 lg:col-span-8 lg:col-start-3 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#2AC153]/12 border border-[#2AC153]/30 flex items-center justify-center shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2AC153" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="w-9 h-9 rounded-xl bg-[color:var(--px-good)]/12 border border-[color:var(--px-good)]/30 flex items-center justify-center shrink-0">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--px-good)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
@@ -413,7 +413,7 @@ export default function Dashboard() {
                     type="button"
                     onClick={() => router.push("/admin")}
                     className="px-btn px-btn-md px-btn-secondary px-btn-block"
-                    style={{ color: "#FF7350", borderColor: "rgba(255,115,80,0.30)" }}
+                    style={{ color: "var(--px-accent)", borderColor: "rgba(var(--px-accent-rgb),0.30)" }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />

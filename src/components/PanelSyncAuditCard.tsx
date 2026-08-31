@@ -51,9 +51,9 @@ const PROBLEM_LABEL: Record<AuditProblem, string> = {
 const PROBLEM_COLOR: Record<AuditProblem, string> = {
   no_uuid: "#EF4444",
   missing_in_panel: "#EF4444",
-  url_missing: "#FF7350",
-  date_drift: "#FF7350",
-  status_mismatch: "#FF7350",
+  url_missing: "var(--px-accent)",
+  date_drift: "var(--px-accent)",
+  status_mismatch: "var(--px-accent)",
   tag_mismatch: "#6366F1",
 };
 

@@ -46,7 +46,7 @@ export default function SubscriptionCard({
       <div className="dv2-card p-5">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-xl bg-black/[0.04] border border-black/[0.06] flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF7350" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ animationDuration: "2s" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--px-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ animationDuration: "2s" }}>
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
             </svg>
           </div>
@@ -135,10 +135,10 @@ export default function SubscriptionCard({
           >
             {copied ? (
               <>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2AC153" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--px-good)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <span className="text-[#2AC153]">Скопировано</span>
+                <span className="text-[color:var(--px-good)]">Скопировано</span>
               </>
             ) : (
               <>

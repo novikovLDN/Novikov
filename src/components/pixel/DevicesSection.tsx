@@ -38,7 +38,7 @@ export default function DevicesSection() {
           eyebrow="Устройства"
           title={["Работает везде,", "где вы работаете"]}
           titleId="devices-title"
-          index="02"
+          index="03"
           action={{ label: "Инструкции по настройке", href: "/devices" }}
         />
 

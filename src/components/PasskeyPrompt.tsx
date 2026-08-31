@@ -94,7 +94,7 @@ export default function PasskeyPrompt({ forceShow }: PasskeyPromptProps) {
         {success ? (
           <div className="flex items-center gap-3 py-1">
             <div className="w-10 h-10 rounded-xl bg-success/15 flex items-center justify-center shrink-0">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2AC153" strokeWidth="2.5">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--px-good)" strokeWidth="2.5">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </div>
@@ -104,7 +104,7 @@ export default function PasskeyPrompt({ forceShow }: PasskeyPromptProps) {
           <>
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF7350" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--px-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4" />
                   <polyline points="10 17 15 12 10 7" />
                   <line x1="15" y1="12" x2="3" y2="12" />

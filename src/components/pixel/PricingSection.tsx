@@ -26,7 +26,7 @@ export default function PricingSection() {
           eyebrow="Тарифы"
           title={["Простые тарифы —", "без сюрпризов"]}
           titleId="pricing-title"
-          index="04"
+          index="05"
           action={{ label: "Сравнение по месяцам", href: "/pricing" }}
         />
 

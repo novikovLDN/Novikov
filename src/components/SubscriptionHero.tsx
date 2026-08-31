@@ -78,8 +78,8 @@ export default function SubscriptionHero({
   const statusColor = isExpired
     ? "#EF4444"
     : isExpiring
-    ? "#FF7350"
-    : "#2AC153";
+    ? "var(--px-accent)"
+    : "var(--px-good)";
 
   const statusLabel = isExpired
     ? "Не активна"

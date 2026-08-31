@@ -305,7 +305,7 @@ function SubscribeContent() {
             <div
               className={`rounded-3xl p-6 sm:p-8 mb-4 ${
                 selectedPlan === "plus"
-                  ? "bg-[#FF7350] text-black"
+                  ? "bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)]"
                   : "bg-black text-white"
               }`}
             >
@@ -654,7 +654,7 @@ function PlanCard({
 }) {
   const cheapestPerMonth = Math.min(...PRICES[plan].map((p) => p.perMonth));
   const cardBg = highlighted
-    ? "bg-[#FF7350] text-black"
+    ? "bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)]"
     : "bg-white text-black border border-black/[0.06]";
   const bodyText = highlighted ? "text-black/75" : "text-black/70";
   const muted = highlighted ? "text-black/60" : "text-black/55";
@@ -811,7 +811,7 @@ function PlanChip({ plan }: { plan: Plan }) {
   return (
     <div
       className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mts-wide text-[12px] font-semibold tracking-[0.08em] uppercase ${
-        isPlus ? "bg-[#FF7350] text-black" : "bg-black text-white"
+        isPlus ? "bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)]" : "bg-black text-white"
       }`}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />

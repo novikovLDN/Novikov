@@ -110,7 +110,7 @@ export default function PushToggleButton() {
       </div>
       <div
         className={`relative w-10 h-6 rounded-full transition-colors duration-300 shrink-0 ${
-          enabled ? "bg-[#FF7350]" : "bg-white/[0.10]"
+          enabled ? "bg-[color:var(--px-accent)]" : "bg-white/[0.10]"
         }`}
       >
         <div

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import SiteHeader from "@/components/pixel/SiteHeader";
 import HeroSection from "@/components/pixel/HeroSection";
-import MetricsBand from "@/components/pixel/MetricsBand";
+import ProductSection from "@/components/pixel/ProductSection";
 import BenefitsSection from "@/components/pixel/BenefitsSection";
 import DevicesSection from "@/components/pixel/DevicesSection";
 import HowItWorksSection from "@/components/pixel/HowItWorksSection";
@@ -48,7 +48,7 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
       <SiteHeader />
       <main>
         <HeroSection primaryHref={primaryHref} />
-        <MetricsBand />
+        <ProductSection />
         <BenefitsSection />
         <DevicesSection />
         <HowItWorksSection />

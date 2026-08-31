@@ -93,7 +93,7 @@ export default function ReferralSection({
               До «{nextTier.name}»: <span className="text-white/90 font-medium tabular-nums">{referralsToNext}</span>
             </span>
           ) : (
-            <span className="text-[#2AC153]">Максимальный уровень</span>
+            <span className="text-[color:var(--px-good)]">Максимальный уровень</span>
           )}
         </div>
 
@@ -104,7 +104,7 @@ export default function ReferralSection({
             className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
             style={{
               width: `${(currentTierIdx + segProgress) * (100 / (TIERS.length - 1 || 1))}%`,
-              background: "linear-gradient(90deg, #FF7350 0%, #FF8A6B 100%)",
+              background: "linear-gradient(90deg, var(--px-accent) 0%, var(--px-accent-hi) 100%)",
             }}
           />
           {/* Tier markers */}
@@ -166,10 +166,10 @@ export default function ReferralSection({
         >
           {copiedRef ? (
             <>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2AC153" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--px-good)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              <span style={{ color: "#2AC153" }}>Скопировано</span>
+              <span style={{ color: "var(--px-good)" }}>Скопировано</span>
             </>
           ) : (
             <>

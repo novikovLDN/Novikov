@@ -62,7 +62,7 @@ export default function ServerStatusCard() {
     return () => clearInterval(id);
   }, []);
 
-  const trendColor = delta > 0 ? "#2AC153" : delta < 0 ? "#FF7350" : "rgba(255,255,255,0.4)";
+  const trendColor = delta > 0 ? "var(--px-good)" : delta < 0 ? "var(--px-accent)" : "rgba(255,255,255,0.4)";
   const trendArrow = delta > 0 ? "↗" : delta < 0 ? "↘" : "·";
 
   // Sparkline normalization across actual range, not min/max bounds.
@@ -115,14 +115,14 @@ export default function ServerStatusCard() {
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="w-full h-full">
           <defs>
             <linearGradient id="sparkArea" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#2AC153" stopOpacity="0" />
-              <stop offset="22%" stopColor="#2AC153" stopOpacity="0.22" />
-              <stop offset="70%" stopColor="#2AC153" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#2AC153" stopOpacity="0" />
+              <stop offset="0%" stopColor="var(--px-good)" stopOpacity="0" />
+              <stop offset="22%" stopColor="var(--px-good)" stopOpacity="0.22" />
+              <stop offset="70%" stopColor="var(--px-good)" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="var(--px-good)" stopOpacity="0" />
             </linearGradient>
             <linearGradient id="sparkLine" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#2AC153" stopOpacity="0.75" />
-              <stop offset="100%" stopColor="#2AC153" stopOpacity="0.2" />
+              <stop offset="0%" stopColor="var(--px-good)" stopOpacity="0.75" />
+              <stop offset="100%" stopColor="var(--px-good)" stopOpacity="0.2" />
             </linearGradient>
           </defs>
           <path d={areaPath} fill="url(#sparkArea)" className="transition-[d] duration-700 ease-out" />
@@ -142,17 +142,17 @@ export default function ServerStatusCard() {
         {/* Top row */}
         <div className="flex items-center justify-between mb-5">
           <div className="dv2-eyebrow">Статус сети</div>
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#2AC153]/10 border border-[#2AC153]/20">
-            <span className="relative h-1.5 w-1.5 rounded-full bg-[#2AC153]" style={{ boxShadow: "0 0 8px #2AC153" }}>
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-[color:var(--px-good)]/10 border border-[color:var(--px-good)]/20">
+            <span className="relative h-1.5 w-1.5 rounded-full bg-[color:var(--px-good)]" style={{ boxShadow: "0 0 8px var(--px-good)" }}>
               <span
-                className="absolute inset-0 rounded-full bg-[#2AC153]"
+                className="absolute inset-0 rounded-full bg-[color:var(--px-good)]"
                 style={{
                   animation: "heroPing 2s cubic-bezier(0, 0, 0.2, 1) infinite",
                   opacity: 0.6,
                 }}
               />
             </span>
-            <span className="text-[11px] font-medium text-[#2AC153]">Все онлайн</span>
+            <span className="text-[11px] font-medium text-[color:var(--px-good)]">Все онлайн</span>
           </div>
         </div>
 
@@ -173,7 +173,7 @@ export default function ServerStatusCard() {
         <div className="mt-auto">
           <div className="flex items-center justify-between mb-3">
             <span className="font-mts-wide text-[11px] uppercase tracking-[0.14em] text-white/40">Сервера</span>
-            <span className="font-mts-wide text-[12px] text-[#2AC153]/85 font-medium">Активны</span>
+            <span className="font-mts-wide text-[12px] text-[color:var(--px-good)]/85 font-medium">Активны</span>
           </div>
           <div className="grid grid-cols-4 gap-2">
             {SERVER_REGIONS.map((s, i) => (
@@ -183,9 +183,9 @@ export default function ServerStatusCard() {
                 title={s.label}
               >
                 <span
-                  className="relative h-1.5 w-1.5 rounded-full bg-[#2AC153] shrink-0"
+                  className="relative h-1.5 w-1.5 rounded-full bg-[color:var(--px-good)] shrink-0"
                   style={{
-                    boxShadow: "0 0 6px #2AC153",
+                    boxShadow: "0 0 6px var(--px-good)",
                     animation: `serverPulse ${1.8 + i * 0.4}s ease-in-out infinite`,
                   }}
                 />

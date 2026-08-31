@@ -38,7 +38,7 @@ export default function HowItWorksSection() {
           eyebrow="Как это работает"
           title={["От почты до подключения —", "одна минута"]}
           titleId="how-title"
-          index="03"
+          index="04"
         />
 
         <ol className="px-steps px-stagger">
