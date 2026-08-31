@@ -263,12 +263,12 @@ export default function Dashboard() {
                   type="button"
                   onClick={handleForceResync}
                   disabled={resyncing}
-                  className={`as-btn as-btn-compact shrink-0 ${
+                  className={`px-btn px-btn-sm shrink-0 ${
                     resyncStatus?.kind === "ok"
-                      ? "as-btn-good"
+                      ? "px-btn-good"
                       : resyncStatus?.kind === "error"
-                      ? "as-btn-danger"
-                      : "as-btn-solid"
+                      ? "px-btn-danger"
+                      : "px-btn-secondary"
                   }`}
                 >
                   {resyncing ? (
@@ -315,8 +315,8 @@ export default function Dashboard() {
               {!data.telegramLinked ? (
                 <div className="dv2-rise dv2-rise-5 dv2-card p-5 sm:p-6 lg:col-span-8 lg:col-start-3">
                   <div className="flex items-start gap-3.5 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-[#2AABEE]/12 border border-[#2AABEE]/25 flex items-center justify-center shrink-0">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="#2AABEE">
+                    <div className="w-10 h-10 rounded-xl bg-[color:var(--px-accent-dim)] border border-[color:var(--px-line)] flex items-center justify-center shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
                       </svg>
                     </div>
@@ -333,7 +333,7 @@ export default function Dashboard() {
                     href={`https://t.me/atlas_suppbot?start=${data.telegramLinkToken || ""}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="as-btn as-btn-primary as-btn-info as-btn-block"
+                    className="px-btn px-btn-md px-btn-secondary px-btn-block"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
@@ -343,8 +343,8 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="dv2-rise dv2-rise-5 dv2-card p-4 sm:p-5 lg:col-span-8 lg:col-start-3 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#22C55E]/12 border border-[#22C55E]/30 flex items-center justify-center shrink-0">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="w-9 h-9 rounded-xl bg-[#2AC153]/12 border border-[#2AC153]/30 flex items-center justify-center shrink-0">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2AC153" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   </div>
@@ -356,7 +356,7 @@ export default function Dashboard() {
                     <button
                       type="button"
                       onClick={() => setUnlinkStep(1)}
-                      className="as-btn as-btn-compact as-btn-ghost shrink-0"
+                      className="px-btn px-btn-sm px-btn-secondary shrink-0"
                     >
                       Отвязать
                     </button>
@@ -365,7 +365,7 @@ export default function Dashboard() {
                       <button
                         type="button"
                         onClick={() => setUnlinkStep(0)}
-                        className="as-btn as-btn-compact as-btn-plain"
+                        className="px-btn px-btn-sm px-btn-secondary"
                       >
                         Отмена
                       </button>
@@ -373,7 +373,7 @@ export default function Dashboard() {
                         type="button"
                         onClick={handleUnlinkTelegram}
                         disabled={unlinking}
-                        className="as-btn as-btn-compact as-btn-danger"
+                        className="px-btn px-btn-sm px-btn-danger"
                       >
                         {unlinking ? "…" : "Отвязать"}
                       </button>
@@ -399,7 +399,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => router.push("/about")}
-                  className="as-btn as-btn-secondary as-btn-ghost as-btn-block"
+                  className="px-btn px-btn-md px-btn-secondary px-btn-block"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
@@ -412,8 +412,8 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => router.push("/admin")}
-                    className="as-btn as-btn-secondary as-btn-ghost as-btn-block"
-                    style={{ color: "#5E6AD2", borderColor: "rgba(94,106,210,0.30)" }}
+                    className="px-btn px-btn-md px-btn-secondary px-btn-block"
+                    style={{ color: "#FF7350", borderColor: "rgba(255,115,80,0.30)" }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -426,7 +426,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setShowLogoutConfirm(true)}
-                  className="as-btn as-btn-secondary as-btn-ghost as-btn-block group"
+                  className="px-btn px-btn-md px-btn-secondary px-btn-block group"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="text-black/55 group-hover:text-[#EF4444] transition-colors">
                     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
@@ -444,7 +444,7 @@ export default function Dashboard() {
             <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => !loggingOut && setShowLogoutConfirm(false)}>
               <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
               <div
-                className="relative bg-white border border-black/[0.06] rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-sm animate-scale-in"
+                className="relative bg-[color:var(--px-surface)] border border-black/[0.06] rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-sm animate-scale-in"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex justify-center mb-4">
@@ -467,7 +467,7 @@ export default function Dashboard() {
                     type="button"
                     onClick={() => setShowLogoutConfirm(false)}
                     disabled={loggingOut}
-                    className="as-btn as-btn-secondary as-btn-plain flex-1"
+                    className="px-btn px-btn-md px-btn-secondary flex-1"
                   >
                     Нет
                   </button>
@@ -475,7 +475,7 @@ export default function Dashboard() {
                     type="button"
                     onClick={handleLogout}
                     disabled={loggingOut}
-                    className="as-btn as-btn-secondary as-btn-danger flex-1"
+                    className="px-btn px-btn-md px-btn-danger flex-1"
                   >
                     {loggingOut ? (
                       <>
@@ -516,10 +516,10 @@ function DashboardTopBar({
     <div className="flex items-center justify-between px-4 sm:px-8 pt-4 sm:pt-6 pb-1 sm:pb-2">
       <Link href="/dashboard" className="flex items-center gap-2">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
       </Link>
@@ -532,7 +532,7 @@ function DashboardTopBar({
         </nav>
         <button
           onClick={onNotifications}
-          className="as-icon-btn relative w-11 h-11 rounded-xl flex items-center justify-center transition-colors active:scale-[0.95]"
+          className="px-icon-btn relative w-11 h-11 rounded-xl flex items-center justify-center transition-colors active:scale-[0.95]"
           aria-label="Уведомления"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -540,7 +540,7 @@ function DashboardTopBar({
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-[#EF4444] rounded-full flex items-center justify-center px-1 border-2 border-[#f5f5f0]">
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-[#EF4444] rounded-full flex items-center justify-center px-1 border-2 border-[#101010]">
               <span className="font-mts-wide text-[10px] font-bold leading-none tabular-nums" style={{ color: "#fff" }}>{unreadCount > 9 ? "9+" : unreadCount}</span>
             </span>
           )}

@@ -46,7 +46,7 @@ export default function SubscriptionCard({
       <div className="dv2-card p-5">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-xl bg-black/[0.04] border border-black/[0.06] flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ animationDuration: "2s" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF7350" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ animationDuration: "2s" }}>
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
             </svg>
           </div>
@@ -75,7 +75,7 @@ export default function SubscriptionCard({
   };
 
   return (
-    <section className="dv2-dark dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px] border border-white/[0.06] bg-[#0F0F12]">
+    <section className="dv2-dark dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px] border border-white/[0.06] bg-[#28282A]">
       <div className="relative p-5 sm:p-7">
         {/* Header — one eyebrow, one QR toggle */}
         <div className="flex items-center justify-between mb-5">
@@ -120,7 +120,7 @@ export default function SubscriptionCard({
           <button
             type="button"
             onClick={openHapp}
-            className="as-btn as-btn-xl as-btn-accent as-btn-block"
+            className="px-btn px-btn-xl px-btn-primary px-btn-block"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
@@ -131,14 +131,14 @@ export default function SubscriptionCard({
           <button
             type="button"
             onClick={handleCopy}
-            className="as-btn as-btn-secondary as-btn-dark as-btn-block"
+            className="px-btn px-btn-md px-btn-secondary px-btn-block"
           >
             {copied ? (
               <>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2AC153" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                <span className="text-[#22C55E]">Скопировано</span>
+                <span className="text-[#2AC153]">Скопировано</span>
               </>
             ) : (
               <>

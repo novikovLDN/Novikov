@@ -293,15 +293,15 @@ export default function AddDevice() {
   ];
 
   return (
-    <div className="bg-[#f5f5f0] min-h-dvh flex flex-col text-black">
+    <div className="bg-[#101010] min-h-dvh flex flex-col text-black">
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
         <Link href="/" className="flex items-center gap-2">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
         </Link>
@@ -317,7 +317,7 @@ export default function AddDevice() {
           onClick={() => setMenuOpen(true)}
           aria-label="Меню"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M3 6h18M3 12h18M3 18h18" />
           </svg>
         </button>
@@ -325,7 +325,7 @@ export default function AddDevice() {
 
       {menuOpen && (
         <div
-          className="fixed inset-0 z-50 bg-[#f5f5f0] flex flex-col items-center justify-center gap-8 font-mts-wide"
+          className="fixed inset-0 z-50 bg-[#101010] flex flex-col items-center justify-center gap-8 font-mts-wide"
           onClick={() => setMenuOpen(false)}
         >
           <button
@@ -333,7 +333,7 @@ export default function AddDevice() {
             onClick={() => setMenuOpen(false)}
             aria-label="Закрыть"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
@@ -352,7 +352,7 @@ export default function AddDevice() {
         <div className="flex items-center justify-between mb-8 sm:mb-10">
           <button
             onClick={handleBack}
-            className="as-btn as-btn-compact as-btn-ghost"
+            className="px-btn px-btn-sm px-btn-secondary"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -384,7 +384,7 @@ export default function AddDevice() {
                 <button
                   key={p.id}
                   onClick={() => handleSelectPlatform(p.id)}
-                  className="group text-left bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6 flex items-center gap-5 hover:border-black/[0.15] hover:-translate-y-0.5 transition-all active:scale-[0.99]"
+                  className="group text-left bg-[color:var(--px-surface)] border border-black/[0.06] rounded-2xl p-5 sm:p-6 flex items-center gap-5 hover:border-black/[0.15] hover:-translate-y-0.5 transition-all active:scale-[0.99]"
                 >
                   <div className="w-12 h-12 rounded-xl bg-black/[0.04] flex items-center justify-center shrink-0 text-black/70 group-hover:text-black transition-colors">
                     <PlatformIcon id={p.id} />
@@ -422,7 +422,7 @@ export default function AddDevice() {
                 <button
                   key={app.id}
                   onClick={() => { setAppIndex(i); setStep("instruction"); }}
-                  className="group text-left bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6 flex items-center gap-5 hover:border-black/[0.15] hover:-translate-y-0.5 transition-all active:scale-[0.99]"
+                  className="group text-left bg-[color:var(--px-surface)] border border-black/[0.06] rounded-2xl p-5 sm:p-6 flex items-center gap-5 hover:border-black/[0.15] hover:-translate-y-0.5 transition-all active:scale-[0.99]"
                 >
                   <div className="w-14 h-14 rounded-2xl bg-black text-white flex items-center justify-center shrink-0 font-mts-wide text-[22px] font-bold">
                     {app.name[0]}
@@ -454,7 +454,7 @@ export default function AddDevice() {
 
             {/* QR card */}
             {getKeyUrl() && (
-              <div className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
+              <div className="bg-[color:var(--px-surface)] border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -474,7 +474,7 @@ export default function AddDevice() {
                   {currentApp.instructions.qrHint}
                 </p>
 
-                <div className="bg-white border border-black/[0.08] rounded-2xl p-5 sm:p-6 flex items-center justify-center mx-auto max-w-[280px]">
+                <div className="bg-[color:var(--px-surface)] border border-black/[0.08] rounded-2xl p-5 sm:p-6 flex items-center justify-center mx-auto max-w-[280px]">
                   <QRCodeSVG
                     value={getKeyUrl()!}
                     size={220}
@@ -487,7 +487,7 @@ export default function AddDevice() {
             )}
 
             {/* Steps card */}
-            <div className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
+            <div className="bg-[color:var(--px-surface)] border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
               <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mb-4">
                 Пошаговая инструкция
               </div>
@@ -508,7 +508,7 @@ export default function AddDevice() {
 
             {/* Manual key card */}
             {getKeyUrl() && (
-              <div className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
+              <div className="bg-[color:var(--px-surface)] border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
                 <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mb-3">
                   Или скопируйте вручную
                 </div>
@@ -522,7 +522,7 @@ export default function AddDevice() {
 
                 <button
                   onClick={handleCopy}
-                  className={`as-btn as-btn-secondary as-btn-block ${copied ? "as-btn-ghost" : "as-btn-solid"}`}
+                  className={`px-btn px-btn-md px-btn-block ${copied ? "px-btn-good" : "px-btn-primary"}`}
                 >
                   {copied ? (
                     <>
@@ -549,7 +549,7 @@ export default function AddDevice() {
               href={currentApp.downloadUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="as-btn as-btn-secondary as-btn-ghost as-btn-block"
+              className="px-btn px-btn-md px-btn-secondary px-btn-block"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
@@ -563,7 +563,7 @@ export default function AddDevice() {
             <div className="mt-4">
               <button
                 onClick={() => router.push("/dashboard")}
-                className="as-btn as-btn-primary as-btn-solid as-btn-block"
+                className="px-btn px-btn-md px-btn-secondary px-btn-block"
               >
                 Готово — вернуться в кабинет
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">

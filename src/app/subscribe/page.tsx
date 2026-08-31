@@ -69,7 +69,7 @@ export default function SubscribePage() {
   return (
     <Suspense
       fallback={
-        <div className="bg-[#f5f5f0] min-h-dvh flex items-center justify-center">
+        <div className="bg-[#101010] min-h-dvh flex items-center justify-center">
           <LoadingSpinner size="lg" className="text-black" />
         </div>
       }
@@ -196,7 +196,7 @@ function SubscribeContent() {
   const showSteps = step === "plans" || step === "periods" || step === "payment-methods";
 
   return (
-    <div className="bg-[#f5f5f0] min-h-dvh flex flex-col text-black">
+    <div className="bg-[#101010] min-h-dvh flex flex-col text-black">
       <TopBar
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
@@ -305,7 +305,7 @@ function SubscribeContent() {
             <div
               className={`rounded-3xl p-6 sm:p-8 mb-4 ${
                 selectedPlan === "plus"
-                  ? "bg-[#F97316] text-black"
+                  ? "bg-[#FF7350] text-black"
                   : "bg-black text-white"
               }`}
             >
@@ -360,7 +360,7 @@ function SubscribeContent() {
               <button
                 onClick={handlePayYooKassa}
                 disabled={loading}
-                className="w-full text-left bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-7 flex items-center gap-5 transition-colors hover:border-black/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full text-left bg-[color:var(--px-surface)] border border-black/[0.06] rounded-3xl p-6 sm:p-7 flex items-center gap-5 transition-colors hover:border-black/25 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="w-14 h-14 rounded-2xl bg-black text-white flex items-center justify-center shrink-0">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -403,7 +403,7 @@ function SubscribeContent() {
         {/* ═══ Processing ═══ */}
         {step === "processing" && (
           <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-white border border-black/[0.06] mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--px-surface)] border border-black/[0.06] mb-8">
               <LoadingSpinner size="lg" className="text-black" />
             </div>
             <h1 className="font-mts-wide text-[36px] sm:text-[48px] leading-[1.02] tracking-tight font-bold">
@@ -431,7 +431,7 @@ function SubscribeContent() {
             </p>
             <Link
               href="/dashboard"
-              className="as-btn as-btn-primary as-btn-accent"
+              className="px-btn px-btn-md px-btn-primary"
             >
               Перейти в кабинет
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -464,7 +464,7 @@ function SubscribeContent() {
                   setSelectedPlan(null);
                   setError("");
                 }}
-                className="as-btn as-btn-primary as-btn-solid"
+                className="px-btn px-btn-md px-btn-secondary"
               >
                 Попробовать снова
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -473,7 +473,7 @@ function SubscribeContent() {
               </button>
               <Link
                 href="/dashboard"
-                className="as-btn as-btn-secondary as-btn-ghost"
+                className="px-btn px-btn-md px-btn-secondary"
               >
                 Вернуться в кабинет
               </Link>
@@ -504,7 +504,7 @@ function SubscribeContent() {
                   setSelectedPlan(null);
                   setError("");
                 }}
-                className="as-btn as-btn-primary as-btn-solid"
+                className="px-btn px-btn-md px-btn-secondary"
               >
                 Создать новый платёж
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
@@ -513,7 +513,7 @@ function SubscribeContent() {
               </button>
               <Link
                 href="/dashboard"
-                className="as-btn as-btn-secondary as-btn-ghost"
+                className="px-btn px-btn-md px-btn-secondary"
               >
                 Вернуться в кабинет
               </Link>
@@ -552,10 +552,10 @@ function TopBar({
         <div className="flex items-center gap-3 sm:gap-5">
           <Link href="/" className="flex items-center gap-2">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">
               atlas.secure
@@ -581,11 +581,11 @@ function TopBar({
         </nav>
 
         <button
-          className="md:hidden w-11 h-11 rounded-full bg-white border border-black/10 flex items-center justify-center active:scale-[0.95] transition-transform"
+          className="md:hidden w-11 h-11 rounded-full bg-[color:var(--px-surface)] border border-black/10 flex items-center justify-center active:scale-[0.95] transition-transform"
           onClick={() => setMenuOpen(true)}
           aria-label="Меню"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="2" strokeLinecap="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M3 6h18M3 12h18M3 18h18" />
           </svg>
         </button>
@@ -654,7 +654,7 @@ function PlanCard({
 }) {
   const cheapestPerMonth = Math.min(...PRICES[plan].map((p) => p.perMonth));
   const cardBg = highlighted
-    ? "bg-[#F97316] text-black"
+    ? "bg-[#FF7350] text-black"
     : "bg-white text-black border border-black/[0.06]";
   const bodyText = highlighted ? "text-black/75" : "text-black/70";
   const muted = highlighted ? "text-black/60" : "text-black/55";
@@ -717,7 +717,7 @@ function PlanCard({
         ))}
       </ul>
 
-      <div className="mt-auto as-btn as-btn-primary as-btn-accent as-btn-block">
+      <div className="px-btn px-btn-md px-btn-primary px-btn-block mt-auto">
         Выбрать {PLANS[plan].name}
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
           <path d="M5 12h14M12 5l7 7-7 7" />
@@ -811,7 +811,7 @@ function PlanChip({ plan }: { plan: Plan }) {
   return (
     <div
       className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mts-wide text-[12px] font-semibold tracking-[0.08em] uppercase ${
-        isPlus ? "bg-[#F97316] text-black" : "bg-black text-white"
+        isPlus ? "bg-[#FF7350] text-black" : "bg-black text-white"
       }`}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />

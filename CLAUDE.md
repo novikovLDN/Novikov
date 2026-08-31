@@ -75,15 +75,44 @@ See `.env.example`. Key groups:
 ### Data Store
 In-memory Maps for development. **Replace with a database for production.**
 
-### Design System
-- Dark theme (`#0a0a0a` background)
-- Tailwind v4 with custom tokens in `globals.css`
-- Mobile-first responsive: all screens work from 320px to 1920px+
-- Glass header with backdrop-filter blur
-- Custom animations: `animate-fade-in-up`, `animate-scale-in`, `animate-shake`, `animate-delay-{1-5}`
-- Safe area insets for mobile notches
-- `btn-press` class for tactile button feedback
-- `gradient-text` for gradient typography
+### Design System — PIXEL
+
+Единственный источник значений — блок `PIXEL` в `src/app/globals.css`.
+Направление и обоснование каждого решения: `research/concept.md`.
+
+- Тёмный технологичный минимализм. Фон `#101010` с едва заметной
+  пиксельной сеткой (два `linear-gradient`, шаг = `--px-cell`).
+- Поверхности: `--px-surface` `#28282A` (карточки), `--px-surface-2`
+  `#1C1C1E` (вторичные, secondary-кнопки).
+- **Ровно один яркий акцент** `--px-accent` `#FF7350` в кадре.
+  `--px-good` `#2AC153` — только состояние системы (подключено,
+  активно, успех), не декор. Других акцентных цветов нет.
+- Текст: `--px-text` `#FFFFFF`, `--px-text-2` `#B9B9BD`,
+  `--px-text-3/4` — подписи и мета.
+- Радиусы: кнопки `--px-r-btn` 14px, карточки `--px-r-card` 18px,
+  навигационные чипы — пилюля, кубики — 22% стороны.
+- Шрифт проекта не меняется: MTS Wide (Medium 500 / Bold 700).
+  Третьего веса в лицензии нет.
+- Логотип не меняется: формы в `src/components/pixel/BrandMark.tsx`
+  взяты один в один из `src/app/icon.tsx`.
+
+**Фирменный мотив — кубики.** `src/components/pixel/CubeCluster.tsx`:
+фигура задаётся строковой картой, кубики перескакивают по ячейкам
+сетки. Компонент пишет только CSS-переменные, всё рисование — в CSS.
+Мини-версия `MiniCubes` используется как буллет надзаголовков.
+
+**Motion.** Появление секций — `useReveal` (IntersectionObserver,
+играет один раз). Только `transform` и `opacity`, ноль layout shift,
+ноль JS-библиотек анимации. `prefers-reduced-motion` упрощает слой.
+
+**Общие компоненты** живут в `src/components/pixel/`: `SiteHeader`,
+`SiteFooter`, `SiteOutro`, `PageHero`, `SectionHeading`, `PlanCard`,
+`PeriodSelector`, `Faq`, `Icon`, `motion`. Собственную шапку или
+футер на странице заводить нельзя — это второй источник правды о
+структуре сайта.
+
+**Тарифы** — единственный источник `src/lib/plans.ts`; его же
+использует обработчик оплаты. Дублировать цены запрещено.
 
 ### UI Screens
 1. **Auth** (`/`): Email input → OTP code entry with auto-submit, countdown timer, resend
@@ -97,15 +126,26 @@ In-memory Maps for development. **Replace with a database for production.**
 ```
 
 ## Conventions for AI Assistants
-- Brand: **Atlas Secure** (not Rocket VPN)
+
+- Brand: **Atlas Secure**
 - All UI text: **Russian**
-- Mobile-first, app-like feel
-- VPN protocol: VLESS with Reality (configurable)
-- Trial: **3 days** free
-- Referral: **+20 days** per paid referral
-- Telegram bonus: **+7 days**
-- Never commit `.env` — use `.env.example`
-- Inline SVG icons (no external icon library)
-- Session via httpOnly cookie (`session` = user ID)
-- All pages are `"use client"` components
-- Max container width: `max-w-2xl` (42rem)
+- **Два языка продукта.** Публичные страницы — это «ускоритель
+  интернета»: скорость, стабильность, отсутствие просадок. Слово
+  «VPN» и названия туннельных протоколов там не употребляются.
+  В личном кабинете (после входа) — говорим прямо: это VPN, и
+  VPN-терминология уместна.
+- Trial: **3 дня** (`TRIAL_DURATION_DAYS` в `src/lib/remnawave.ts`)
+- Referral: **+20 дней** за оплаченного приглашённого
+- Telegram bonus: **+7 дней**
+- Никогда не коммитить `.env` — только `.env.example`
+- Иконки — только собственный набор `src/components/pixel/Icon.tsx`.
+  Никаких сторонних библиотек, эмодзи и стоковых иллюстраций.
+- Сессия — httpOnly cookie (`session` = user id)
+- **Числа на страницах должны быть подтверждены кодом.** Список
+  поддерживаемых платформ — `src/app/devices/page.tsx`, цены —
+  `src/lib/plans.ts`, длительность триала — `src/lib/remnawave.ts`.
+  Заявления, которые нельзя проверить (сертификации, число
+  пользователей), помечаются в файле как требующие подтверждения.
+- Перед сдачей страницы: сборка, `tsc`, проверка на 320/375/414/768/
+  1024/1280/1440/1920 — без бокового скролла, без тап-зон меньше
+  44px, без непоявившегося контента и ошибок консоли.

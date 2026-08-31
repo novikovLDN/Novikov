@@ -276,7 +276,7 @@ export default function ContactPage() {
                         key={opt.value}
                         type="button"
                         onClick={() => setInterest(opt.value)}
-                        className={`as-btn as-btn-compact ${active ? "as-btn-solid" : "as-btn-plain"}`}
+                        className={`px-chip${active ? " px-chip-active" : ""}`}
                       >
                         {opt.label}
                       </button>
@@ -342,7 +342,7 @@ export default function ContactPage() {
               Тарифы
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
-            <Link href="/auth" className="as-btn as-btn-secondary" style={{ background: "rgba(0,0,0,0.08)", color: "#000" }}>
+            <Link href="/auth" className="px-btn px-btn-md px-btn-secondary" style={{ background: "rgba(0,0,0,0.08)", color: "#000" }}>
               Войти
             </Link>
           </div>

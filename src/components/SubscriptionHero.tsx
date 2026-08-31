@@ -78,8 +78,8 @@ export default function SubscriptionHero({
   const statusColor = isExpired
     ? "#EF4444"
     : isExpiring
-    ? "#F59E0B"
-    : "#22C55E";
+    ? "#FF7350"
+    : "#2AC153";
 
   const statusLabel = isExpired
     ? "Не активна"
@@ -111,7 +111,7 @@ export default function SubscriptionHero({
   });
 
   return (
-    <section className="dv2-dark dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px] border border-white/[0.06] bg-[#0F0F12]">
+    <section className="dv2-dark dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px] border border-white/[0.06] bg-[#28282A]">
       <div className="relative p-5 sm:p-7 lg:p-8">
         {/* Row 1 — plan chip · status chip. Tightly kerned so both
             chips read as one strip of metadata rather than two
@@ -169,7 +169,7 @@ export default function SubscriptionHero({
               <button
                 type="button"
                 onClick={() => router.push("/devices")}
-                className="as-btn as-btn-xl as-btn-accent as-btn-block sm:flex-1 group"
+                className="px-btn px-btn-xl px-btn-primary px-btn-block sm:flex-1 group"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
@@ -182,7 +182,7 @@ export default function SubscriptionHero({
               <button
                 type="button"
                 onClick={() => router.push("/subscribe")}
-                className="as-btn as-btn-xl as-btn-dark as-btn-block sm:w-[200px] sm:flex-none"
+                className="px-btn px-btn-xl px-btn-secondary px-btn-block sm:w-[200px] sm:flex-none"
               >
                 Продлить
               </button>
@@ -191,7 +191,7 @@ export default function SubscriptionHero({
             <button
               type="button"
               onClick={() => router.push("/subscribe")}
-              className="as-btn as-btn-xl as-btn-accent as-btn-block sm:flex-1 group"
+              className="px-btn px-btn-xl px-btn-primary px-btn-block sm:flex-1 group"
             >
               Купить подписку
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">

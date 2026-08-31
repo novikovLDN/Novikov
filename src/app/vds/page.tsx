@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import LandingFooter from "@/components/LandingFooter";
+import SiteHeader from "@/components/pixel/SiteHeader";
+import SiteFooter from "@/components/pixel/SiteFooter";
 
 /**
  * /vds — VDS product page in the v4 light shell.
@@ -144,44 +145,28 @@ const HARDWARE: Array<[string, string]> = [
 
 export default function VdsPage() {
   return (
-    <div className="bg-[#f5f5f0] min-h-dvh flex flex-col text-black">
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
-        <Link href="/" className="flex items-center gap-2">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="#111" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
-        </Link>
-        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-black/60">
-          <Link href="/pricing"  className="hover:text-black transition-colors">Тарифы</Link>
-          <Link href="/security" className="hover:text-black transition-colors">Безопасность</Link>
-          <Link href="/contact"  className="hover:text-black transition-colors">Поддержка</Link>
-          <Link href="/about"    className="hover:text-black transition-colors">О нас</Link>
-          <Link href="/auth"     className="ml-3 px-4 py-2 rounded-full bg-black text-white hover:bg-neutral-800 transition-colors">Войти</Link>
-        </nav>
-      </div>
+    <div className="px-page">
+      <div className="px-grid-bg" aria-hidden />
+      <SiteHeader />
+      <div className="px-header-spacer" aria-hidden />
 
       {/* Hero */}
       <section className="px-5 sm:px-8 pt-16 pb-14 sm:pt-24 sm:pb-20 max-w-[1200px] mx-auto w-full">
-        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-5">
+        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-5">
           VDS · Выделенное железо
         </div>
         <h1 className="font-mts-wide text-[40px] sm:text-[56px] lg:text-[80px] leading-[1.02] tracking-tight font-bold max-w-[14ch]">
           Выделенное<br />железо.<br />Ноль соседей
         </h1>
-        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-black/55 mt-8 max-w-[58ch]">
+        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-[color:var(--px-text-3)] mt-8 max-w-[58ch]">
           Полный физический сервер. Без оверхеда гипервизора, без соседей, без общих cache-линий. Intel Xeon Scalable или AMD EPYC, enterprise NVMe и сеть до 200 Gb/s.
         </p>
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/subscribe" className="as-btn as-btn-primary as-btn-accent">
+          <Link href="/subscribe" className="px-btn px-btn-md px-btn-primary">
             Выбрать конфигурацию
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </Link>
-          <Link href="/contact" className="as-btn as-btn-secondary as-btn-ghost">
+          <Link href="/contact" className="px-btn px-btn-md px-btn-secondary">
             Написать инженеру
           </Link>
         </div>
@@ -191,9 +176,9 @@ export default function VdsPage() {
       <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {STATS.map(([v, l]) => (
-            <div key={l} className="bg-white border border-black/[0.06] rounded-2xl p-5 sm:p-6">
+            <div key={l} className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6">
               <div className="font-mts-wide text-[28px] sm:text-[40px] font-bold leading-none tracking-tight tabular-nums">{v}</div>
-              <div className="font-mts-wide text-[12px] tracking-[0.10em] uppercase text-black/45 mt-3">{l}</div>
+              <div className="font-mts-wide text-[12px] tracking-[0.10em] uppercase text-[color:var(--px-text-4)] mt-3">{l}</div>
             </div>
           ))}
         </div>
@@ -202,11 +187,11 @@ export default function VdsPage() {
       {/* CPU tiers */}
       <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
         <div className="mb-12 sm:mb-16 max-w-[720px]">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Поколения CPU</div>
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Поколения CPU</div>
           <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
             Всегда свежий<br />кремний
           </h2>
-          <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.5] text-black/55 mt-6 max-w-[58ch]">
+          <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.5] text-[color:var(--px-text-3)] mt-6 max-w-[58ch]">
             Четыре поколения процессоров под разные профили нагрузки. Начиная от $29,99/мес за EPYC 9354P.
           </p>
         </div>
@@ -217,30 +202,30 @@ export default function VdsPage() {
               className={`rounded-3xl p-6 sm:p-8 border transition-colors flex flex-col ${
                 t.highlight
                   ? "bg-black text-white border-black"
-                  : "bg-white text-black border-black/[0.06] hover:border-black/[0.15]"
+                  : "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-[color:var(--px-line)] hover:border-[color:var(--px-line-2)]"
               }`}
             >
               <div className="flex items-center justify-between mb-6">
-                <span className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase ${t.highlight ? "text-white/55" : "text-black/45"}`}>
+                <span className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase ${t.highlight ? "text-white/55" : "text-[color:var(--px-text-4)]"}`}>
                   {t.badge}
                 </span>
-                <span className={`font-mts-wide text-[13px] font-semibold ${t.highlight ? "text-white/85" : "text-black/70"}`}>
+                <span className={`font-mts-wide text-[13px] font-semibold ${t.highlight ? "text-white/85" : "text-[color:var(--px-text-2)]"}`}>
                   {t.price} / мес
                 </span>
               </div>
               <h3 className="font-mts-wide text-[24px] sm:text-[28px] font-bold leading-[1.1] tracking-tight mb-3">{t.name}</h3>
-              <p className={`font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] mb-6 ${t.highlight ? "text-white/70" : "text-black/60"}`}>
+              <p className={`font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] mb-6 ${t.highlight ? "text-white/70" : "text-[color:var(--px-text-3)]"}`}>
                 {t.d}
               </p>
-              <dl className={`grid grid-cols-2 gap-x-4 gap-y-3 mb-8 pt-6 border-t ${t.highlight ? "border-white/10" : "border-black/[0.08]"}`}>
+              <dl className={`grid grid-cols-2 gap-x-4 gap-y-3 mb-8 pt-6 border-t ${t.highlight ? "border-white/10" : "border-[color:var(--px-line)]"}`}>
                 {t.specs.map(([k, v]) => (
                   <div key={k}>
-                    <dt className={`font-mts-wide text-[11px] tracking-[0.10em] uppercase mb-1 ${t.highlight ? "text-white/45" : "text-black/45"}`}>{k}</dt>
+                    <dt className={`font-mts-wide text-[11px] tracking-[0.10em] uppercase mb-1 ${t.highlight ? "text-white/45" : "text-[color:var(--px-text-4)]"}`}>{k}</dt>
                     <dd className="font-mts-wide text-[14px] font-semibold">{v}</dd>
                   </div>
                 ))}
               </dl>
-              <Link href="/subscribe" className="mt-auto as-btn as-btn-secondary as-btn-accent as-btn-block">
+              <Link href="/subscribe" className="px-btn px-btn-md px-btn-primary px-btn-block mt-auto">
                 Заказать сборку
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </Link>
@@ -252,23 +237,23 @@ export default function VdsPage() {
       {/* Features */}
       <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
         <div className="mb-12 sm:mb-16 max-w-[720px]">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Железо</div>
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Железо</div>
           <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
             Что реально<br />получаете
           </h2>
-          <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.5] text-black/55 mt-6 max-w-[58ch]">
+          <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.5] text-[color:var(--px-text-3)] mt-6 max-w-[58ch]">
             Не абстракции и не доли — физические компоненты, принадлежащие вашей нагрузке.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {FEATURES.map((f) => (
-            <div key={f.n} className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 hover:border-black/[0.15] transition-colors">
+            <div key={f.n} className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors">
               <div className="flex items-center gap-3 mb-6">
-                <span className="font-mts-wide text-[12px] font-semibold text-black/45">{f.n}</span>
-                <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45">{f.eyebrow}</span>
+                <span className="font-mts-wide text-[12px] font-semibold text-[color:var(--px-text-4)]">{f.n}</span>
+                <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)]">{f.eyebrow}</span>
               </div>
               <h3 className="font-mts-wide text-[22px] sm:text-[26px] font-bold leading-[1.2] tracking-tight mb-3">{f.t}</h3>
-              <p className="font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] text-black/60">{f.d}</p>
+              <p className="font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] text-[color:var(--px-text-3)]">{f.d}</p>
             </div>
           ))}
         </div>
@@ -277,17 +262,17 @@ export default function VdsPage() {
       {/* Use cases */}
       <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
         <div className="mb-12 sm:mb-16 max-w-[720px]">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Идеальные нагрузки</div>
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Идеальные нагрузки</div>
           <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
             Когда выигрывает<br />bare metal
           </h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {USECASES.map((u, i) => (
-            <div key={u.t} className="bg-white border border-black/[0.06] rounded-3xl p-6 sm:p-8 hover:border-black/[0.15] transition-colors">
-              <div className="font-mts-wide text-[12px] font-semibold text-black/45 mb-4">{String(i + 1).padStart(2, "0")}</div>
+            <div key={u.t} className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors">
+              <div className="font-mts-wide text-[12px] font-semibold text-[color:var(--px-text-4)] mb-4">{String(i + 1).padStart(2, "0")}</div>
               <h3 className="font-mts-wide text-[20px] sm:text-[22px] font-bold leading-[1.2] tracking-tight mb-3">{u.t}</h3>
-              <p className="font-mts-wide text-[14px] leading-[1.55] text-black/60">{u.d}</p>
+              <p className="font-mts-wide text-[14px] leading-[1.55] text-[color:var(--px-text-3)]">{u.d}</p>
             </div>
           ))}
         </div>
@@ -296,22 +281,22 @@ export default function VdsPage() {
       {/* Hardware registry */}
       <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[900px] mx-auto w-full">
         <div className="mb-10 sm:mb-14">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">Спецификации</div>
+          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Спецификации</div>
           <h2 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.02] tracking-tight font-bold">Полный лист железа</h2>
         </div>
-        <div className="bg-white border border-black/[0.06] rounded-3xl overflow-hidden">
+        <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl overflow-hidden">
           {HARDWARE.map(([k, v], i) => (
             <div
               key={k}
-              className={`flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 px-5 sm:px-8 py-4 sm:py-5 ${i > 0 ? "border-t border-black/[0.06]" : ""}`}
+              className={`flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 px-5 sm:px-8 py-4 sm:py-5 ${i > 0 ? "border-t border-[color:var(--px-line)]" : ""}`}
             >
-              <div className="font-mts-wide text-[13px] text-black/45 sm:w-[260px] shrink-0">{k}</div>
-              <div className="font-mts-wide text-[14px] sm:text-[15px] text-black/85 font-medium">{v}</div>
+              <div className="font-mts-wide text-[13px] text-[color:var(--px-text-4)] sm:w-[260px] shrink-0">{k}</div>
+              <div className="font-mts-wide text-[14px] sm:text-[15px] text-[color:var(--px-text)] font-medium">{v}</div>
             </div>
           ))}
         </div>
         <div className="mt-8">
-          <Link href="/vps" className="font-mts-wide inline-flex items-center gap-2 text-[14px] text-black/70 hover:text-black transition-colors">
+          <Link href="/vps" className="px-link gap-2 text-[14px]">
             Сравнить с VPS
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
           </Link>
@@ -319,20 +304,20 @@ export default function VdsPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-[#F97316] text-black px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
+      <section className="bg-[color:var(--px-accent)] text-[color:var(--px-text)] px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
         <div className="max-w-[900px] mx-auto text-center">
           <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
             Заберите своё железо
           </h2>
-          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-black/70 mt-6 max-w-[46ch] mx-auto">
+          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-text-2)] mt-6 max-w-[46ch] mx-auto">
             От $29,99/мес. Полное железо, полный контроль, без компромиссов.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
-            <Link href="/subscribe" className="as-btn as-btn-primary as-btn-solid">
+            <Link href="/subscribe" className="px-btn px-btn-md px-btn-secondary">
               Заказать
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
             </Link>
-            <Link href="/contact" className="as-btn as-btn-secondary" style={{ background: "rgba(0,0,0,0.08)", color: "#000" }}>
+            <Link href="/contact" className="px-btn px-btn-md px-btn-secondary" style={{ background: "rgba(0,0,0,0.08)", color: "#000" }}>
               Кастомная сборка
             </Link>
           </div>
@@ -340,7 +325,7 @@ export default function VdsPage() {
       </section>
 
       {/* Footer */}
-      <LandingFooter />
+      <SiteFooter />
     </div>
   );
 }

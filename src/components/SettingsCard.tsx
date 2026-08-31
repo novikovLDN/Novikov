@@ -90,7 +90,7 @@ export default function SettingsCard() {
       {/* Button — matches the light-shell dashboard control row */}
       <button
         onClick={() => setOpen(!open)}
-        className="font-mts-wide h-[52px] w-full rounded-2xl bg-white border border-black/[0.06] text-black/85 font-medium text-[13px] hover:border-black/[0.14] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+        className="font-mts-wide h-[52px] w-full rounded-2xl bg-[color:var(--px-surface)] border border-black/[0.06] text-black/85 font-medium text-[13px] hover:border-black/[0.14] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="1.5" fill="currentColor" />
@@ -137,7 +137,7 @@ export default function SettingsCard() {
                   <button onClick={() => setConfirmRemove(true)} className="text-[11px] text-white/40 hover:text-[#EF4444] transition-colors px-3 py-1.5 rounded-lg hover:bg-white/[0.05]">Отвязать</button>
                 )
               ) : (
-                <button onClick={handleSetupPasskey} className="text-[11px] text-[#8F8FD9] font-medium px-3 py-1.5 rounded-lg bg-[#5E6AD2]/10 hover:bg-[#5E6AD2]/15 transition-colors">Настроить</button>
+                <button onClick={handleSetupPasskey} className="text-[11px] text-[#FF8A6B] font-medium px-3 py-1.5 rounded-lg bg-[#FF7350]/10 hover:bg-[#FF7350]/15 transition-colors">Настроить</button>
               )}
             </div>
             {passkeyStatus === "error" && <p className="text-[#EF4444] text-[11px]">Не удалось. Попробуйте позже.</p>}

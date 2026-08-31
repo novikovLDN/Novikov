@@ -93,7 +93,7 @@ export default function ReferralSection({
               До «{nextTier.name}»: <span className="text-white/90 font-medium tabular-nums">{referralsToNext}</span>
             </span>
           ) : (
-            <span className="text-[#34D399]">Максимальный уровень</span>
+            <span className="text-[#2AC153]">Максимальный уровень</span>
           )}
         </div>
 
@@ -104,7 +104,7 @@ export default function ReferralSection({
             className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
             style={{
               width: `${(currentTierIdx + segProgress) * (100 / (TIERS.length - 1 || 1))}%`,
-              background: "linear-gradient(90deg, #5E6AD2 0%, #8F8FD9 100%)",
+              background: "linear-gradient(90deg, #FF7350 0%, #FF8A6B 100%)",
             }}
           />
           {/* Tier markers */}
@@ -114,7 +114,7 @@ export default function ReferralSection({
               className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full border border-white/20"
               style={{
                 left: `${(i / (TIERS.length - 1)) * 100}%`,
-                background: i <= currentTierIdx ? "#fff" : "#0A0A0B",
+                background: i <= currentTierIdx ? "#fff" : "#101010",
               }}
             />
           ))}
@@ -148,7 +148,7 @@ export default function ReferralSection({
           type="button"
           onClick={handleShare}
           disabled={sharing}
-          className="as-btn as-btn-primary as-btn-solid as-btn-block sm:flex-1"
+          className="px-btn px-btn-md px-btn-secondary px-btn-block sm:flex-1"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="18" cy="5" r="3" />
@@ -162,14 +162,14 @@ export default function ReferralSection({
         <button
           type="button"
           onClick={() => onCopy(shareUrl)}
-          className="as-btn as-btn-secondary as-btn-plain as-btn-block sm:flex-1"
+          className="px-btn px-btn-md px-btn-secondary px-btn-block sm:flex-1"
         >
           {copiedRef ? (
             <>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2AC153" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
-              <span style={{ color: "#22C55E" }}>Скопировано</span>
+              <span style={{ color: "#2AC153" }}>Скопировано</span>
             </>
           ) : (
             <>
