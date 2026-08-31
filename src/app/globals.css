@@ -1776,22 +1776,41 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   --px-text-4:      rgba(185, 185, 189, 0.44);  /* надзаголовки, мета */
 
   /* ── Линии ──────────────────────────────────────────────────────── */
-  --px-line:        rgba(255, 255, 255, 0.06);
-  --px-line-2:      rgba(255, 255, 255, 0.12);
+  --px-line:        rgba(255, 255, 255, 0.08);
+  --px-line-2:      rgba(255, 255, 255, 0.16);
+
+  /* ── Лестница поверхностей (research/04.md §1) ───────────────────
+     На тёмном фоне тень невидима, поэтому подъём обозначается светом:
+     чем ближе поверхность к зрителю, тем больше в ней подмешано
+     белого. Альфа, а не готовый hex, — тогда поверхность собирает
+     верный оттенок на любом основании. */
+  --px-lift-1:      rgba(255, 255, 255, 0.030);  /* тихая панель */
+  --px-lift-2:      rgba(255, 255, 255, 0.055);  /* карточка */
+  --px-lift-3:      rgba(255, 255, 255, 0.090);  /* парящее: шапка, модалка */
+
+  /* Кромка света сверху и тень снизу — приём, который отличает
+     материал от прямоугольника с заливкой (research/04.md §2). */
+  --px-edge:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
+  --px-edge-strong:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.34);
 
   /* ── Пиксельная сетка фона ──────────────────────────────────────── */
   --px-cell:        clamp(28px, 3.4vw, 48px);    /* шаг сетки = шаг кубика */
   --px-grid-line:   rgba(255, 255, 255, 0.055);
 
   /* ── Радиусы ────────────────────────────────────────────────────── */
-  --px-r-card:      18px;
-  --px-r-btn:       14px;
+  --px-r-card:      16px;
+  --px-r-btn:       12px;
   --px-r-chip:      999px;
   --px-r-cube:      22%;   /* доля от стороны кубика */
 
   /* ── Свечение. Теней в системе нет: глубина строится поверхностями,
         а подсветка нужна только акцентной кнопке под курсором. ────── */
-  --px-glow:        0 10px 34px -10px rgba(255, 115, 80, 0.55);
+  --px-glow:        0 14px 40px -14px rgba(255, 115, 80, 0.62);
+  --px-glow-soft:   0 10px 30px -16px rgba(255, 115, 80, 0.45);
 
   /* ── Motion ─────────────────────────────────────────────────────── */
   --px-fast:        160ms;   /* цвет, граница */
@@ -1856,6 +1875,34 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 }
 
 .px-page > * { position: relative; z-index: 1; }
+
+/* Зерно — материал, а не текстура ради текстуры: оно снимает
+   «пластиковую» ровность больших тёмных плоскостей и прячет полосы
+   на слабых градиентах.
+
+   Слой закреплён во вьюпорте (fixed), поэтому при прокрутке он не
+   перерисовывается вместе со страницей. Режимы наложения не
+   используются намеренно: overlay на площадь всего экрана — самый
+   дорогой способ получить тот же результат. */
+.px-page::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Мягкая виньетка: края темнее центра, взгляд собирается к контенту. */
+.px-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(135% 105% at 50% 18%, transparent 52%, rgba(0, 0, 0, 0.26) 100%);
+}
 /* Подложка сетки — исключение из правила выше: ей нужен собственный
    слой под содержимым, иначе position: relative из общего правила
    превращает её в блок нулевой высоты в потоке. */
@@ -1881,16 +1928,16 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .px-h1 {
   font-weight: 700;
   font-size: clamp(36px, 6vw, 78px);
-  line-height: 1.05;
-  letter-spacing: -0.035em;
+  line-height: 1.02;
+  letter-spacing: -0.042em;
   color: var(--px-text);
 }
 
 .px-h2 {
   font-weight: 700;
   font-size: clamp(30px, 4.6vw, 60px);
-  line-height: 1.08;
-  letter-spacing: -0.03em;
+  line-height: 1.05;
+  letter-spacing: -0.038em;
   color: var(--px-text);
   text-wrap: balance;
 }
@@ -1903,14 +1950,19 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   color: var(--px-text);
 }
 
+/* Надзаголовок набран мельче и заметно шире прежнего: контраст
+   трекинга между мелкой меткой и плотным дисплейным заголовком —
+   основной типографический приём системы. Табличные цифры на случай,
+   когда в метке есть число. */
 .px-eyebrow {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--px-text-4);
+  font-variant-numeric: tabular-nums;
 }
-@media (min-width: 640px) { .px-eyebrow { font-size: 12px; } }
+@media (min-width: 640px) { .px-eyebrow { font-size: 11px; } }
 
 .px-lede {
   font-weight: 500;
@@ -1949,8 +2001,20 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
    Логика перемещений — src/components/pixel/CubeCluster.tsx: она
    пишет только --c/--r/тон, всё рисование остаётся здесь. */
 
+/* Кластер подсвечен сзади: фигура не висит в пустоте, а стоит в
+   тёплом пятне света. Пятно рисуется псевдоэлементом под кубиками. */
+.px-cluster::before {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 115, 80, 0.16) 0%, transparent 62%);
+}
+
 .px-cluster {
   position: relative;
+  isolation: isolate;
   /* Размеры задаёт компонент через --px-cols/--px-rows. */
   width: calc(var(--px-cols) * var(--px-cell));
   height: calc(var(--px-rows) * var(--px-cell));
@@ -1972,21 +2036,35 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   transition: transform var(--px-cube) var(--px-ease);
 }
 
+/* Кубик — не квадрат с заливкой, а плитка: блик по верхней кромке,
+   лёгкий градиент по телу и падающая тень. Тот же приём, что у
+   карточек (research/04.md §2), только в миниатюре. Именно он
+   превращает кластер из плоской мозаики в материальный объект. */
 .px-cube-face {
   display: block;
   width: 100%;
   height: 100%;
   border-radius: var(--px-r-cube);
-  background: var(--px-accent);
+  background-color: var(--px-accent);
+  background-image: linear-gradient(
+    170deg,
+    rgba(255, 255, 255, 0.26) 0%,
+    rgba(255, 255, 255, 0.05) 42%,
+    rgba(0, 0, 0, 0.16) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.24),
+    0 5px 12px -7px rgba(0, 0, 0, 0.72);
   opacity: var(--o, 1);
   transition:
     background-color 600ms var(--px-ease),
     opacity 600ms var(--px-ease);
 }
 
-.px-cube-brick .px-cube-face { background: var(--px-brick); }
-.px-cube-brick-2 .px-cube-face { background: var(--px-brick-2); }
-.px-cube-good .px-cube-face { background: var(--px-good); }
+.px-cube-brick .px-cube-face { background-color: var(--px-brick); }
+.px-cube-brick-2 .px-cube-face { background-color: var(--px-brick-2); }
+.px-cube-good .px-cube-face { background-color: var(--px-good); }
 
 /* Дыхание: два-три кубика в кластере живут своим медленным ритмом,
    чтобы фигура не выглядела замершей между перескоками. */
@@ -2002,9 +2080,15 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 /* Мини-кластер как декоративный элемент секций, буллет, разделитель.
    Тот же язык, что и в герое, но без движения. */
 .px-mini { display: inline-grid; grid-template-columns: repeat(2, 1fr); gap: 3px; }
-.px-mini > span { width: 7px; height: 7px; border-radius: 2px; background: var(--px-accent); }
-.px-mini > span:nth-child(2) { background: var(--px-brick); }
-.px-mini > span:nth-child(3) { background: var(--px-brick-2); }
+.px-mini > span {
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background-color: var(--px-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.px-mini > span:nth-child(2) { background-color: var(--px-brick); }
+.px-mini > span:nth-child(3) { background-color: var(--px-brick-2); }
 
 @media (prefers-reduced-motion: reduce) {
   .px-cube { transition: none; }
@@ -2052,29 +2136,42 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .px-btn-sm   { height: 44px; min-height: 44px; padding: 0 18px; font-size: 13.5px; font-weight: 500; }
 .px-btn-block { width: 100%; }
 
+/* Акцентная кнопка — источник света. Заливка не плоская: сверху
+   светлее, снизу насыщеннее, по верхней кромке — блик. Свечение
+   направлено вниз (свет от объекта падает, а не окружает нимбом) и
+   появляется по действию, иначе это неон. */
 .px-btn-primary {
-  background: var(--px-accent);
-  color: #101010;
-  border: 1px solid transparent;
+  background-color: var(--px-accent);
+  background-image: linear-gradient(180deg, #FF8B6A 0%, var(--px-accent) 52%, #F2643F 100%);
+  color: #14100E;
+  border: 1px solid rgba(255, 190, 170, 0.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    var(--px-glow-soft);
 }
 @media (hover: hover) and (pointer: fine) {
   .px-btn-primary:hover:not(:disabled) {
-    background: var(--px-accent-hi);
-    box-shadow: var(--px-glow);
-    transform: scale(1.02);
+    background-image: linear-gradient(180deg, #FF9B7C 0%, var(--px-accent-hi) 52%, #FF7350 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      var(--px-glow);
+    transform: translateY(-1px);
   }
-  .px-btn-primary:active:not(:disabled) { transform: scale(0.99); }
+  .px-btn-primary:active:not(:disabled) { transform: translateY(0) scale(0.99); }
 }
 
 .px-btn-secondary {
-  background: var(--px-surface-2);
+  background-color: var(--px-surface-2);
+  background-image: linear-gradient(180deg, var(--px-lift-2) 0%, rgba(255, 255, 255, 0.012) 100%);
   color: var(--px-text);
   border: 1px solid var(--px-line);
+  box-shadow: var(--px-edge);
 }
 @media (hover: hover) and (pointer: fine) {
   .px-btn-secondary:hover:not(:disabled) {
-    background: var(--px-surface);
-    border-color: var(--px-accent);
+    background-image: linear-gradient(180deg, var(--px-lift-3) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border-color: var(--px-line-2);
+    box-shadow: var(--px-edge-strong);
   }
 }
 
@@ -2098,46 +2195,94 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   min-height: 44px;
   padding: 0 16px;
   border-radius: var(--px-r-chip);
-  background: var(--px-surface-2);
+  background-color: var(--px-surface-2);
+  background-image: linear-gradient(180deg, var(--px-lift-2) 0%, rgba(255, 255, 255, 0.01) 100%);
   border: 1px solid var(--px-line);
+  box-shadow: var(--px-edge);
   color: var(--px-text-2);
   font-size: 13.5px;
   font-weight: 500;
   transition:
     color var(--px-fast) var(--px-ease-out),
-    background-color var(--px-fast) var(--px-ease-out),
-    border-color var(--px-fast) var(--px-ease-out);
+    background-image var(--px-fast) var(--px-ease-out),
+    border-color var(--px-fast) var(--px-ease-out),
+    box-shadow var(--px-fast) var(--px-ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
-  .px-chip:hover { color: var(--px-text); border-color: var(--px-line-2); }
+  .px-chip:hover {
+    color: var(--px-text);
+    border-color: var(--px-line-2);
+    box-shadow: var(--px-edge-strong);
+  }
 }
 .px-chip:focus-visible { outline: 2px solid var(--px-accent); outline-offset: 3px; }
-.px-chip-active { color: var(--px-text); border-color: var(--px-accent); }
+.px-chip-active {
+  color: var(--px-text);
+  border-color: rgba(255, 115, 80, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 160, 130, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+}
 
 /* ═══ Карточки ═════════════════════════════════════════════════════ */
 
+/* Карточка — уровень 2 лестницы поверхностей.
+   Три слоя вместо плоской заливки (research/04.md §1–3):
+     - базовый цвет поверхности;
+     - альфа-градиент сверху вниз: разница на грани различимости,
+       как только градиент заметен — он становится украшением;
+     - кромка света сверху и тень снизу.
+   Тени вокруг нет намеренно: на тёмном фоне она не читается, а
+   подъём обозначается светом. */
 .px-card {
-  background: var(--px-surface);
+  position: relative;
+  background-color: var(--px-surface);
+  background-image: linear-gradient(180deg, var(--px-lift-2) 0%, rgba(255, 255, 255, 0.018) 100%);
   border: 1px solid var(--px-line);
   border-radius: var(--px-r-card);
+  box-shadow: var(--px-edge);
   transition:
     border-color var(--px-base) var(--px-ease-out),
-    background-color var(--px-base) var(--px-ease-out),
+    box-shadow var(--px-base) var(--px-ease-out),
     transform var(--px-base) var(--px-ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
-  .px-card:hover { border-color: var(--px-line-2); transform: translateY(-2px); }
+  .px-card:hover {
+    border-color: var(--px-line-2);
+    box-shadow: var(--px-edge-strong);
+    transform: translateY(-2px);
+  }
 }
 
-/* Вторичная поверхность — для вложенных панелей и тихих блоков. */
+/* Уровень 1 — тихая вложенная панель: подъём заметно меньше. */
 .px-card-2 {
-  background: var(--px-surface-2);
+  background-color: var(--px-surface-2);
+  background-image: linear-gradient(180deg, var(--px-lift-1) 0%, rgba(255, 255, 255, 0.008) 100%);
   border: 1px solid var(--px-line);
   border-radius: var(--px-r-card);
+  box-shadow: var(--px-edge);
 }
 
-/* Карточка с акцентной рамкой — ровно один такой блок на экран. */
-.px-card-accent { border-color: rgba(255, 115, 80, 0.35); }
+/* Акцентная карточка — ровно одна на экран. Кроме рамки получает
+   тёплую подсветку по верхней кромке: акцент здесь работает как
+   источник света, а не как обводка. */
+.px-card-accent {
+  border-color: rgba(255, 115, 80, 0.38);
+  background-image:
+    linear-gradient(180deg, rgba(255, 115, 80, 0.075) 0%, rgba(255, 255, 255, 0.014) 46%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 160, 130, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
+}
+@media (hover: hover) and (pointer: fine) {
+  .px-card-accent:hover {
+    border-color: rgba(255, 115, 80, 0.55);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 160, 130, 0.3),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+      var(--px-glow-soft);
+  }
+}
 
 /* ═══ Появление при скролле ════════════════════════════════════════
    Наблюдатель, а не scroll-timeline: по требованию анимация играет
@@ -2194,11 +2339,15 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
     background-color var(--px-base) var(--px-ease-out),
     border-color var(--px-base) var(--px-ease-out);
 }
+/* Шапка — уровень 3: она действительно парит над контентом, поэтому
+   стекло здесь уместно. Обязательная кромка света снизу: без неё
+   стекло читается как грязное пятно, а не как слой (research/04.md §5). */
 .px-header-solid {
-  background: rgba(16, 16, 16, 0.82);
+  background: rgba(20, 20, 21, 0.72);
   border-bottom-color: var(--px-line);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .px-brand {
@@ -2315,7 +2464,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   flex-wrap: wrap;
   gap: 8px 20px;
   font-size: 12.5px;
-  color: var(--px-text-4);
+  color: var(--px-text-3);
 }
 .px-friction > li { display: flex; align-items: center; gap: 8px; }
 
@@ -2587,8 +2736,9 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   gap: 4px;
   padding: 4px;
   border-radius: var(--px-r-chip);
-  background: var(--px-surface-2);
+  background-color: rgba(0, 0, 0, 0.3);
   border: 1px solid var(--px-line);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 .px-segment::before {
   content: "";
@@ -2598,8 +2748,10 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   left: 4px;
   width: calc((100% - 8px - (var(--px-seg-count) - 1) * 4px) / var(--px-seg-count));
   border-radius: var(--px-r-chip);
-  background: var(--px-surface);
+  background-color: var(--px-surface);
+  background-image: linear-gradient(180deg, var(--px-lift-3) 0%, rgba(255, 255, 255, 0.02) 100%);
   border: 1px solid var(--px-line-2);
+  box-shadow: var(--px-edge);
   transform: translateX(calc(var(--px-seg, 0) * (100% + 4px)));
   transition: transform var(--px-enter) var(--px-ease);
 }
@@ -2877,4 +3029,28 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 }
 @media (hover: hover) and (pointer: fine) {
   .px-btn-good:hover:not(:disabled) { background: rgba(42, 193, 83, 0.24); border-color: rgba(42, 193, 83, 0.5); }
+}
+
+/* ─── Полоса счёта секций ────────────────────────────────────────────
+   Номер раздела и волосяная линия во всю ширину контейнера. Приём
+   инженерной графики: страница читается как размеченный документ, а
+   не как поток блоков (research/04.md §6). Линия доводится до края
+   контейнера — обрезанная на половине она выглядела бы случайной. */
+.px-rail {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+.px-rail-index {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--px-accent);
+  flex-shrink: 0;
+}
+.px-rail-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--px-line-2) 0%, var(--px-line) 40%, transparent 100%);
 }

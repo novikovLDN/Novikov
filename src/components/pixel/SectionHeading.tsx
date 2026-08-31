@@ -14,16 +14,27 @@ export default function SectionHeading({
   title,
   titleId,
   action,
+  index,
 }: {
   eyebrow: string;
   /** Строки заголовка: перенос — решение вёрстки, а не часть текста. */
   title: string[];
   titleId: string;
   action?: { label: string; href: string };
+  /** Порядковый номер секции. Полоса с номером задаёт странице
+   *  «приборный» счёт разделов — приём инженерной точности из
+   *  research/04.md §6. */
+  index?: string;
 }) {
   return (
     <header className="px-head px-reveal">
-      <div>
+      <div className="min-w-0">
+        {index && (
+          <div className="px-rail">
+            <span className="px-rail-index px-num">{index}</span>
+            <span className="px-rail-line" aria-hidden />
+          </div>
+        )}
         <p className="px-eyebrow flex items-center gap-3">
           <MiniCubes />
           {eyebrow}
