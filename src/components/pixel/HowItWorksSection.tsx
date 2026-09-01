@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "./motion";
 import Icon, { type IconName } from "./Icon";
 import SectionHeading from "./SectionHeading";
 
@@ -19,6 +20,14 @@ import SectionHeading from "./SectionHeading";
  * скролла. Разметка — обычный disclosure (кнопка-заголовок раскрывает
  * соседнюю панель), а не ARIA tabs: помещать role="tabpanel" внутрь
  * role="tab" было бы невалидной вложенностью.
+ *
+ * При первом появлении в кадре шаги проигрываются сами — раз, по
+ * порядку, с паузой в полторы секунды. Это показывает, что блок
+ * интерактивен, и заодно проговаривает сценарий целиком тому, кто
+ * просто прокручивает страницу. Любое действие пользователя
+ * (наведение, клик, фокус) немедленно останавливает показ: дальше
+ * блоком управляет он, а не таймер. Скролл при этом не
+ * перехватывается — от sticky-сцены здесь отказались осознанно.
  */
 const STEPS: Array<{ n: string; title: string; body: string; icon: IconName }> = [
   {
@@ -43,6 +52,47 @@ const STEPS: Array<{ n: string; title: string; body: string; icon: IconName }> =
 
 export default function HowItWorksSection() {
   const [active, setActive] = useState(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const stopped = useRef(false);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || reduced) return;
+
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const stop = () => {
+      stopped.current = true;
+      if (timer) { clearInterval(timer); timer = null; }
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting || stopped.current || timer) return;
+        io.disconnect();
+        let i = 0;
+        timer = setInterval(() => {
+          i += 1;
+          if (i >= STEPS.length) { stop(); return; }
+          setActive(i);
+        }, 1500);
+      },
+      { threshold: 0.5 }
+    );
+    io.observe(el);
+
+    el.addEventListener("pointerdown", stop);
+    el.addEventListener("pointerenter", stop);
+    el.addEventListener("focusin", stop);
+
+    return () => {
+      io.disconnect();
+      if (timer) clearInterval(timer);
+      el.removeEventListener("pointerdown", stop);
+      el.removeEventListener("pointerenter", stop);
+      el.removeEventListener("focusin", stop);
+    };
+  }, [reduced]);
 
   return (
     <section className="px-section" aria-labelledby="how-title">
@@ -54,7 +104,7 @@ export default function HowItWorksSection() {
           index="04"
         />
 
-        <div className="px-stepper px-reveal">
+        <div ref={wrapRef} className="px-stepper px-reveal">
           {STEPS.map((s, i) => {
             const isActive = i === active;
             const panelId = `step-panel-${s.n}`;

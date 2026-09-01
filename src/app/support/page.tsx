@@ -42,7 +42,7 @@ export default function Support() {
           href="https://t.me/atlas_suppbot"
           target="_blank"
           rel="noopener noreferrer"
-          className="block bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6 mb-3 hover:border-[color:var(--px-line-2)] hover:-translate-y-0.5 transition-all"
+          className="px-spot block bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6 mb-3 hover:border-[color:var(--px-line-2)] hover:-translate-y-0.5 transition-all"
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[color:var(--px-accent-dim)] flex items-center justify-center shrink-0">
@@ -65,7 +65,7 @@ export default function Support() {
           href="https://vk.com/atlassecure"
           target="_blank"
           rel="noopener noreferrer"
-          className="block bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6 mb-6 hover:border-[color:var(--px-line-2)] hover:-translate-y-0.5 transition-all"
+          className="px-spot block bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6 mb-6 hover:border-[color:var(--px-line-2)] hover:-translate-y-0.5 transition-all"
         >
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#0077FF]/12 flex items-center justify-center shrink-0">

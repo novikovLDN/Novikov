@@ -214,7 +214,7 @@ export default function InfrastructurePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {DATACENTERS.map((dc) => (
-            <div key={dc.city} className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors flex flex-col">
+            <div key={dc.city} className="px-spot bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors flex flex-col">
               <div className="flex items-center justify-between mb-6">
                 <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)]">{dc.region}</span>
                 <span className="font-mts-wide text-[11px] tracking-[0.10em] uppercase text-[color:var(--px-text-4)] inline-flex items-center gap-2">
@@ -253,7 +253,7 @@ export default function InfrastructurePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {NETWORK_FEATURES.map((f, i) => (
-            <div key={f.t} className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors">
+            <div key={f.t} className="px-spot bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors">
               <div className="flex items-center gap-3 mb-6">
                 <span className="font-mts-wide text-[12px] font-semibold text-[color:var(--px-text-4)] tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                 <span className="h-px flex-1 bg-black/10" />

@@ -116,7 +116,7 @@ export default function SecurityPage() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {FEATURES.map((f) => (
-            <div key={f.n} className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors">
+            <div key={f.n} className="px-spot bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors">
               <div className="flex items-center gap-3 mb-6">
                 <span className="font-mts-wide text-[12px] font-semibold text-[color:var(--px-text-4)]">{f.n}</span>
                 <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)]">{f.eyebrow}</span>
