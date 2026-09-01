@@ -349,3 +349,74 @@ export function RollingNumber({
     </span>
   );
 }
+
+/**
+ * Пиксельное проявление.
+ *
+ * Содержимое закрыто сеткой квадратов цвета фона; при появлении в
+ * кадре квадраты гаснут волной слева направо с лёгким разбросом —
+ * картинка «собирается» из пикселей. Тот же жест, что у надписи из
+ * точек, только в обратную сторону.
+ *
+ * Оверлей чисто декоративный: содержимое под ним уже отрисовано и
+ * доступно с первого кадра — скринридер и поиск видят его независимо
+ * от того, отыграла анимация или нет. Без JS (или при
+ * prefers-reduced-motion) сетка не рендерится вовсе.
+ */
+export function PixelDissolve({
+  children,
+  cols = 16,
+  rows = 6,
+  className,
+}: {
+  children: ReactNode;
+  cols?: number;
+  rows?: number;
+  className?: string;
+}) {
+  const reduced = useReducedMotion();
+  const [gone, setGone] = useState(false);
+  const [armed, setArmed] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (reduced) { setGone(true); return; }
+    setArmed(true);
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        io.disconnect();
+        setGone(true);
+      },
+      { threshold: 0.25 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [reduced]);
+
+  const cells = armed && !gone ? cols * rows : 0;
+
+  return (
+    <div ref={ref} className={`px-dissolve${className ? ` ${className}` : ""}`}>
+      {children}
+      {armed && (
+        <div
+          className={`px-dissolve-grid${gone ? " px-dissolve-out" : ""}`}
+          style={{ ["--px-cols" as string]: cols, ["--px-rows" as string]: rows }}
+          aria-hidden
+        >
+          {Array.from({ length: cells || cols * rows }, (_, i) => {
+            const x = i % cols;
+            const y = Math.floor(i / cols);
+            // Волна идёт слева направо, разброс держит её живой, но
+            // детерминированным он быть не обязан — сетка декоративна.
+            const delay = x * 26 + y * 12 + (i % 5) * 18;
+            return <span key={i} style={{ transitionDelay: `${delay}ms` }} />;
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

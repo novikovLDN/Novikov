@@ -3939,3 +3939,30 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .px-tilt { transition: none; }
   .px-spot::before { transition: none; }
 }
+
+/* ─── Пиксельное проявление ────────────────────────────────────────
+   Сетка квадратов цвета фона поверх содержимого; при появлении в
+   кадре квадраты гаснут волной. Только opacity — слой не вызывает
+   ни перерасчёта раскладки, ни перерисовки содержимого под ним. */
+.px-dissolve { position: relative; }
+.px-dissolve-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(var(--px-cols, 16), 1fr);
+  grid-template-rows: repeat(var(--px-rows, 6), 1fr);
+  pointer-events: none;
+  border-radius: inherit;
+  overflow: hidden;
+}
+.px-dissolve-grid > span {
+  background: var(--px-bg);
+  opacity: 1;
+  transition: opacity 420ms var(--px-ease-out);
+}
+.px-dissolve-out > span { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .px-dissolve-grid { display: none; }
+}

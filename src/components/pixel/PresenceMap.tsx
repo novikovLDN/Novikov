@@ -4,6 +4,7 @@ import { useState } from "react";
 import { LOCATIONS, citiesLabel, latencyLabel, type Location } from "@/lib/locations";
 import { WORLD_BOUNDS, aspect, landPaths, positionIn, viewBox, type Bounds } from "@/lib/world-map";
 import { useInView } from "./motion";
+import { PixelDissolve } from "./effects";
 
 /**
  * Карта присутствия.
@@ -92,13 +93,18 @@ export default function PresenceMap() {
 
   return (
     <div ref={ref} className={`px-map${inView ? " px-map-in" : ""}`}>
-      <MapCanvas
-        bounds={WORLD_BOUNDS}
-        spots={LOCATIONS}
-        active={active}
-        onActive={setActive}
-        label={`Карта присутствия: серверы в ${LOCATIONS.length} странах`}
-      />
+      {/* Карта проявляется из пикселей: сетка квадратов цвета фона
+          гаснет волной. Жест обратный надписи из точек — та
+          рассыпается под курсором, эта собирается при появлении. */}
+      <PixelDissolve cols={20} rows={7}>
+        <MapCanvas
+          bounds={WORLD_BOUNDS}
+          spots={LOCATIONS}
+          active={active}
+          onActive={setActive}
+          label={`Карта присутствия: серверы в ${LOCATIONS.length} странах`}
+        />
+      </PixelDissolve>
 
       <ul className="px-map-legend">
         {LOCATIONS.map((l) => (
