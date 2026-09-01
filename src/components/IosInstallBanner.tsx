@@ -228,7 +228,7 @@ export default function IosInstallBanner() {
 
         <button
           onClick={() => { setShow(false); setShowGuide(true); }}
-          className="w-full h-10 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary-hover transition-all btn-press mt-3 flex items-center justify-center gap-2"
+          className="w-full h-10 rounded-xl bg-primary text-[color:var(--px-accent-ink)] font-medium text-sm hover:bg-primary-hover transition-all btn-press mt-3 flex items-center justify-center gap-2"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />

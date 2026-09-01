@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
-import LandingFooter from "@/components/LandingFooter";
+import SiteFooter from "@/components/pixel/SiteFooter";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -325,20 +325,20 @@ export default function AddDevice() {
 
       {menuOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8 font-mts-wide"
+          className="fixed inset-0 z-50 bg-[color:var(--px-bg)] flex flex-col items-center justify-center gap-8 font-mts-wide"
           onClick={() => setMenuOpen(false)}
         >
           <button
-            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center"
+            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] text-[color:var(--px-text)] flex items-center justify-center"
             onClick={() => setMenuOpen(false)}
             aria-label="Закрыть"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
           {navLinks.map((l) => (
-            <Link key={l.href} href={l.href} className="text-white text-2xl" onClick={() => setMenuOpen(false)}>
+            <Link key={l.href} href={l.href} className="text-[color:var(--px-text)] text-2xl" onClick={() => setMenuOpen(false)}>
               {l.label}
             </Link>
           ))}
@@ -575,7 +575,7 @@ export default function AddDevice() {
         )}
       </section>
 
-      <LandingFooter />
+      <SiteFooter />
     </div>
   );
 }

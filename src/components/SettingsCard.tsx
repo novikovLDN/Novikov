@@ -3,10 +3,8 @@
 import { useEffect, useState } from "react";
 import { startRegistration } from "@simplewebauthn/browser";
 import LoadingSpinner from "./LoadingSpinner";
-import { useTheme } from "./ThemeProvider";
 
 export default function SettingsCard() {
-  const { theme, setTheme } = useTheme();
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
   const [pushSupported, setPushSupported] = useState(false);

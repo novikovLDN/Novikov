@@ -21,29 +21,43 @@
   src: url("/fonts/MTSWide-Bold.woff2") format("woff2");
 }
 
+/* Служебная палитра старого слоя (утилиты bg-card, text-muted,
+   border-border и соседние). Значения светлые и совпадают с
+   токенами PIXEL: слой корпуса в системе один.
+
+   Раньше здесь стояла тёмная палитра, а светлая жила исключением под
+   `html.light`. Пока весь сайт был тёмным, это работало; после пивота
+   на светлый корпус каждый компонент старого слоя — уведомления,
+   баннер установки, предложение passkey, карточки админки — рисовался
+   тёмной плитой поверх светлой страницы, а унаследованный тёмный
+   текст на ней исчезал. Тёмных значений в системе больше нет. */
 @theme {
-  --color-background: #0a0a0a;
-  --color-background-secondary: #111111;
-  --color-foreground: #ededed;
-  --color-card: #161616;
-  --color-card-hover: #1e1e1e;
-  --color-card-active: #252525;
-  --color-border: #262626;
-  --color-border-light: #333333;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-light: #3b82f620;
-  --color-danger: #ef4444;
-  --color-danger-hover: #dc2626;
-  --color-danger-light: #ef444420;
-  --color-success: #22c55e;
-  --color-success-light: #22c55e20;
-  --color-warning: #f59e0b;
-  --color-warning-light: #f59e0b20;
-  --color-muted: #71717a;
-  --color-muted-light: #a1a1aa;
-  --color-accent: #6366f1;
-  --color-accent-light: #6366f120;
+  --color-background: #F6F5F2;
+  --color-background-secondary: #EFEEEA;
+  --color-foreground: #14140F;
+  --color-card: #FFFFFF;
+  --color-card-hover: #EFEEEA;
+  --color-card-active: #E7E6E1;
+  --color-border: #E3E2DD;
+  --color-border-light: #EDECE8;
+  /* Основное действие старого слоя — тот же коралл, что и в PIXEL:
+     второго акцента в системе нет. */
+  --color-primary: #FF6B45;
+  --color-primary-hover: #E85530;
+  --color-primary-light: #FF6B4520;
+  --color-danger: #DC2626;
+  --color-danger-hover: #B91C1C;
+  --color-danger-light: #DC262615;
+  --color-success: #0EA394;
+  --color-success-light: #0EA39415;
+  --color-warning: #B45309;
+  --color-warning-light: #B4530915;
+  /* Вторичный текст: 4,6:1 на белом — читаемо, в отличие от прежнего
+     #71717a, рассчитанного на тёмный фон. */
+  --color-muted: #6B6A63;
+  --color-muted-light: #8A8981;
+  --color-accent: #FF6B45;
+  --color-accent-light: #FF6B4515;
   --color-telegram: #2AABEE;
   --color-telegram-hover: #229ED9;
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -56,74 +70,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ─── Light Theme Override ─── */
-html.light {
-  --color-background: #f5f5f7;
-  --color-background-secondary: #eeeef0;
-  --color-foreground: #1a1a1a;
-  --color-card: #ffffff;
-  --color-card-hover: #f0f0f2;
-  --color-card-active: #e8e8ea;
-  --color-border: #d4d4d8;
-  --color-border-light: #e4e4e7;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
-  --color-primary-light: #3b82f615;
-  --color-danger: #ef4444;
-  --color-danger-hover: #dc2626;
-  --color-danger-light: #ef444412;
-  --color-success: #16a34a;
-  --color-success-light: #16a34a12;
-  --color-warning: #d97706;
-  --color-warning-light: #d9770612;
-  --color-muted: #71717a;
-  --color-muted-light: #52525b;
-  --color-accent: #6366f1;
-  --color-accent-light: #6366f112;
-  --color-telegram: #2AABEE;
-  --color-telegram-hover: #229ED9;
-  --grid-dot: rgba(0, 0, 0, 0.04);
-  --grid-line: rgba(0, 0, 0, 0.03);
-}
-
-html.light .glass {
-  background: rgba(255, 255, 255, 0.7);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.5);
-}
-
-html.light .gradient-text {
-  background: linear-gradient(135deg, #2563eb, #4f46e5, #7c3aed);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-html.light .skeleton {
-  background: linear-gradient(90deg, #e4e4e7 25%, #f0f0f2 50%, #e4e4e7 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-html.light .custom-cursor-dot {
-  background: #1a1a1a;
-}
-
-html.light .custom-cursor-circle {
-  border-color: rgba(26, 26, 26, 0.3);
-}
-
-html.light .plan-badge-trial {
-  background: linear-gradient(135deg, #9ca3af, #d1d5db, #9ca3af, #d1d5db);
-}
-
-html.light .plan-badge-basic {
-  background: linear-gradient(135deg, #3b82f6, #60a5fa, #2563eb, #3b82f6);
-}
-
-html.light .plan-badge-plus {
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa, #7c3aed, #c084fc, #8b5cf6);
-}
 
 html {
   scroll-behavior: smooth;
@@ -145,8 +91,8 @@ body {
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 40px 40px, 40px 40px, 40px 40px;
   background-position: 0 0, 0 0, 0 0;
-  --grid-dot: rgba(255, 255, 255, 0.035);
-  --grid-line: rgba(255, 255, 255, 0.018);
+  --grid-dot: rgba(20, 20, 15, 0.035);
+  --grid-line: rgba(20, 20, 15, 0.018);
 }
 
 /* Scrollbar */
@@ -155,10 +101,9 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-muted); }
 
-/* Text-caret color: on the dark theme the browser default is often
- * near-black, making the blinking cursor invisible on ~#0a0a0a
- * backgrounds. Force it to the foreground colour for every editable
- * element. */
+/* Цвет каретки задаётся явно: браузерное значение по умолчанию
+ * зависит от унаследованного цвета текста и в паре мест промахивалось
+ * мимо фона поля. */
 input,
 textarea,
 select,
@@ -290,16 +235,16 @@ input:-webkit-autofill:focus {
 
 /* Glass effect — Liquid Glass style */
 .glass {
-  background: rgba(18, 18, 18, 0.55);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: rgba(246, 245, 242, 0.82);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  border-bottom: 1px solid var(--px-line);
+  box-shadow: var(--px-lift-1);
 }
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #3b82f6, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, var(--px-accent-lo), var(--px-accent), var(--px-accent-top));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -567,14 +512,19 @@ input:-webkit-autofill:focus {
   }
 }
 
+/* Пиксельный плюс вместо точки — фирменный мотив курсора (research/07
+   применён к самому курсору): две ступенчатые полосы вместо круга,
+   image-rendering: pixelated не даёт браузеру их сгладить. */
 .custom-cursor-dot {
   position: fixed;
   top: 0;
   left: 0;
-  width: 8px;
-  height: 8px;
-  background: #fff;
-  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+  background:
+    linear-gradient(#fff, #fff) center / 4px 12px no-repeat,
+    linear-gradient(#fff, #fff) center / 12px 4px no-repeat;
+  image-rendering: pixelated;
   pointer-events: none;
   z-index: 9999;
   will-change: transform;
@@ -582,23 +532,30 @@ input:-webkit-autofill:focus {
   transition: opacity 0.2s;
 }
 
+/* mix-blend-mode вместо цвета, завязанного на тему: кольцо остаётся
+   видимым и на светлом корпусе, и на тёмных фокальных вставках без
+   отдельного правила на каждый фон. */
 .custom-cursor-circle {
   position: fixed;
   top: 0;
   left: 0;
   width: 40px;
   height: 40px;
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  border: 1.5px solid #fff;
   border-radius: 50%;
   pointer-events: none;
   z-index: 9998;
   will-change: transform;
-  transition: transform 0.15s ease-out, opacity 0.2s, border-color 0.3s;
+  mix-blend-mode: difference;
+  transition: transform 0.15s ease-out, opacity 0.2s, border-color 0.3s, background-color 0.3s;
 }
 
 .custom-cursor-circle.cursor-hover {
-  border-color: rgba(59, 130, 246, 0.6);
-  background: rgba(59, 130, 246, 0.08);
+  /* Обычный blend вместо difference: акцент должен остаться коралловым,
+     а не непредсказуемо инвертированным цветом фона под курсором. */
+  mix-blend-mode: normal;
+  border-color: var(--px-accent);
+  background: rgba(var(--px-accent-rgb), 0.14);
 }
 
 
@@ -1562,8 +1519,22 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .auth-shell .auth-card { padding: 40px 36px; }
 }
 
-/* Поля ввода */
+/* Поля ввода.
+
+   Геометрия задаётся здесь и только здесь. Без неё поле рисовалось
+   браузерным размером по умолчанию: ~210px в ширину и вдвое ниже
+   кнопки под ним — форма выглядела сломанной. Высота совпадает с
+   .auth-cta и .px-btn-md, чтобы поле и действие стояли одной
+   вертикалью. 16px — минимум, при котором iOS не зумит страницу на
+   фокусе поля. */
 .auth-shell .auth-input {
+  display: block;
+  width: 100%;
+  height: 54px;
+  padding: 0 16px;
+  font-family: var(--font-mts-wide);
+  font-size: 16px;
+  font-weight: 500;
   background: var(--px-surface-2);
   border: 1px solid var(--px-line-2);
   color: var(--px-text);
@@ -1582,8 +1553,16 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .auth-shell .auth-input-error       { border-color: rgba(239, 68, 68, 0.6); }
 .auth-shell .auth-input-error:focus { border-color: #EF4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.16); }
 
-/* Ячейки кода */
+/* Ячейки кода — та же история с геометрией, что и у поля ввода. */
 .auth-shell .auth-code-cell {
+  width: 100%;
+  height: 60px;
+  min-width: 0;
+  padding: 0;
+  text-align: center;
+  font-family: var(--font-mts-wide);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   background: var(--px-surface-2);
   border: 1px solid var(--px-line-2);
   color: var(--px-text);
@@ -1764,11 +1743,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   --px-surface:     #FFFFFF;  /* карточки и панели */
   --px-surface-2:   #EFEEEA;  /* вторичные поверхности, secondary-кнопки */
 
-  /* Тёмная фокальная поверхность — герой и финальный блок. Не основа
-     сайта, а точечная вставка: ровно два места на странице. */
-  --px-focal:       #14140F;
-  --px-focal-2:     #1E1E17;
-
   /* ── Акцент. На экране он ровно один ──────────────────────────────
      Замкнутый набор: любое место системы обращается только к этим
      переменным и ни к одному «своему» хексу. Смена акцента бренда —
@@ -1821,10 +1795,13 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   --px-edge:        var(--px-lift-2);
   --px-edge-strong: var(--px-lift-3);
 
-  /* ── Пиксельная сетка — только на тёмных фокальных поверхностях
-        (герой, финальный блок), не на всей странице. ─────────────── */
+  /* ── Пиксельная сетка ─────────────────────────────────────────────
+        Тёмных вставок на сайте больше нет (правка «убрать чёрный
+        блок»): сетка рисуется тёмной линией малой альфы по светлому
+        фону — тот же мотив, но материал корпуса один на всю страницу.
+        Живёт только в герое, а не под всем документом. */
   --px-cell:        clamp(28px, 3.4vw, 48px);    /* шаг сетки = шаг кубика */
-  --px-grid-line:   rgba(255, 255, 255, 0.06);
+  --px-grid-line:   rgba(20, 20, 15, 0.055);
 
   /* ── Радиусы ────────────────────────────────────────────────────── */
   --px-r-card:      14px;
@@ -1875,71 +1852,45 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   -webkit-font-smoothing: antialiased;
 }
 
-/* Пиксельная сетка — только внутри тёмных фокальных поверхностей
-   (герой, финальный блок), не на всей странице (research/07.md: у
-   ориентиров текстура фона не используется как основа сайта). Сетка
-   монтируется локально внутри .px-focal, а не глобально в .px-page —
-   поэтому здесь нет отдельного полностраничного слоя. Класс сохранён
-   для обратной совместимости разметки, но по умолчанию пуст на
-   светлом корпусе. */
+/* Пиксельная сетка живёт только в герое и рисуется его собственным
+   псевдоэлементом, а не полностраничным слоем (research/07.md: у
+   ориентиров текстура фона не используется как основа сайта). Класс
+   сохранён для обратной совместимости разметки и намеренно пуст. */
 .px-grid-bg { display: none; }
 
 .px-page > * { position: relative; z-index: 1; }
 
-/* ═══ Тёмная фокальная поверхность ════════════════════════════════
-   Ровно два места на странице: герой и финальный блок (плюс
-   полноэкранное мобильное меню — оно тоже временная накладка, а не
-   часть тела страницы). Несёт собственную пиксельную сетку — здесь,
-   а не на всём документе (research/07.md). */
-.px-focal {
-  position: relative;
-  background: var(--px-focal);
-  color: #FFFFFF;
-  isolation: isolate;
-  overflow: hidden;
-}
-.px-focal::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background-image:
-    linear-gradient(to right, var(--px-grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--px-grid-line) 1px, transparent 1px);
-  background-size: var(--px-cell) var(--px-cell);
-  -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 100%);
-  mask-image: radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 100%);
-}
-.px-focal .px-text-3, .px-focal .px-ink-3 { color: rgba(255, 255, 255, 0.62); }
-.px-focal .px-text-4, .px-focal .px-ink-4 { color: rgba(255, 255, 255, 0.42); }
-
 /* Зерно — материал, а не текстура ради текстуры: оно снимает
-   «пластиковую» ровность больших тёмных плоскостей и прячет полосы
-   на слабых градиентах.
+   «пластиковую» ровность больших плоскостей и прячет полосы на
+   слабых градиентах.
 
    Слой закреплён во вьюпорте (fixed), поэтому при прокрутке он не
    перерисовывается вместе со страницей. Режимы наложения не
    используются намеренно: overlay на площадь всего экрана — самый
-   дорогой способ получить тот же результат. */
+   дорогой способ получить тот же результат.
+
+   На светлом корпусе зерно вдвое тише, чем было на тёмном: по белому
+   тот же шум читается как грязь, а не как материал. */
 .px-page::after {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 3;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Мягкая виньетка: края темнее центра, взгляд собирается к контенту. */
+/* Виньетка была рассчитана на тёмный корпус. На светлом она гасит
+   углы в серый, поэтому от неё остаётся только едва различимое
+   притенение краёв — взгляд по-прежнему собирается к центру. */
 .px-page::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  background: radial-gradient(135% 105% at 50% 18%, transparent 52%, rgba(0, 0, 0, 0.26) 100%);
+  background: radial-gradient(135% 105% at 50% 18%, transparent 62%, rgba(20, 20, 15, 0.055) 100%);
 }
 /* Подложка сетки — исключение из правила выше: ей нужен собственный
    слой под содержимым, иначе position: relative из общего правила
@@ -2263,14 +2214,12 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 /* Карточка — уровень 2 элевации. На светлом корпусе (research/07.md)
    подъём даёт обычная мягкая тень снизу, а не альфа-градиент и кромка
-   света — те приёмы были специфичны для тёмного фона, где тень
-   невидима (research/04.md, актуально только для .px-focal). */
+   света — те приёмы были специфичны для тёмного фона (research/04.md),
+   которого в системе больше нет. */
 .px-card {
   position: relative;
-  /* Карточка — светлый остров, даже если стоит внутри тёмной
-     фокальной поверхности (герой, финальный блок): .px-focal красит
-     текст потомков в белый, а белая карточка обязана вернуть себе
-     тёмные чернила явно, а не унаследовать белый от предка. */
+  /* Цвет текста объявлен явно, а не унаследован: карточка обязана
+     оставаться читаемой на любой поверхности, куда её поставят. */
   background-color: var(--px-surface);
   color: var(--px-text);
   border: 1px solid var(--px-line);
@@ -2355,13 +2304,10 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 /* ═══ Шапка ════════════════════════════════════════════════════════ */
 
-/* Прозрачное состояние сидит поверх тёмного героя — текст белый.
-   Сплошное состояние сидит поверх светлого тела страницы — текст
-   становится тёмными чернилами. Раньше цвет текста здесь не задавался
-   явно и наследовался от глобального --px-text; пока токен был белым
-   на всей тёмной странице, это работало случайно. На светлом корпусе
-   то же наследование сделало бы прозрачную шапку невидимой (тёмный
-   текст на тёмном герое), поэтому оба состояния объявлены явно. */
+/* Оба состояния шапки стоят над светлой поверхностью — и прозрачное
+   (первый экран), и сплошное (тело страницы). Цвет текста объявлен
+   явно в обоих: полагаться на наследование от --px-text здесь уже
+   один раз стоило невидимой шапки при смене корпуса. */
 .px-header {
   position: fixed;
   inset: 0 0 auto 0;
@@ -2369,7 +2315,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   height: var(--px-header-h);
   display: flex;
   align-items: center;
-  color: #FFFFFF;
+  color: var(--px-text);
   background: transparent;
   border-bottom: 1px solid transparent;
   transition:
@@ -2437,6 +2383,8 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   z-index: 70;
   display: flex;
   flex-direction: column;
+  background: var(--px-bg);
+  color: var(--px-text);
 }
 .px-menu-link {
   display: block;
@@ -2446,7 +2394,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.03em;
-  color: #FFFFFF;
+  color: var(--px-text);
   transition: color var(--px-fast) var(--px-ease-out);
 }
 .px-menu-link:hover { color: var(--px-accent); }
@@ -2455,11 +2403,65 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
    Обычная колонная композиция (копия слева, реальный интерфейс
    справа), а не типографика во всю ширину: у всех трёх разобранных
    провайдеров (research/07.md) герой построен именно так — броский,
-   но конвенциональный, и это работает как узнаваемый язык категории. */
+   но конвенциональный, и это работает как узнаваемый язык категории.
+
+   Первый экран светлый. Тёмная плита здесь была единственным местом,
+   где корпус сайта менял материал, — и она же ломала переход к
+   светлым секциям ниже. Глубина теперь набирается тремя тихими
+   слоями вместо смены фона: вертикальный градиент от белого к фону
+   страницы, пиксельная сетка тёмной линией малой альфы и тёплое
+   акцентное пятно, которое медленно дышит. */
 .px-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+  background:
+    linear-gradient(180deg, #FFFFFF 0%, #FBFAF8 46%, var(--px-bg) 100%);
+}
+/* Сетка. Маска гасит её к низу экрана, чтобы полоса показаний стояла
+   на чистом фоне, а не на клетке. */
+.px-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--px-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--px-grid-line) 1px, transparent 1px);
+  background-size: var(--px-cell) var(--px-cell);
+  -webkit-mask-image: radial-gradient(115% 85% at 50% 6%, #000 26%, transparent 92%);
+  mask-image: radial-gradient(115% 85% at 50% 6%, #000 26%, transparent 92%);
+}
+/* Акцентное пятно. Анимируется только transform — слой не
+   перерисовывается, а сдвигается композитором. */
+.px-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: -22%;
+  right: -14%;
+  width: min(760px, 82vw);
+  aspect-ratio: 1;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(var(--px-accent-rgb), 0.16) 0%,
+    rgba(var(--px-accent-rgb), 0.06) 42%,
+    transparent 68%
+  );
+  animation: pxHeroDrift 18s ease-in-out infinite;
+}
+@keyframes pxHeroDrift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(-4%, 5%, 0) scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .px-hero::after { animation: none; }
 }
 .px-hero-body {
   flex: 1;
@@ -2477,7 +2479,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   font-size: clamp(34px, 5.2vw, 64px);
   line-height: 1.06;
   letter-spacing: -0.035em;
-  color: #FFFFFF;
+  color: var(--px-text);
 }
 
 .px-cta { max-width: 440px; }
@@ -2512,7 +2514,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   flex-wrap: wrap;
   gap: 8px 20px;
   font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.62);
+  color: var(--px-text-3);
 }
 .px-friction > li { display: flex; align-items: center; gap: 8px; }
 
@@ -2523,8 +2525,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 /* Полоса показаний — прижата к низу героя, читается как приборная
    шкала под содержанием. */
 .px-hero-rail {
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-top: 1px solid var(--px-line);
   padding-block: 20px;
 }
 @media (min-width: 640px) { .px-hero-rail { padding-block: 26px; } }
@@ -2544,7 +2545,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   text-transform: uppercase;
   color: var(--px-text-4);
 }
-.px-focal .px-rail-metric-label { color: rgba(255, 255, 255, 0.44); }
 .px-rail-metric-value {
   margin-top: 8px;
   font-weight: 700;
@@ -2553,7 +2553,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   letter-spacing: -0.03em;
   color: var(--px-text);
 }
-.px-focal .px-rail-metric-value { color: #FFFFFF; }
 
 /* Кнопка меню только до lg. Отдельное правило, а не утилита Tailwind:
    .px-icon-btn задаёт display и в каскаде идёт позже любой утилиты,
@@ -3138,16 +3137,12 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 }
 
 /* ─── Карточка как светлый остров ────────────────────────────────────
-   .px-card уже возвращает себе тёмные чернила (см. правило .px-card
-   выше), но служебные классы типа .px-rail-metric-label переиспользуются
-   и на тёмном герое напрямую, и внутри белой карточки внутри того же
-   героя (AccountPreview). Правило `.px-focal .px-rail-metric-label`
-   выше по каскаду красит их в белый по одному признаку — «где-то
-   внутри .px-focal», не различая, стоит ли элемент на самой тёмной
-   поверхности или на white-карточке поверх неё. Здесь — более поздний
-   по источнику сброс той же специфичности: он выигрывает каскад и
-   возвращает служебным классам локальные тёмные тона всегда, когда они
-   находятся внутри .px-card, независимо от того, что снаружи. */
+   Служебные классы (.px-rail-metric-label и соседи) переиспользуются и
+   на фоне страницы, и внутри карточки. Явный сброс тонов внутри
+   .px-card держит их локальными: что бы ни красило текст снаружи,
+   содержимое карточки остаётся на своей шкале. Правило дешёвое и
+   страхует от повторения регрессии, которая уже случалась при смене
+   корпуса. */
 .px-card .px-rail-metric-label { color: var(--px-text-4); }
 .px-card .px-rail-metric-value { color: var(--px-text); }
 .px-card .px-text-3, .px-card .px-ink-3 { color: var(--px-text-3); }
@@ -3366,4 +3361,242 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 @media (prefers-reduced-motion: reduce) {
   .px-step-panel, .px-step-body, .px-step-num { transition: none; }
+}
+
+/* ═══ Полоса прочтения ═════════════════════════════════════════════
+   Тонкая линия под шапкой: единственный элемент, который движется
+   постоянно. Поэтому он не рисует ничего, кроме scaleX, и не знает
+   про React — значение пишет rAF (см. ScrollProgress в motion.tsx). */
+.px-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 65;
+  height: 2px;
+  pointer-events: none;
+}
+.px-progress-bar {
+  height: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--px-accent-lo) 0%, var(--px-accent) 60%, var(--px-accent-top) 100%);
+  box-shadow: var(--px-glow-soft);
+}
+
+/* ═══ Шкалы ширины канала ══════════════════════════════════════════
+   Полоса растёт при появлении секции в кадре. Анимируется только
+   transform: scaleX — рост не вызывает пересчёт раскладки, сколько бы
+   шкал ни стояло рядом.
+
+   Базовое состояние — заполненная полоса. Пустой её делает только
+   .px-js, то есть страница, где скрипт уже доказал, что умеет её
+   наполнить (тот же приём, что у .px-reveal). */
+.px-gauges { display: grid; gap: 16px; }
+@media (min-width: 768px) { .px-gauges { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; } }
+
+.px-gauge {
+  background-color: var(--px-surface);
+  border: 1px solid var(--px-line);
+  border-radius: var(--px-r-card);
+  box-shadow: var(--px-edge);
+  padding: 24px;
+  transition:
+    border-color var(--px-base) var(--px-ease-out),
+    box-shadow var(--px-base) var(--px-ease-out),
+    transform var(--px-base) var(--px-ease-out);
+}
+@media (min-width: 640px) { .px-gauge { padding: 32px; } }
+@media (hover: hover) and (pointer: fine) {
+  .px-gauge:hover {
+    border-color: var(--px-line-2);
+    box-shadow: var(--px-edge-strong);
+    transform: translateY(-2px);
+  }
+}
+
+.px-gauge-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.px-gauge-value {
+  font-weight: 700;
+  font-size: clamp(28px, 4.2vw, 44px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--px-text);
+}
+
+.px-gauge-track {
+  position: relative;
+  overflow: hidden;
+  height: 14px;
+  margin-top: 22px;
+  border-radius: 999px;
+  background-color: var(--px-surface-2);
+  box-shadow: inset 0 1px 2px rgba(20, 20, 15, 0.06);
+}
+/* Незаполненная часть — не пустота, а разметка шкалы: пиксельный
+   пунктир тем же шагом, что и сетка героя. */
+.px-gauge-track::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(20, 20, 15, 0.10) 0 1px,
+    transparent 1px 10px
+  );
+}
+
+.px-gauge-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transform: scaleX(var(--p, 1));
+  transform-origin: left center;
+  background: linear-gradient(90deg, rgba(20, 20, 15, 0.55) 0%, rgba(20, 20, 15, 0.78) 100%);
+  overflow: hidden;
+}
+.px-gauge-fill-hi {
+  background: linear-gradient(90deg, var(--px-accent-lo) 0%, var(--px-accent) 55%, var(--px-accent-top) 100%);
+  box-shadow: var(--px-glow-soft);
+}
+/* Проблеск, идущий по заполненной части, — канал читается как живой,
+   а не как статичная плашка. */
+.px-gauge-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.34) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: pxSweep 3.6s var(--px-ease) infinite;
+  animation-delay: var(--px-delay, 0ms);
+}
+@keyframes pxSweep {
+  0%        { transform: translateX(-100%); }
+  55%, 100% { transform: translateX(200%); }
+}
+
+.px-js .px-gauge-fill { transform: scaleX(0); }
+.px-js .px-gauge-live .px-gauge-fill {
+  transform: scaleX(var(--p, 1));
+  transition: transform 1500ms var(--px-ease-out);
+  transition-delay: var(--px-delay, 0ms);
+}
+
+.px-gauge-note { margin-top: 18px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .px-gauge-fill::after { animation: none; opacity: 0; }
+  .px-js .px-gauge-fill { transform: scaleX(var(--p, 1)); }
+  .px-js .px-gauge-live .px-gauge-fill { transition: none; }
+  .px-gauge { transition: none; }
+}
+
+/* ─── Масштабная сноска ─────────────────────────────────────────── */
+.px-scale {
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid var(--px-line);
+  border-radius: var(--px-r-card);
+  background:
+    linear-gradient(180deg, rgba(var(--px-accent-rgb), 0.05) 0%, transparent 70%),
+    var(--px-surface);
+}
+@media (min-width: 640px) { .px-scale { padding: 32px; margin-top: 24px; } }
+.px-scale-lede {
+  font-size: clamp(15px, 1.5vw, 17px);
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--px-text-2);
+  max-width: 62ch;
+}
+.px-scale-mark { color: var(--px-accent); font-weight: 700; white-space: nowrap; }
+
+/* Сорок делений: бегущий по ним огонёк показывает, насколько мала
+   доля одного фильма в общей ширине канала. */
+.px-scale-strip {
+  display: flex;
+  gap: 4px;
+  margin: 22px 0 20px;
+}
+.px-scale-strip > span {
+  flex: 1;
+  height: 26px;
+  border-radius: 3px;
+  background-color: var(--px-surface-2);
+  box-shadow: inset 0 0 0 1px var(--px-line);
+  animation: pxStripPulse 3.4s var(--px-ease) infinite;
+  animation-delay: calc(var(--i) * 60ms);
+}
+@keyframes pxStripPulse {
+  0%, 82%, 100% { background-color: var(--px-surface-2); transform: scaleY(1); }
+  88%           { background-color: rgba(var(--px-accent-rgb), 0.55); transform: scaleY(1.16); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .px-scale-strip > span { animation: none; }
+}
+
+/* ═══ Безопасность ═════════════════════════════════════════════════ */
+.px-guards { display: grid; gap: 16px; }
+@media (min-width: 768px) { .px-guards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; } }
+
+/* Ведущая карточка блока — своя команда — занимает всю ширину:
+   у аргумента другой вес, чем у трёх остальных. */
+@media (min-width: 768px) { .px-guard:first-child { grid-column: 1 / -1; } }
+
+/* Тёплая кромка проявляется по наведению: карточка отзывается на
+   курсор, но в покое ни одна из четырёх не спорит с другой. */
+.px-guard { position: relative; overflow: hidden; }
+.px-guard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--px-accent) 0%, transparent 100%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--px-enter) var(--px-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .px-guard:hover::before { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .px-guard::before { transition: none; }
+}
+
+/* ─── Надпись из точек ──────────────────────────────────────────────
+   Холст рисует сам компонент (ParticleHeading). Здесь — только место
+   под него и подсказка, которая уходит, когда курсор уже на надписи:
+   объяснять взаимодействие после того, как оно началось, незачем. */
+.px-particle-band {
+  position: relative;
+  margin: 8px 0 40px;
+  padding: 12px 0 4px;
+  border-block: 1px solid var(--px-line);
+  color: var(--px-text);
+}
+@media (min-width: 640px) { .px-particle-band { margin-bottom: 56px; padding: 20px 0 8px; } }
+.px-particle-head { width: 100%; }
+.px-particle-hint {
+  text-align: center;
+  padding-bottom: 10px;
+  transition: opacity var(--px-base) var(--px-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .px-particle-band:hover .px-particle-hint { opacity: 0; }
+}
+
+/* Подсказка про курсор бессмысленна там, где курсора нет. */
+@media (hover: none) {
+  .px-particle-hint { display: none; }
 }

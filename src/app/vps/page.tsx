@@ -8,7 +8,7 @@ import SiteFooter from "@/components/pixel/SiteFooter";
  * /vps — VPS product page in the v4 light shell.
  *
  * Hero → stats → plan tiers → features → OS stack → use cases →
- * VPS vs VDS comparison → orange CTA → LandingFooter. Content
+ * VPS vs VDS comparison → orange CTA → общий футер сайта. Content
  * preserved from the earlier PremiumPage implementation: KVM
  * virtualization, dedicated NVMe, guaranteed vCPU, 10 Gb/s
  * network, ~60s provisioning, 99.98% SLA, Frankfurt/Moscow/Sydney.
@@ -196,33 +196,33 @@ export default function VpsPage() {
               key={t.name}
               className={`rounded-3xl p-6 sm:p-8 border transition-colors flex flex-col ${
                 t.highlight
-                  ? "bg-black text-white border-black"
+                  ? "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-[color:var(--px-accent-line)] shadow-[var(--px-lift-2)]"
                   : "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-[color:var(--px-line)] hover:border-[color:var(--px-line-2)]"
               }`}
             >
-              <div className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase mb-4 ${t.highlight ? "text-white/55" : "text-[color:var(--px-text-4)]"}`}>
+              <div className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase mb-4 ${t.highlight ? "text-[color:var(--px-accent)]" : "text-[color:var(--px-text-4)]"}`}>
                 {t.tag}
               </div>
               <h3 className="font-mts-wide text-[26px] font-bold leading-[1.1] tracking-tight mb-6">{t.name}</h3>
               <div className="mb-6">
                 <span className="font-mts-wide text-[36px] font-bold tabular-nums tracking-tight">{t.price}</span>
-                <span className={`font-mts-wide text-[14px] ml-2 ${t.highlight ? "text-white/55" : "text-[color:var(--px-text-4)]"}`}>/ мес</span>
+                <span className={"font-mts-wide text-[14px] ml-2 text-[color:var(--px-text-4)]"}>/ мес</span>
               </div>
-              <ul className={`font-mts-wide text-[14px] leading-[1.6] space-y-2 mb-8 ${t.highlight ? "text-white/80" : "text-[color:var(--px-text-2)]"}`}>
+              <ul className={"font-mts-wide text-[14px] leading-[1.6] space-y-2 mb-8 text-[color:var(--px-text-2)]"}>
                 <li className="flex items-start gap-2.5">
-                  <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${t.highlight ? "bg-[color:var(--px-surface)]" : "bg-black"}`} />
+                  <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${t.highlight ? "bg-[color:var(--px-accent)]" : "bg-[color:var(--px-text)]"}`} />
                   <span>{t.cpu}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${t.highlight ? "bg-[color:var(--px-surface)]" : "bg-black"}`} />
+                  <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${t.highlight ? "bg-[color:var(--px-accent)]" : "bg-[color:var(--px-text)]"}`} />
                   <span>{t.ram}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${t.highlight ? "bg-[color:var(--px-surface)]" : "bg-black"}`} />
+                  <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${t.highlight ? "bg-[color:var(--px-accent)]" : "bg-[color:var(--px-text)]"}`} />
                   <span>{t.disk}</span>
                 </li>
                 <li className="flex items-start gap-2.5">
-                  <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${t.highlight ? "bg-[color:var(--px-surface)]" : "bg-black"}`} />
+                  <span className={`mt-2 w-1.5 h-1.5 rounded-full shrink-0 ${t.highlight ? "bg-[color:var(--px-accent)]" : "bg-[color:var(--px-text)]"}`} />
                   <span>{t.net}</span>
                 </li>
               </ul>

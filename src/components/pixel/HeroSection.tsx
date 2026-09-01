@@ -4,17 +4,16 @@ import Link from "next/link";
 import AccountPreview from "./AccountPreview";
 import Icon from "./Icon";
 import { MiniCubes } from "./CubeCluster";
-import { AnimatedNumber } from "./motion";
+import { AnimatedNumber, useParallax } from "./motion";
+import { PLAN_SPEED } from "@/lib/plans";
 
 /**
  * Первый экран.
  *
  * Разбор VK Cloud / Yandex Cloud / Selectel (research/07.md) сходится
  * в одном приёме: справа в герое — настоящий интерфейс продукта, а не
- * абстрактная графика. Раньше здесь стоял кластер кубиков во всю
- * высоту; теперь его место занимает та же карточка кабинета, что
- * покупатель увидит после регистрации — это единственная копия на
- * странице, не дубликат отдельной секции «продукт».
+ * абстрактная графика. Здесь стоит та же карточка кабинета, что
+ * покупатель увидит после регистрации.
  *
  * Заголовок называет функцию, а не только качество: «Открывает
  * интернет» отвечает на вопрос категории, вторая строка — на вопрос
@@ -25,23 +24,34 @@ import { AnimatedNumber } from "./motion";
  * /pricing — у Selectel цена входит в первый экран прямым текстом
  * (research/07.md §2).
  *
- * Тёмная фокальная поверхность (`.px-focal`) — одна из двух на
- * странице (вторая — финальный блок). Основа сайта светлая.
+ * Экран светлый, как и всё тело сайта: тёмная плита была единственным
+ * разрывом материала на странице. Глубину держат пиксельная сетка,
+ * тёплое пятно акцента и элевация карточки — см. `.px-hero` в
+ * globals.css.
+ *
+ * Показания в нижней полосе названы словами покупателя: «скорость
+ * канала» вместо «магистрали», «время без сбоев» вместо «аптайма».
+ * Термин, который нужно объяснять, на первом экране не работает.
  */
 interface HeroSectionProps {
   primaryHref: string;
 }
 
+/** Значения подтверждены: скорость канала — src/lib/plans.ts
+ *  (PLAN_SPEED), число стран — LocationsSection. Целевая доступность
+ *  и задержка — заявленные эксплуатационные цели. */
 const METRICS = [
-  { value: 200, suffix: " Гбит/с", label: "магистраль", from: 0 },
-  { value: 99.98, decimals: 2, suffix: " %", label: "целевой аптайм", from: 99 },
-  { value: 5, prefix: "< ", suffix: " мс", label: "задержка в регионе", from: 28 },
+  { value: PLAN_SPEED.plus, prefix: "до ", suffix: " Гбит/с", label: "скорость канала", from: 0 },
+  { value: 99.98, decimals: 2, suffix: " %", label: "время без сбоев", from: 99 },
+  { value: 5, prefix: "< ", suffix: " мс", label: "пинг внутри региона", from: 28 },
   { value: 4, label: "страны присутствия", from: 0 },
 ];
 
 export default function HeroSection({ primaryHref }: HeroSectionProps) {
+  const artRef = useParallax<HTMLDivElement>(0.045);
+
   return (
-    <section className="px-hero px-focal" aria-labelledby="hero-title">
+    <section className="px-hero" aria-labelledby="hero-title">
       <div className="px-hero-body">
         <div className="px-shell w-full">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-10 items-center">
@@ -93,7 +103,9 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
             </div>
 
             <div className="lg:col-span-5 px-reveal">
-              <AccountPreview />
+              <div ref={artRef}>
+                <AccountPreview />
+              </div>
             </div>
           </div>
         </div>

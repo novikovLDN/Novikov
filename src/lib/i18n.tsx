@@ -20,8 +20,8 @@ const t = {
     ru: "Ускоритель интернета — за минуту",
   },
   "hero.desc": {
-    en: "Stable connection and low ping on any device. 24/7 with 99.98% SLA. Backbone routing up to 200 Gbps across three continental data centers.",
-    ru: "Стабильное соединение и низкий пинг на любом устройстве. Магистральная маршрутизация до 200 Гбит/с, дата-центры в трёх юрисдикциях. SLA 99,98%.",
+    en: "Stable connection and low ping on any device. 24/7 with 99.98% SLA. A 25 Gbps channel on Basic and 75 Gbps on Plus, across data centers in three jurisdictions.",
+    ru: "Стабильное соединение и низкий пинг на любом устройстве. Канал 25 Гбит/с на тарифе Basic и 75 Гбит/с на Plus, дата-центры в трёх юрисдикциях. SLA 99,98%.",
   },
   "hero.cta": { en: "Request access", ru: "Запросить доступ" },
   "hero.vpn": { en: "Connect", ru: "Подключиться" },

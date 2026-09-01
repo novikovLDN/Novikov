@@ -137,7 +137,7 @@ export default function PwaManager() {
         </div>
         <button
           onClick={handleInstall}
-          className="w-full h-10 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary-hover transition-all btn-press mt-3 flex items-center justify-center gap-2"
+          className="w-full h-10 rounded-xl bg-primary text-[color:var(--px-accent-ink)] font-medium text-sm hover:bg-primary-hover transition-all btn-press mt-3 flex items-center justify-center gap-2"
         >
           Установить
         </button>

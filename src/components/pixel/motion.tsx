@@ -186,3 +186,132 @@ export function AnimatedNumber({
     </span>
   );
 }
+
+/**
+ * Параллакс на прокрутке.
+ *
+ * Элемент едет по вертикали медленнее страницы, пока находится в
+ * кадре. Смещение считается от центра вьюпорта, поэтому в середине
+ * экрана оно нулевое — объект не «уползает» с исходной позиции, а
+ * дышит вокруг неё.
+ *
+ * Один общий rAF на подписчика, пассивный слушатель, запись только в
+ * transform: слой не вызывает пересчёт раскладки. При
+ * prefers-reduced-motion хук не подписывается вовсе.
+ */
+export function useParallax<T extends HTMLElement>(strength = 0.06) {
+  const ref = useRef<T>(null);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || reduced) return;
+
+    let ticking = false;
+    let visible = false;
+
+    const read = () => {
+      ticking = false;
+      if (!visible) return;
+      const r = el.getBoundingClientRect();
+      const center = r.top + r.height / 2 - window.innerHeight / 2;
+      el.style.transform = `translate3d(0, ${(-center * strength).toFixed(2)}px, 0)`;
+    };
+
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(read);
+    };
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        visible = entries[0]?.isIntersecting ?? false;
+        if (visible) onScroll();
+      },
+      { rootMargin: "120px 0px" }
+    );
+    io.observe(el);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+
+    return () => {
+      io.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      el.style.transform = "";
+    };
+  }, [strength, reduced]);
+
+  return ref;
+}
+
+/**
+ * Полоса прочтения страницы под шапкой.
+ *
+ * Единственный элемент, который движется всегда, — поэтому он обязан
+ * быть самым дешёвым: одна запись в scaleX внутри rAF, никакой
+ * реакции React на каждый кадр прокрутки.
+ */
+export function ScrollProgress() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    let ticking = false;
+    const read = () => {
+      ticking = false;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      el.style.transform = `scaleX(${p.toFixed(4)})`;
+    };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(read);
+    };
+
+    read();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  return (
+    <div className="px-progress" aria-hidden>
+      <div ref={ref} className="px-progress-bar" />
+    </div>
+  );
+}
+
+/**
+ * Факт попадания элемента в кадр — для эффектов, которые нельзя
+ * выразить одним классом на родителе (шкалы, отсчёты, холсты).
+ * Срабатывает один раз и отписывается.
+ */
+export function useInView<T extends HTMLElement>(threshold = 0.3) {
+  const ref = useRef<T>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        setInView(true);
+        io.disconnect();
+      },
+      { threshold }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [threshold]);
+
+  return [ref, inView] as const;
+}

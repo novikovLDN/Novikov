@@ -436,7 +436,7 @@ function ProgressBar({ step }: { step: Step }) {
         </span>
       </div>
 
-      <div className="flex-1 h-px bg-white/10 relative overflow-hidden">
+      <div className="flex-1 h-px bg-[color:var(--px-line-2)] relative overflow-hidden">
         <span
           className="absolute inset-y-0 left-0 bg-[color:var(--px-accent)] transition-all duration-500 ease-out"
           style={{ width: isSetup ? "100%" : "0%" }}
@@ -446,7 +446,7 @@ function ProgressBar({ step }: { step: Step }) {
       <div className="flex items-center gap-2">
         <span
           className={`font-mts-wide w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold transition-colors ${
-            isSetup ? "bg-[color:var(--px-accent)] text-[#101010]" : "bg-white/10 text-[color:var(--px-text-4)]"
+            isSetup ? "bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)]" : "bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] text-[color:var(--px-text-4)]"
           }`}
         >
           2

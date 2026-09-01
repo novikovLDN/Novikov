@@ -9,7 +9,7 @@ import SiteFooter from "@/components/pixel/SiteFooter";
  *
  * Top bar → hero → feature cards → certifications grid →
  * encryption-stack table → audit-history timeline → orange CTA →
- * LandingFooter. Language deliberately avoids restricted terms
+ * общий футер сайта. Language deliberately avoids restricted terms
  * (compliance): "стабильность", "низкий пинг", "ускоритель
  * интернета", "шифрование", "приватность", "безопасность".
  */

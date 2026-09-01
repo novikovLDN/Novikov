@@ -75,16 +75,16 @@ export default function SubscriptionCard({
   };
 
   return (
-    <section className="dv2-dark dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px] border border-white/[0.06] bg-[#28282A]">
+    <section className="dv2-card dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px]">
       <div className="relative p-5 sm:p-7">
         {/* Header — one eyebrow, one QR toggle */}
         <div className="flex items-center justify-between mb-5">
-          <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-white/45">
+          <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-[color:var(--px-text-4)]">
             Ключ подписки
           </div>
           <button
             onClick={() => setShowQr((v) => !v)}
-            className="font-mts-wide h-9 px-3 rounded-xl bg-white/[0.05] border border-white/[0.08] text-white/75 hover:text-white hover:border-white/[0.16] text-[12px] font-medium transition-all flex items-center gap-1.5"
+            className="font-mts-wide h-9 px-3 rounded-xl bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] text-[color:var(--px-text-2)] hover:text-[color:var(--px-text)] hover:border-[color:var(--px-line-2)] text-[12px] font-medium transition-all flex items-center gap-1.5"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -102,7 +102,7 @@ export default function SubscriptionCard({
           style={{ gridTemplateRows: showQr ? "1fr" : "0fr" }}
         >
           <div className="overflow-hidden">
-            <div className="bg-white rounded-2xl p-4 mb-5 flex items-center justify-center">
+            <div className="bg-white rounded-2xl border border-[color:var(--px-line)] p-4 mb-5 flex items-center justify-center">
               <QRCodeSVG
                 value={subscriptionUrl}
                 size={220}
@@ -114,8 +114,8 @@ export default function SubscriptionCard({
           </div>
         </div>
 
-        {/* CTAs — primary (Open) wins by weight; Copy is a dark
-            secondary living on the same focal surface. */}
+        {/* CTAs — основное действие берёт вес заливкой, копирование
+            остаётся вторичной кнопкой системы. */}
         <div className="flex flex-col gap-3">
           <button
             type="button"
@@ -153,38 +153,38 @@ export default function SubscriptionCard({
         </div>
 
         {showFallback && (
-          <div className="mt-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-            <p className="font-mts-wide text-[10px] text-white/45 mb-1.5">Скопируйте вручную:</p>
-            <code className="block text-[10px] font-mono break-all text-white/75 bg-black/40 p-2 rounded-lg">
+          <div className="mt-3 p-3 rounded-xl bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)]">
+            <p className="font-mts-wide text-[10px] text-[color:var(--px-text-4)] mb-1.5">Скопируйте вручную:</p>
+            <code className="block text-[10px] font-mono break-all text-[color:var(--px-text-2)] bg-[color:var(--px-surface)] border border-[color:var(--px-line)] p-2 rounded-lg">
               {subscriptionUrl}
             </code>
           </div>
         )}
 
         {publicId && (
-          <div className="mt-5 pt-5 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
-            <span className="font-mts-wide text-white/40 tracking-[0.12em] uppercase text-[10px]">ID</span>
-            <span className="font-mono text-white/70 tracking-wider">{publicId}</span>
+          <div className="mt-5 pt-5 border-t border-[color:var(--px-line)] flex items-center justify-between text-[11px]">
+            <span className="font-mts-wide text-[color:var(--px-text-4)] tracking-[0.12em] uppercase text-[10px]">ID</span>
+            <span className="font-mono text-[color:var(--px-text-2)] tracking-wider">{publicId}</span>
           </div>
         )}
 
-        <div className="mt-5 pt-5 border-t border-white/[0.08] flex items-center justify-between text-[11px]">
-          <span className="font-mts-wide text-white/45">Нет приложения?</span>
+        <div className="mt-5 pt-5 border-t border-[color:var(--px-line)] flex items-center justify-between text-[11px]">
+          <span className="font-mts-wide text-[color:var(--px-text-3)]">Нет приложения?</span>
           <div className="flex gap-3 font-mts-wide">
             <a
               href="https://apps.apple.com/app/happ-proxy-utility/id6504287215"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/75 hover:text-white transition-colors"
+              className="text-[color:var(--px-text-2)] hover:text-[color:var(--px-accent)] transition-colors"
             >
               App Store
             </a>
-            <span className="text-white/20">·</span>
+            <span className="text-[color:var(--px-text-4)]">·</span>
             <a
               href="https://play.google.com/store/apps/details?id=com.happproxy"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/75 hover:text-white transition-colors"
+              className="text-[color:var(--px-text-2)] hover:text-[color:var(--px-accent)] transition-colors"
             >
               Google Play
             </a>

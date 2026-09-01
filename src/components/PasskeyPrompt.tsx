@@ -132,7 +132,7 @@ export default function PasskeyPrompt({ forceShow }: PasskeyPromptProps) {
             <button
               onClick={handleSetup}
               disabled={registering}
-              className="w-full h-10 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary-hover transition-all btn-press mt-3 flex items-center justify-center gap-2"
+              className="w-full h-10 rounded-xl bg-primary text-[color:var(--px-accent-ink)] font-medium text-sm hover:bg-primary-hover transition-all btn-press mt-3 flex items-center justify-center gap-2"
             >
               {registering ? (
                 <><LoadingSpinner size="sm" /> Настройка...</>

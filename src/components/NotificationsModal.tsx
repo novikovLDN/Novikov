@@ -137,19 +137,23 @@ export default function NotificationsModal({ open, onClose, onUnreadCountChange 
               : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
           }`}
       >
-        <div className="rounded-[20px] border border-white/[0.08] bg-[#111114] shadow-2xl shadow-black/40 overflow-hidden backdrop-blur-xl">
+        {/* Панель светлая, как и весь кабинет. Тёмная подложка с
+            белым текстом осталась от прежней тёмной темы: на светлом
+            корпусе заголовки уведомлений наследовали тёмные чернила и
+            становились нечитаемыми на почти чёрном фоне. */}
+        <div className="rounded-[20px] border border-[color:var(--px-line)] bg-[color:var(--px-surface)] shadow-[var(--px-lift-3)] overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-            <h3 className="font-medium text-[13px] text-white">Уведомления</h3>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[color:var(--px-line)]">
+            <h3 className="font-medium text-[13px] text-[color:var(--px-text)]">Уведомления</h3>
             <div className="flex items-center gap-2">
               {hasNotifications && (
-                <span className="text-[9px] sm:text-[10px] text-muted bg-background px-1.5 sm:px-2 py-0.5 rounded-full">
+                <span className="text-[9px] sm:text-[10px] text-[color:var(--px-text-3)] bg-[color:var(--px-surface-2)] px-1.5 sm:px-2 py-0.5 rounded-full">
                   {notifications.length}
                 </span>
               )}
               <button
                 onClick={onClose}
-                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center hover:bg-card-hover transition-colors"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-[color:var(--px-text-3)] hover:bg-[color:var(--px-surface-2)] hover:text-[color:var(--px-text)] transition-colors"
                 aria-label="Закрыть"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-4 sm:h-4">
@@ -167,17 +171,17 @@ export default function NotificationsModal({ open, onClose, onUnreadCountChange 
           >
             {loading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-[color:var(--px-accent)] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : !hasNotifications ? (
               <div className="text-center py-8 px-4">
-                <div className="w-10 h-10 rounded-full bg-card-hover flex items-center justify-center mx-auto mb-2">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted">
+                <div className="w-10 h-10 rounded-full bg-[color:var(--px-surface-2)] flex items-center justify-center mx-auto mb-2">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-text-4)]">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   </svg>
                 </div>
-                <p className="text-muted text-[11px] sm:text-xs">Нет уведомлений</p>
+                <p className="text-[color:var(--px-text-3)] text-[11px] sm:text-xs">Нет уведомлений</p>
               </div>
             ) : (
               <div className="p-2 sm:p-2.5 space-y-1 sm:space-y-1.5">
@@ -187,18 +191,18 @@ export default function NotificationsModal({ open, onClose, onUnreadCountChange 
                     style={{ animationDelay: `${i * 0.05}s` }}
                     className={`p-2.5 sm:p-3 rounded-xl border transition-colors animate-fade-in-up opacity-0 ${
                       n.read
-                        ? "bg-background/50 border-border/20"
-                        : "bg-primary/5 border-primary/15"
+                        ? "bg-[color:var(--px-surface-2)] border-[color:var(--px-line)]"
+                        : "bg-[color:var(--px-accent-dim)] border-[color:var(--px-accent-line)]"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-1.5 sm:gap-2 mb-0.5">
-                      <h4 className="font-semibold text-[11px] sm:text-xs leading-snug line-clamp-2 break-words min-w-0">{n.title}</h4>
+                      <h4 className="font-semibold text-[11px] sm:text-xs leading-snug line-clamp-2 break-words min-w-0 text-[color:var(--px-text)]">{n.title}</h4>
                       {!n.read && (
-                        <span className="w-1.5 h-1.5 bg-primary rounded-full shrink-0 mt-1" />
+                        <span className="w-1.5 h-1.5 bg-[color:var(--px-accent)] rounded-full shrink-0 mt-1" />
                       )}
                     </div>
-                    <p className="text-[10px] sm:text-[11px] md:text-xs text-muted leading-relaxed break-words">{n.message}</p>
-                    <p className="text-[9px] sm:text-[10px] text-muted/50 mt-1 sm:mt-1.5">{formatTime(n.createdAt)}</p>
+                    <p className="text-[10px] sm:text-[11px] md:text-xs text-[color:var(--px-text-2)] leading-relaxed break-words">{n.message}</p>
+                    <p className="text-[9px] sm:text-[10px] text-[color:var(--px-text-4)] mt-1 sm:mt-1.5">{formatTime(n.createdAt)}</p>
                   </div>
                 ))}
               </div>

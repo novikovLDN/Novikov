@@ -46,6 +46,7 @@ export default function CustomCursor() {
       const target = e.target as HTMLElement;
       if (target.closest("a, button, [role='button'], input, textarea, select, [data-cursor-hover]")) {
         hovering.current = true;
+        ring.classList.add("cursor-hover");
       }
     };
 
@@ -53,6 +54,7 @@ export default function CustomCursor() {
       const target = e.target as HTMLElement;
       if (target.closest("a, button, [role='button'], input, textarea, select, [data-cursor-hover]")) {
         hovering.current = false;
+        ring.classList.remove("cursor-hover");
       }
     };
 

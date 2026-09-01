@@ -1,4 +1,5 @@
 import SectionHeading from "./SectionHeading";
+import { PLAN_SPEED } from "@/lib/plans";
 
 /**
  * Локации.
@@ -7,9 +8,15 @@ import SectionHeading from "./SectionHeading";
  * мелкой таблицей внутри: двенадцать значений кеглем 10–11px не
  * читались на телефоне и шумели на десктопе.
  *
- * ВНИМАНИЕ: количество серверов, полоса и задержки — консервативные
- * оценки на момент написания. Их нужно заменить фактическими
- * значениями, как только эксплуатация подтвердит окончательный список.
+ * ВНИМАНИЕ: количество серверов и задержки — консервативные оценки на
+ * момент написания. Их нужно заменить фактическими значениями, как
+ * только эксплуатация подтвердит окончательный список.
+ *
+ * Скорость канала здесь не своя: она берётся из src/lib/plans.ts.
+ * Раньше в этой колонке стояла «магистраль» локации (200/100 Гбит/с) —
+ * величина другого порядка и другого смысла, чем скорость, которую
+ * получает подключение. Рядом с тарифом это читалось как обещание
+ * 200 Гбит/с покупателю.
  *
  * Флагов-эмодзи нет намеренно: они по-разному рисуются в разных ОС.
  * Двухбуквенная монограмма в формах кубика однозначна везде.
@@ -19,16 +26,17 @@ interface Location {
   country: string;
   city: string;
   servers: number;
-  bandwidth: string;
   latency: string;
 }
 
 const LOCATIONS: Location[] = [
-  { code: "DE", country: "Германия", city: "Frankfurt", servers: 12, bandwidth: "200 Гбит/с", latency: "24 мс" },
-  { code: "NL", country: "Нидерланды", city: "Amsterdam", servers: 8, bandwidth: "100 Гбит/с", latency: "32 мс" },
-  { code: "AT", country: "Австрия", city: "Vienna", servers: 6, bandwidth: "100 Гбит/с", latency: "38 мс" },
-  { code: "US", country: "США", city: "New York", servers: 4, bandwidth: "100 Гбит/с", latency: "120 мс" },
+  { code: "DE", country: "Германия", city: "Frankfurt", servers: 12, latency: "24 мс" },
+  { code: "NL", country: "Нидерланды", city: "Amsterdam", servers: 8, latency: "32 мс" },
+  { code: "AT", country: "Австрия", city: "Vienna", servers: 6, latency: "38 мс" },
+  { code: "US", country: "США", city: "New York", servers: 4, latency: "120 мс" },
 ];
+
+const CHANNEL = `до ${PLAN_SPEED.plus} Гбит/с`;
 
 export default function LocationsSection() {
   return (
@@ -38,7 +46,7 @@ export default function LocationsSection() {
           eyebrow="Инфраструктура"
           title={["Серверы там,", "где вам нужно"]}
           titleId="locations-title"
-          index="05"
+          index="07"
           action={{ label: "Об инфраструктуре", href: "/infrastructure" }}
         />
 
@@ -62,7 +70,7 @@ export default function LocationsSection() {
 
               <dl className="px-loc-figures">
                 <Figure label="Серверов" value={String(l.servers)} />
-                <Figure label="Магистраль" value={l.bandwidth} />
+                <Figure label="Скорость канала" value={CHANNEL} />
                 <Figure label="Задержка" value={`${l.latency} из Москвы`} />
               </dl>
             </li>

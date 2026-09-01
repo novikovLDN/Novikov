@@ -571,7 +571,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
               <FeatureCard
                 icon={<svg width="22" height="22" className="text-[color:var(--px-accent)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" /></svg>}
                 iconBg="bg-[color:var(--px-accent-dim)]"
-                title="Магистраль до 200 Гбит/с"
+                title="Канал до 75 Гбит/с"
                 description="Вечерний час пик и нагрузка соседей по каналу не превращаются в фризы"
                 className="animate-fade-in-up animate-delay-1"
               />

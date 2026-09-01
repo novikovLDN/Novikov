@@ -2,6 +2,7 @@ import Link from "next/link";
 import Icon, { type IconName } from "./Icon";
 import SectionHeading from "./SectionHeading";
 import { AnimatedNumber } from "./motion";
+import { PLAN_SPEED } from "@/lib/plans";
 
 /**
  * Преимущества.
@@ -17,8 +18,13 @@ import { AnimatedNumber } from "./motion";
  * а не с повтора цифр первого экрана: иначе посетитель дважды подряд
  * получает один и тот же аргумент.
  *
- * Приватность закрыта отдельным пунктом — заявление подтверждено
- * страницами /privacy и /security.
+ * Приватность здесь закрыта одной строкой намеренно: подробный
+ * разговор о защите данных идёт следующей секцией (SecuritySection),
+ * и повторять его аргументы здесь — значит обесценить оба блока.
+ *
+ * Число в ведущей ячейке берётся из src/lib/plans.ts, а не пишется
+ * руками: это то же значение, которое видно в составе тарифа и в
+ * кассе.
  */
 interface Benefit {
   title: string;
@@ -28,12 +34,12 @@ interface Benefit {
 }
 
 const LEAD = {
-  title: "Не проседает под нагрузкой",
+  title: "Не проседает вечером",
   body:
-    "Магистральная маршрутизация до 200 Гбит/с в каждой локации. Вечерний час пик, торренты соседей по каналу и вечерний стрим не превращаются в фризы посреди катки.",
-  value: 200,
+    "У подключения свой широкий канал: 25 Гбит/с на тарифе Basic и 75 Гбит/с на Plus. Запас считался под вечерний час пик — когда в сети разом все соседи, фильм не встаёт на паузу, а игра не превращается в слайд-шоу.",
+  value: PLAN_SPEED.plus,
   suffix: " Гбит/с",
-  label: "пропускная способность",
+  label: "канал на тарифе Plus",
   icon: "bolt" as IconName,
 };
 
@@ -47,7 +53,7 @@ const REST: Benefit[] = [
     title: "Не хранит историю",
     body: "Ни посещённых сайтов, ни DNS-запросов, ни истории подключений. Хранить нечего — значит нечего и передать.",
     icon: "globe",
-    href: "/privacy",
+    href: "/security",
   },
   {
     title: "Не требует настройки",
@@ -97,7 +103,7 @@ export default function BenefitsSection() {
                   <p className="px-body mt-2">{b.body}</p>
                   {b.href && (
                     <Link href={b.href} className="px-link group mt-2">
-                      Политика конфиденциальности
+                      Как мы защищаем данные
                       <Icon
                         name="arrow-right"
                         size={13}

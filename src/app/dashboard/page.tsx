@@ -14,7 +14,6 @@ import SubscriptionHero from "@/components/SubscriptionHero";
 import QuickActionsRow from "@/components/QuickActionsRow";
 import ReferralSection from "@/components/ReferralSection";
 import ServerStatusCard from "@/components/ServerStatusCard";
-import ThemeToggleButton from "@/components/ThemeToggleButton";
 import PushToggleButton from "@/components/PushToggleButton";
 import type { SubscriptionData } from "@/types";
 
@@ -389,7 +388,6 @@ export default function Dashboard() {
 
               {/* ═══ Settings row — Theme · Push · Advanced ═══ */}
               <div className="dv2-rise dv2-rise-6 grid grid-cols-1 sm:grid-cols-3 gap-2.5 lg:col-span-12 lg:self-start">
-                <ThemeToggleButton />
                 <PushToggleButton />
                 <SettingsCard />
               </div>

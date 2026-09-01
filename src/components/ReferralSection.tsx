@@ -72,25 +72,25 @@ export default function ReferralSection({
       <div className="flex items-center justify-between mb-4">
         <div>
           <div className="dv2-eyebrow">Реферальная программа</div>
-          <div className="text-[20px] sm:text-[22px] font-medium text-white mt-1">
+          <div className="text-[20px] sm:text-[22px] font-medium text-[color:var(--px-text)] mt-1">
             Кешбэк {cashbackPercent}% с друзей
           </div>
         </div>
         <div className="text-right">
-          <div className="text-[10px] font-mono text-white/30 tracking-wider uppercase">Уровень</div>
-          <div className="text-[13px] font-medium text-white/90 mt-0.5">{loyaltyTier}</div>
+          <div className="text-[10px] font-mono text-[color:var(--px-text-4)] tracking-wider uppercase">Уровень</div>
+          <div className="text-[13px] font-medium text-[color:var(--px-text)] mt-0.5">{loyaltyTier}</div>
         </div>
       </div>
 
       {/* Tier progress */}
-      <div className="rounded-2xl bg-white/[0.02] border border-white/[0.04] p-4 mb-4">
-        <div className="flex items-center justify-between text-[11px] text-white/50 mb-3">
+      <div className="rounded-2xl bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] p-4 mb-4">
+        <div className="flex items-center justify-between gap-3 text-[11px] text-[color:var(--px-text-3)] mb-3">
           <span>
-            Оплаченных рефералов: <span className="text-white/90 font-medium tabular-nums">{paidReferrals}</span>
+            Оплаченных рефералов: <span className="text-[color:var(--px-text)] font-medium tabular-nums">{paidReferrals}</span>
           </span>
           {nextTier ? (
             <span>
-              До «{nextTier.name}»: <span className="text-white/90 font-medium tabular-nums">{referralsToNext}</span>
+              До «{nextTier.name}»: <span className="text-[color:var(--px-text)] font-medium tabular-nums">{referralsToNext}</span>
             </span>
           ) : (
             <span className="text-[color:var(--px-good)]">Максимальный уровень</span>
@@ -98,7 +98,7 @@ export default function ReferralSection({
         </div>
 
         {/* Tier rail */}
-        <div className="relative h-2 rounded-full bg-white/[0.04] overflow-hidden mb-3">
+        <div className="relative h-2 rounded-full bg-[color:var(--px-line)] overflow-hidden mb-3">
           {/* Filled progress up to current tier + within-segment */}
           <div
             className="absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out"
@@ -111,10 +111,14 @@ export default function ReferralSection({
           {TIERS.map((t, i) => (
             <div
               key={t.name}
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full border border-white/20"
+              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full"
               style={{
                 left: `${(i / (TIERS.length - 1)) * 100}%`,
-                background: i <= currentTierIdx ? "#fff" : "#101010",
+                // Пройденная метка — цвет заливки шкалы, будущая — фон
+                // корпуса с рамкой: на светлом различие даёт контраст
+                // с полосой, а не альфа-белый, которого здесь не видно.
+                background: i <= currentTierIdx ? "var(--px-accent-lo)" : "var(--px-surface)",
+                boxShadow: "0 0 0 1px var(--px-line-2)",
               }}
             />
           ))}
@@ -122,7 +126,7 @@ export default function ReferralSection({
 
         <div className="flex justify-between text-[10px]">
           {TIERS.map((t, i) => (
-            <div key={t.name} className={`text-center ${i <= currentTierIdx ? "text-white/90" : "text-white/30"}`}>
+            <div key={t.name} className={`text-center ${i <= currentTierIdx ? "text-[color:var(--px-text)]" : "text-[color:var(--px-text-4)]"}`}>
               <div className="font-medium tabular-nums">{t.percent}%</div>
               <div className="text-[9px] mt-0.5">{t.name}</div>
             </div>
@@ -132,13 +136,13 @@ export default function ReferralSection({
 
       {/* Stats row */}
       <div className="grid grid-cols-2 gap-2 mb-4">
-        <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] px-3 py-2.5">
-          <div className="text-[10px] text-white/40 mb-0.5">Приглашено</div>
-          <div className="text-[18px] font-light text-white tabular-nums">{referrals}</div>
+        <div className="rounded-xl bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] px-3 py-2.5">
+          <div className="text-[10px] text-[color:var(--px-text-4)] mb-0.5">Приглашено</div>
+          <div className="text-[18px] font-medium text-[color:var(--px-text)] tabular-nums">{referrals}</div>
         </div>
-        <div className="rounded-xl bg-white/[0.02] border border-white/[0.04] px-3 py-2.5">
-          <div className="text-[10px] text-white/40 mb-0.5">Оплатили</div>
-          <div className="text-[18px] font-light text-white tabular-nums">{paidReferrals}</div>
+        <div className="rounded-xl bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] px-3 py-2.5">
+          <div className="text-[10px] text-[color:var(--px-text-4)] mb-0.5">Оплатили</div>
+          <div className="text-[18px] font-medium text-[color:var(--px-text)] tabular-nums">{paidReferrals}</div>
         </div>
       </div>
 

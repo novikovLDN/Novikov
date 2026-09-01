@@ -8,7 +8,7 @@ import SiteFooter from "@/components/pixel/SiteFooter";
  * /vds — VDS product page in the v4 light shell.
  *
  * Hero → stats → CPU tiers → features → use cases → hardware
- * registry → orange CTA → LandingFooter. Content preserved from
+ * registry → orange CTA → общий футер сайта. Content preserved from
  * the earlier PremiumPage implementation: dedicated physical
  * servers, Intel Xeon Scalable / AMD EPYC, NVMe RAID 10, up to
  * 200 Gb/s network, up to 1 TB RAM, IPMI/KVM, private VLAN,
@@ -201,26 +201,26 @@ export default function VdsPage() {
               key={t.name}
               className={`rounded-3xl p-6 sm:p-8 border transition-colors flex flex-col ${
                 t.highlight
-                  ? "bg-black text-white border-black"
+                  ? "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-[color:var(--px-accent-line)] shadow-[var(--px-lift-2)]"
                   : "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-[color:var(--px-line)] hover:border-[color:var(--px-line-2)]"
               }`}
             >
               <div className="flex items-center justify-between mb-6">
-                <span className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase ${t.highlight ? "text-white/55" : "text-[color:var(--px-text-4)]"}`}>
+                <span className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase ${t.highlight ? "text-[color:var(--px-accent)]" : "text-[color:var(--px-text-4)]"}`}>
                   {t.badge}
                 </span>
-                <span className={`font-mts-wide text-[13px] font-semibold ${t.highlight ? "text-white/85" : "text-[color:var(--px-text-2)]"}`}>
+                <span className={`font-mts-wide text-[13px] font-semibold ${t.highlight ? "text-[color:var(--px-text)]" : "text-[color:var(--px-text-2)]"}`}>
                   {t.price} / мес
                 </span>
               </div>
               <h3 className="font-mts-wide text-[24px] sm:text-[28px] font-bold leading-[1.1] tracking-tight mb-3">{t.name}</h3>
-              <p className={`font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] mb-6 ${t.highlight ? "text-white/70" : "text-[color:var(--px-text-3)]"}`}>
+              <p className={"font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] mb-6 text-[color:var(--px-text-3)]"}>
                 {t.d}
               </p>
-              <dl className={`grid grid-cols-2 gap-x-4 gap-y-3 mb-8 pt-6 border-t ${t.highlight ? "border-white/10" : "border-[color:var(--px-line)]"}`}>
+              <dl className={"grid grid-cols-2 gap-x-4 gap-y-3 mb-8 pt-6 border-t border-[color:var(--px-line)]"}>
                 {t.specs.map(([k, v]) => (
                   <div key={k}>
-                    <dt className={`font-mts-wide text-[11px] tracking-[0.10em] uppercase mb-1 ${t.highlight ? "text-white/45" : "text-[color:var(--px-text-4)]"}`}>{k}</dt>
+                    <dt className={"font-mts-wide text-[11px] tracking-[0.10em] uppercase mb-1 text-[color:var(--px-text-4)]"}>{k}</dt>
                     <dd className="font-mts-wide text-[14px] font-semibold">{v}</dd>
                   </div>
                 ))}

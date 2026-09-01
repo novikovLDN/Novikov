@@ -27,13 +27,17 @@ export default function PasswordInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoFocus={autoFocus}
-        className={`auth-input pr-12 ${hasError ? "auth-input-error" : ""}`}
+        className={`auth-input ${hasError ? "auth-input-error" : ""}`}
+        /* Место под кнопку показа пароля. Утилита pr-12 здесь не
+           работает: геометрия .auth-input объявлена вне слоя утилит
+           Tailwind и выигрывает каскад. */
+        style={{ paddingRight: 46 }}
         required
       />
       <button
         type="button"
         onClick={onToggle}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors p-1"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--px-text-4)] hover:text-[color:var(--px-text)] transition-colors p-1"
         tabIndex={-1}
       >
         {show ? (

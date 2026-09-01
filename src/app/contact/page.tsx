@@ -9,7 +9,7 @@ import SiteFooter from "@/components/pixel/SiteFooter";
  * /contact — support & sales page in the v4 light shell.
  *
  * Top bar → hero → contact channels (Telegram + emails) →
- * response-time card → contact form → orange CTA → LandingFooter.
+ * response-time card → contact form → orange CTA → общий футер сайта.
  * Preserves the POST /api/contact submit and the Telegram handle
  * @atlas_suppbot exactly.
  */

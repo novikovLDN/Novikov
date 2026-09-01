@@ -111,13 +111,13 @@ export default function SubscriptionHero({
   });
 
   return (
-    <section className="dv2-dark dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px] border border-white/[0.06] bg-[#28282A]">
+    <section className="dv2-card dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px]">
       <div className="relative p-5 sm:p-7 lg:p-8">
         {/* Row 1 — plan chip · status chip. Tightly kerned so both
             chips read as one strip of metadata rather than two
             unrelated labels. */}
         <div className="flex items-center gap-2 flex-wrap mb-6 sm:mb-8">
-          <span className="font-mts-wide inline-flex items-center px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-white text-[11px] tracking-[0.06em] font-medium">
+          <span className="font-mts-wide inline-flex items-center px-3 py-1.5 rounded-full bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] text-[color:var(--px-text)] text-[11px] tracking-[0.06em] font-medium">
             {planLabel}
           </span>
           <span
@@ -139,22 +139,22 @@ export default function SubscriptionHero({
         {/* Row 2 — the focal fact: WHEN it ends. */}
         {isExpired ? (
           <div className="mb-6 sm:mb-8">
-            <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-white/40 mb-2">
+            <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-[color:var(--px-text-4)] mb-2">
               Истекла
             </div>
-            <div className="font-mts-wide text-[34px] sm:text-[42px] lg:text-[52px] font-bold tracking-tight leading-[1.02] text-white">
-              Подписка<br /><span className="text-white/45">не активна</span>
+            <div className="font-mts-wide text-[34px] sm:text-[42px] lg:text-[52px] font-bold tracking-tight leading-[1.02] text-[color:var(--px-text)]">
+              Подписка<br /><span className="text-[color:var(--px-text-3)]">не активна</span>
             </div>
           </div>
         ) : (
           <div className="mb-6 sm:mb-8">
-            <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-white/40 mb-2">
+            <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-[color:var(--px-text-4)] mb-2">
               Действует до
             </div>
-            <div className="font-mts-wide text-[34px] sm:text-[42px] lg:text-[52px] font-bold tracking-tight leading-[1.02] text-white">
+            <div className="font-mts-wide text-[34px] sm:text-[42px] lg:text-[52px] font-bold tracking-tight leading-[1.02] text-[color:var(--px-text)]">
               {endDateLabel}
             </div>
-            <div className="font-mts-wide text-[13px] text-white/50 mt-3 tabular-nums">
+            <div className="font-mts-wide text-[13px] text-[color:var(--px-text-3)] mt-3 tabular-nums">
               {endTimeLabel} · осталось {humanRemaining(daysLeft, hoursLeft)}
             </div>
           </div>
@@ -182,7 +182,7 @@ export default function SubscriptionHero({
               <button
                 type="button"
                 onClick={() => router.push("/subscribe")}
-                className="px-btn px-btn-xl px-btn-secondary px-btn-block sm:w-[200px] sm:flex-none"
+                className="px-btn px-btn-xl px-btn-secondary w-full sm:w-[200px] sm:flex-none"
               >
                 Продлить
               </button>

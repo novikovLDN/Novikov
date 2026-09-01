@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import LandingFooter from "@/components/LandingFooter";
+import SiteFooter from "@/components/pixel/SiteFooter";
 
 /**
  * /subscribe — payment funnel in the v4 light shell.
@@ -302,18 +302,8 @@ function SubscribeContent() {
             </div>
 
             {/* Order summary */}
-            <div
-              className={`rounded-3xl p-6 sm:p-8 mb-4 ${
-                selectedPlan === "plus"
-                  ? "bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)]"
-                  : "bg-black text-white"
-              }`}
-            >
-              <div
-                className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase mb-4 ${
-                  selectedPlan === "plus" ? "text-black/55" : "text-white/55"
-                }`}
-              >
+            <div className="rounded-3xl p-6 sm:p-8 mb-4 bg-[color:var(--px-surface)] border border-[color:var(--px-accent-line)] shadow-[var(--px-lift-2)] text-[color:var(--px-text)]">
+              <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase mb-4 text-[color:var(--px-text-4)]">
                 К оплате
               </div>
               <div className="flex flex-wrap items-end justify-between gap-4">
@@ -321,33 +311,19 @@ function SubscribeContent() {
                   <div className="font-mts-wide text-[15px] sm:text-[17px] font-medium">
                     {PLANS[selectedPlan].name} · {selectedPeriod.label}
                   </div>
-                  <div
-                    className={`font-mts-wide text-[13px] mt-1 ${
-                      selectedPlan === "plus" ? "text-black/60" : "text-white/60"
-                    }`}
-                  >
+                  <div className="font-mts-wide text-[13px] mt-1 text-[color:var(--px-text-3)]">
                     {selectedPeriod.perMonth} ₽/мес
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="font-mts-wide text-[36px] sm:text-[44px] font-bold leading-none tabular-nums tracking-tight">
                     {selectedPeriod.price}{" "}
-                    <span
-                      className={`text-[18px] font-medium ${
-                        selectedPlan === "plus" ? "text-black/55" : "text-white/55"
-                      }`}
-                    >
+                    <span className="text-[18px] font-medium text-[color:var(--px-text-3)]">
                       ₽
                     </span>
                   </div>
                   {selectedPeriod.discount && (
-                    <div
-                      className={`inline-flex mt-2 font-mts-wide text-[11px] font-semibold tracking-[0.06em] px-2.5 py-1 rounded-full ${
-                        selectedPlan === "plus"
-                          ? "bg-black/15 text-black"
-                          : "bg-white/15 text-white"
-                      }`}
-                    >
+                    <div className="inline-flex mt-2 font-mts-wide text-[11px] font-semibold tracking-[0.06em] px-2.5 py-1 rounded-full bg-[color:var(--px-accent-dim)] text-[color:var(--px-accent)]">
                       экономия {selectedPeriod.discount}
                     </div>
                   )}
@@ -418,7 +394,7 @@ function SubscribeContent() {
         {/* ═══ Success ═══ */}
         {step === "success" && (
           <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-emerald-500 text-white mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--px-good)] text-white mb-8">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
@@ -444,7 +420,7 @@ function SubscribeContent() {
         {/* ═══ Failed ═══ */}
         {step === "failed" && (
           <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-red-500 text-white mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--color-danger)] text-white mb-8">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
@@ -484,7 +460,7 @@ function SubscribeContent() {
         {/* ═══ Expired ═══ */}
         {step === "expired" && (
           <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-amber-500 text-white mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--color-warning)] text-white mb-8">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
@@ -522,7 +498,7 @@ function SubscribeContent() {
         )}
       </main>
 
-      <LandingFooter />
+      <SiteFooter />
     </div>
   );
 }
@@ -606,15 +582,15 @@ function TopBar({
 
       {menuOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center gap-8 font-mts-wide"
+          className="fixed inset-0 z-50 bg-[color:var(--px-bg)] flex flex-col items-center justify-center gap-8 font-mts-wide"
           onClick={() => setMenuOpen(false)}
         >
           <button
-            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-white/10 border border-white/15 flex items-center justify-center active:scale-[0.95] transition-transform"
+            className="absolute top-6 right-6 w-11 h-11 rounded-full bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] text-[color:var(--px-text)] flex items-center justify-center active:scale-[0.95] transition-transform"
             onClick={() => setMenuOpen(false)}
             aria-label="Закрыть"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
@@ -622,7 +598,7 @@ function TopBar({
             <Link
               key={l.href}
               href={l.href}
-              className="text-white text-2xl"
+              className="text-[color:var(--px-text)] text-2xl"
               onClick={() => setMenuOpen(false)}
             >
               {l.label}
@@ -630,7 +606,7 @@ function TopBar({
           ))}
           <Link
             href="/auth"
-            className="mt-4 px-6 py-3 rounded-full bg-white text-black text-base"
+            className="mt-4 px-6 py-3 rounded-full bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] text-base font-medium"
             onClick={() => setMenuOpen(false)}
           >
             Войти
@@ -746,14 +722,14 @@ function PeriodCard({
       disabled={disabled}
       className={`text-left rounded-3xl p-6 sm:p-7 flex flex-col transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed ${
         featured
-          ? "bg-black text-white hover:bg-neutral-800"
-          : "bg-white text-black border border-black/[0.06] hover:border-black/30"
+          ? "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border border-[color:var(--px-accent-line)] shadow-[var(--px-lift-2)] hover:shadow-[var(--px-lift-3)]"
+          : "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border border-[color:var(--px-line)] hover:border-[color:var(--px-line-2)]"
       }`}
     >
       <div className="flex items-center justify-between gap-3">
         <div
           className={`font-mts-wide text-[13px] tracking-[0.14em] uppercase font-semibold ${
-            featured ? "text-white/60" : "text-black/55"
+            featured ? "text-[color:var(--px-accent)]" : "text-[color:var(--px-text-3)]"
           }`}
         >
           {opt.label}
@@ -761,7 +737,9 @@ function PeriodCard({
         {opt.discount && (
           <span
             className={`font-mts-wide text-[11px] font-semibold px-2.5 py-1 rounded-full ${
-              featured ? "bg-white/15 text-white" : "bg-emerald-500/15 text-emerald-700"
+              featured
+                ? "bg-[color:var(--px-accent-dim)] text-[color:var(--px-accent)]"
+                : "bg-[color:var(--px-good-dim)] text-[color:var(--px-good)]"
             }`}
           >
             {opt.discount}
@@ -774,25 +752,21 @@ function PeriodCard({
           {opt.price}
         </span>
         <span
-          className={`font-mts-wide text-[16px] font-medium ${
-            featured ? "text-white/60" : "text-black/55"
-          }`}
+          className="font-mts-wide text-[16px] font-medium text-[color:var(--px-text-3)]"
         >
           ₽
         </span>
       </div>
 
       <div
-        className={`font-mts-wide text-[13px] mt-2 ${
-          featured ? "text-white/60" : "text-black/55"
-        }`}
+        className="font-mts-wide text-[13px] mt-2 text-[color:var(--px-text-3)]"
       >
         {opt.perMonth} ₽/мес
       </div>
 
       <div
         className={`mt-6 font-mts-wide inline-flex items-center gap-2 text-[14px] font-medium ${
-          featured ? "text-white" : "text-black/85"
+          featured ? "text-[color:var(--px-accent)]" : "text-[color:var(--px-text)]"
         }`}
       >
         Выбрать
@@ -811,7 +785,9 @@ function PlanChip({ plan }: { plan: Plan }) {
   return (
     <div
       className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mts-wide text-[12px] font-semibold tracking-[0.08em] uppercase ${
-        isPlus ? "bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)]" : "bg-black text-white"
+        isPlus
+          ? "bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)]"
+          : "bg-[color:var(--px-surface-2)] text-[color:var(--px-text)] border border-[color:var(--px-line)]"
       }`}
     >
       <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
