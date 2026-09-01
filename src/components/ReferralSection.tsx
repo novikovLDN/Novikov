@@ -68,7 +68,7 @@ export default function ReferralSection({
   };
 
   return (
-    <div id="referral-section" className="dv2-card p-5 sm:p-6">
+    <div id="referral-section" className="dv2-card px-spot p-4 sm:p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
           <div className="dv2-eyebrow">Реферальная программа</div>
@@ -152,7 +152,7 @@ export default function ReferralSection({
           type="button"
           onClick={handleShare}
           disabled={sharing}
-          className="px-btn px-btn-md px-btn-secondary px-btn-block sm:flex-1"
+          className="px-btn px-btn-sm px-btn-secondary sm:flex-1"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="18" cy="5" r="3" />
@@ -166,7 +166,7 @@ export default function ReferralSection({
         <button
           type="button"
           onClick={() => onCopy(shareUrl)}
-          className="px-btn px-btn-md px-btn-secondary px-btn-block sm:flex-1"
+          className="px-btn px-btn-sm px-btn-secondary sm:flex-1"
         >
           {copiedRef ? (
             <>

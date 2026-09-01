@@ -42,7 +42,7 @@ export default function PlanCard({
   const target = href ?? `/auth?plan=${plan}&period=${period}`;
 
   return (
-    <article className={`px-card px-reveal p-6 sm:p-8 lg:p-10 flex flex-col h-full${featured ? " px-card-accent" : ""}`}>
+    <article className={`px-card px-spot px-reveal p-6 sm:p-8 lg:p-10 flex flex-col h-full${featured ? " px-card-accent" : ""}`}>
       <div className="flex items-center justify-between gap-4">
         <p className="px-eyebrow">{content.name}</p>
         {featured && <span className="px-tag">Популярный</span>}

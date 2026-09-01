@@ -3180,7 +3180,11 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
+/* Инерция ленты: сдвиг и наклон приходят из JS переменными, сама
+   петля продолжает идти своей анимацией. */
 .px-marquee-item {
+  transform: translateX(var(--px-marquee-shift, 0)) skewX(var(--px-marquee-skew, 0deg));
+  transition: transform 220ms var(--px-ease-out);
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -3739,4 +3743,199 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .px-map-dot::after { animation: none; }
   .px-map-dot, .px-map-tip { transition: none; }
   .px-js .px-map .px-map-pin { opacity: 1; transform: none; }
+}
+
+/* ═══ Кабинет: компактные элементы ═════════════════════════════════
+   Кнопки в кабинете — рабочие инструменты, а не призывы витрины:
+   высота 44px (минимум для пальца), ширина по содержимому. Плиты во
+   всю ширину карточки, которые стояли здесь раньше, съедали экран и
+   заставляли скроллить ради двух строк данных. */
+
+/* Полоса остатка срока: показывает запас без чтения цифр. */
+.dv2-meter {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--px-surface-2);
+  box-shadow: inset 0 0 0 1px var(--px-line);
+  overflow: hidden;
+}
+.dv2-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--px-accent-lo) 0%, var(--px-accent) 100%);
+  transition: transform var(--px-block) var(--px-ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dv2-meter > span { transition: none; }
+}
+
+/* Строка данных внутри карточки: подпись слева, значение справа. */
+.dv2-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--px-line);
+  font-size: 12.5px;
+}
+.dv2-row-label { color: var(--px-text-4); }
+.dv2-row-value { color: var(--px-text-2); }
+
+/* ─── Быстрые действия кабинета ────────────────────────────────────
+   Строка вместо плитки: 52px, иконка, подпись, стрелка. Под курсором
+   строка подаётся вправо вместе со стрелкой — жест повторяет то, что
+   произойдёт по нажатию. */
+.dv2-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 12px;
+  border-radius: var(--px-r-card);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform var(--px-base) var(--px-ease-out),
+    border-color var(--px-base) var(--px-ease-out),
+    box-shadow var(--px-base) var(--px-ease-out);
+}
+.dv2-action:focus-visible { outline: 2px solid var(--px-accent); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .dv2-action:hover { transform: translateX(3px); box-shadow: var(--px-edge); }
+  .dv2-action:hover .dv2-action-arrow { transform: translateX(3px); color: var(--px-accent); }
+  .dv2-action:hover .dv2-action-icon { color: var(--px-accent); border-color: var(--px-accent-line); }
+}
+.dv2-action:active { transform: scale(0.99); }
+
+.dv2-action-icon {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--px-surface-2);
+  border: 1px solid var(--px-line);
+  color: var(--px-text-2);
+  transition: color var(--px-fast) var(--px-ease-out), border-color var(--px-fast) var(--px-ease-out);
+}
+.dv2-action-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--color-danger);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 2px var(--px-surface);
+  animation: dv2Pop 420ms var(--px-ease-out) both;
+}
+@keyframes dv2Pop {
+  0%   { transform: scale(0); }
+  70%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.dv2-action-arrow {
+  flex-shrink: 0;
+  color: var(--px-text-4);
+  transition: transform var(--px-base) var(--px-ease-out), color var(--px-fast) var(--px-ease-out);
+}
+
+/* ─── Раскрытие блока без скачка раскладки ─────────────────────────
+   Анимируется grid-строка, а не height: браузер сам считает конечную
+   высоту, и соседние карточки не дёргаются. */
+.dv2-reveal-row {
+  display: grid;
+  transition: grid-template-rows var(--px-enter) var(--px-ease-out);
+}
+
+/* Отметка «готово»: галочка вылетает с пружиной, кромка кнопки
+   на мгновение зеленеет. */
+.dv2-check { animation: dv2Check 420ms var(--px-ease-out) both; }
+@keyframes dv2Check {
+  0%   { transform: scale(0.3) rotate(-12deg); opacity: 0; }
+  60%  { transform: scale(1.15) rotate(2deg);  opacity: 1; }
+  100% { transform: scale(1) rotate(0);        opacity: 1; }
+}
+.dv2-done { border-color: rgba(14, 163, 148, 0.5) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dv2-action, .dv2-action-arrow, .dv2-reveal-row { transition: none; }
+  .dv2-check, .dv2-action-badge { animation: none; }
+}
+
+/* ═══ Живые взаимодействия ═════════════════════════════════════════
+   Реализация приёмов из src/components/pixel/effects.tsx. Всё
+   рисование — здесь; JS пишет только transform и переменные. */
+
+/* Магнитная обёртка: сдвигается сам ребёнок, обёртка держит поток. */
+.px-magnetic { display: inline-flex; }
+.px-magnetic > * { will-change: transform; }
+
+/* Световое пятно за курсором. Пока курсора не было, переменные не
+   заданы — пятно стоит за кадром и ничего не рисует. */
+.px-spot { position: relative; isolation: isolate; }
+.px-spot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--px-base) var(--px-ease-out);
+  background: radial-gradient(
+    260px circle at var(--mx, -100%) var(--my, -100%),
+    rgba(var(--px-accent-rgb), 0.13),
+    transparent 70%
+  );
+}
+@media (hover: hover) and (pointer: fine) {
+  .px-spot:hover::before { opacity: 1; }
+}
+.px-spot > * { position: relative; z-index: 1; }
+
+/* Наклон плоскости. Перспектива на родителе, поворот — на ребёнке:
+   иначе трансформация схлопывается в плоскость. */
+.px-tilt-scene { perspective: 900px; }
+.px-tilt {
+  transform-style: preserve-3d;
+  transition: transform var(--px-base) var(--px-ease-out);
+  will-change: transform;
+}
+
+/* ─── Барабан цифр ────────────────────────────────────────────────
+   Каждый разряд — окно высотой в одну цифру, внутри колонка из
+   десяти. Едет только transform колонки. */
+.px-roll { display: inline-flex; }
+.px-roll-line { display: inline-flex; align-items: flex-end; }
+.px-roll-static { display: inline-block; }
+.px-roll-slot {
+  display: inline-block;
+  overflow: hidden;
+  height: 1em;
+  line-height: 1;
+  vertical-align: bottom;
+}
+.px-roll-strip {
+  display: flex;
+  flex-direction: column;
+  transition: transform 1100ms var(--px-ease-out);
+}
+.px-roll-strip > span { height: 1em; line-height: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .px-roll-strip { transition: none; }
+  .px-tilt { transition: none; }
+  .px-spot::before { transition: none; }
 }

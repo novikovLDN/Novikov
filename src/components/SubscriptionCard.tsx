@@ -19,18 +19,17 @@ function happDeepLink(subscriptionUrl: string, happCryptoLink: string | null): s
 }
 
 /**
- * SubscriptionCard — v5.
+ * SubscriptionCard — компактная версия.
  *
- * Redesign brief:
- *   - Dropped the animated radial gradient + dot-grid backdrop. On
- *     phones they added visual noise without carrying any signal.
- *   - Cleaner header: "Ключ подписки" eyebrow only; public-id chip
- *     moved down under the QR to keep the top of the card tidy.
- *   - Two CTAs stack vertically on mobile at 56 px each so they read
- *     as one clear "next action" pair — Open (white fill, primary)
- *     above Copy (hairline ghost).
- *   - The "no app? App Store / Google Play" strip stays but sits on
- *     its own dividing line to avoid competing with the CTAs.
+ * Было: две кнопки высотой 64 и 54px во всю ширину карточки, между
+ * ними и подписями — воздух на пол-экрана телефона. Ключ подписки —
+ * рабочий инструмент: его открывают в приложении или копируют, и обе
+ * операции занимают одну строку.
+ *
+ * Анимации здесь несут смысл, а не украшают: QR разворачивается
+ * из нулевой высоты (grid-template-rows, без скачка раскладки),
+ * успешное копирование отмечается галочкой с пружиной, а сама
+ * карточка приподнимается под курсором.
  */
 export default function SubscriptionCard({
   subscriptionUrl,
@@ -43,16 +42,16 @@ export default function SubscriptionCard({
 
   if (!subscriptionUrl) {
     return (
-      <div className="dv2-card p-5">
+      <div className="dv2-card p-4 sm:p-5">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-black/[0.04] border border-black/[0.06] flex items-center justify-center">
+          <div className="h-9 w-9 rounded-xl bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] flex items-center justify-center">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--px-accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="animate-spin" style={{ animationDuration: "2s" }}>
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
             </svg>
           </div>
           <div className="flex-1">
-            <div className="font-mts-wide text-[13px] font-medium text-black/85">Подписка готовится</div>
-            <div className="font-mts-wide text-[11px] text-black/45 mt-0.5">Обновите страницу через несколько секунд</div>
+            <div className="font-mts-wide text-[13px] font-medium text-[color:var(--px-text)]">Подписка готовится</div>
+            <div className="font-mts-wide text-[11px] text-[color:var(--px-text-3)] mt-0.5">Обновите страницу через несколько секунд</div>
           </div>
         </div>
       </div>
@@ -75,16 +74,15 @@ export default function SubscriptionCard({
   };
 
   return (
-    <section className="dv2-card dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px]">
-      <div className="relative p-5 sm:p-7">
-        {/* Header — one eyebrow, one QR toggle */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-[color:var(--px-text-4)]">
-            Ключ подписки
-          </div>
+    <section className="dv2-card dv2-elevate px-spot relative overflow-hidden">
+      <div className="p-4 sm:p-6">
+        <div className="flex items-center justify-between gap-3">
+          <div className="dv2-eyebrow">Ключ подписки</div>
           <button
+            type="button"
             onClick={() => setShowQr((v) => !v)}
-            className="font-mts-wide h-9 px-3 rounded-xl bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] text-[color:var(--px-text-2)] hover:text-[color:var(--px-text)] hover:border-[color:var(--px-line-2)] text-[12px] font-medium transition-all flex items-center gap-1.5"
+            className="px-btn px-btn-sm px-btn-secondary"
+            aria-expanded={showQr}
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="7" height="7" rx="1" />
@@ -92,37 +90,23 @@ export default function SubscriptionCard({
               <rect x="3" y="14" width="7" height="7" rx="1" />
               <path d="M14 14h3v3M21 14v3M14 17v4M17 21h4" />
             </svg>
-            {showQr ? "Скрыть" : "QR"}
+            {showQr ? "Скрыть QR" : "QR-код"}
           </button>
         </div>
 
-        {/* Collapsible QR panel */}
-        <div
-          className="grid transition-all duration-400 ease-out"
-          style={{ gridTemplateRows: showQr ? "1fr" : "0fr" }}
-        >
+        {/* Разворачивается из нулевой высоты: анимируется grid-строка,
+            соседние блоки не дёргаются. */}
+        <div className="dv2-reveal-row" style={{ gridTemplateRows: showQr ? "1fr" : "0fr" }}>
           <div className="overflow-hidden">
-            <div className="bg-white rounded-2xl border border-[color:var(--px-line)] p-4 mb-5 flex items-center justify-center">
-              <QRCodeSVG
-                value={subscriptionUrl}
-                size={220}
-                level="M"
-                marginSize={2}
-                className="w-full h-auto max-w-[220px]"
-              />
+            <div className="bg-white rounded-2xl border border-[color:var(--px-line)] p-4 mt-4 flex items-center justify-center">
+              <QRCodeSVG value={subscriptionUrl} size={200} level="M" marginSize={2} className="w-full h-auto max-w-[200px]" />
             </div>
           </div>
         </div>
 
-        {/* CTAs — основное действие берёт вес заливкой, копирование
-            остаётся вторичной кнопкой системы. */}
-        <div className="flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={openHapp}
-            className="px-btn px-btn-xl px-btn-primary px-btn-block"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" onClick={openHapp} className="px-btn px-btn-sm px-btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
             Открыть в приложении
@@ -131,11 +115,11 @@ export default function SubscriptionCard({
           <button
             type="button"
             onClick={handleCopy}
-            className="px-btn px-btn-md px-btn-secondary px-btn-block"
+            className={`px-btn px-btn-sm px-btn-secondary${copied ? " dv2-done" : ""}`}
           >
             {copied ? (
               <>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--px-good)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--px-good)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="dv2-check">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
                 <span className="text-[color:var(--px-good)]">Скопировано</span>
@@ -162,15 +146,15 @@ export default function SubscriptionCard({
         )}
 
         {publicId && (
-          <div className="mt-5 pt-5 border-t border-[color:var(--px-line)] flex items-center justify-between text-[11px]">
-            <span className="font-mts-wide text-[color:var(--px-text-4)] tracking-[0.12em] uppercase text-[10px]">ID</span>
-            <span className="font-mono text-[color:var(--px-text-2)] tracking-wider">{publicId}</span>
+          <div className="dv2-row">
+            <span className="dv2-row-label font-mts-wide tracking-[0.12em] uppercase text-[10px]">ID</span>
+            <span className="dv2-row-value font-mono tracking-wider">{publicId}</span>
           </div>
         )}
 
-        <div className="mt-5 pt-5 border-t border-[color:var(--px-line)] flex items-center justify-between text-[11px]">
-          <span className="font-mts-wide text-[color:var(--px-text-3)]">Нет приложения?</span>
-          <div className="flex gap-3 font-mts-wide">
+        <div className="dv2-row">
+          <span className="dv2-row-label font-mts-wide">Нет приложения?</span>
+          <span className="flex gap-3 font-mts-wide">
             <a
               href="https://apps.apple.com/app/happ-proxy-utility/id6504287215"
               target="_blank"
@@ -188,7 +172,7 @@ export default function SubscriptionCard({
             >
               Google Play
             </a>
-          </div>
+          </span>
         </div>
       </div>
     </section>

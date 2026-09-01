@@ -114,7 +114,7 @@ export default function SecuritySection() {
 
         <div className="px-guards px-stagger">
           {GUARDS.map((g) => (
-            <article key={g.title} className="px-card px-guard px-reveal p-6 sm:p-8">
+            <article key={g.title} className="px-card px-spot px-guard px-reveal p-6 sm:p-8">
               <span className="px-benefit-icon" aria-hidden>
                 <Icon name={g.icon} size={20} />
               </span>

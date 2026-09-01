@@ -15,6 +15,7 @@ import QuickActionsRow from "@/components/QuickActionsRow";
 import ReferralSection from "@/components/ReferralSection";
 import ServerStatusCard from "@/components/ServerStatusCard";
 import PushToggleButton from "@/components/PushToggleButton";
+import { RollingNumber } from "@/components/pixel/effects";
 import type { SubscriptionData } from "@/types";
 
 /**
@@ -217,29 +218,25 @@ export default function Dashboard() {
               )}
 
               {/* ═══ Balance strip ═══ */}
-              <div className="dv2-rise dv2-rise-3 dv2-card p-5 sm:p-6 lg:col-span-4 lg:self-stretch flex sm:flex-col items-center sm:items-start justify-between sm:justify-center gap-4 sm:gap-0">
-                <div className="flex-1 sm:flex-none">
-                  <div className="dv2-eyebrow mb-2 sm:mb-3">Баланс</div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-mts-wide text-[32px] sm:text-[40px] lg:text-[48px] font-bold tracking-tight leading-none text-black tabular-nums">
-                      {data.balance.toLocaleString("ru-RU", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </span>
-                    <span className="font-mts-wide text-lg text-black/45">₽</span>
+              {/* Баланс. Раньше карточка тянулась на всю высоту соседней
+                  колонки ради одной строки цифр — пустоты было больше,
+                  чем данных. Сумма набирается барабаном разрядов:
+                  движение читается как «счёт», а не как декорация. */}
+              <div className="dv2-rise dv2-rise-3 dv2-card px-spot p-4 sm:p-5 lg:col-span-4 flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="dv2-eyebrow mb-2">Баланс</div>
+                  <div className="flex items-baseline gap-1.5">
+                    <RollingNumber
+                      value={data.balance}
+                      decimals={2}
+                      className="font-mts-wide text-[26px] sm:text-[30px] font-bold tracking-tight leading-none text-[color:var(--px-text)] tabular-nums"
+                    />
+                    <span className="font-mts-wide text-[15px] text-[color:var(--px-text-3)]">₽</span>
                   </div>
+                  <p className="font-mts-wide text-[11.5px] text-[color:var(--px-text-4)] mt-2">
+                    Пополнение — через Telegram-бот
+                  </p>
                 </div>
-                <p className="hidden sm:flex font-mts-wide text-[12px] text-black/45 mt-4 items-center gap-1.5">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M12 8v4M12 16h.01" />
-                  </svg>
-                  Пополнение — через Telegram-бот
-                </p>
-                <span className="sm:hidden font-mts-wide text-[10px] text-black/40 tracking-[0.1em] uppercase">
-                  {data.balance > 0 ? "Активен" : "Пусто"}
-                </span>
               </div>
 
               {/* ═══ Force-resync — the "починить подписку" escape hatch ═══
@@ -247,12 +244,12 @@ export default function Dashboard() {
                    date ever get out of sync (e.g. legacy ghost-date
                    residue), one tap here re-runs the full repair +
                    panel PATCH and returns the outcome. */}
-              <div className="dv2-rise dv2-rise-4 dv2-card p-4 sm:p-5 lg:col-span-12 flex items-center gap-3 sm:gap-4">
+              <div className="dv2-rise dv2-rise-4 dv2-card px-spot p-3.5 sm:p-4 lg:col-span-12 flex items-center gap-3 sm:gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="font-mts-wide text-[14px] sm:text-[15px] font-semibold text-black leading-tight">
+                  <div className="font-mts-wide text-[13.5px] sm:text-[14px] font-semibold text-[color:var(--px-text)] leading-tight">
                     Проверить подписку
                   </div>
-                  <div className="font-mts-wide text-[12px] sm:text-[13px] text-black/55 mt-1 leading-[1.45]">
+                  <div className="font-mts-wide text-[12px] text-[color:var(--px-text-3)] mt-0.5 leading-[1.45]">
                     {resyncStatus
                       ? resyncStatus.text
                       : "Подхватит зависшие оплаты и обновит ключ."}
@@ -332,7 +329,7 @@ export default function Dashboard() {
                     href={`https://t.me/atlas_suppbot?start=${data.telegramLinkToken || ""}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-btn px-btn-md px-btn-secondary px-btn-block"
+                    className="px-btn px-btn-sm px-btn-secondary"
                   >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
@@ -397,7 +394,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => router.push("/about")}
-                  className="px-btn px-btn-md px-btn-secondary px-btn-block"
+                  className="px-btn px-btn-sm px-btn-secondary px-btn-block"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
@@ -410,7 +407,7 @@ export default function Dashboard() {
                   <button
                     type="button"
                     onClick={() => router.push("/admin")}
-                    className="px-btn px-btn-md px-btn-secondary px-btn-block"
+                    className="px-btn px-btn-sm px-btn-secondary px-btn-block"
                     style={{ color: "var(--px-accent)", borderColor: "rgba(var(--px-accent-rgb),0.30)" }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -424,7 +421,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setShowLogoutConfirm(true)}
-                  className="px-btn px-btn-md px-btn-secondary px-btn-block group"
+                  className="px-btn px-btn-sm px-btn-secondary px-btn-block group"
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="text-black/55 group-hover:text-[#EF4444] transition-colors">
                     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />

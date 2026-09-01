@@ -720,7 +720,7 @@ function PeriodCard({
     <button
       onClick={onSelect}
       disabled={disabled}
-      className={`text-left rounded-3xl p-6 sm:p-7 flex flex-col transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed ${
+      className={`px-spot text-left rounded-3xl p-6 sm:p-7 flex flex-col transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed ${
         featured
           ? "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border border-[color:var(--px-accent-line)] shadow-[var(--px-lift-2)] hover:shadow-[var(--px-lift-3)]"
           : "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border border-[color:var(--px-line)] hover:border-[color:var(--px-line-2)]"

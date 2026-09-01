@@ -74,7 +74,7 @@ export default function BenefitsSection() {
         />
 
         <div className="px-bento px-stagger">
-          <article className="px-card px-bento-lead px-reveal p-7 sm:p-9 lg:p-10 flex flex-col">
+          <article className="px-card px-spot px-bento-lead px-reveal p-7 sm:p-9 lg:p-10 flex flex-col">
             <span className="px-benefit-icon" aria-hidden>
               <Icon name={LEAD.icon} size={22} />
             </span>
@@ -91,7 +91,7 @@ export default function BenefitsSection() {
           </article>
 
           {REST.map((b) => (
-            <article key={b.title} className="px-card px-reveal p-6 sm:p-7 flex flex-col">
+            <article key={b.title} className="px-card px-spot px-reveal p-6 sm:p-7 flex flex-col">
               <div className="flex items-start gap-4">
                 <span className="px-benefit-icon shrink-0" aria-hidden>
                   <Icon name={b.icon} size={20} />

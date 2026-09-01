@@ -494,7 +494,7 @@ function DeviceStep({
                 onClick={() => onSelect(p.id)}
                 aria-label={`Выбрать ${p.name}`}
                 className={
-                  "group aspect-square rounded-2xl border p-4 sm:p-5 flex flex-col justify-between text-left transition-all active:scale-[0.98] relative overflow-hidden " +
+                  "group px-spot aspect-square rounded-2xl border p-4 sm:p-5 flex flex-col justify-between text-left transition-all active:scale-[0.98] relative overflow-hidden " +
                   (active
                     ? "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-[color:var(--px-accent)]"
                     : "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-[color:var(--px-line)] hover:border-[color:var(--px-line-2)] hover:-translate-y-0.5")

@@ -5,6 +5,7 @@ import AccountPreview from "./AccountPreview";
 import Icon from "./Icon";
 import { MiniCubes } from "./CubeCluster";
 import { AnimatedNumber, useParallax } from "./motion";
+import { Magnetic, useTilt } from "./effects";
 import { PLAN_SPEED } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
 
@@ -51,6 +52,7 @@ const METRICS = [
 
 export default function HeroSection({ primaryHref }: HeroSectionProps) {
   const artRef = useParallax<HTMLDivElement>(0.045);
+  const tiltRef = useTilt<HTMLDivElement>(4);
 
   return (
     <section className="px-hero" aria-labelledby="hero-title">
@@ -78,14 +80,19 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
               </p>
 
               <div className="px-cta px-reveal mt-8">
-                <Link href={primaryHref} className="px-btn px-btn-xl px-btn-primary px-btn-block group">
-                  Начать бесплатно
-                  <Icon
-                    name="arrow-right"
-                    size={18}
-                    className="transition-transform duration-200 ease-out group-hover:translate-x-1"
-                  />
-                </Link>
+                {/* Главная кнопка страницы тянется к курсору: приём
+                    наградных промо-сайтов, здесь — ровно на одном
+                    элементе, иначе страница начинает шевелиться вся. */}
+                <Magnetic className="w-full">
+                  <Link href={primaryHref} className="px-btn px-btn-xl px-btn-primary px-btn-block group">
+                    Начать бесплатно
+                    <Icon
+                      name="arrow-right"
+                      size={18}
+                      className="transition-transform duration-200 ease-out group-hover:translate-x-1"
+                    />
+                  </Link>
+                </Magnetic>
                 <div className="grid grid-cols-2 gap-3 mt-3">
                   <Link href="/pricing" className="px-btn px-btn-md px-btn-secondary">
                     Тарифы от 199 ₽
@@ -104,9 +111,11 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
               </ul>
             </div>
 
-            <div className="lg:col-span-5 px-reveal">
+            <div className="lg:col-span-5 px-reveal px-tilt-scene">
               <div ref={artRef}>
-                <AccountPreview />
+                <div ref={tiltRef} className="px-tilt">
+                  <AccountPreview />
+                </div>
               </div>
             </div>
           </div>

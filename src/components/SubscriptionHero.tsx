@@ -47,21 +47,20 @@ function humanRemaining(totalDays: number, hoursLeft: number): string {
 }
 
 /**
- * SubscriptionHero — v5.
+ * SubscriptionHero — компактная версия.
  *
- * Redesign brief:
- *   - Drop the animated radial-gradient backdrops + dot grid mask.
- *     They read as noise on mobile and don't survive well against a
- *     light shell.
- *   - Hierarchy on phone (top-to-bottom, what the user actually
- *     needs): plan chip → date → time / remaining → two big CTAs.
- *   - The "perks strip" (Трафик / Порт / Шифрование) moved out;
- *     hero speaks about ONE thing — how long the subscription still
- *     runs and how to connect. Perks belong on the pricing page.
- *   - Both CTAs are 56 px tall on mobile so the whole card acts like
- *     one clear "next action" — Connect wins by weight (orange fill,
- *     bigger), Extend is a hairline ghost that stacks below it on
- *     phones and sits beside it on desktop.
+ * Что было не так: дата кеглем 52px, под ней две кнопки высотой 64px
+ * во всю ширину карточки. Первый экран кабинета занимала одна строка
+ * данных и два огромных прямоугольника, а главное — сколько осталось
+ * — читалось мельче, чем дата окончания.
+ *
+ * Что стало:
+ *   - остаток срока вышел на первый план числом, дата ушла в подпись:
+ *     «осталось 12 дней» — это ответ на вопрос пользователя, а
+ *     «13 сентября 2026» — уточнение к нему;
+ *   - полоса срока показывает остаток без чтения цифр;
+ *   - действия — обычные кнопки 44px в ряд, а не плиты во всю ширину.
+ *     Подключение остаётся акцентным, продление — вторичным.
  */
 export default function SubscriptionHero({
   isExpired,
@@ -76,7 +75,7 @@ export default function SubscriptionHero({
   const isExpiring = !isExpired && daysLeft < 3;
 
   const statusColor = isExpired
-    ? "#EF4444"
+    ? "var(--color-danger)"
     : isExpiring
     ? "var(--px-accent)"
     : "var(--px-good)";
@@ -101,7 +100,7 @@ export default function SubscriptionHero({
 
   const endDate = new Date(subscriptionEnd);
   const endDateLabel = endDate.toLocaleDateString("ru-RU", {
-    day: "2-digit",
+    day: "numeric",
     month: "long",
     year: "numeric",
   });
@@ -110,79 +109,72 @@ export default function SubscriptionHero({
     minute: "2-digit",
   });
 
+  /* Полоса срока. Точку отсчёта не знаем — считаем от условного
+     месячного цикла: тридцать дней и больше показываем как полный
+     запас, дальше полоса убывает вместе с остатком. */
+  const progress = isExpired ? 0 : Math.max(0.04, Math.min(1, daysLeft / 30));
+
   return (
-    <section className="dv2-card dv2-elevate relative overflow-hidden rounded-[24px] sm:rounded-[28px]">
-      <div className="relative p-5 sm:p-7 lg:p-8">
-        {/* Row 1 — plan chip · status chip. Tightly kerned so both
-            chips read as one strip of metadata rather than two
-            unrelated labels. */}
-        <div className="flex items-center gap-2 flex-wrap mb-6 sm:mb-8">
-          <span className="font-mts-wide inline-flex items-center px-3 py-1.5 rounded-full bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] text-[color:var(--px-text)] text-[11px] tracking-[0.06em] font-medium">
+    <section className="dv2-card dv2-elevate px-spot relative overflow-hidden">
+      <div className="p-4 sm:p-6">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-mts-wide inline-flex items-center px-2.5 py-1 rounded-full bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] text-[color:var(--px-text)] text-[11px] tracking-[0.06em] font-medium">
             {planLabel}
           </span>
           <span
-            className="font-mts-wide inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium"
-            style={{
-              background: `${statusColor}18`,
-              border: `1px solid ${statusColor}40`,
-              color: statusColor,
-            }}
+            className="font-mts-wide inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium"
+            style={{ background: `${statusColor}18`, color: statusColor }}
           >
-            <span
-              className="h-1.5 w-1.5 rounded-full"
-              style={{ background: statusColor, boxShadow: `0 0 6px ${statusColor}` }}
-            />
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: statusColor }} />
             {statusLabel}
           </span>
         </div>
 
-        {/* Row 2 — the focal fact: WHEN it ends. */}
         {isExpired ? (
-          <div className="mb-6 sm:mb-8">
-            <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-[color:var(--px-text-4)] mb-2">
-              Истекла
+          <div className="mt-5">
+            <div className="font-mts-wide text-[26px] sm:text-[30px] font-bold tracking-tight leading-[1.1] text-[color:var(--px-text)]">
+              Подписка не активна
             </div>
-            <div className="font-mts-wide text-[34px] sm:text-[42px] lg:text-[52px] font-bold tracking-tight leading-[1.02] text-[color:var(--px-text)]">
-              Подписка<br /><span className="text-[color:var(--px-text-3)]">не активна</span>
-            </div>
+            <p className="font-mts-wide text-[13px] text-[color:var(--px-text-3)] mt-1.5">
+              Доступ закрыт с {endDateLabel}
+            </p>
           </div>
         ) : (
-          <div className="mb-6 sm:mb-8">
-            <div className="font-mts-wide text-[10px] tracking-[0.16em] uppercase text-[color:var(--px-text-4)] mb-2">
-              Действует до
+          <div className="mt-5">
+            <div className="flex items-baseline gap-2">
+              <span className="font-mts-wide text-[28px] sm:text-[34px] font-bold tracking-tight leading-none text-[color:var(--px-text)] tabular-nums">
+                {humanRemaining(daysLeft, hoursLeft)}
+              </span>
+              <span className="font-mts-wide text-[13px] text-[color:var(--px-text-3)]">осталось</span>
             </div>
-            <div className="font-mts-wide text-[34px] sm:text-[42px] lg:text-[52px] font-bold tracking-tight leading-[1.02] text-[color:var(--px-text)]">
-              {endDateLabel}
+
+            <div className="dv2-meter mt-3.5" aria-hidden>
+              <span style={{ transform: `scaleX(${progress})` }} />
             </div>
-            <div className="font-mts-wide text-[13px] text-[color:var(--px-text-3)] mt-3 tabular-nums">
-              {endTimeLabel} · осталось {humanRemaining(daysLeft, hoursLeft)}
-            </div>
+
+            <p className="font-mts-wide text-[12.5px] text-[color:var(--px-text-3)] mt-2.5 tabular-nums">
+              до {endDateLabel}, {endTimeLabel}
+            </p>
           </div>
         )}
 
-        {/* Row 3 — CTAs. Hero-scale (64 px) so the primary action
-            has proper presence; both stack full-width on mobile,
-            side-by-side from sm+ with Extend at 180 px. */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="mt-5 flex flex-wrap gap-2">
           {!isExpired ? (
             <>
               <button
                 type="button"
                 onClick={() => router.push("/devices")}
-                className="px-btn px-btn-xl px-btn-primary px-btn-block sm:flex-1 group"
+                className="px-btn px-btn-sm px-btn-primary group"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                 </svg>
-                Подключить
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
+                Подключить устройство
               </button>
               <button
                 type="button"
                 onClick={() => router.push("/subscribe")}
-                className="px-btn px-btn-xl px-btn-secondary w-full sm:w-[200px] sm:flex-none"
+                className="px-btn px-btn-sm px-btn-secondary"
               >
                 Продлить
               </button>
@@ -191,10 +183,10 @@ export default function SubscriptionHero({
             <button
               type="button"
               onClick={() => router.push("/subscribe")}
-              className="px-btn px-btn-xl px-btn-primary px-btn-block sm:flex-1 group"
+              className="px-btn px-btn-sm px-btn-primary group"
             >
               Купить подписку
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:translate-x-0.5">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </button>

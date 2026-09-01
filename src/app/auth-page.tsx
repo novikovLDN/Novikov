@@ -480,7 +480,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
       <AuthTopBar />
       <div className="flex-1 flex items-start sm:items-center justify-center px-4 sm:px-6 pt-6 sm:pt-10 pb-16">
         <div className="w-full max-w-[520px]">
-          <div className="auth-card">
+          <div className="auth-card px-spot">
         {step === "email" && (
           <div className="animate-fade-in-up pt-2 sm:pt-6">
             <div className="dv2-eyebrow mb-2">ВХОД ИЛИ РЕГИСТРАЦИЯ</div>

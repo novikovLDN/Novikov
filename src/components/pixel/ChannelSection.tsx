@@ -57,7 +57,7 @@ export default function ChannelSection() {
 
         <ul ref={ref} className={`px-gauges${inView ? " px-gauge-live" : ""}`}>
           {ORDER.map((id, i) => (
-            <li key={id} className="px-gauge px-reveal" style={{ ["--px-delay" as string]: `${i * 120}ms` }}>
+            <li key={id} className="px-gauge px-spot px-reveal" style={{ ["--px-delay" as string]: `${i * 120}ms` }}>
               <div className="px-gauge-head">
                 <span className="px-tag">{PLAN_CONTENT[id].name}</span>
                 <p className="px-gauge-value px-num">

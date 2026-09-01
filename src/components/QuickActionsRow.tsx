@@ -10,18 +10,16 @@ interface QuickActionsRowProps {
 }
 
 /**
- * QuickActionsRow — v5.
+ * Быстрые действия — компактный столбец.
  *
- * Redesign brief:
- *   - Bigger touch targets: 72 px min-height, icon and label
- *     centred rather than stacked with a hint. Hints were noise on
- *     phones (truncated after 8 chars) and duplicated info the
- *     label already conveyed.
- *   - Cleaner card: same white surface as the rest of the light
- *     shell, MTS Wide typography.
- *   - On lg+ the row switches to a vertical stack (sidebar column
- *     next to the hero) — layout preserved from the previous
- *     version.
+ * Было: три карточки по 88–96px в ряд, где на каждую приходилось по
+ * одному слову. Три четверти площади занимал воздух, а на телефоне
+ * подписи ужимались до нечитаемых огрызков.
+ *
+ * Стало: строки высотой 52px со стрелкой — форма, которая прямо
+ * говорит «нажми и перейдёшь». Под курсором строка сдвигается, а
+ * стрелка уезжает вправо: движение подсказывает направление перехода,
+ * а не просто украшает.
  */
 export default function QuickActionsRow({
   cashbackPercent,
@@ -59,28 +57,44 @@ export default function QuickActionsRow({
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2.5 sm:gap-3 lg:grid-cols-1">
-      {actions.map((a) => (
+    <div className="grid grid-cols-1 gap-2">
+      {actions.map((a, i) => (
         <button
           key={a.key}
           onClick={a.onClick}
-          className="dv2-card group relative h-[88px] sm:h-[96px] lg:h-auto lg:min-h-[80px] rounded-2xl p-3 sm:p-4 flex flex-col lg:flex-row items-center lg:items-center justify-center lg:justify-start gap-2 lg:gap-3 transition-all active:scale-[0.98]"
+          className="dv2-card dv2-action group"
+          style={{ ["--px-delay" as string]: `${i * 70}ms` }}
         >
-          <div className="relative w-9 h-9 rounded-xl bg-black/[0.04] border border-black/[0.06] flex items-center justify-center text-black/70 group-hover:text-black shrink-0">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <span className="dv2-action-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               {a.icon}
             </svg>
             {a.badge !== undefined && (
-              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-[#EF4444] rounded-full flex items-center justify-center px-1">
-                <span className="font-mts-wide text-[9px] font-bold text-white leading-none tabular-nums">
+              <span className="dv2-action-badge">
+                <span className="font-mts-wide text-[9px] font-bold leading-none tabular-nums">
                   {a.badge > 99 ? "99+" : a.badge}
                 </span>
               </span>
             )}
-          </div>
-          <div className="font-mts-wide text-[12px] sm:text-[13px] font-medium text-black leading-tight text-center lg:text-left">
+          </span>
+
+          <span className="font-mts-wide text-[13px] font-medium text-[color:var(--px-text)] leading-tight flex-1 text-left">
             {a.label}
-          </div>
+          </span>
+
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="dv2-action-arrow"
+          >
+            <path d="M9 6l6 6-6 6" />
+          </svg>
         </button>
       ))}
     </div>

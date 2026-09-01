@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import Icon from "./Icon";
 import { MiniCubes } from "./CubeCluster";
+import { Scramble } from "./effects";
 
 /**
  * Шапка секции: надзаголовок с мини-кластером кубиков, крупный
@@ -8,6 +11,12 @@ import { MiniCubes } from "./CubeCluster";
  *
  * Мини-кубики — тот же фирменный мотив в малой дозе: он связывает
  * секции между собой и с героем, не повторяя крупную фигуру.
+ *
+ * Надзаголовок «раскодируется» при появлении в кадре: буквы встают на
+ * места слева направо из шума. Приём применён именно к нему, а не к
+ * заголовку, — короткая строка набором капсом читается как служебная
+ * метка прибора, и «загрузка» ей к лицу; крупный заголовок при таком
+ * обращении превратился бы в мельтешение.
  */
 export default function SectionHeading({
   eyebrow,
@@ -37,7 +46,7 @@ export default function SectionHeading({
         )}
         <p className="px-eyebrow flex items-center gap-3">
           <MiniCubes />
-          {eyebrow}
+          <Scramble text={eyebrow} />
         </p>
         <h2 id={titleId} className="px-h2 px-head-title mt-5">
           {title.map((line, i) => (

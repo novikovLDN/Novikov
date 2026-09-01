@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import CookieConsent from "@/components/CookieConsent";
 import CustomCursor from "@/components/CustomCursor";
+import { SpotlightLayer } from "@/components/pixel/effects";
 import PwaManager from "@/components/PwaManager";
 import IosInstallBanner from "@/components/IosInstallBanner";
 import { I18nProvider } from "@/lib/i18n";
@@ -73,6 +74,9 @@ export default function RootLayout({
           </div>
           <CookieConsent />
           <CustomCursor />
+          {/* Подсветка за курсором для всех карточек с .px-spot —
+              один слушатель на документ вместо ref в каждой. */}
+          <SpotlightLayer />
           <PwaManager />
           <IosInstallBanner />
         </I18nProvider>
