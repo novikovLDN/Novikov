@@ -3966,3 +3966,58 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 @media (prefers-reduced-motion: reduce) {
   .px-dissolve-grid { display: none; }
 }
+
+/* ─── Заголовок по буквам ──────────────────────────────────────────
+   Каждый знак поднимается из-под своей базовой линии. Обёртка режет
+   выступ, поэтому соседние строки не разъезжаются. */
+.px-split { display: inline; }
+/* Слово — неразрывный блок: перенос идёт по словам, как в обычном
+   тексте, а не по буквам. */
+.px-split-word { display: inline-block; white-space: nowrap; }
+.px-split-ch {
+  display: inline-block;
+  animation: pxCharRise 620ms var(--px-ease-out) both;
+  will-change: transform, opacity;
+}
+.px-split-space { display: inline-block; }
+@keyframes pxCharRise {
+  from { opacity: 0; transform: translateY(0.42em) rotate(2deg); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ─── Пиксельный шлейф курсора ─────────────────────────────────────
+   Холст лежит поверх фона первого экрана, но под содержимым и не
+   ловит указатель. */
+.px-trail {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ─── Фонарик по сетке первого экрана ──────────────────────────────
+   Вторая копия сетки видна только в пятне вокруг курсора: клетка под
+   указателем «просыпается». Пока координат нет, пятно стоит за
+   пределами экрана и слой ничего не рисует. */
+.px-hero::after {
+  /* Акцентное пятно героя объявлено выше; здесь оно дополняется
+     подсветкой сетки — см. .px-hero-torch. */
+}
+.px-hero-torch {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(var(--px-accent-rgb), 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--px-accent-rgb), 0.5) 1px, transparent 1px);
+  background-size: var(--px-cell) var(--px-cell);
+  -webkit-mask-image: radial-gradient(170px circle at var(--tx, -300px) var(--ty, -300px), #000 0%, transparent 72%);
+  mask-image: radial-gradient(170px circle at var(--tx, -300px) var(--ty, -300px), #000 0%, transparent 72%);
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .px-split-ch { animation: none; }
+  .px-hero-torch { display: none; }
+}

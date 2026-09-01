@@ -5,7 +5,7 @@ import AccountPreview from "./AccountPreview";
 import Icon from "./Icon";
 import { MiniCubes } from "./CubeCluster";
 import { AnimatedNumber, useParallax } from "./motion";
-import { Magnetic, useTilt } from "./effects";
+import { Magnetic, PixelTrail, SplitText, useGridTorch, useTilt } from "./effects";
 import { PLAN_SPEED } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
 
@@ -53,9 +53,17 @@ const METRICS = [
 export default function HeroSection({ primaryHref }: HeroSectionProps) {
   const artRef = useParallax<HTMLDivElement>(0.045);
   const tiltRef = useTilt<HTMLDivElement>(4);
+  const torchRef = useGridTorch<HTMLElement>();
 
   return (
-    <section className="px-hero" aria-labelledby="hero-title">
+    <section ref={torchRef} className="px-hero" aria-labelledby="hero-title">
+      {/* Курсор «будит» клетку сетки под собой и рассыпает за собой
+          пиксели того же шага — материал, из которого собран сайт.
+          Оба слоя живут только на первом экране: постоянный шлейф по
+          всей странице мешал бы читать. */}
+      <span className="px-hero-torch" aria-hidden />
+      <PixelTrail />
+
       <div className="px-hero-body">
         <div className="px-shell w-full">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-10 items-center">
@@ -68,10 +76,18 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
                 </span>
               </p>
 
-              <h1 id="hero-title" className="px-hero-title px-reveal mt-6">
-                Открывает интернет
+              {/* Заголовок набирается по буквам. Знаки помечены
+                  aria-hidden, поэтому вспомогательной технологии
+                  фраза отдаётся целиком через aria-label — дубля
+                  текста в разметке нет. */}
+              <h1
+                id="hero-title"
+                className="px-hero-title px-reveal mt-6"
+                aria-label="Открывает интернет без просадок"
+              >
+                <SplitText text="Открывает интернет" />
                 <br />
-                <span className="px-accent">без просадок</span>
+                <SplitText text="без просадок" className="px-accent" delay={620} />
               </h1>
 
               <p className="px-lede px-reveal mt-6">

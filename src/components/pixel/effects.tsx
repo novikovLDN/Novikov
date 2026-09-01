@@ -420,3 +420,214 @@ export function PixelDissolve({
     </div>
   );
 }
+
+/**
+ * Заголовок, который набирается по буквам.
+ *
+ * Строка разбивается на знаки, каждый поднимается из-под своей
+ * базовой линии с задержкой по порядку чтения.
+ *
+ * Текст в разметке остаётся ровно один раз: копии для скринридера
+ * здесь нет намеренно — в заголовке страницы она давала бы дубль
+ * фразы в DOM и в поисковом сниппете. Знаки помечены aria-hidden, а
+ * прочитать заголовок целиком вспомогательной технологии позволяет
+ * aria-label на самом заголовке (см. HeroSection).
+ *
+ * Разбивка двухуровневая: сначала на слова, и только внутри слова —
+ * на знаки. Плоский список букв браузер переносит по буквам, и
+ * заголовок рвётся посреди слова («Открывает интер / нет»).
+ */
+export function SplitText({
+  text,
+  className,
+  step = 34,
+  delay = 0,
+}: {
+  text: string;
+  className?: string;
+  step?: number;
+  delay?: number;
+}) {
+  const reduced = useReducedMotion();
+
+  if (reduced) return <span className={className}>{text}</span>;
+
+  let index = 0;
+  const words = text.split(" ");
+
+  return (
+    <span className={className} aria-hidden>
+      <span className="px-split">
+        {words.map((word, w) => (
+          <span key={w} className="px-split-word">
+            {word.split("").map((ch, i) => {
+              const at = index++;
+              return (
+                <span
+                  key={i}
+                  className="px-split-ch"
+                  style={{ animationDelay: `${delay + at * step}ms` }}
+                >
+                  {ch}
+                </span>
+              );
+            })}
+            {/* Неразрывный пробел: обычный в конце inline-block
+                схлопывается по правилам переноса, и слова слипаются. */}
+            {w < words.length - 1 ? <span className="px-split-space">{"\u00A0"}</span> : null}
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * Пиксельный шлейф курсора.
+ *
+ * За указателем остаются затухающие квадраты той же сетки, что и фон
+ * первого экрана: курсор словно рассыпает материал, из которого
+ * собран сайт. Живёт внутри одного контейнера (первый экран), а не на
+ * всём документе — постоянный шлейф по всей странице быстро надоедает
+ * и мешает читать.
+ *
+ * Canvas, а не DOM: частиц под сотню, и каждая живёт полсекунды.
+ * Рисование останавливается, когда курсор ушёл и последняя частица
+ * догорела, — простаивающего rAF не остаётся.
+ */
+export function PixelTrail({ cell = 10 }: { cell?: number }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const host = canvas?.parentElement;
+    if (!canvas || !host || reduced) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const accent =
+      getComputedStyle(document.documentElement).getPropertyValue("--px-accent").trim() || "#FF6B45";
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    let width = 0;
+    let height = 0;
+    const resize = () => {
+      const r = host.getBoundingClientRect();
+      width = r.width;
+      height = r.height;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+    };
+    resize();
+
+    let resizeT: ReturnType<typeof setTimeout>;
+    const onResize = () => {
+      clearTimeout(resizeT);
+      resizeT = setTimeout(resize, 160);
+    };
+    window.addEventListener("resize", onResize);
+
+    interface Dot { x: number; y: number; born: number; life: number; }
+    const dots: Dot[] = [];
+    let frame = 0;
+    let last = { x: -1, y: -1 };
+
+    const draw = (t: number) => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = dots.length - 1; i >= 0; i--) {
+        const d = dots[i];
+        const age = (t - d.born) / d.life;
+        if (age >= 1) { dots.splice(i, 1); continue; }
+        ctx.globalAlpha = (1 - age) * 0.55;
+        ctx.fillStyle = accent;
+        const size = cell * (1 - age * 0.4);
+        ctx.fillRect(d.x, d.y, size, size);
+      }
+      ctx.globalAlpha = 1;
+
+      frame = dots.length ? requestAnimationFrame(draw) : 0;
+    };
+
+    const onMove = (e: PointerEvent) => {
+      const r = host.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      if (x < 0 || y < 0 || x > width || y > height) return;
+
+      // Частицы кладутся по узлам сетки: шлейф остаётся пиксельным, а
+      // не превращается в мазок кистью.
+      const gx = Math.floor(x / cell) * cell;
+      const gy = Math.floor(y / cell) * cell;
+      if (gx === last.x && gy === last.y) return;
+      last = { x: gx, y: gy };
+
+      dots.push({ x: gx, y: gy, born: performance.now(), life: 520 + Math.random() * 260 });
+      if (dots.length > 90) dots.shift();
+      if (!frame) frame = requestAnimationFrame(draw);
+    };
+
+    host.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      host.removeEventListener("pointermove", onMove);
+      window.removeEventListener("resize", onResize);
+      clearTimeout(resizeT);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [cell, reduced]);
+
+  return <canvas ref={canvasRef} className="px-trail" aria-hidden />;
+}
+
+/**
+ * «Фонарик» по фоновой сетке: там, где курсор, клетка видна ярче.
+ *
+ * Хук пишет координаты в переменные контейнера, маску рисует CSS
+ * (`.px-hero::before`). Работает на всём первом экране, поэтому
+ * слушатель один и обновление идёт в rAF.
+ */
+export function useGridTorch<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || reduced) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    let frame = 0;
+    let x = 0;
+    let y = 0;
+    const write = () => {
+      frame = 0;
+      el.style.setProperty("--tx", `${x.toFixed(1)}px`);
+      el.style.setProperty("--ty", `${y.toFixed(1)}px`);
+    };
+    const onMove = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      x = e.clientX - r.left;
+      y = e.clientY - r.top;
+      if (!frame) frame = requestAnimationFrame(write);
+    };
+    const onLeave = () => {
+      el.style.removeProperty("--tx");
+      el.style.removeProperty("--ty");
+    };
+
+    el.addEventListener("pointermove", onMove, { passive: true });
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [reduced]);
+
+  return ref;
+}
