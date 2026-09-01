@@ -6,6 +6,7 @@ import Icon from "./Icon";
 import { MiniCubes } from "./CubeCluster";
 import { AnimatedNumber, useParallax } from "./motion";
 import { PLAN_SPEED } from "@/lib/plans";
+import { COUNTRY_COUNT } from "@/lib/locations";
 
 /**
  * Первый экран.
@@ -37,14 +38,15 @@ interface HeroSectionProps {
   primaryHref: string;
 }
 
-/** Значения подтверждены: скорость канала — src/lib/plans.ts
- *  (PLAN_SPEED), число стран — LocationsSection. Целевая доступность
- *  и задержка — заявленные эксплуатационные цели. */
+/** Значения подтверждены кодом: скорость канала — src/lib/plans.ts
+ *  (PLAN_SPEED), число стран — src/lib/locations.ts (COUNTRY_COUNT).
+ *  Целевая доступность и задержка — заявленные эксплуатационные
+ *  цели. */
 const METRICS = [
   { value: PLAN_SPEED.plus, prefix: "до ", suffix: " Гбит/с", label: "скорость канала", from: 0 },
   { value: 99.98, decimals: 2, suffix: " %", label: "время без сбоев", from: 99 },
   { value: 5, prefix: "< ", suffix: " мс", label: "пинг внутри региона", from: 28 },
-  { value: 4, label: "страны присутствия", from: 0 },
+  { value: COUNTRY_COUNT, label: "стран присутствия", from: 0 },
 ];
 
 export default function HeroSection({ primaryHref }: HeroSectionProps) {

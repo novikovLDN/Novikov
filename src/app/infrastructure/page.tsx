@@ -3,6 +3,7 @@
 import Link from "next/link";
 import SiteHeader from "@/components/pixel/SiteHeader";
 import SiteFooter from "@/components/pixel/SiteFooter";
+import { CITY_COUNT, COUNTRY_COUNT, plural } from "@/lib/locations";
 
 /**
  * /infrastructure — technical marketing page in the v4 light shell.
@@ -84,7 +85,10 @@ const NETWORK_FEATURES = [
 
 const REGISTRY: Array<[string, string]> = [
   ["Штаб-квартира",    "Гонконг, КНР (SAR)"],
-  ["Партнёрские ЦОД",  "Франкфурт · Москва · Сидней"],
+  // Опорные ЦОД и сеть локаций — разные величины: первых три, вторых
+  // девятнадцать стран. Число стран берётся из src/lib/locations.ts.
+  ["Страны присутствия", `${COUNTRY_COUNT} ${plural(COUNTRY_COUNT, ["страна", "страны", "стран"])} · ${CITY_COUNT} ${plural(CITY_COUNT, ["город", "города", "городов"])}`],
+  ["Опорные ЦОД",      "Франкфурт · Москва · Сидней"],
   ["Скорость канала",   "25 Гбит/с на Basic · 75 Гбит/с на Plus"],
   ["Задержка в регионе",     "< 5 мс"],
   ["Аптайм SLA",             "99.98% гарантированно"],
@@ -124,10 +128,13 @@ export default function InfrastructurePage() {
           Инфраструктура
         </div>
         <h1 className="font-mts-wide text-[40px] sm:text-[56px] lg:text-[80px] leading-[1.02] tracking-tight font-bold max-w-[14ch]">
-          Три юрисдикции.<br />Один стандарт.
+          {COUNTRY_COUNT} стран.<br />Один стандарт.
         </h1>
         <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-[color:var(--px-text-3)] mt-8 max-w-[58ch]">
-          Партнёрские дата-центры в Европе, АТР и России. Объекты Tier III+, резервирование питания 2N, carrier-neutral пиринг, on-site операции 24/7/365.
+          Сеть присутствия в {COUNTRY_COUNT} странах и {CITY_COUNT}{" "}
+          {plural(CITY_COUNT, ["городе", "городах", "городах"])} стоит
+          на трёх опорных дата-центрах — в Европе, России и АТР. Объекты Tier III+,
+          резервирование питания 2N, carrier-neutral пиринг, on-site операции 24/7/365.
         </p>
       </section>
 
@@ -135,7 +142,7 @@ export default function InfrastructurePage() {
       <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {[
-            ["200 Gb/s", "На сервер"],
+            [String(COUNTRY_COUNT), "Стран присутствия"],
             ["< 5 мс",   "Задержка в регионе"],
             ["99.98%",   "Аптайм SLA"],
             ["24/7",     "NOC дежурит"],

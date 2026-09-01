@@ -2,6 +2,11 @@
 
 import Icon from "./Icon";
 import { AnimatedNumber } from "./motion";
+import { LOCATIONS } from "@/lib/locations";
+
+/* Пример маршрута берётся из общего списка локаций: карточка не
+   должна показывать город, которого нет в атласе сети. */
+const SAMPLE = LOCATIONS.find((l) => l.code === "DE") ?? LOCATIONS[0];
 
 /**
  * Превью личного кабинета — настоящие сущности продукта, а не
@@ -33,7 +38,7 @@ export default function AccountPreview() {
             <p className="px-rail-metric-label">Задержка</p>
             <p className="mt-2 flex items-baseline gap-2">
               <span className="px-num font-bold text-[clamp(40px,7vw,60px)] leading-none tracking-[-0.04em]">
-                <AnimatedNumber value={24} from={68} />
+                <AnimatedNumber value={SAMPLE.latencyMs} from={68} />
               </span>
               <span className="px-text-3 text-[15px] font-medium">мс</span>
             </p>
@@ -42,7 +47,7 @@ export default function AccountPreview() {
             <p className="px-rail-metric-label">Маршрут</p>
             <p className="mt-2 flex items-center gap-2 text-[15px] font-medium">
               <Icon name="globe" size={15} className="px-accent" />
-              Frankfurt
+              {SAMPLE.cities[0]}
             </p>
           </div>
           <div>

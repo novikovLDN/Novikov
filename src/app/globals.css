@@ -2883,53 +2883,87 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 }
 
 /* ═══ Локации ══════════════════════════════════════════════════════ */
-.px-loc {
+/* ─── Атлас локаций ──────────────────────────────────────────────────
+   Девятнадцать стран строками во всю ширину — простыня на два экрана,
+   поэтому строка сжата до ячейки: монограмма, страна с городами,
+   задержка. Сетка сама решает, сколько колонок помещается. */
+.px-atlas {
   display: grid;
-  grid-template-columns: auto 1fr;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+}
+@media (min-width: 640px) { .px-atlas { gap: 12px; } }
+
+.px-atlas-item {
+  display: flex;
   align-items: center;
-  gap: 16px 18px;
-  padding: 22px 0;
-  border-top: 1px solid var(--px-line);
-}
-.px-loc:first-child { border-top: none; }
-.px-loc-figures {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-@media (min-width: 768px) {
-  .px-loc { grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; padding: 26px 0; }
-  .px-loc-figures { grid-column: auto; grid-template-columns: repeat(3, minmax(104px, auto)); gap: 32px; }
-}
-/* Монограмма в форме кубика — тот же скруглённый квадрат. */
-.px-loc-mono {
-  width: 48px;
-  height: 48px;
-  border-radius: 22%;
+  gap: 14px;
+  padding: 14px 16px;
+  min-height: 68px;
   background: var(--px-surface);
+  border: 1px solid var(--px-line);
+  border-radius: var(--px-r-card);
+  box-shadow: var(--px-lift-1);
+  transition:
+    border-color var(--px-fast) var(--px-ease-out),
+    box-shadow var(--px-base) var(--px-ease-out),
+    transform var(--px-base) var(--px-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .px-atlas-item:hover {
+    border-color: var(--px-line-2);
+    box-shadow: var(--px-edge);
+    transform: translateY(-2px);
+  }
+}
+
+.px-atlas-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.px-atlas-country {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  color: var(--px-text);
+}
+.px-atlas-cities {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--px-text-3);
+  /* Многогородные страны (США, Китай) не должны рвать высоту ячейки. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.px-atlas-latency {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--px-text-2);
+}
+
+/* Монограмма в форме кубика — тот же скруглённый квадрат. */
+.px-atlas-code {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 22%;
+  background: var(--px-surface-2);
   border: 1px solid var(--px-line);
   color: var(--px-text);
   display: grid;
   place-items: center;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
   transition: transform var(--px-enter) var(--px-ease), border-color var(--px-fast) var(--px-ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
-  .px-loc:hover .px-loc-mono { transform: translateY(-3px); border-color: var(--px-accent); }
+  .px-atlas-item:hover .px-atlas-code { border-color: var(--px-accent); color: var(--px-accent); }
 }
-.px-figure-label {
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--px-text-4);
+@media (prefers-reduced-motion: reduce) {
+  .px-atlas-item, .px-atlas-code { transition: none; }
 }
-.px-figure-value { margin-top: 6px; font-size: 14px; font-weight: 500; color: var(--px-text-2); }
-
-@media (prefers-reduced-motion: reduce) { .px-loc-mono { transition: none; } }
 
 /* ═══ Финальная зона ═══════════════════════════════════════════════ */
 .px-outro-card {
@@ -3216,10 +3250,14 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
   mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
 }
+/* Длительность прохода задаёт компонент (--px-marquee-dur) от числа
+   элементов: при фиксированных 48с лента из девятнадцати локаций
+   ехала бы вчетверо быстрее, чем из четырёх, и превращалась в
+   мельтешение. Скорость должна остаться прежней, а не время. */
 .px-marquee-track {
   display: flex;
   width: max-content;
-  animation: pxMarquee 48s linear infinite;
+  animation: pxMarquee var(--px-marquee-dur, 48s) linear infinite;
 }
 @keyframes pxMarquee {
   from { transform: translateX(0); }

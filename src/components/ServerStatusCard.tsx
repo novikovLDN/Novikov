@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { onlineAt } from "@/lib/online-counter";
+import { COUNTRY_COUNT, LOCATIONS, citiesLabel, plural } from "@/lib/locations";
 
 /**
  * Live "Status of the network" card.
@@ -16,17 +17,21 @@ import { onlineAt } from "@/lib/online-counter";
  *   • a soft green area sparkline that fills the empty top space and
  *     fades to transparent before the server pills at the bottom
  *   • a tiny ±delta indicator (last tick change)
- *   • 5 server pills (region codes) with phase-offset pulse dots
+ *   • плитки стран с пульсирующими точками; состав берётся из
+ *     src/lib/locations.ts — карточка не заводит свой список
  */
 
 const TICK_MS = 10_000;
 const HISTORY_TICKS = 360; // 360 × 10s = 1 hour of history
-const SERVER_REGIONS = [
-  { code: "DE", label: "Германия · Frankfurt" },
-  { code: "NL", label: "Нидерланды · Amsterdam" },
-  { code: "AT", label: "Австрия · Vienna" },
-  { code: "US", label: "США · New York" },
-];
+/* Показываем ближайшие восемь: девятнадцать плиток превращают
+   карточку статуса в таблицу локаций, которая уже есть на сайте.
+   Остальные названы счётчиком рядом. */
+const PILL_LIMIT = 8;
+const SERVER_REGIONS = LOCATIONS.slice(0, PILL_LIMIT).map((l) => ({
+  code: l.code,
+  label: `${l.country} · ${citiesLabel(l)}`,
+}));
+const HIDDEN_COUNT = COUNTRY_COUNT - SERVER_REGIONS.length;
 
 function formatNumber(n: number): string {
   return n.toLocaleString("ru-RU");
@@ -172,7 +177,9 @@ export default function ServerStatusCard() {
         {/* Server pills at the bottom */}
         <div className="mt-auto">
           <div className="flex items-center justify-between mb-3">
-            <span className="font-mts-wide text-[11px] uppercase tracking-[0.14em] text-black/45">Сервера</span>
+            <span className="font-mts-wide text-[11px] uppercase tracking-[0.14em] text-black/45">
+              Сервера · {COUNTRY_COUNT} {plural(COUNTRY_COUNT, ["страна", "страны", "стран"])}
+            </span>
             <span className="font-mts-wide text-[12px] text-[color:var(--px-good)]/85 font-medium">Активны</span>
           </div>
           <div className="grid grid-cols-4 gap-2">
@@ -193,6 +200,11 @@ export default function ServerStatusCard() {
               </div>
             ))}
           </div>
+          {HIDDEN_COUNT > 0 && (
+            <div className="font-mts-wide text-[11px] text-black/45 mt-2.5">
+              и ещё {HIDDEN_COUNT} {plural(HIDDEN_COUNT, ["страна", "страны", "стран"])} — от Дубая до Токио
+            </div>
+          )}
         </div>
       </div>
 
