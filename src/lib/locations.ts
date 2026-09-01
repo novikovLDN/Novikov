@@ -25,28 +25,31 @@ export interface Location {
   cities: string[];
   /** Ориентировочный RTT из Москвы, мс. */
   latencyMs: number;
+  /** Координаты первого города — для карты присутствия. */
+  lat: number;
+  lon: number;
 }
 
 export const LOCATIONS: Location[] = [
-  { code: "BY", country: "Беларусь",    cities: ["Минск"],                              latencyMs: 12 },
-  { code: "FI", country: "Финляндия",   cities: ["Хельсинки"],                          latencyMs: 20 },
-  { code: "PL", country: "Польша",      cities: ["Варшава"],                            latencyMs: 22 },
-  { code: "DE", country: "Германия",    cities: ["Франкфурт"],                          latencyMs: 24 },
-  { code: "NL", country: "Нидерланды",  cities: ["Амстердам"],                          latencyMs: 32 },
-  { code: "RO", country: "Румыния",     cities: ["Бухарест"],                           latencyMs: 35 },
-  { code: "CH", country: "Швейцария",   cities: ["Цюрих"],                              latencyMs: 38 },
-  { code: "AT", country: "Австрия",     cities: ["Вена"],                               latencyMs: 38 },
-  { code: "GB", country: "Британия",    cities: ["Лондон"],                             latencyMs: 40 },
-  { code: "FR", country: "Франция",     cities: ["Париж"],                              latencyMs: 45 },
-  { code: "TR", country: "Турция",      cities: ["Стамбул"],                            latencyMs: 45 },
-  { code: "AM", country: "Армения",     cities: ["Ереван"],                             latencyMs: 55 },
-  { code: "KZ", country: "Казахстан",   cities: ["Алматы"],                             latencyMs: 60 },
-  { code: "IR", country: "Иран",        cities: ["Тегеран"],                            latencyMs: 80 },
-  { code: "AE", country: "ОАЭ",         cities: ["Дубай"],                              latencyMs: 90 },
-  { code: "US", country: "США",         cities: ["Нью-Йорк", "Лос-Анджелес", "Майами"], latencyMs: 120 },
-  { code: "JP", country: "Япония",      cities: ["Токио"],                              latencyMs: 130 },
-  { code: "CN", country: "Китай",       cities: ["Гонконг", "Шанхай"],                  latencyMs: 150 },
-  { code: "SG", country: "Сингапур",    cities: ["Сингапур"],                           latencyMs: 160 },
+  { code: "BY", country: "Беларусь",    cities: ["Минск"],                              latencyMs: 12, lat: 53.9, lon: 27.6 },
+  { code: "FI", country: "Финляндия",   cities: ["Хельсинки"],                          latencyMs: 20, lat: 60.2, lon: 24.9 },
+  { code: "PL", country: "Польша",      cities: ["Варшава"],                            latencyMs: 22, lat: 52.2, lon: 21.0 },
+  { code: "DE", country: "Германия",    cities: ["Франкфурт"],                          latencyMs: 24, lat: 50.1, lon: 8.7 },
+  { code: "NL", country: "Нидерланды",  cities: ["Амстердам"],                          latencyMs: 32, lat: 52.4, lon: 4.9 },
+  { code: "RO", country: "Румыния",     cities: ["Бухарест"],                           latencyMs: 35, lat: 44.4, lon: 26.1 },
+  { code: "CH", country: "Швейцария",   cities: ["Цюрих"],                              latencyMs: 38, lat: 47.4, lon: 8.5 },
+  { code: "AT", country: "Австрия",     cities: ["Вена"],                               latencyMs: 38, lat: 48.2, lon: 16.4 },
+  { code: "GB", country: "Британия",    cities: ["Лондон"],                             latencyMs: 40, lat: 51.5, lon: -0.1 },
+  { code: "FR", country: "Франция",     cities: ["Париж"],                              latencyMs: 45, lat: 48.9, lon: 2.4 },
+  { code: "TR", country: "Турция",      cities: ["Стамбул"],                            latencyMs: 45, lat: 41.0, lon: 29.0 },
+  { code: "AM", country: "Армения",     cities: ["Ереван"],                             latencyMs: 55, lat: 40.2, lon: 44.5 },
+  { code: "KZ", country: "Казахстан",   cities: ["Алматы"],                             latencyMs: 60, lat: 43.2, lon: 76.9 },
+  { code: "IR", country: "Иран",        cities: ["Тегеран"],                            latencyMs: 80, lat: 35.7, lon: 51.4 },
+  { code: "AE", country: "ОАЭ",         cities: ["Дубай"],                              latencyMs: 90, lat: 25.2, lon: 55.3 },
+  { code: "US", country: "США",         cities: ["Нью-Йорк", "Лос-Анджелес", "Майами"], latencyMs: 120, lat: 40.7, lon: -74.0 },
+  { code: "JP", country: "Япония",      cities: ["Токио"],                              latencyMs: 130, lat: 35.7, lon: 139.7 },
+  { code: "CN", country: "Китай",       cities: ["Гонконг", "Шанхай"],                  latencyMs: 150, lat: 22.3, lon: 114.2 },
+  { code: "SG", country: "Сингапур",    cities: ["Сингапур"],                           latencyMs: 160, lat: 1.3, lon: 103.8 },
 ];
 
 /** Число стран присутствия. Считается, а не пишется руками. */

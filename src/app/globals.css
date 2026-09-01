@@ -2882,89 +2882,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   border: 1px solid var(--px-line);
 }
 
-/* ═══ Локации ══════════════════════════════════════════════════════ */
-/* ─── Атлас локаций ──────────────────────────────────────────────────
-   Девятнадцать стран строками во всю ширину — простыня на два экрана,
-   поэтому строка сжата до ячейки: монограмма, страна с городами,
-   задержка. Сетка сама решает, сколько колонок помещается. */
-.px-atlas {
-  display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-}
-@media (min-width: 640px) { .px-atlas { gap: 12px; } }
-
-.px-atlas-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  min-height: 68px;
-  background: var(--px-surface);
-  border: 1px solid var(--px-line);
-  border-radius: var(--px-r-card);
-  box-shadow: var(--px-lift-1);
-  transition:
-    border-color var(--px-fast) var(--px-ease-out),
-    box-shadow var(--px-base) var(--px-ease-out),
-    transform var(--px-base) var(--px-ease-out);
-}
-@media (hover: hover) and (pointer: fine) {
-  .px-atlas-item:hover {
-    border-color: var(--px-line-2);
-    box-shadow: var(--px-edge);
-    transform: translateY(-2px);
-  }
-}
-
-.px-atlas-body { display: flex; flex-direction: column; min-width: 0; flex: 1; }
-.px-atlas-country {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  line-height: 1.2;
-  color: var(--px-text);
-}
-.px-atlas-cities {
-  margin-top: 3px;
-  font-size: 12px;
-  line-height: 1.35;
-  color: var(--px-text-3);
-  /* Многогородные страны (США, Китай) не должны рвать высоту ячейки. */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.px-atlas-latency {
-  flex-shrink: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--px-text-2);
-}
-
-/* Монограмма в форме кубика — тот же скруглённый квадрат. */
-.px-atlas-code {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  border-radius: 22%;
-  background: var(--px-surface-2);
-  border: 1px solid var(--px-line);
-  color: var(--px-text);
-  display: grid;
-  place-items: center;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  transition: transform var(--px-enter) var(--px-ease), border-color var(--px-fast) var(--px-ease-out);
-}
-@media (hover: hover) and (pointer: fine) {
-  .px-atlas-item:hover .px-atlas-code { border-color: var(--px-accent); color: var(--px-accent); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .px-atlas-item, .px-atlas-code { transition: none; }
-}
-
 /* ═══ Финальная зона ═══════════════════════════════════════════════ */
 .px-outro-card {
   background: var(--px-surface);
@@ -3637,4 +3554,189 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 /* Подсказка про курсор бессмысленна там, где курсора нет. */
 @media (hover: none) {
   .px-particle-hint { display: none; }
+}
+
+/* ═══ Карта присутствия ════════════════════════════════════════════
+   Материки — точки той же сетки, что фон первого экрана; маркеры —
+   кнопки в HTML-слое поверх холста (фокус с клавиатуры и подсказка
+   без ручной возни с фокус-кольцом внутри SVG). */
+.px-map { position: relative; }
+
+.px-map-canvas {
+  position: relative;
+  width: 100%;
+  /* Пропорции пишет компонент из данных карты; значение ниже —
+     запасное на случай отключённого JS. */
+  aspect-ratio: 120 / 42;
+  border: 1px solid var(--px-line);
+  border-radius: var(--px-r-card);
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgba(var(--px-accent-rgb), 0.05) 0%, transparent 62%),
+    var(--px-surface);
+  box-shadow: var(--px-edge);
+  overflow: hidden;
+}
+
+.px-map-svg { display: block; width: 100%; height: 100%; }
+.px-map-land { fill: rgba(20, 20, 15, 0.26); }
+/* Суша вокруг наших точек — тёплая: охват виден до того, как читатель
+   начнёт разбирать отдельные маркеры. */
+.px-map-land-hot { fill: rgba(var(--px-accent-rgb), 0.55); }
+
+/* ─── Маркер ──────────────────────────────────────────────────────── */
+.px-map-pin {
+  position: absolute;
+  /* Зона нажатия чуть больше точки, но не настолько, чтобы соседние
+     страны перехватывали чужие нажатия: в Европе маркеры стоят в
+     полутора десятках пикселей друг от друга, и запас в 34px делал
+     половину из них недоступной. */
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+.px-map-pin:focus-visible { outline: 2px solid var(--px-accent); outline-offset: -8px; border-radius: 50%; }
+
+.px-map-dot {
+  position: relative;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--px-accent);
+  background-image: linear-gradient(180deg, var(--px-accent-top) 0%, var(--px-accent-lo) 100%);
+  box-shadow:
+    0 0 0 2.5px var(--px-surface),
+    0 1px 2px rgba(20, 20, 15, 0.35),
+    0 0 14px -2px rgba(var(--px-accent-rgb), 0.95);
+  transition: transform var(--px-base) var(--px-ease-out);
+}
+/* Пульс — сигнал живой сети. Кольцо отдельным псевдоэлементом:
+   иначе масштаб пульса дрался бы за transform с наведением. */
+.px-map-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid var(--px-accent);
+  opacity: 0;
+  animation: pxPinPing 3.2s var(--px-ease-out) infinite;
+  animation-delay: var(--px-delay, 0ms);
+}
+@keyframes pxPinPing {
+  0%        { transform: scale(0.6); opacity: 0.8; }
+  55%, 100% { transform: scale(2.6); opacity: 0; }
+}
+/* Наведённый маркер поднимается над соседями — иначе в европейской
+   гуще подсказка уходит под чужую точку. */
+.px-map-pin:hover,
+.px-map-pin:focus-visible,
+.px-map-pin-active { z-index: 3; }
+.px-map-pin:hover .px-map-dot,
+.px-map-pin-active .px-map-dot { transform: scale(1.45); }
+
+/* Появление маркеров каскадом — только после того, как карта попала
+   в кадр (класс ставит компонент). */
+.px-js .px-map .px-map-pin { opacity: 0; transform: scale(0.4); }
+.px-js .px-map-in .px-map-pin {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--px-enter) var(--px-ease-out),
+    transform var(--px-enter) var(--px-ease-out);
+  transition-delay: var(--px-delay, 0ms);
+}
+
+/* ─── Подсказка ───────────────────────────────────────────────────── */
+.px-map-tip {
+  position: absolute;
+  bottom: calc(50% + 12px);
+  z-index: 2;
+  display: grid;
+  gap: 2px;
+  padding: 8px 11px;
+  white-space: nowrap;
+  background: var(--px-surface);
+  border: 1px solid var(--px-line-2);
+  border-radius: 10px;
+  box-shadow: var(--px-lift-3);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity var(--px-fast) var(--px-ease-out), transform var(--px-fast) var(--px-ease-out);
+}
+.px-map-tip-center { left: 50%; transform: translate(-50%, 4px); }
+.px-map-tip-start  { left: 6px; }
+.px-map-tip-end    { right: 6px; }
+.px-map-pin:hover .px-map-tip,
+.px-map-pin-active .px-map-tip { opacity: 1; transform: translateY(0); }
+.px-map-pin:hover .px-map-tip-center,
+.px-map-pin-active .px-map-tip-center { transform: translate(-50%, 0); }
+
+.px-map-tip-country { font-size: 13px; font-weight: 700; color: var(--px-text); line-height: 1.2; }
+.px-map-tip-meta { font-size: 11.5px; color: var(--px-text-3); line-height: 1.2; }
+
+/* ─── Легенда ─────────────────────────────────────────────────────── */
+/* Легенда — сетка, а не свободный поток: девятнадцать чипов разной
+   длины в потоке дают рваный правый край, а на телефоне встают
+   столбиком по одному и занимают полтора экрана. */
+.px-map-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+.px-map-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 11px;
+  border-radius: var(--px-r-btn);
+  background: var(--px-surface);
+  border: 1px solid var(--px-line);
+  color: var(--px-text-2);
+  font-family: var(--font-mts-wide);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color var(--px-fast) var(--px-ease-out),
+    color var(--px-fast) var(--px-ease-out),
+    box-shadow var(--px-fast) var(--px-ease-out);
+}
+.px-map-chip:focus-visible { outline: 2px solid var(--px-accent); outline-offset: 2px; }
+.px-map-chip-code {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--px-text-4);
+  transition: color var(--px-fast) var(--px-ease-out);
+}
+.px-map-chip-latency {
+  margin-left: auto;
+  color: var(--px-text-4);
+  font-size: 12px;
+  /* Число не переносится: «12\A мс» в две строки ломает высоту чипа. */
+  white-space: nowrap;
+}
+.px-map-chip-active,
+.px-map-chip:hover {
+  color: var(--px-text);
+  border-color: var(--px-accent-line);
+  box-shadow: var(--px-edge);
+}
+.px-map-chip-active .px-map-chip-code,
+.px-map-chip:hover .px-map-chip-code { color: var(--px-accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .px-map-dot::after { animation: none; }
+  .px-map-dot, .px-map-tip { transition: none; }
+  .px-js .px-map .px-map-pin { opacity: 1; transform: none; }
 }
