@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import SiteFooter from "@/components/pixel/SiteFooter";
+import { DEVICE_LIMIT } from "@/lib/plans";
 
 /**
  * /subscribe — payment funnel in the v4 light shell.
@@ -32,7 +33,7 @@ const PLANS: Record<Plan, { name: string; features: { icon: string; text: string
     features: [
       { icon: "⚡", text: "Стабильная скорость" },
       { icon: "🔒", text: "Надёжное шифрование" },
-      { icon: "📱", text: "Безлимит устройств" },
+      { icon: "📱", text: `До ${DEVICE_LIMIT} устройств` },
       { icon: "🌐", text: "Всегда доступен сайт" },
     ],
   },

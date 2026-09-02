@@ -677,3 +677,92 @@ export function usePixelBurst<T extends HTMLElement>(count = 14) {
 
   return ref;
 }
+
+/**
+ * Прогресс прокрутки внутри секции.
+ *
+ * Пишет в элемент переменную `--p` от 0 (секция стоит на своём месте)
+ * до 1 (ушла вверх целиком). Дальше слои расходятся средствами CSS:
+ * заголовок отстаёт, сцена уезжает быстрее, фон масштабируется — то
+ * самое «погружение», ради которого обычно тянут библиотеку
+ * скролл-анимаций.
+ *
+ * Один слушатель на секцию и одна запись переменной за кадр: слоёв
+ * может быть сколько угодно, цена та же.
+ */
+export function useScrollScene<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || reduced) return;
+
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const r = el.getBoundingClientRect();
+      const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height)));
+      el.style.setProperty("--p", p.toFixed(4));
+    };
+    const onScroll = () => { if (!frame) frame = requestAnimationFrame(read); };
+
+    read();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [reduced]);
+
+  return ref;
+}
+
+/**
+ * Смещение слоя за курсором с инерцией.
+ *
+ * Тот же принцип, что у магнитной кнопки, но для целой сцены: слой
+ * догоняет указатель, а не прыгает за ним. Значение пишется в
+ * переменные `--px`/`--py`, сдвиг применяет CSS.
+ */
+export function useMouseLayer<T extends HTMLElement>(strength = 14) {
+  const ref = useRef<T>(null);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || reduced) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    let frame = 0;
+    let tx = 0;
+    let ty = 0;
+    let cx = 0;
+    let cy = 0;
+
+    const render = () => {
+      cx += (tx - cx) * 0.08;
+      cy += (ty - cy) * 0.08;
+      el.style.setProperty("--px", `${cx.toFixed(2)}px`);
+      el.style.setProperty("--py", `${cy.toFixed(2)}px`);
+      frame =
+        Math.abs(tx - cx) > 0.05 || Math.abs(ty - cy) > 0.05 ? requestAnimationFrame(render) : 0;
+    };
+
+    const onMove = (e: PointerEvent) => {
+      tx = (e.clientX / window.innerWidth - 0.5) * strength * 2;
+      ty = (e.clientY / window.innerHeight - 0.5) * strength * 2;
+      if (!frame) frame = requestAnimationFrame(render);
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [strength, reduced]);
+
+  return ref;
+}

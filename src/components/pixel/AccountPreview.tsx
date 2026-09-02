@@ -3,6 +3,7 @@
 import Icon from "./Icon";
 import { AnimatedNumber } from "./motion";
 import { LOCATIONS } from "@/lib/locations";
+import { DEVICE_LIMIT } from "@/lib/plans";
 
 /* Пример маршрута берётся из общего списка локаций: карточка не
    должна показывать город, которого нет в атласе сети. */
@@ -52,7 +53,7 @@ export default function AccountPreview() {
           </div>
           <div>
             <p className="px-rail-metric-label">Устройства</p>
-            <p className="mt-2 text-[15px] font-medium">Безлимит</p>
+            <p className="mt-2 text-[15px] font-medium">до {DEVICE_LIMIT}</p>
           </div>
         </div>
 

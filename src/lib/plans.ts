@@ -58,6 +58,16 @@ export const PLAN_SPEED: Record<PlanId, number> = {
   plus: 75,
 };
 
+/**
+ * Сколько устройств можно держать на одной подписке — единственный
+ * источник этого числа.
+ *
+ * На сайте стояло «безлимит устройств»: и в составе тарифа, и в
+ * превью кабинета, и в ответах на /pricing. Это неверно и хуже, чем
+ * просто неточность, — обещание, которое продукт не выполняет.
+ */
+export const DEVICE_LIMIT = 14;
+
 /** Состав тарифов. Живёт рядом с ценами, чтобы витрина и касса не разъезжались. */
 export const PLAN_CONTENT: Record<PlanId, { name: string; tagline: string; features: string[] }> = {
   basic: {
@@ -66,7 +76,7 @@ export const PLAN_CONTENT: Record<PlanId, { name: string; tagline: string; featu
     features: [
       "Канал 25 Гбит/с",
       "Надёжное шифрование",
-      "Безлимит устройств",
+      `До ${DEVICE_LIMIT} устройств`,
       "Сайт доступен всегда",
     ],
   },

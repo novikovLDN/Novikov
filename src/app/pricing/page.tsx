@@ -11,7 +11,7 @@ import Faq, { type FaqItem } from "@/components/pixel/Faq";
 import SiteOutro from "@/components/pixel/SiteOutro";
 import Icon from "@/components/pixel/Icon";
 import { useReveal } from "@/components/pixel/motion";
-import { PERIODS, PLAN_CONTENT, type Period } from "@/lib/plans";
+import { DEVICE_LIMIT, PERIODS, PLAN_CONTENT, type Period } from "@/lib/plans";
 
 /**
  * /pricing — тарифы ускорителя.
@@ -169,7 +169,7 @@ const FAQ: FaqItem[] = [
   },
   {
     q: "На каких устройствах работает?",
-    a: "iPhone и iPad, Android, macOS, Windows и Android TV. Число устройств не ограничено — одна подписка работает на всех сразу.",
+    a: `iPhone и iPad, Android, macOS, Windows и Android TV. Одна подписка работает на ${DEVICE_LIMIT} устройствах одновременно — их можно менять в любой момент.`,
   },
   {
     q: "Можно ли сменить тариф?",

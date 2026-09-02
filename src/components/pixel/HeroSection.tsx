@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import AccountPreview from "./AccountPreview";
+import HeroStage from "./HeroStage";
 import Icon from "./Icon";
 import { MiniCubes } from "./CubeCluster";
 import { AnimatedNumber, useParallax } from "./motion";
-import { Magnetic, PixelTrail, SplitText, useGridTorch, usePixelBurst, useTilt } from "./effects";
+import { Magnetic, PixelTrail, useGridTorch, useMouseLayer, usePixelBurst, useScrollScene } from "./effects";
+import ParticleHeading from "./ParticleHeading";
+import { useEffect, useState } from "react";
 import { PLAN_SPEED } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
 
@@ -52,12 +54,41 @@ const METRICS = [
 
 export default function HeroSection({ primaryHref }: HeroSectionProps) {
   const artRef = useParallax<HTMLDivElement>(0.045);
-  const tiltRef = useTilt<HTMLDivElement>(4);
   const torchRef = useGridTorch<HTMLElement>();
+  const sceneRef = useScrollScene<HTMLElement>();
+  const stageRef = useMouseLayer<HTMLDivElement>(16);
   const burstRef = usePixelBurst<HTMLAnchorElement>();
 
+  /* Высота строки из точек зависит от ширины экрана: на телефоне тот
+     же кегль просто не помещается, а точки в мелком кегле
+     складываются в шум вместо букв. */
+  const [lineH, setLineH] = useState(200);
+  useEffect(() => {
+    const pick = () => {
+      const w = window.innerWidth;
+      /* Потолок высоты холста на все три строки сразу. Кегль внутри
+         общий и упирается в длину самой длинной строки, поэтому
+         разбивка на три коротких строки поднимает его почти вдвое
+         против двух длинных — заголовок становится крупным без
+         увеличения колонки. */
+      setLineH(w < 480 ? 210 : w < 768 ? 260 : w < 1280 ? 290 : 320);
+    };
+    pick();
+    window.addEventListener("resize", pick, { passive: true });
+    return () => window.removeEventListener("resize", pick);
+  }, []);
+
   return (
-    <section ref={torchRef} className="px-hero" aria-labelledby="hero-title">
+    <section
+      ref={(node) => {
+        // Две роли на одной секции: фонарик по сетке и прогресс
+        // прокрутки. Обе пишут переменные в один и тот же элемент.
+        torchRef.current = node;
+        sceneRef.current = node;
+      }}
+      className="px-hero"
+      aria-labelledby="hero-title"
+    >
       {/* Курсор «будит» клетку сетки под собой и рассыпает за собой
           пиксели того же шага — материал, из которого собран сайт.
           Оба слоя живут только на первом экране: постоянный шлейф по
@@ -69,7 +100,10 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
         <div className="px-shell w-full">
           <div className="grid lg:grid-cols-12 gap-12 lg:gap-10 items-center">
             <div className="lg:col-span-7">
-              <p className="px-status px-reveal">
+              {/* Метка состояния вынесена в вертикальную колонку слева:
+                  типовая горизонтальная строка над заголовком — первое,
+                  что делает первый экран похожим на все остальные. */}
+              <p className="px-hero-vertical px-reveal">
                 <span className="px-status-dot" aria-hidden />
                 <span className="px-eyebrow flex items-center gap-2">
                   <MiniCubes />
@@ -77,18 +111,20 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
                 </span>
               </p>
 
-              {/* Заголовок набирается по буквам. Знаки помечены
-                  aria-hidden, поэтому вспомогательной технологии
-                  фраза отдаётся целиком через aria-label — дубля
-                  текста в разметке нет. */}
-              <h1
-                id="hero-title"
-                className="px-hero-title px-reveal mt-6"
-                aria-label="Открывает интернет без просадок"
-              >
-                <SplitText text="Открывает интернет" />
-                <br />
-                <SplitText text="без просадок" className="px-accent" delay={620} />
+              {/* Заголовок набран точками той же сетки, что и фон:
+                  строки собираются из разлетевшихся частиц, дышат в
+                  покое и расступаются под курсором. Настоящий текст
+                  лежит внутри ParticleHeading для скринридера и
+                  поиска, холст помечен aria-hidden. */}
+              <h1 id="hero-title" className="px-hero-title px-hero-dots px-reveal mt-6">
+                <ParticleHeading
+                  text={["Открывает", "интернет", "без просадок"]}
+                  accentLine={2}
+                  offsets={[0, 0.14, 0.06]}
+                  height={lineH}
+                  align="left"
+                  idle
+                />
               </h1>
 
               <p className="px-lede px-reveal mt-6">
@@ -122,7 +158,7 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
                 </div>
               </div>
 
-              <ul className="px-friction px-reveal mt-6">
+              <ul className="px-friction px-reveal px-float px-float-3 mt-6">
                 {["Три дня бесплатно", "Без карты", "Отмена в один клик"].map((t) => (
                   <li key={t}>
                     <Icon name="check" size={13} className="px-accent" />
@@ -132,10 +168,10 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
               </ul>
             </div>
 
-            <div className="lg:col-span-5 px-reveal px-tilt-scene">
+            <div className="lg:col-span-5 px-reveal px-hero-stage">
               <div ref={artRef}>
-                <div ref={tiltRef} className="px-tilt">
-                  <AccountPreview />
+                <div ref={stageRef} className="px-hero-stage-layer">
+                  <HeroStage />
                 </div>
               </div>
             </div>

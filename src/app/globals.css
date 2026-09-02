@@ -4085,3 +4085,300 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .px-burst-dot { display: none; }
   .px-js .px-reveal .px-rail-line { transform: none; }
 }
+
+/* ═══ Первый экран: живой слой ═════════════════════════════════════ */
+
+/* Заголовок из точек. Холсты идут строками, между ними — отрицательный
+   зазор: в каждом холсте есть воздух сверху и снизу, и без сжатия
+   строки разъезжаются сильнее, чем в наборном тексте. */
+.px-hero-dots { display: flex; flex-direction: column; gap: 0; }
+.px-hero-dots > div + div { margin-top: -6px; }
+
+/* Плавание. Блоки первого экрана слегка качаются, каждый в своей
+   фазе, — экран перестаёт быть чертежом и начинает дышать.
+   Амплитуда мелкая: это фон восприятия, а не движение, за которым
+   следят. */
+.px-float { animation: pxFloat 7s ease-in-out infinite; will-change: transform; }
+.px-float-2 { animation-duration: 8.5s; animation-delay: -1.6s; }
+.px-float-3 { animation-duration: 9.5s; animation-delay: -3.2s; }
+@keyframes pxFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* Строка статуса: под курсором точка разгорается, а подпись
+   подтягивается вправо. */
+.px-status { transition: transform var(--px-base) var(--px-ease-out); }
+@media (hover: hover) and (pointer: fine) {
+  .px-status:hover { transform: translateX(2px); }
+  .px-status:hover .px-status-dot { box-shadow: 0 0 12px var(--px-good); }
+}
+
+/* Снятие возражений: каждый пункт — отдельная реакция, а не общая
+   строка мелким кеглем. */
+.px-friction > li {
+  padding: 4px 8px;
+  margin: -4px 0;
+  border-radius: 8px;
+  transition:
+    background-color var(--px-fast) var(--px-ease-out),
+    color var(--px-fast) var(--px-ease-out),
+    transform var(--px-base) var(--px-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .px-friction > li:hover {
+    background: var(--px-accent-dim);
+    color: var(--px-text);
+    transform: translateY(-2px);
+  }
+}
+
+/* Полоса показаний: ячейка приподнимается, число окрашивается
+   акцентом, снизу прочерчивается линия. */
+.px-rail-metric {
+  position: relative;
+  padding: 6px 10px 10px;
+  margin: -6px -10px 0;
+  border-radius: 10px;
+  transition: transform var(--px-base) var(--px-ease-out), background-color var(--px-fast) var(--px-ease-out);
+}
+.px-rail-metric::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 2px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--px-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--px-enter) var(--px-ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .px-rail-metric:hover { transform: translateY(-3px); background: rgba(var(--px-accent-rgb), 0.05); }
+  .px-rail-metric:hover::after { transform: scaleX(1); }
+  .px-rail-metric:hover .px-rail-metric-value { color: var(--px-accent); }
+}
+.px-rail-metric-value { transition: color var(--px-fast) var(--px-ease-out); }
+
+@media (prefers-reduced-motion: reduce) {
+  .px-float { animation: none; }
+  .px-status, .px-friction > li, .px-rail-metric, .px-rail-metric::after { transition: none; }
+}
+
+/* ═══ Сцена первого экрана ═════════════════════════════════════════
+   Объём набирается слоями, а не тенью: за карточкой стоят решётка и
+   подложка, каждая со своим смещением и амплитудой качания. */
+.px-stage { position: relative; padding: 18px 14px 14px; }
+
+.px-stage-grid,
+.px-stage-back {
+  position: absolute;
+  border-radius: var(--px-r-card);
+  pointer-events: none;
+}
+.px-stage-grid {
+  inset: 0 0 34px 34px;
+  background-image:
+    linear-gradient(to right, rgba(var(--px-accent-rgb), 0.30) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(var(--px-accent-rgb), 0.30) 1px, transparent 1px);
+  background-size: 14px 14px;
+  -webkit-mask-image: radial-gradient(120% 90% at 80% 10%, #000 10%, transparent 75%);
+  mask-image: radial-gradient(120% 90% at 80% 10%, #000 10%, transparent 75%);
+  animation: pxFloat 9s ease-in-out infinite;
+}
+.px-stage-back {
+  inset: 10px 22px 22px 10px;
+  background: var(--px-surface-2);
+  border: 1px solid var(--px-line);
+  box-shadow: var(--px-lift-2);
+  animation: pxFloat 7.5s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+.px-stage-card {
+  position: relative;
+  background: var(--px-surface);
+  border: 1px solid var(--px-line);
+  border-radius: var(--px-r-card);
+  box-shadow: var(--px-lift-3);
+  padding: 18px;
+  animation: pxFloat 8s ease-in-out infinite;
+  animation-delay: -1s;
+}
+@media (min-width: 640px) { .px-stage-card { padding: 22px; } }
+
+.px-stage-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.px-stage-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--px-text);
+}
+
+/* ─── Маршрут и пакеты ─────────────────────────────────────────────
+   Восемь квадратов бегут от устройства к серверу с одинаковым шагом
+   задержки — получается непрерывный поток без единого таймера в JS. */
+.px-stage-route { display: flex; align-items: center; gap: 12px; margin-top: 22px; }
+.px-stage-node {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--px-surface-2);
+  border: 1px solid var(--px-line);
+  color: var(--px-text-2);
+}
+.px-stage-node-server { color: var(--px-accent); border-color: var(--px-accent-line); }
+
+.px-stage-wire {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(90deg, var(--px-line-2) 0 4px, transparent 4px 9px);
+}
+.px-stage-packet {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--px-accent);
+  box-shadow: 0 0 10px -2px rgba(var(--px-accent-rgb), 0.9);
+  animation: pxPacket 2.24s linear infinite;
+}
+@keyframes pxPacket {
+  0%   { transform: translateX(0) scale(0.6); opacity: 0; }
+  12%  { opacity: 1; transform: translateX(12%) scale(1); }
+  88%  { opacity: 1; }
+  100% { transform: translateX(calc(100% * 8)) scale(0.6); opacity: 0; }
+}
+
+.px-stage-route-label {
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: var(--px-text-3);
+}
+.px-stage-city { color: var(--px-text); font-weight: 700; }
+
+.px-stage-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 26px;
+  margin-top: 20px;
+}
+.px-stage-latency {
+  margin-top: 6px;
+  font-size: clamp(30px, 4vw, 42px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--px-text);
+}
+.px-stage-unit { margin-left: 6px; font-size: 14px; font-weight: 500; color: var(--px-text-3); }
+.px-stage-country { margin-top: 8px; font-size: 14px; font-weight: 500; color: var(--px-text); }
+
+/* ─── График загрузки ──────────────────────────────────────────────
+   Столбики оживают волной: высота задана данными, дыхание — фазой. */
+.px-stage-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 64px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--px-line);
+}
+.px-stage-chart > span {
+  flex: 1;
+  height: var(--h);
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--px-accent-top) 0%, var(--px-accent) 100%);
+  opacity: 0.85;
+  transform-origin: bottom center;
+  animation: pxBarBreathe 3.6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 90ms);
+}
+@keyframes pxBarBreathe {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(0.82); }
+}
+
+.px-stage-foot { margin-top: 16px; font-size: 12px; color: var(--px-text-4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .px-stage-grid, .px-stage-back, .px-stage-card,
+  .px-stage-packet, .px-stage-chart > span { animation: none; }
+  .px-stage-packet { opacity: 0; }
+}
+
+/* ═══ Первый экран: погружение ═════════════════════════════════════
+   Прогресс прокрутки секции приходит переменной --p (0…1), слои
+   расходятся с разной скоростью. Библиотека скролл-анимаций для
+   этого не нужна: одна переменная и несколько правил. */
+
+/* Заголовок отстаёт от прокрутки и слегка тает — читатель уезжает
+   «сквозь» него, а не мимо. */
+.px-hero-title {
+  transform: translate3d(0, calc(var(--p, 0) * -46px), 0);
+  opacity: calc(1 - var(--p, 0) * 0.55);
+  will-change: transform, opacity;
+}
+
+/* Сцена, наоборот, уходит быстрее и мельчает: между планами
+   появляется расстояние. */
+.px-hero-stage {
+  transform: translate3d(0, calc(var(--p, 0) * 74px), 0) scale(calc(1 - var(--p, 0) * 0.06));
+  will-change: transform;
+}
+/* Второй слой — за курсором, с инерцией (переменные пишет
+   useMouseLayer). */
+.px-hero-stage-layer {
+  transform: translate3d(var(--px, 0px), var(--py, 0px), 0);
+  will-change: transform;
+}
+
+/* Фоновая сетка чуть раздвигается — фон «дышит» вместе с прокруткой. */
+.px-hero::before { transform: scale(calc(1 + var(--p, 0) * 0.08)); }
+
+/* Полоса показаний уезжает вниз последней. */
+.px-hero-rail { transform: translate3d(0, calc(var(--p, 0) * 30px), 0); }
+
+/* ─── Вертикальная метка состояния ─────────────────────────────────
+   Горизонтальная строка над заголовком — первое, что делает первый
+   экран похожим на любой другой. Здесь она поставлена на ребро вдоль
+   левого края и держится за колонку заголовка. */
+.px-hero-vertical {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+@media (min-width: 1024px) {
+  .px-hero-vertical {
+    position: absolute;
+    left: -18px;
+    top: 8px;
+    transform: rotate(180deg) translateY(-100%);
+    transform-origin: left top;
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+  }
+  .px-hero-vertical .px-status-dot { transform: rotate(180deg); }
+  /* Колонка заголовка становится системой координат для метки. */
+  .px-hero-body .grid > div:first-child { position: relative; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .px-hero-title,
+  .px-hero-stage,
+  .px-hero-stage-layer,
+  .px-hero-rail { transform: none; opacity: 1; }
+  .px-hero::before { transform: none; }
+}

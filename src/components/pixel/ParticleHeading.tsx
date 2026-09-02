@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { useReducedMotion } from "./motion";
 
 interface Particle {
+  /** Индекс строки — нужен, чтобы красить строку целиком. */
+  line: number;
   homeX: number;
   homeY: number;
   x: number;
@@ -19,10 +21,27 @@ interface Particle {
 }
 
 interface ParticleHeadingProps {
-  text: string;
+  /** Строка или несколько строк. Многострочный вариант обязателен для
+   *  заголовка в несколько строк: два отдельных холста подбирают
+   *  кегль каждый под свою длину, и строки выходят разного размера. */
+  text: string | string[];
   className?: string;
   /** Высота холста в CSS-пикселях — под неё подбирается кегль. */
   height?: number;
+  /** Основной тон точек. Акцентная строка — не больше одной в кадре. */
+  tone?: "ink" | "accent";
+  /** Медленная волна по точкам в покое: надпись «дышит», а не стоит
+   *  мёртвой сеткой. */
+  idle?: boolean;
+  /** Выравнивание строки в холсте. */
+  align?: "center" | "left";
+  /** Индекс строки, которая целиком набрана акцентом. */
+  accentLine?: number;
+  /** Сдвиг строк по горизонтали в долях ширины: 0 — по левому краю,
+   *  0.14 — на четырнадцать процентов правее. Ступенчатая раскладка
+   *  ломает ровный левый край, из-за которого заголовок читается как
+   *  обычный блок текста. */
+  offsets?: number[];
 }
 
 /**
@@ -40,7 +59,16 @@ interface ParticleHeadingProps {
  * Настоящий текст остаётся в разметке — холст помечен aria-hidden,
  * рядом лежит та же строка для скринридера и поиска.
  */
-export default function ParticleHeading({ text, className, height = 120 }: ParticleHeadingProps) {
+export default function ParticleHeading({
+  text,
+  className,
+  height = 120,
+  tone = "ink",
+  idle = false,
+  align = "center",
+  accentLine,
+  offsets,
+}: ParticleHeadingProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const particles = useRef<Particle[]>([]);
@@ -58,9 +86,13 @@ export default function ParticleHeading({ text, className, height = 120 }: Parti
     if (!ctx) return;
 
     const styles = getComputedStyle(wrap);
-    const ink = styles.color || "#14140F";
-    const accent =
-      getComputedStyle(document.documentElement).getPropertyValue("--px-accent").trim() || "#FF6B45";
+    const root = getComputedStyle(document.documentElement);
+    const accentColor = root.getPropertyValue("--px-accent").trim() || "#FF6B45";
+    const inkColor = styles.color || "#14140F";
+    // Акцентная строка целиком коралловая, а вкрапления в ней —
+    // наоборот, чернильные: мотив тот же, полярность обратная.
+    const ink = tone === "accent" ? accentColor : inkColor;
+    const accent = tone === "accent" ? inkColor : accentColor;
     /* Семейство берётся вычисленным: в ctx.font нельзя подставить
        var(--font-mts-wide) — парсер шрифта не знает CSS-переменных и
        молча откатывается на 10px sans-serif. */
@@ -72,49 +104,88 @@ export default function ParticleHeading({ text, className, height = 120 }: Parti
     const sample = () => {
       if (disposed) return;
       const width = Math.max(1, Math.floor(wrap.clientWidth));
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
 
+      /* Offscreen служит дважды: сначала линейкой для подбора кегля,
+         потом трафаретом, с которого считываются точки. Размеры ему
+         задаются между этими шагами — установка width/height
+         сбрасывает контекст, поэтому шрифт назначается заново. */
       const off = document.createElement("canvas");
-      off.width = width;
-      off.height = height;
       const octx = off.getContext("2d", { willReadFrequently: true });
       if (!octx) return;
 
-      let fontSize = Math.round(height * 0.82);
+      const lines = Array.isArray(text) ? text : [text];
+      const gap = 1.02; // межстрочный шаг в долях кегля
+
+      // Кегль общий для всех строк: два отдельных холста подбирали бы
+      // его каждый под свою длину, и строки вышли бы разного размера.
+      const shift = (i: number) => offsets?.[i] ?? 0;
+      let fontSize = Math.round((height / lines.length) * 0.86);
+      const widest = () => {
+        octx.font = `700 ${fontSize}px ${family}`;
+        // Сдвинутая строка занимает ширину вместе со своим отступом,
+        // иначе она вылезет за холст и обрежется.
+        return Math.max(...lines.map((l, i) => octx.measureText(l).width + shift(i) * width));
+      };
+      while ((widest() > width * 0.98 || fontSize * gap * lines.length > height) && fontSize > 8) {
+        fontSize -= 1;
+      }
+
+      /* Холст ужимается до фактической высоты набора. `height` —
+         это потолок, а не размер: на широкой колонке кегль упирается
+         в длину строки, и разница между потолком и набором осталась
+         бы пустой полосой под заголовком. */
+      const contentH = Math.ceil(fontSize * gap * lines.length + fontSize * 0.34);
+
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(contentH * dpr);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${contentH}px`;
+      wrap.style.height = `${contentH}px`;
+
+      off.width = width;
+      off.height = contentH;
       octx.textBaseline = "middle";
       octx.textAlign = "left";
-      const measure = () => {
-        octx.font = `700 ${fontSize}px ${family}`;
-        return octx.measureText(text).width;
-      };
-      while (measure() > width * 0.96 && fontSize > 8) fontSize -= 1;
-
-      /* Шаг сетки точек считается от итогового кегля, а не от высоты
-         холста: на узком экране длинное слово ужимается, и точки
-         прежнего шага складываются в кашу вместо букв. Пять пикселей
-         на крупном кегле, три — на мелком. */
-      const step = fontSize >= 72 ? 5 : fontSize >= 44 ? 4 : 3;
-      /* Точка меньше шага — между точками остаётся воздух, иначе это
-         снова сплошная буква. Но не вдвое меньше: на мелком шаге
-         тонкая точка даёт полую, выцветшую надпись. */
-      const dot = Math.max(1.8, step - 1.4);
-
-      octx.fillStyle = "#000";
       octx.font = `700 ${fontSize}px ${family}`;
-      const textWidth = octx.measureText(text).width;
-      octx.fillText(text, (width - textWidth) / 2, height / 2);
+      octx.fillStyle = "#000";
 
-      const data = octx.getImageData(0, 0, width, height).data;
+      /* Шаг сетки пропорционален кеглю. Фиксированный шаг работал,
+         пока надпись была средней: на крупном заголовке точки при
+         шаге в пять пикселей сливаются в сплошную букву и весь приём
+         пропадает, на мелком — рассыпаются в шум. */
+      const step = Math.max(3, Math.min(9, Math.round(fontSize / 12)));
+      /* Точка — доля шага, а не разность: на мелком кегле разность в
+         полтора пикселя оставляла от буквы редкий пунктир, а на
+         крупном, наоборот, съедала воздух между точками. */
+      const dot = Math.max(2, step * 0.72);
+
+      const lineStep = fontSize * gap;
+      const blockH = lineStep * lines.length;
+      const top = (contentH - blockH) / 2;
+      // Базовые линии строк: по ним частица узнаёт свою строку и,
+      // значит, свой цвет.
+      const bounds = lines.map((_, i) => top + lineStep * i + lineStep / 2);
+
+      lines.forEach((line, i) => {
+        const w = octx.measureText(line).width;
+        octx.fillText(line, (align === "left" ? 0 : (width - w) / 2) + shift(i) * width, bounds[i]);
+      });
+
+      const data = octx.getImageData(0, 0, width, contentH).data;
       const next: Particle[] = [];
-      for (let y = 0; y < height; y += step) {
+      for (let y = 0; y < contentH; y += step) {
         for (let x = 0; x < width; x += step) {
           if (data[(y * width + x) * 4 + 3] <= 128) continue;
           const angle = Math.random() * Math.PI * 2;
           const dist = 40 + Math.random() * 90;
+          let line = 0;
+          let best = Infinity;
+          bounds.forEach((b, i) => {
+            const d = Math.abs(b - y);
+            if (d < best) { best = d; line = i; }
+          });
           next.push({
+            line,
             homeX: x,
             homeY: y,
             x: x + Math.cos(angle) * dist,
@@ -123,8 +194,8 @@ export default function ParticleHeading({ text, className, height = 120 }: Parti
             vy: 0,
             size: dot,
             alpha: 0,
-            // Каждая шестая точка — акцентная: мотив бренда, а не
-            // равномерная серая масса.
+            // Каждая шестая точка — вкрапление другого тона: мотив
+            // бренда, а не равномерная масса.
             accent: Math.random() < 0.17,
             delay: (x / width) * 620,
             born: -1,
@@ -197,13 +268,16 @@ export default function ParticleHeading({ text, className, height = 120 }: Parti
           p.y = p.homeY;
           p.alpha = 1;
         } else {
+          // Дыхание: медленная волна вдоль строки. Смещение меньше
+          // шага сетки, поэтому буквы не расплываются.
+          const wave = idle ? Math.sin(elapsed / 620 + p.homeX / 46) * 0.9 : 0;
           const dx = p.x - mouse.current.x;
           const dy = p.y - mouse.current.y;
           const d = Math.hypot(dx, dy);
           const under = d < erase;
 
           let ax = (p.homeX - p.x) * 0.08;
-          let ay = (p.homeY - p.y) * 0.08;
+          let ay = (p.homeY + wave - p.y) * 0.08;
           if (under && d > 0.01) {
             const f = (1 - d / erase) * push;
             ax += (dx / d) * f;
@@ -221,7 +295,12 @@ export default function ParticleHeading({ text, className, height = 120 }: Parti
         }
 
         if (p.alpha < 0.02) continue;
-        const want = p.accent ? accent : ink;
+        // Акцентная строка целиком коралловая, в ней вкрапления
+        // чернильные — и наоборот.
+        const lineIsAccent = accentLine === p.line;
+        const base = lineIsAccent ? accentColor : ink;
+        const speck = lineIsAccent ? inkColor : accent;
+        const want = p.accent ? speck : base;
         if (want !== color) {
           color = want;
           ctx.fillStyle = want;
@@ -243,12 +322,24 @@ export default function ParticleHeading({ text, className, height = 120 }: Parti
       io.disconnect();
       clearTimeout(resizeT);
     };
-  }, [text, height, reduced]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    Array.isArray(text) ? text.join("|") : text,
+    height,
+    reduced,
+    tone,
+    idle,
+    align,
+    accentLine,
+    offsets?.join("|"),
+  ]);
 
   return (
-    <div ref={wrapRef} className={className} style={{ height }}>
+    /* Высоту ставит сам компонент после подбора кегля; `height`
+       участвует только как потолок. */
+    <div ref={wrapRef} className={className} style={{ minHeight: 1 }}>
       <canvas ref={canvasRef} aria-hidden style={{ display: "block" }} />
-      <span className="sr-only">{text}</span>
+      <span className="sr-only">{Array.isArray(text) ? text.join(" ") : text}</span>
     </div>
   );
 }
