@@ -3167,24 +3167,16 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
   mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
 }
-/* Длительность прохода задаёт компонент (--px-marquee-dur) от числа
-   элементов: при фиксированных 48с лента из девятнадцати локаций
-   ехала бы вчетверо быстрее, чем из четырёх, и превращалась в
-   мельтешение. Скорость должна остаться прежней, а не время. */
+/* Позицию ленты ведёт JS (useMarqueeFlow): собственный ход и толчок
+   от прокрутки складываются в одно значение. CSS-анимации здесь нет
+   намеренно — две силы, пишущие в один transform, и давали рывки в
+   момент прокрутки. */
 .px-marquee-track {
   display: flex;
   width: max-content;
-  animation: pxMarquee var(--px-marquee-dur, 48s) linear infinite;
+  will-change: transform;
 }
-@keyframes pxMarquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-/* Инерция ленты: сдвиг и наклон приходят из JS переменными, сама
-   петля продолжает идти своей анимацией. */
 .px-marquee-item {
-  transform: translateX(var(--px-marquee-shift, 0)) skewX(var(--px-marquee-skew, 0deg));
-  transition: transform 220ms var(--px-ease-out);
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -3505,33 +3497,9 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .px-scale-strip > span { animation: none; }
 }
 
-/* ═══ Безопасность ═════════════════════════════════════════════════ */
-.px-guards { display: grid; gap: 16px; }
-@media (min-width: 768px) { .px-guards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; } }
-
-/* Ведущая карточка блока — своя команда — занимает всю ширину:
-   у аргумента другой вес, чем у трёх остальных. */
-@media (min-width: 768px) { .px-guard:first-child { grid-column: 1 / -1; } }
-
-/* Тёплая кромка проявляется по наведению: карточка отзывается на
-   курсор, но в покое ни одна из четырёх не спорит с другой. */
-.px-guard { position: relative; overflow: hidden; }
-.px-guard::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--px-accent) 0%, transparent 100%);
-  transform: scaleX(0);
-  transform-origin: left center;
-  transition: transform var(--px-enter) var(--px-ease-out);
-}
-@media (hover: hover) and (pointer: fine) {
-  .px-guard:hover::before { transform: scaleX(1); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .px-guard::before { transition: none; }
-}
+/* ═══ Безопасность ═════════════════════════════════════════════════
+   Сетка карточек заменена залипающей сценой (StickyScene): правила
+   .px-guards/.px-guard удалены вместе с ней. */
 
 /* ─── Надпись из точек ──────────────────────────────────────────────
    Холст рисует сам компонент (ParticleHeading). Здесь — только место
@@ -4396,11 +4364,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .px-seam-track {
   display: flex;
   width: max-content;
-  animation: pxSeam 42s linear infinite;
-}
-@keyframes pxSeam {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  will-change: transform;
 }
 .px-seam-item {
   display: inline-flex;
@@ -4414,8 +4378,6 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   line-height: 1;
   white-space: nowrap;
   color: var(--px-text);
-  transform: translateX(var(--seam-shift, 0)) skewX(var(--seam-skew, 0deg));
-  transition: transform 240ms var(--px-ease-out);
 }
 .px-seam-item:nth-child(even) { color: var(--px-accent); }
 .px-seam-dot {
@@ -4428,8 +4390,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 .px-seam-item:nth-child(even) .px-seam-dot { background: var(--px-text); }
 
 @media (prefers-reduced-motion: reduce) {
-  .px-seam-track { animation: none; }
-  .px-seam-item { transform: none; transition: none; }
+  .px-seam-track { transform: none; }
 }
 
 /* ═══ Инженерные метки ═════════════════════════════════════════════
@@ -4548,4 +4509,232 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   font-size: 11px;
   letter-spacing: 0.12em;
   color: var(--px-text-4);
+}
+
+/* ═══ Зона действия первого экрана ═════════════════════════════════
+   Одно действие — одна кнопка. Вход рядом обычной ссылкой: это
+   возврат постоянного клиента, а не второй призыв, и одинаковый вес
+   у них только мешает выбирать. */
+.px-hero-cta { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+
+.px-btn-lg { height: 58px; min-height: 58px; padding: 0 28px; font-size: 16px; }
+
+.px-hero-signin {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--px-text-2);
+  border-bottom: 1px solid var(--px-line-2);
+  transition: color var(--px-fast) var(--px-ease-out), border-color var(--px-fast) var(--px-ease-out);
+}
+.px-hero-signin:hover { color: var(--px-text); border-color: var(--px-accent); }
+.px-hero-signin:focus-visible { outline: 2px solid var(--px-accent); outline-offset: 4px; border-radius: 4px; }
+
+/* Цена стоит там, где о ней спрашивают, — под кнопкой, а не
+   отдельной серой плитой в ряду действий. */
+.px-hero-price {
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--px-text-3);
+}
+.px-hero-price-link {
+  color: var(--px-text);
+  font-weight: 700;
+  border-bottom: 1px solid var(--px-accent-line);
+  transition: color var(--px-fast) var(--px-ease-out);
+}
+.px-hero-price-link:hover { color: var(--px-accent); }
+
+@media (max-width: 479px) {
+  /* На узком экране кнопка занимает строку целиком — иначе рядом со
+     ссылкой она сжимается до неудобного размера. */
+  .px-hero-cta { gap: 14px; }
+  .px-hero-cta > .px-magnetic { width: 100%; }
+  .px-hero-cta .px-btn-lg { width: 100%; }
+}
+
+/* ─── Фоновое поле частиц ──────────────────────────────────────────
+   Закреплено во вьюпорте и лежит под содержимым: пространство за
+   страницей живёт вместе с прокруткой, но ничего не перехватывает. */
+.px-ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ═══ Залипающая сцена шагов ═══════════════════════════════════════
+   Сцена высотой в три экрана, внутри — липкий экран. Прокрутка
+   обычная: липнет CSS, скрипт только считает, какой шаг показывать.
+   Ни одного обработчика колеса — перехват прокрутки в проекте
+   запрещён. */
+.px-steps-section { padding-bottom: 0; }
+
+/* Высоту сцены задаёт компонент (число шагов × stepVh); значение
+   ниже — запасное на случай отключённого JS. */
+.px-steps-scene { height: 300vh; }
+.px-steps-stick {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.px-steps-stage { display: grid; gap: 28px; }
+@media (min-width: 900px) {
+  .px-steps-stage {
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 20px 48px;
+    align-items: center;
+  }
+}
+
+/* ─── Счётчик шагов ───────────────────────────────────────────────── */
+.px-steps-rail { display: flex; gap: 14px; }
+@media (min-width: 900px) { .px-steps-rail { flex-direction: column; gap: 18px; } }
+
+.px-steps-tick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--px-text-4);
+  transition: color var(--px-base) var(--px-ease-out);
+}
+.px-steps-tick > i {
+  display: block;
+  flex: 1;
+  height: 2px;
+  min-width: 26px;
+  border-radius: 2px;
+  background: var(--px-line);
+  overflow: hidden;
+  position: relative;
+}
+/* Полоса активного шага заполняется по ходу самого шага. */
+.px-steps-tick > i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--px-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.px-steps-tick-on { color: var(--px-accent); }
+.px-steps-tick-on > i::after { transform: scaleX(var(--s, 0)); }
+.px-steps-tick-done > i::after { transform: scaleX(1); background: var(--px-line-2); }
+.px-steps-tick-done { color: var(--px-text-3); }
+
+/* ─── Шаги ────────────────────────────────────────────────────────── */
+.px-steps-list { position: relative; margin: 0; padding: 0; list-style: none; min-height: 260px; }
+.px-steps-item {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateY(28px);
+  pointer-events: none;
+  transition:
+    opacity var(--px-block) var(--px-ease-out),
+    transform var(--px-block) var(--px-ease-out);
+}
+.px-steps-item-on { opacity: 1; transform: none; pointer-events: auto; }
+
+.px-steps-icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  background: var(--px-accent-dim);
+  border: 1px solid var(--px-accent-line);
+  color: var(--px-accent);
+}
+.px-steps-title {
+  margin-top: 22px;
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 58px);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+  color: var(--px-text);
+}
+.px-steps-body {
+  margin-top: 16px;
+  max-width: 46ch;
+  font-size: clamp(15px, 1.6vw, 19px);
+  line-height: 1.5;
+  color: var(--px-text-2);
+}
+
+/* Схема шага печатается по ходу: маска открывает строку слева
+   направо вместе с прогрессом внутри шага. */
+.px-steps-hint {
+  display: block;
+  margin-top: 26px;
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 1.4vw, 15px);
+  letter-spacing: 0.04em;
+  color: var(--px-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.px-steps-hint-text {
+  display: inline-block;
+  clip-path: inset(0 calc(100% - var(--s, 0) * 100%) 0 0);
+}
+.px-steps-item-on .px-steps-hint-text::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  margin-left: 4px;
+  vertical-align: -2px;
+  background: var(--px-accent);
+  animation: pxCaret 900ms steps(2) infinite;
+}
+@keyframes pxCaret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+/* Без залипания: экран не удерживается, шаги идут обычным списком. */
+@media (prefers-reduced-motion: reduce) {
+  .px-steps-scene { height: auto; }
+  .px-steps-stick { position: static; height: auto; display: block; padding-block: 40px; }
+  .px-steps-list { min-height: 0; display: grid; gap: 44px; }
+  .px-steps-item { position: static; opacity: 1; transform: none; pointer-events: auto; transition: none; }
+  .px-steps-hint-text { clip-path: none; }
+  .px-steps-item-on .px-steps-hint-text::after { display: none; }
+}
+
+/* Подпись сцены: слева название, справа счётчик шага. */
+.px-steps-caption {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 22px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--px-line);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--px-text-4);
+}
+.px-steps-caption > span { color: var(--px-accent); }
+
+/* Ссылки под сценой безопасности: подробности стоят после сцены,
+   чтобы не спорить с ней за внимание. */
+.px-guard-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  padding-top: 26px;
+  border-top: 1px solid var(--px-line);
 }

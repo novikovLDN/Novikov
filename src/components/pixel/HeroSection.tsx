@@ -8,7 +8,7 @@ import { AnimatedNumber, useParallax } from "./motion";
 import { Magnetic, PixelTrail, useGridTorch, useMouseLayer, usePixelBurst, useScrollScene } from "./effects";
 import ParticleHeading from "./ParticleHeading";
 import { useEffect, useState } from "react";
-import { PLAN_SPEED } from "@/lib/plans";
+import { DEVICE_LIMIT, PLAN_SPEED } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
 
 /**
@@ -132,15 +132,20 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
                 меняется в одно касание, трафик шифруется, скорость не падает.
               </p>
 
-              <div className="px-cta px-reveal mt-8">
-                {/* Главная кнопка страницы тянется к курсору: приём
-                    наградных промо-сайтов, здесь — ровно на одном
-                    элементе, иначе страница начинает шевелиться вся. */}
-                <Magnetic className="w-full">
+              {/* Зона действия.
+                  Было: оранжевая плита во всю колонку, под ней два
+                  равновеликих серых прямоугольника. Три блока одного
+                  веса — читателю приходилось выбирать из трёх равных
+                  вариантов там, где выбор один.
+                  Стало: одно действие кнопкой, вход — обычной
+                  ссылкой рядом (это возврат, а не покупка), цена
+                  вынесена подписью под кнопку, где она и нужна. */}
+              <div className="px-hero-cta px-reveal mt-9">
+                <Magnetic>
                   <Link
                     ref={burstRef}
                     href={primaryHref}
-                    className="px-btn px-btn-xl px-btn-primary px-btn-block px-burst group"
+                    className="px-btn px-btn-lg px-btn-primary px-burst group"
                   >
                     Начать бесплатно
                     <Icon
@@ -150,16 +155,27 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
                     />
                   </Link>
                 </Magnetic>
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <Link href="/pricing" className="px-btn px-btn-md px-btn-secondary">
-                    Тарифы от 199 ₽
-                  </Link>
-                  <Link href="/auth" className="px-btn px-btn-md px-btn-secondary">Войти</Link>
-                </div>
+
+                <Link href="/auth" className="px-hero-signin group">
+                  Войти
+                  <Icon
+                    name="arrow-right"
+                    size={14}
+                    className="transition-transform duration-200 ease-out group-hover:translate-x-0.5"
+                  />
+                </Link>
               </div>
 
-              <ul className="px-friction px-reveal px-float px-float-3 mt-6">
-                {["Три дня бесплатно", "Без карты", "Отмена в один клик"].map((t) => (
+              <p className="px-hero-price px-reveal">
+                Три дня бесплатно, без карты. Дальше —{" "}
+                <Link href="/pricing" className="px-hero-price-link">
+                  от 199 ₽ в месяц
+                </Link>
+                .
+              </p>
+
+              <ul className="px-friction px-reveal mt-5">
+                {["Отмена в один клик", `${DEVICE_LIMIT} устройств`, `${COUNTRY_COUNT} стран`].map((t) => (
                   <li key={t}>
                     <Icon name="check" size={13} className="px-accent" />
                     {t}

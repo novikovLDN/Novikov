@@ -766,3 +766,76 @@ export function useMouseLayer<T extends HTMLElement>(strength = 14) {
 
   return ref;
 }
+
+/**
+ * Ход бегущей строки: собственная скорость плюс прокрутка страницы.
+ *
+ * Было две независимые силы: CSS-анимация двигала ленту сама, а
+ * скролл добавлял ей смещение поверх — в момент прокрутки лента
+ * дёргалась и рвала петлю, потому что обе стороны писали в один и
+ * тот же transform, ничего не зная друг о друге.
+ *
+ * Здесь позиция одна и ведётся в rAF: за кадр к ней прибавляется
+ * собственный ход и толчок от прокрутки, затухающий по инерции.
+ * Прокрутил страницу — лента поехала вместе с ней; остановился —
+ * лента продолжает свой ровный ход.
+ *
+ * Петля замыкается по половине ширины дорожки: состав в разметке
+ * продублирован дважды, поэтому сдвиг на половину не даёт шва.
+ */
+export function useMarqueeFlow<T extends HTMLElement>(pxPerSecond = 46, scrollPush = 2.4) {
+  const ref = useRef<T>(null);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (reduced) {
+      el.style.transform = "none";
+      return;
+    }
+
+    let half = el.scrollWidth / 2;
+    let offset = 0;
+    let velocity = 0;
+    let last = performance.now();
+    let lastScroll = window.scrollY;
+    let frame = 0;
+
+    const measure = () => { half = el.scrollWidth / 2; };
+    let resizeT: ReturnType<typeof setTimeout>;
+    const onResize = () => {
+      clearTimeout(resizeT);
+      resizeT = setTimeout(measure, 160);
+    };
+
+    const step = (t: number) => {
+      // Кадр ограничен сверху: после возврата на вкладку дельта
+      // времени бывает огромной, и лента прыгнула бы через пол-экрана.
+      const dt = Math.min(64, t - last) / 1000;
+      last = t;
+
+      const y = window.scrollY;
+      velocity = velocity * 0.86 + (y - lastScroll) * scrollPush;
+      lastScroll = y;
+
+      offset += (pxPerSecond + velocity) * dt;
+      if (half > 0) offset = ((offset % half) + half) % half;
+      el.style.transform = `translate3d(${(-offset).toFixed(2)}px, 0, 0)`;
+
+      frame = requestAnimationFrame(step);
+    };
+
+    measure();
+    frame = requestAnimationFrame(step);
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", onResize);
+      clearTimeout(resizeT);
+    };
+  }, [pxPerSecond, scrollPush, reduced]);
+
+  return ref;
+}

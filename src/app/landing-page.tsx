@@ -9,6 +9,7 @@ import ChannelSection from "@/components/pixel/ChannelSection";
 import SecuritySection from "@/components/pixel/SecuritySection";
 import KineticSeam from "@/components/pixel/KineticSeam";
 import ScrollLayer from "@/components/pixel/ScrollLayer";
+import AmbientField from "@/components/pixel/AmbientField";
 import HowItWorksSection from "@/components/pixel/HowItWorksSection";
 import DevicesSection from "@/components/pixel/DevicesSection";
 import PricingSection from "@/components/pixel/PricingSection";
@@ -64,6 +65,9 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
       {/* Каркас колонок виден как элемент оформления: приём
           редакционно-технических страниц, где сетка не прячется. */}
       <div className="px-frame" aria-hidden />
+      {/* Пространство по краям живёт вместе с прокруткой: частицы
+          летят навстречу движению страницы. */}
+      <AmbientField />
       <ScrollProgress />
       <SiteHeader />
       <main>
