@@ -23,6 +23,10 @@ import { PLAN_CONTENT, PLAN_SPEED, type PlanId } from "@/lib/plans";
  * Шкалы растут при появлении в кадре. Анимируется только transform
  * (scaleX), поэтому рост полосы не вызывает пересчёт раскладки. Без
  * JS полосы отрисованы сразу заполненными — см. `.px-gauge-fill`.
+ *
+ * Число вынесено вперёд и набрано в размер иллюстрации: на витрине,
+ * где вся суть в одной цифре, она должна читаться раньше текста.
+ * Подпись тарифа и пояснение выстроены вокруг неё, а не над ней.
  */
 const ORDER: PlanId[] = ["basic", "plus"];
 
@@ -60,10 +64,13 @@ export default function ChannelSection() {
             <li key={id} className="px-gauge px-spot px-reveal" style={{ ["--px-delay" as string]: `${i * 120}ms` }}>
               <div className="px-gauge-head">
                 <span className="px-tag">{PLAN_CONTENT[id].name}</span>
-                <p className="px-gauge-value px-num">
-                  <AnimatedNumber value={PLAN_SPEED[id]} suffix=" Гбит/с" />
-                </p>
+                <span className="px-gauge-order">{`0${i + 1}`}</span>
               </div>
+
+              <p className={`px-figure-xl mt-4${id === "plus" ? " px-figure-xl-accent" : ""}`}>
+                <AnimatedNumber value={PLAN_SPEED[id]} />
+                <span className="px-figure-unit">Гбит/с</span>
+              </p>
 
               <div className="px-gauge-track" aria-hidden>
                 <span

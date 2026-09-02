@@ -4494,3 +4494,58 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
     scroll-snap-align: start;
   }
 }
+
+/* ═══ Расхождение слоёв в секциях ══════════════════════════════════
+   Прогресс прокрутки секции приходит переменной --p (0…1) от
+   ScrollLayer. Заголовок отстаёт от содержимого — между планами
+   появляется глубина, а страница перестаёт ехать одним куском.
+
+   Смещения намеренно мелкие: это фон восприятия, а не аттракцион,
+   и текст не должен «плавать» под читающим глазом. */
+.px-layer .px-head {
+  transform: translate3d(0, calc(var(--p, 0) * -26px), 0);
+  will-change: transform;
+}
+.px-layer .px-head-aside {
+  transform: translate3d(0, calc(var(--p, 0) * -12px), 0);
+}
+
+/* ═══ Ступенчатый заголовок секции ═════════════════════════════════
+   Вторая строка сдвигается вправо: ровный левый край — то, из-за
+   чего секции читаются как один типовой блок за другим. */
+.px-head-title span:nth-child(2) { margin-left: clamp(14px, 4vw, 92px); }
+
+/* ═══ Крупные числа ════════════════════════════════════════════════
+   Цифра как основной элемент кадра, подписи — вокруг неё. Приём
+   редакционных разворотов: число читается раньше текста. */
+.px-figure-xl {
+  font-family: var(--font-mts-wide);
+  font-weight: 700;
+  font-size: clamp(56px, 11vw, 132px);
+  line-height: 0.86;
+  letter-spacing: -0.05em;
+  color: var(--px-text);
+  font-variant-numeric: tabular-nums;
+}
+.px-figure-xl-accent { color: var(--px-accent); }
+.px-figure-unit {
+  font-size: clamp(14px, 1.6vw, 20px);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--px-text-3);
+  margin-left: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .px-layer .px-head,
+  .px-layer .px-head-aside { transform: none; }
+}
+
+/* Номер шкалы — служебная метка, а не заголовок: моноширинный,
+   мелкий, у правого края. */
+.px-gauge-order {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--px-text-4);
+}

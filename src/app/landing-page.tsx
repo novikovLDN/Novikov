@@ -8,6 +8,7 @@ import BenefitsSection from "@/components/pixel/BenefitsSection";
 import ChannelSection from "@/components/pixel/ChannelSection";
 import SecuritySection from "@/components/pixel/SecuritySection";
 import KineticSeam from "@/components/pixel/KineticSeam";
+import ScrollLayer from "@/components/pixel/ScrollLayer";
 import HowItWorksSection from "@/components/pixel/HowItWorksSection";
 import DevicesSection from "@/components/pixel/DevicesSection";
 import PricingSection from "@/components/pixel/PricingSection";
@@ -68,18 +69,21 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
       <main>
         <HeroSection primaryHref={primaryHref} />
         <TrustBand />
-        <BenefitsSection />
-        <ChannelSection />
+        {/* Каждая секция расходится слоями на собственной прокрутке:
+            заголовок отстаёт от содержимого, между планами появляется
+            глубина. Прогресс считает один слушатель на секцию. */}
+        <ScrollLayer><BenefitsSection /></ScrollLayer>
+        <ScrollLayer><ChannelSection /></ScrollLayer>
 
         {/* Шов между «сколько даём» и «кто отвечает»: крупная строка
             фактов вместо пустой отбивки. */}
         <KineticSeam />
 
-        <SecuritySection />
-        <HowItWorksSection />
-        <DevicesSection />
-        <PricingSection />
-        <LocationsSection />
+        <ScrollLayer><SecuritySection /></ScrollLayer>
+        <ScrollLayer><HowItWorksSection /></ScrollLayer>
+        <ScrollLayer><DevicesSection /></ScrollLayer>
+        <ScrollLayer><PricingSection /></ScrollLayer>
+        <ScrollLayer><LocationsSection /></ScrollLayer>
       </main>
 
       <SiteOutro primaryHref={primaryHref} />
