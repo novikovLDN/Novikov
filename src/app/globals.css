@@ -4382,3 +4382,115 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .px-hero-rail { transform: none; opacity: 1; }
   .px-hero::before { transform: none; }
 }
+
+/* ═══ Кинетический шов ═════════════════════════════════════════════
+   Крупная строка фактов вместо пустой отбивки между секциями. Едет
+   постоянно, ускоряется вместе с прокруткой и слегка наклоняется по
+   ходу движения. */
+.px-seam {
+  overflow: hidden;
+  padding-block: clamp(18px, 3vw, 34px);
+  border-block: 1px solid var(--px-line);
+  background: var(--px-surface);
+}
+.px-seam-track {
+  display: flex;
+  width: max-content;
+  animation: pxSeam 42s linear infinite;
+}
+@keyframes pxSeam {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.px-seam-item {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(20px, 3vw, 46px);
+  padding-right: clamp(20px, 3vw, 46px);
+  font-family: var(--font-mts-wide);
+  font-size: clamp(28px, 6vw, 74px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--px-text);
+  transform: translateX(var(--seam-shift, 0)) skewX(var(--seam-skew, 0deg));
+  transition: transform 240ms var(--px-ease-out);
+}
+.px-seam-item:nth-child(even) { color: var(--px-accent); }
+.px-seam-dot {
+  width: clamp(8px, 1.2vw, 14px);
+  height: clamp(8px, 1.2vw, 14px);
+  border-radius: 3px;
+  background: var(--px-accent);
+  flex-shrink: 0;
+}
+.px-seam-item:nth-child(even) .px-seam-dot { background: var(--px-text); }
+
+@media (prefers-reduced-motion: reduce) {
+  .px-seam-track { animation: none; }
+  .px-seam-item { transform: none; transition: none; }
+}
+
+/* ═══ Инженерные метки ═════════════════════════════════════════════
+   Номера разделов и подписи показаний набраны моноширинным: приём
+   редакционно-технических сайтов, который отделяет служебный слой от
+   содержательного. Шрифт уже объявлен в палитре (--font-mono). */
+.px-rail-index,
+.px-rail-metric-label,
+.px-figure-label,
+.px-map-chip-code,
+.dv2-eyebrow {
+  font-family: var(--font-mono);
+}
+
+/* ═══ Каркас сетки ═════════════════════════════════════════════════
+   Тонкие вертикальные линии колонок, видимые на всю страницу, —
+   каркас как элемент оформления, а не как разметка «на глаз». Живут
+   в фоне и не перехватывают указатель. */
+.px-frame {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+@media (min-width: 1024px) {
+  .px-frame {
+    display: block;
+    background-image: repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc(100% / 6 - 1px),
+      var(--px-line) calc(100% / 6 - 1px),
+      var(--px-line) calc(100% / 6)
+    );
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 88%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 12%, #000 88%, transparent 100%);
+    opacity: 0.6;
+  }
+}
+
+/* ─── Устройства: лента на телефоне ────────────────────────────────
+   До 640px bento разворачивается в горизонтальную ленту с
+   прилипанием. Прокрутка остаётся обычной: колесо и жест не
+   перехватываются. */
+@media (max-width: 639px) {
+  .px-devices {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    /* Лента выходит за поля страницы и снова в них возвращается —
+       карточки не обрываются на краю, а уезжают за него. */
+    margin-inline: calc(var(--px-gutter) * -1);
+    padding-inline: var(--px-gutter);
+    padding-bottom: 6px;
+    scrollbar-width: none;
+  }
+  .px-devices::-webkit-scrollbar { display: none; }
+  .px-devices > li {
+    flex: 0 0 72%;
+    scroll-snap-align: start;
+  }
+}

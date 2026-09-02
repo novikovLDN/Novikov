@@ -7,6 +7,7 @@ import TrustBand from "@/components/pixel/TrustBand";
 import BenefitsSection from "@/components/pixel/BenefitsSection";
 import ChannelSection from "@/components/pixel/ChannelSection";
 import SecuritySection from "@/components/pixel/SecuritySection";
+import KineticSeam from "@/components/pixel/KineticSeam";
 import HowItWorksSection from "@/components/pixel/HowItWorksSection";
 import DevicesSection from "@/components/pixel/DevicesSection";
 import PricingSection from "@/components/pixel/PricingSection";
@@ -59,6 +60,9 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
   return (
     <div className="px-page">
       <div className="px-grid-bg" aria-hidden />
+      {/* Каркас колонок виден как элемент оформления: приём
+          редакционно-технических страниц, где сетка не прячется. */}
+      <div className="px-frame" aria-hidden />
       <ScrollProgress />
       <SiteHeader />
       <main>
@@ -66,6 +70,11 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
         <TrustBand />
         <BenefitsSection />
         <ChannelSection />
+
+        {/* Шов между «сколько даём» и «кто отвечает»: крупная строка
+            фактов вместо пустой отбивки. */}
+        <KineticSeam />
+
         <SecuritySection />
         <HowItWorksSection />
         <DevicesSection />

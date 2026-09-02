@@ -8,6 +8,12 @@ import SectionHeading from "./SectionHeading";
  * получают имя приложения, остальные — по одной. Сетка заполняется без
  * «дырок» на каждом брейкпоинте: 2 колонки → 3 → 6.
  *
+ * На телефоне сетка разворачивается в горизонтальную ленту с
+ * прилипанием: пять карточек в два столбца заставляли прокручивать
+ * пол-экрана, а лента показывает их одним движением большого пальца.
+ * Прокрутка обычная, без перехвата колеса — scroll-jacking из
+ * трендов 2026 года как раз вымывается.
+ *
  * Список и названия приложений синхронизированы с
  * src/app/devices/page.tsx — единственным источником правды о
  * поддержке. Для Android там первым идёт V2RayTun, а не Happ. Прошлые версии лендинга рекламировали
@@ -42,7 +48,7 @@ export default function DevicesSection() {
           action={{ label: "Инструкции по настройке", href: "/devices" }}
         />
 
-        <ul className="px-stagger grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 lg:grid-rows-[repeat(2,minmax(172px,auto))] gap-3 sm:gap-4">
+        <ul className="px-devices px-stagger grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 lg:grid-rows-[repeat(2,minmax(172px,auto))] gap-3 sm:gap-4">
           {PLATFORMS.map((p) => (
             <li key={p.name} className={`px-reveal ${p.span}`}>
               <article className="px-card px-device group relative overflow-hidden h-full min-h-[152px] p-5 sm:p-6 flex flex-col justify-between">
