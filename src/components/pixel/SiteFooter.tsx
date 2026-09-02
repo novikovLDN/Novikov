@@ -42,7 +42,11 @@ const COLUMNS: Array<{ title: string; links: Array<{ label: string; href: string
 ];
 
 export default function SiteFooter() {
+  /* Год основания фиксирован, текущий считается: копирайт не должен
+     устаревать первого января. */
+  const FOUNDED = 2016;
   const year = new Date().getFullYear();
+  const span = year > FOUNDED ? `${FOUNDED}\u2013${year}` : String(FOUNDED);
 
   return (
     <footer className="px-footer">
@@ -76,7 +80,7 @@ export default function SiteFooter() {
         </div>
 
         <div className="px-footer-bottom">
-          <span className="px-num">© {year} Atlas Secure</span>
+          <span className="px-num">© {span} Atlas Secure</span>
           <span aria-hidden className="hidden sm:inline">·</span>
           <span>HQ: Hong Kong SAR</span>
           <span className="sm:ml-auto">Работает на любом устройстве</span>
