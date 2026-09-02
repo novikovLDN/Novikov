@@ -5,7 +5,7 @@ import AccountPreview from "./AccountPreview";
 import Icon from "./Icon";
 import { MiniCubes } from "./CubeCluster";
 import { AnimatedNumber, useParallax } from "./motion";
-import { Magnetic, PixelTrail, SplitText, useGridTorch, useTilt } from "./effects";
+import { Magnetic, PixelTrail, SplitText, useGridTorch, usePixelBurst, useTilt } from "./effects";
 import { PLAN_SPEED } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
 
@@ -54,6 +54,7 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
   const artRef = useParallax<HTMLDivElement>(0.045);
   const tiltRef = useTilt<HTMLDivElement>(4);
   const torchRef = useGridTorch<HTMLElement>();
+  const burstRef = usePixelBurst<HTMLAnchorElement>();
 
   return (
     <section ref={torchRef} className="px-hero" aria-labelledby="hero-title">
@@ -100,7 +101,11 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
                     наградных промо-сайтов, здесь — ровно на одном
                     элементе, иначе страница начинает шевелиться вся. */}
                 <Magnetic className="w-full">
-                  <Link href={primaryHref} className="px-btn px-btn-xl px-btn-primary px-btn-block group">
+                  <Link
+                    ref={burstRef}
+                    href={primaryHref}
+                    className="px-btn px-btn-xl px-btn-primary px-btn-block px-burst group"
+                  >
                     Начать бесплатно
                     <Icon
                       name="arrow-right"

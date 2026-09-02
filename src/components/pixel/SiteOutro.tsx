@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import Icon from "./Icon";
 import SiteFooter from "./SiteFooter";
 import CubeCluster from "./CubeCluster";
+import { Magnetic, usePixelBurst } from "./effects";
 
 /**
  * Финальная зона: призыв и футер.
@@ -35,6 +38,8 @@ export default function SiteOutro({
   title?: string[];
   lede?: string;
 }) {
+  const burstRef = usePixelBurst<HTMLAnchorElement>();
+
   return (
     <>
       <section className="px-section" aria-labelledby="final-title">
@@ -52,14 +57,20 @@ export default function SiteOutro({
               <p className="px-lede mt-5">{lede}</p>
 
               <div className="px-cta mt-8">
-                <Link href={primaryHref} className="px-btn px-btn-xl px-btn-primary px-btn-block group">
-                  Создать аккаунт
-                  <Icon
-                    name="arrow-right"
-                    size={18}
-                    className="transition-transform duration-200 ease-out group-hover:translate-x-1"
-                  />
-                </Link>
+                <Magnetic className="w-full">
+                  <Link
+                    ref={burstRef}
+                    href={primaryHref}
+                    className="px-btn px-btn-xl px-btn-primary px-btn-block px-burst group"
+                  >
+                    Создать аккаунт
+                    <Icon
+                      name="arrow-right"
+                      size={18}
+                      className="transition-transform duration-200 ease-out group-hover:translate-x-1"
+                    />
+                  </Link>
+                </Magnetic>
                 <div className="grid grid-cols-2 gap-3 mt-3">
                   <Link href="/pricing" className="px-btn px-btn-md px-btn-secondary">Тарифы</Link>
                   <Link href="/support" className="px-btn px-btn-md px-btn-secondary">Поддержка</Link>

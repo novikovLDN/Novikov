@@ -631,3 +631,49 @@ export function useGridTorch<T extends HTMLElement>() {
 
   return ref;
 }
+
+/**
+ * Вспышка пикселей по нажатию.
+ *
+ * Из точки нажатия разлетаются квадраты той же сетки — отклик на
+ * действие, а не самостоятельная анимация: она начинается ровно
+ * там, где палец коснулся кнопки, и живёт полсекунды.
+ *
+ * Узлы создаются на время полёта и убираются по окончании анимации:
+ * держать в разметке два десятка пустых span-ов ради эффекта,
+ * который случается раз в сеанс, незачем.
+ */
+export function usePixelBurst<T extends HTMLElement>(count = 14) {
+  const ref = useRef<T>(null);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || reduced) return;
+
+    const onDown = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+
+      for (let i = 0; i < count; i++) {
+        const dot = document.createElement("span");
+        dot.className = "px-burst-dot";
+        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+        const dist = 26 + Math.random() * 42;
+        dot.style.left = `${x}px`;
+        dot.style.top = `${y}px`;
+        dot.style.setProperty("--dx", `${Math.cos(angle) * dist}px`);
+        dot.style.setProperty("--dy", `${Math.sin(angle) * dist}px`);
+        dot.style.animationDelay = `${Math.random() * 40}ms`;
+        dot.addEventListener("animationend", () => dot.remove(), { once: true });
+        el.appendChild(dot);
+      }
+    };
+
+    el.addEventListener("pointerdown", onDown);
+    return () => el.removeEventListener("pointerdown", onDown);
+  }, [count, reduced]);
+
+  return ref;
+}

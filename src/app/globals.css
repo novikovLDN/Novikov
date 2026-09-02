@@ -4021,3 +4021,67 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .px-split-ch { animation: none; }
   .px-hero-torch { display: none; }
 }
+
+/* ─── Вспышка пикселей по нажатию ──────────────────────────────────
+   Квадраты разлетаются из точки касания и гаснут. Узлы создаёт и
+   убирает JS (usePixelBurst), здесь — только полёт. */
+.px-burst { position: relative; overflow: hidden; }
+.px-burst-dot {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: -2px 0 0 -2px;
+  pointer-events: none;
+  background: currentColor;
+  opacity: 0.9;
+  animation: pxBurst 520ms var(--px-ease-out) forwards;
+}
+@keyframes pxBurst {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: 0.9; }
+  to   { transform: translate3d(var(--dx), var(--dy), 0) scale(0.4); opacity: 0; }
+}
+
+/* ─── Кубики-буллеты оживают под курсором ──────────────────────────
+   Мини-кластер повторяет мотив крупных кубиков: при наведении на
+   надзаголовок квадраты по очереди перескакивают и возвращаются. */
+@media (hover: hover) and (pointer: fine) {
+  .px-head:hover .px-mini > span,
+  .px-status:hover .px-mini > span {
+    animation: pxMiniHop 620ms var(--px-ease-out);
+  }
+  .px-head:hover .px-mini > span:nth-child(2),
+  .px-status:hover .px-mini > span:nth-child(2) { animation-delay: 70ms; }
+  .px-head:hover .px-mini > span:nth-child(3),
+  .px-status:hover .px-mini > span:nth-child(3) { animation-delay: 140ms; }
+  .px-head:hover .px-mini > span:nth-child(4),
+  .px-status:hover .px-mini > span:nth-child(4) { animation-delay: 210ms; }
+}
+@keyframes pxMiniHop {
+  0%   { transform: translateY(0) scale(1); }
+  45%  { transform: translateY(-4px) scale(1.15); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* ─── Лента локаций реагирует на курсор ────────────────────────────
+   Наведённый пункт подсвечивается акцентом: лента перестаёт быть
+   витриной «для фона» и отзывается на внимание. */
+@media (hover: hover) and (pointer: fine) {
+  .px-marquee:hover .px-marquee-track { animation-play-state: paused; }
+  .px-marquee-item:hover { color: var(--px-text); }
+  .px-marquee-item:hover .px-marquee-code { color: var(--px-accent); }
+}
+
+/* ─── Линия секции прочерчивается ──────────────────────────────────
+   Полоса рядом с номером раздела вырастает слева направо, когда
+   заголовок появляется в кадре. */
+.px-js .px-reveal .px-rail-line { transform: scaleX(0); transform-origin: left center; }
+.px-js .px-reveal.px-in .px-rail-line {
+  transform: scaleX(1);
+  transition: transform var(--px-block) var(--px-ease-out);
+  transition-delay: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .px-burst-dot { display: none; }
+  .px-js .px-reveal .px-rail-line { transform: none; }
+}
