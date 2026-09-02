@@ -2467,11 +2467,11 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   flex: 1;
   display: flex;
   align-items: center;
-  padding-top: calc(var(--px-header-h) + 40px);
-  padding-bottom: 48px;
+  padding-top: calc(var(--px-header-h) + 24px);
+  padding-bottom: 28px;
 }
 @media (min-width: 640px) {
-  .px-hero-body { padding-top: calc(var(--px-header-h) + 56px); padding-bottom: 64px; }
+  .px-hero-body { padding-top: calc(var(--px-header-h) + 34px); padding-bottom: 34px; }
 }
 
 .px-hero-title {
@@ -4328,19 +4328,11 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   align-items: center;
   gap: 10px;
 }
-@media (min-width: 1024px) {
-  .px-hero-vertical {
-    position: absolute;
-    left: -18px;
-    top: 8px;
-    transform: rotate(180deg) translateY(-100%);
-    transform-origin: left top;
-    writing-mode: vertical-rl;
-    white-space: nowrap;
-  }
-  .px-hero-vertical .px-status-dot { transform: rotate(180deg); }
-  /* Колонка заголовка становится системой координат для метки. */
-  .px-hero-body .grid > div:first-child { position: relative; }
+/* Метка идёт строкой над заголовком: в новом кадре заголовок занимает
+   всю ширину, и вертикальной колонки для метки не осталось. */
+.px-hero-vertical {
+  margin-bottom: clamp(14px, 2vw, 22px);
+  color: var(--px-text-4);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4737,4 +4729,92 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   gap: 12px 28px;
   padding-top: 26px;
   border-top: 1px solid var(--px-line);
+}
+
+/* ═══ Первый экран: сборка кадра ═══════════════════════════════════
+   Вход — одна волна: слои поднимаются снизу со своими задержками.
+   Анимация, а не переход по классу: кадр должен собраться сразу при
+   загрузке, не дожидаясь наблюдателя пересечений. */
+.px-hero-in {
+  animation: pxHeroIn 760ms var(--px-ease-out) both;
+  animation-delay: var(--px-delay, 0ms);
+}
+@keyframes pxHeroIn {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Заголовок занимает всю ширину контейнера: это и есть масштаб.
+   Отдельные ограничения ширины сняты — точки сами упираются в край. */
+.px-hero-dots { width: 100%; }
+
+/* Низ кадра: слева действие, справа приборная сцена. На узком
+   экране сцена уходит под действие. */
+.px-hero-floor {
+  display: grid;
+  gap: 28px;
+  margin-top: clamp(24px, 4vw, 44px);
+}
+@media (min-width: 1024px) {
+  .px-hero-floor {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 38%);
+    gap: 40px;
+    align-items: end;
+  }
+}
+
+.px-hero-claim {
+  max-width: 30ch;
+  font-size: clamp(17px, 1.9vw, 22px);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  color: var(--px-text-2);
+  text-wrap: balance;
+}
+.px-hero-cta { margin-top: clamp(18px, 2.4vw, 26px); }
+
+/* Сцена ужимается: в новом кадре она приборная деталь, а не второй
+   центр внимания рядом с заголовком. Подпись под графиком здесь
+   лишняя — она объясняла карточку, когда та была главной. */
+.px-hero-stage .px-stage { padding: 0; }
+.px-hero-stage .px-stage-card { padding: 14px 16px; }
+.px-hero-stage .px-stage-route { margin-top: 16px; }
+.px-hero-stage .px-stage-node { width: 32px; height: 32px; border-radius: 10px; }
+.px-hero-stage .px-stage-chart { height: 38px; margin-top: 14px; padding-top: 12px; }
+.px-hero-stage .px-stage-latency { font-size: clamp(24px, 2.6vw, 30px); }
+.px-hero-stage .px-stage-figures { gap: 12px 20px; margin-top: 14px; }
+.px-hero-stage .px-stage-country { margin-top: 6px; font-size: 13px; }
+.px-hero-stage .px-stage-route-label { margin-top: 10px; font-size: 12px; }
+.px-hero-stage .px-stage-foot { display: none; }
+.px-hero-stage .px-stage-grid { inset: 0 0 18px 18px; }
+.px-hero-stage .px-stage-back { inset: 6px 12px 12px 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .px-hero-in { animation: none; }
+}
+
+/* ═══ Нативные scroll-driven анимации ══════════════════════════════
+   Там, где браузер умеет `animation-timeline: view()`, проявление
+   секций считает он сам — без наблюдателя, без rAF и без единого
+   слушателя. Правило добавочное: в браузерах без поддержки остаётся
+   прежний механизм на IntersectionObserver, и содержимое в любом
+   случае видно. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .px-js .px-reveal {
+      opacity: 1;
+      transform: none;
+      animation: pxViewIn linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 26%;
+    }
+    /* Класс от наблюдателя больше ничего не решает: анимацию ведёт
+       таймлайн, и повторного показа не происходит. */
+    .px-js .px-reveal.px-in { animation: pxViewIn linear both; }
+  }
+}
+@keyframes pxViewIn {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: none; }
 }
