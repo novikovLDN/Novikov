@@ -19,10 +19,11 @@ import { useReducedMotion } from "./motion";
  * (телефоны и узкие планшеты), поле не рисуется вовсе — частицы
  * налезали бы на текст.
  *
- * В покое частицы едва различимы, но стоит странице поехать — они
- * вытягиваются в штрихи по направлению движения и набирают яркость.
- * Скорость читается именно по следу: точка того же размера,
- * двигаясь быстро, выглядит просто мигающей.
+ * В покое частицы едва различимы; когда страница едет, они плавно
+ * набирают ход и яркость. Вытягивать их в штрихи по направлению
+ * движения я пробовал — на боковых полях это читается как полосы
+ * помех и тянет взгляд из колонки с текстом. Осталась точка: она
+ * ускоряется и слегка светлеет, но формы не меняет.
  *
  * Canvas и один rAF: полторы сотни квадратов в DOM обошлись бы
  * дороже, чем весь остальной motion-слой вместе взятый.
@@ -95,6 +96,7 @@ export default function AmbientField() {
     let last = performance.now();
     let lastScroll = window.scrollY;
     let push = 0;
+    let glow = 0;
     let frame = 0;
 
     const draw = (t: number) => {
@@ -103,8 +105,9 @@ export default function AmbientField() {
       last = t;
 
       const y = window.scrollY;
-      // Прокрутка вниз гонит частицы вверх — среда идёт навстречу.
-      push = push * 0.9 - (y - lastScroll) * 4.2;
+      /* Толчок от прокрутки и затухание намеренно мягкие: резкий
+         отклик превращал поле в мигающие полосы, а не в среду. */
+      push = push * 0.93 - (y - lastScroll) * 1.6;
       lastScroll = y;
 
       if (!dots.length) return;
@@ -112,26 +115,21 @@ export default function AmbientField() {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, w, h);
 
-      // След тем длиннее, чем быстрее едет страница; в покое его нет.
-      const trail = Math.min(70, Math.abs(push) * 0.5);
-      const boost = Math.min(0.5, Math.abs(push) / 220);
+      // Яркость подтягивается к цели, а не прыгает за скоростью:
+      // глаз замечает мерцание раньше, чем само движение.
+      const target = Math.min(0.2, Math.abs(push) / 420);
+      glow += (target - glow) * 0.08;
 
       for (const d of dots) {
-        const step = (d.speed + push) * dt;
-        d.y -= step;
-        if (d.y < -40) d.y = h + 40;
-        else if (d.y > h + 40) d.y = -40;
+        d.y -= (d.speed + push) * dt;
+        if (d.y < -24) d.y = h + 24;
+        else if (d.y > h + 24) d.y = -24;
 
-        const alpha = Math.min(0.85, d.alpha + boost);
+        const alpha = Math.min(0.6, d.alpha + glow);
         ctx.fillStyle = d.accent
-          ? `rgba(255, 107, 69, ${alpha + 0.1})`
+          ? `rgba(255, 107, 69, ${alpha + 0.08})`
           : `rgba(${ink}, ${alpha})`;
-
-        // Штрих рисуется по ходу движения: вниз, когда страница едет
-        // вверх, и наоборот.
-        const len = d.size + trail * (0.5 + d.speed / 60);
-        const top = push > 0 ? d.y : d.y - (len - d.size);
-        ctx.fillRect(d.x, top, d.size, len);
+        ctx.fillRect(d.x, d.y, d.size, d.size);
       }
     };
 
