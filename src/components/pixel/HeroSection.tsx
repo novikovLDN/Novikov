@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import HeroStage from "./HeroStage";
 import Icon from "./Icon";
-import ParticleHeading from "./ParticleHeading";
 import { AnimatedNumber, useParallax } from "./motion";
 import {
   Magnetic,
   PixelTrail,
+  SplitText,
   useGridTorch,
   useMouseLayer,
   usePixelBurst,
@@ -20,25 +19,19 @@ import { COUNTRY_COUNT } from "@/lib/locations";
 /**
  * Первый экран.
  *
- * Задача кадра — не рассказать, а открыть. Поэтому здесь ровно
- * четыре вещи: заголовок во всю ширину, одна строка смысла, одно
- * действие и приборная полоса внизу. Всё остальное — лид на три
- * строки, второй и третий призывы, список из трёх обещаний — уехало
- * ниже по странице, где у читателя уже есть вопрос, на который это
- * отвечает.
+ * Заголовок набирается обычным шрифтом, а не точками. Точечная
+ * версия выглядела эффектно на скриншоте, но читать её приходилось
+ * по буквам: главное сообщение сайта оказалось самым трудным для
+ * чтения местом на экране. Эффект остался там, где он не мешает
+ * пониманию, — на декоративном слове в секции безопасности.
  *
- * Заголовок набран точками той же сетки, что и фон: строки
- * собираются из разлетевшихся частиц, дышат в покое и расступаются
- * под курсором. Он занимает всю ширину контейнера, а не семь колонок
- * из двенадцати — в этом и есть масштаб.
+ * Оживление никуда не делось: знаки поднимаются по одному при
+ * входе, курсор будит сетку и рассыпает пиксели, слои расходятся на
+ * прокрутке. Но всё это работает вокруг текста, а не вместо него.
  *
- * Сцена соединения ушла из соседней колонки вниз, к полосе
- * показаний: пока читатель смотрит на заголовок, справа не должно
- * быть второго центра внимания.
- *
- * Вход кадра — одна волна: сетка проявляется, заголовок собирается,
- * действие и полоса въезжают снизу. Каждый слой со своей задержкой
- * (`--px-delay`), движение только по transform и opacity.
+ * Кадр — две колонки: слева обещание и действие, справа приборная
+ * сцена. Заголовок во всю ширину с дырой посередине разваливал экран
+ * на две несвязанные половины.
  */
 interface HeroSectionProps {
   primaryHref: string;
@@ -61,24 +54,6 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
   const artRef = useParallax<HTMLDivElement>(0.03);
   const burstRef = usePixelBurst<HTMLAnchorElement>();
 
-  /* Потолок высоты холста заголовка. Кегль внутри общий и упирается
-     в длину самой длинной строки, поэтому на широком экране
-     заголовок берёт всю ширину контейнера. */
-  const [lineH, setLineH] = useState(360);
-  useEffect(() => {
-    const pick = () => {
-      const w = window.innerWidth;
-      /* Потолок подобран так, чтобы весь кадр — заголовок, действие,
-         сцена и полоса показаний — помещался в один экран: ради
-         крупного заголовка выталкивать показания за край нельзя. */
-      const byHeight = Math.round(window.innerHeight * 0.3);
-      setLineH(Math.min(byHeight, w < 480 ? 190 : w < 768 ? 240 : w < 1280 ? 280 : 320));
-    };
-    pick();
-    window.addEventListener("resize", pick, { passive: true });
-    return () => window.removeEventListener("resize", pick);
-  }, []);
-
   return (
     <section
       ref={(node) => {
@@ -93,33 +68,36 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
 
       <div className="px-hero-body">
         <div className="px-shell w-full">
-          <p className="px-hero-vertical px-hero-in" style={{ ["--px-delay" as string]: "80ms" }}>
-            <span className="px-status-dot" aria-hidden />
-            <span className="px-eyebrow">Ускоритель интернета · сеть работает штатно</span>
-          </p>
+          <div className="px-hero-grid">
+            <div className="px-hero-copy">
+              <p className="px-hero-vertical px-hero-in" style={{ ["--px-delay" as string]: "60ms" }}>
+                <span className="px-status-dot" aria-hidden />
+                <span className="px-eyebrow">Ускоритель интернета · сеть работает штатно</span>
+              </p>
 
-          <h1
-            id="hero-title"
-            className="px-hero-title px-hero-dots px-hero-in"
-            style={{ ["--px-delay" as string]: "160ms" }}
-          >
-            <ParticleHeading
-              text={["Открывает", "интернет", "без просадок"]}
-              accentLine={2}
-              offsets={[0, 0.16, 0.07]}
-              height={lineH}
-              align="left"
-              idle
-            />
-          </h1>
+              {/* Знаки поднимаются по одному: текст собирается на
+                  глазах, но остаётся текстом. Фраза целиком уходит в
+                  aria-label — дубля строки в разметке нет. */}
+              <h1
+                id="hero-title"
+                className="px-hero-title px-hero-in"
+                style={{ ["--px-delay" as string]: "140ms" }}
+                aria-label="Открывает интернет без просадок"
+              >
+                <SplitText text="Открывает" />
+                <span className="px-hero-line-2">
+                  <SplitText text="интернет" delay={260} />
+                </span>
+                <span className="px-hero-line-3 px-accent">
+                  <SplitText text="без просадок" delay={520} />
+                </span>
+              </h1>
 
-          <div className="px-hero-floor">
-            <div className="px-hero-act px-hero-in" style={{ ["--px-delay" as string]: "320ms" }}>
-              <p className="px-hero-claim">
+              <p className="px-hero-claim px-hero-in" style={{ ["--px-delay" as string]: "320ms" }}>
                 Заблокированные сайты открываются снова — на всех устройствах сразу.
               </p>
 
-              <div className="px-hero-cta">
+              <div className="px-hero-cta px-hero-in" style={{ ["--px-delay" as string]: "400ms" }}>
                 <Magnetic>
                   <Link
                     ref={burstRef}
@@ -145,7 +123,7 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
                 </Link>
               </div>
 
-              <p className="px-hero-price">
+              <p className="px-hero-price px-hero-in" style={{ ["--px-delay" as string]: "470ms" }}>
                 Три дня бесплатно, без карты. Дальше{" "}
                 <Link href="/pricing" className="px-hero-price-link">
                   от 199 ₽ в месяц
@@ -154,7 +132,7 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
               </p>
             </div>
 
-            <div className="px-hero-stage px-hero-in" style={{ ["--px-delay" as string]: "420ms" }}>
+            <div className="px-hero-stage px-hero-in" style={{ ["--px-delay" as string]: "540ms" }}>
               <div ref={artRef}>
                 <div ref={stageRef} className="px-hero-stage-layer">
                   <HeroStage />
@@ -165,7 +143,7 @@ export default function HeroSection({ primaryHref }: HeroSectionProps) {
         </div>
       </div>
 
-      <div className="px-hero-rail px-hero-in" style={{ ["--px-delay" as string]: "520ms" }}>
+      <div className="px-hero-rail px-hero-in" style={{ ["--px-delay" as string]: "620ms" }}>
         <div className="px-shell">
           <dl className="px-rail-metrics">
             {METRICS.map((m) => (

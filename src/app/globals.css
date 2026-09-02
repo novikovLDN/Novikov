@@ -2474,13 +2474,27 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   .px-hero-body { padding-top: calc(var(--px-header-h) + 34px); padding-bottom: 34px; }
 }
 
+/* Заголовок — главный текст сайта, и он обязан читаться мгновенно.
+   Масштаб держится кеглем и ступенчатыми строками, а не тем, что
+   буквы приходится расшифровывать. */
 .px-hero-title {
+  display: block;
   font-weight: 700;
-  font-size: clamp(34px, 5.2vw, 64px);
-  line-height: 1.06;
-  letter-spacing: -0.035em;
+  /* Кегль ограничен шириной колонки, а не только вьюпортом: при
+     6.4vw «без просадок» ломалось на две строки, и вместо трёх
+     ступеней получалась лесенка из четырёх с одиноким «без». */
+  font-size: clamp(38px, 5.4vw, 78px);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
   color: var(--px-text);
 }
+/* Строка не переносится: перенос внутри строки заголовка ломает
+   ступенчатый ритм, ради которого она и разбита вручную. */
+.px-hero-title > span,
+.px-hero-title > .px-magnetic { display: block; white-space: nowrap; }
+/* Ступенька: строки не выстраиваются в ровный левый край. */
+.px-hero-line-2 { margin-left: clamp(14px, 3.6vw, 72px); }
+.px-hero-line-3 { margin-left: clamp(6px, 1.4vw, 26px); }
 
 .px-cta { max-width: 440px; }
 
@@ -4056,11 +4070,15 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
 
 /* ═══ Первый экран: живой слой ═════════════════════════════════════ */
 
-/* Заголовок из точек. Холсты идут строками, между ними — отрицательный
-   зазор: в каждом холсте есть воздух сверху и снизу, и без сжатия
-   строки разъезжаются сильнее, чем в наборном тексте. */
-.px-hero-dots { display: flex; flex-direction: column; gap: 0; }
-.px-hero-dots > div + div { margin-top: -6px; }
+/* Кадр: слева обещание и действие, справа приборная сцена. */
+.px-hero-grid { display: grid; gap: 32px; align-items: center; }
+@media (min-width: 1024px) {
+  .px-hero-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(330px, 40%);
+    gap: 48px;
+  }
+}
+.px-hero-copy { min-width: 0; }
 
 /* Плавание. Блоки первого экрана слегка качаются, каждый в своей
    фазе, — экран перестаёт быть чертежом и начинает дышать.
@@ -4744,35 +4762,17 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   to   { opacity: 1; transform: none; }
 }
 
-/* Заголовок занимает всю ширину контейнера: это и есть масштаб.
-   Отдельные ограничения ширины сняты — точки сами упираются в край. */
-.px-hero-dots { width: 100%; }
-
-/* Низ кадра: слева действие, справа приборная сцена. На узком
-   экране сцена уходит под действие. */
-.px-hero-floor {
-  display: grid;
-  gap: 28px;
-  margin-top: clamp(24px, 4vw, 44px);
-}
-@media (min-width: 1024px) {
-  .px-hero-floor {
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 38%);
-    gap: 40px;
-    align-items: end;
-  }
-}
-
 .px-hero-claim {
-  max-width: 30ch;
-  font-size: clamp(17px, 1.9vw, 22px);
+  margin-top: clamp(18px, 2.4vw, 30px);
+  max-width: 34ch;
+  font-size: clamp(16px, 1.7vw, 20px);
   font-weight: 500;
-  line-height: 1.35;
-  letter-spacing: -0.015em;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
   color: var(--px-text-2);
-  text-wrap: balance;
+  text-wrap: pretty;
 }
-.px-hero-cta { margin-top: clamp(18px, 2.4vw, 26px); }
+.px-hero-cta { margin-top: clamp(20px, 2.6vw, 30px); }
 
 /* Сцена ужимается: в новом кадре она приборная деталь, а не второй
    центр внимания рядом с заголовком. Подпись под графиком здесь
