@@ -245,7 +245,7 @@ export default function ContactPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Имя, например Александр"
-                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text)]/35 focus:outline-none focus:border-black/50 transition-colors"
+                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text-4)] focus:outline-none focus:border-black/50 transition-colors"
                 />
               </div>
 
@@ -259,7 +259,7 @@ export default function ContactPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="email@company.com"
-                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text)]/35 focus:outline-none focus:border-black/50 transition-colors"
+                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text-4)] focus:outline-none focus:border-black/50 transition-colors"
                 />
               </div>
 
@@ -288,14 +288,14 @@ export default function ContactPage() {
               {/* Message */}
               <div>
                 <label className="font-mts-wide block text-[12px] tracking-[0.10em] uppercase text-[color:var(--px-text-4)] mb-2">
-                  Сообщение <span className="text-[color:var(--px-text)]/35">(опционально)</span>
+                  Сообщение <span className="text-[color:var(--px-text-4)]">(опционально)</span>
                 </label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Расскажите о задачах..."
                   rows={4}
-                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text)]/35 focus:outline-none focus:border-black/50 transition-colors resize-none"
+                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text-4)] focus:outline-none focus:border-black/50 transition-colors resize-none"
                 />
               </div>
 
@@ -334,7 +334,7 @@ export default function ContactPage() {
           <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
             Готовы начать?
           </h2>
-          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-text-2)] mt-6 max-w-[46ch] mx-auto">
+          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-accent-ink)] mt-6 max-w-[46ch] mx-auto">
             Три дня бесплатно. Без карты, без ограничений скорости.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">

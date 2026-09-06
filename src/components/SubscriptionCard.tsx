@@ -159,7 +159,7 @@ export default function SubscriptionCard({
               href="https://apps.apple.com/app/happ-proxy-utility/id6504287215"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[color:var(--px-text-2)] hover:text-[color:var(--px-accent)] transition-colors"
+              className="text-[color:var(--px-text-2)] hover:text-[color:var(--px-accent-text)] transition-colors"
             >
               App Store
             </a>
@@ -168,7 +168,7 @@ export default function SubscriptionCard({
               href="https://play.google.com/store/apps/details?id=com.happproxy"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[color:var(--px-text-2)] hover:text-[color:var(--px-accent)] transition-colors"
+              className="text-[color:var(--px-text-2)] hover:text-[color:var(--px-accent-text)] transition-colors"
             >
               Google Play
             </a>

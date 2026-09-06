@@ -569,28 +569,28 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             {/* Features */}
             <div className="mt-8 sm:mt-10 space-y-2.5 sm:space-y-3">
               <FeatureCard
-                icon={<svg width="22" height="22" className="text-[color:var(--px-accent)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" /></svg>}
+                icon={<svg width="22" height="22" className="text-[color:var(--px-accent-text)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" /></svg>}
                 iconBg="bg-[color:var(--px-accent-dim)]"
                 title="Канал до 75 Гбит/с"
                 description="Вечерний час пик и нагрузка соседей по каналу не превращаются в фризы"
                 className="animate-fade-in-up animate-delay-1"
               />
               <FeatureCard
-                icon={<svg width="22" height="22" className="text-[color:var(--px-accent)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" /><rect x="2" y="14" width="20" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" /><circle cx="6" cy="6.5" r="1" fill="currentColor" /><circle cx="6" cy="17.5" r="1" fill="currentColor" /><line x1="10" y1="6.5" x2="18" y2="6.5" stroke="currentColor" strokeWidth="1.5" /><line x1="10" y1="17.5" x2="18" y2="17.5" stroke="currentColor" strokeWidth="1.5" /></svg>}
+                icon={<svg width="22" height="22" className="text-[color:var(--px-accent-text)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" /><rect x="2" y="14" width="20" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" /><circle cx="6" cy="6.5" r="1" fill="currentColor" /><circle cx="6" cy="17.5" r="1" fill="currentColor" /><line x1="10" y1="6.5" x2="18" y2="6.5" stroke="currentColor" strokeWidth="1.5" /><line x1="10" y1="17.5" x2="18" y2="17.5" stroke="currentColor" strokeWidth="1.5" /></svg>}
                 iconBg="bg-[color:var(--px-accent-dim)]"
                 title="Пинг меньше 5 мс"
                 description="В регионе присутствия — игры и созвоны без задержки и эха"
                 className="animate-fade-in-up animate-delay-2"
               />
               <FeatureCard
-                icon={<svg width="22" height="22" className="text-[color:var(--px-accent)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="12" r="1" fill="currentColor" /></svg>}
+                icon={<svg width="22" height="22" className="text-[color:var(--px-accent-text)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="12" r="1" fill="currentColor" /></svg>}
                 iconBg="bg-[color:var(--px-accent-dim)]"
                 title="Соединение держится"
                 description="Резервные каналы и автопереключение. Целевая доступность 99,98%"
                 className="animate-fade-in-up animate-delay-3"
               />
               <FeatureCard
-                icon={<svg width="22" height="22" className="text-[color:var(--px-accent)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" /><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="16" r="1.5" fill="currentColor" /></svg>}
+                icon={<svg width="22" height="22" className="text-[color:var(--px-accent-text)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" /><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="16" r="1.5" fill="currentColor" /></svg>}
                 iconBg="bg-[color:var(--px-accent-dim)]"
                 title="Ничего не записываем"
                 description="Ни посещённых сайтов, ни DNS-запросов, ни истории подключений"
@@ -699,7 +699,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
           <div className="animate-fade-in-up pt-2 sm:pt-4">
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 rounded-2xl bg-[color:var(--px-accent-dim)] flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-accent)]">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-accent-text)]">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
@@ -973,7 +973,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 rounded-2xl bg-[color:var(--px-accent-dim)] flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-accent)]">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-accent-text)]">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
@@ -1078,7 +1078,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 function AuthTopBar() {
   return (
     <div className="px-shell flex items-center justify-between pt-6 sm:pt-8">
-      <a href="/" className="px-brand" aria-label="Atlas Secure — на главную">
+      <a href="/" className="px-brand" aria-label="atlas.secure — на главную">
         <BrandMark size={20} />
         <span className="px-wordmark">atlas.secure</span>
       </a>

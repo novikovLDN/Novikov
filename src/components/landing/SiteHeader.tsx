@@ -78,7 +78,7 @@ export default function SiteHeader({ primaryHref }: SiteHeaderProps) {
           <Link
             href="/"
             className="ls-tap ls-tap-brand gap-2 shrink-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-current focus-visible:outline-offset-4"
-            aria-label="Atlas Secure — на главную"
+            aria-label="atlas.secure — на главную"
           >
             <BrandMark />
             <span className="ls-wordmark text-[13px] tracking-[0.16em] uppercase font-medium">

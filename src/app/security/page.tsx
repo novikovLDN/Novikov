@@ -63,7 +63,11 @@ const ENCRYPTION: Array<[string, string]> = [
 
 const AUDITS = [
   { d: "Q1 2026", t: "Продление SOC 2 Type II",   desc: "12-месячный обзор операционной эффективности. Ноль материальных замечаний." },
-  { d: "Q4 2025", t: "Аудит криптографического кода", desc: "Cure53 проверила интеграционный слой Xray и обработку ключей. Все замечания устранены." },
+  /* Название туннельной реализации (Xray) с публичной страницы
+     убрано: на витрине мы не употребляем ни слово «VPN», ни имена
+     туннельных протоколов. Сам факт аудита и подрядчик — в
+     COMPLIANCE-CHECK.md, требуют подтверждения отчётом. */
+  { d: "Q4 2025", t: "Аудит криптографического кода", desc: "Внешняя команда проверила слой шифрования и обработку ключей. Все замечания устранены." },
   { d: "Q3 2025", t: "Пентест",                    desc: "Внешний пентест клиентских эндпоинтов. Мелкие находки исправлены за 48 часов." },
   { d: "Q2 2025", t: "Пересертификация ISO 27001", desc: "Трёхлетняя пересертификация аккредитованным органом." },
   { d: "Q1 2025", t: "Обзор GDPR",                 desc: "Обзор обработки данных и списка субпроцессоров под руководством DPO." },
@@ -200,7 +204,7 @@ export default function SecurityPage() {
           <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
             Ваша приватность —<br />без компромиссов
           </h2>
-          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-text-2)] mt-6 max-w-[48ch] mx-auto">
+          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-accent-ink)] mt-6 max-w-[48ch] mx-auto">
             Сообщить об уязвимости: security@atlas.secure
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">

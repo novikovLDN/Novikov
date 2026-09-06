@@ -48,7 +48,7 @@ export default function ChannelSection() {
           eyebrow="Скорость"
           title={["Ширина канала —", "простыми словами"]}
           titleId="channel-title"
-          index="02"
+          index="03"
           action={{ label: "Все тарифы", href: "/pricing" }}
         />
 

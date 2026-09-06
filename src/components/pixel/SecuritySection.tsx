@@ -99,7 +99,7 @@ export default function SecuritySection() {
           eyebrow="Безопасность"
           title={["Ваши данные ведёт", "отдельная команда"]}
           titleId="security-title"
-          index="03"
+          index="04"
           action={{ label: "О защите данных", href: "/security" }}
         />
 

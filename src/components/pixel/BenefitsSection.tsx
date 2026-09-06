@@ -70,7 +70,7 @@ export default function BenefitsSection() {
           eyebrow="Что вы получаете"
           title={["Четыре обещания,", "которые легко проверить"]}
           titleId="benefits-title"
-          index="01"
+          index="02"
         />
 
         <div className="px-bento px-stagger">

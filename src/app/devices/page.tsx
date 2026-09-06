@@ -492,7 +492,13 @@ function DeviceStep({
               <button
                 key={p.id}
                 onClick={() => onSelect(p.id)}
-                aria-label={`Выбрать ${p.name}`}
+                /* aria-label убран: он подменял доступное имя строкой
+                   «Выбрать iPhone», тогда как на кнопке написано
+                   «iPhone · iOS 15+». Голосовое управление по видимой
+                   надписи кнопку не находило (аудит
+                   label-content-name-mismatch). Собственного текста
+                   кнопки достаточно. */
+                aria-pressed={active}
                 className={
                   "group px-spot aspect-square rounded-2xl border p-4 sm:p-5 flex flex-col justify-between text-left transition-all active:scale-[0.98] relative overflow-hidden " +
                   (active
@@ -504,7 +510,7 @@ function DeviceStep({
                   id={p.id}
                   className={
                     "w-9 h-9 sm:w-8 sm:h-8 transition-colors " +
-                    (active ? "text-[color:var(--px-accent)]" : "text-[color:var(--px-text-3)] group-hover:text-[color:var(--px-text)]")
+                    (active ? "text-[color:var(--px-accent-text)]" : "text-[color:var(--px-text-3)] group-hover:text-[color:var(--px-text)]")
                   }
                 />
                 <div>
@@ -594,7 +600,7 @@ function SetupStep({
         <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
           <div className="inline-flex items-center gap-3 pl-2 pr-4 py-2 rounded-full bg-[color:var(--px-surface)] border border-[color:var(--px-line)] text-[color:var(--px-text)]">
             <span className="w-8 h-8 rounded-full bg-[color:var(--px-surface)]/10 flex items-center justify-center">
-              <PlatformIcon id={platformMeta.id} className="w-4 h-4 text-[color:var(--px-accent)]" />
+              <PlatformIcon id={platformMeta.id} className="w-4 h-4 text-[color:var(--px-accent-text)]" />
             </span>
             <div className="pr-1 -mt-px">
               <div className="font-mts-wide text-[13px] font-semibold leading-tight">{platformMeta.name}</div>
@@ -866,7 +872,7 @@ function StepCard({
   return (
     <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-5 sm:p-7">
       <div className="flex items-start gap-3 sm:gap-4 mb-5">
-        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[22%] bg-[color:var(--px-accent-dim)] border border-[rgba(255,115,80,0.28)] text-[color:var(--px-accent)] flex items-center justify-center font-mts-wide text-[15px] sm:text-[16px] font-bold shrink-0">
+        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[22%] bg-[color:var(--px-accent-dim)] border border-[rgba(255,115,80,0.28)] text-[color:var(--px-accent-text)] flex items-center justify-center font-mts-wide text-[15px] sm:text-[16px] font-bold shrink-0">
           {number}
         </div>
         <div className="min-w-0 flex-1">

@@ -292,7 +292,7 @@ export default function InfrastructurePage() {
           <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
             Разверните глобально
           </h2>
-          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-text-2)] mt-6 max-w-[46ch] mx-auto">
+          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-accent-ink)] mt-6 max-w-[46ch] mx-auto">
             Один аккаунт, три континента. Выберите регион под своих пользователей.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">

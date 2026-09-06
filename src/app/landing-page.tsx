@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import SiteHeader from "@/components/pixel/SiteHeader";
 import HeroSection from "@/components/pixel/HeroSection";
 import TrustBand from "@/components/pixel/TrustBand";
+import GroupSection from "@/components/pixel/GroupSection";
 import BenefitsSection from "@/components/pixel/BenefitsSection";
+import BusinessSection from "@/components/pixel/BusinessSection";
 import ChannelSection from "@/components/pixel/ChannelSection";
 import SecuritySection from "@/components/pixel/SecuritySection";
 import KineticSeam from "@/components/pixel/KineticSeam";
@@ -25,12 +27,19 @@ import { ScrollProgress, useReveal } from "@/components/pixel/motion";
  * акцент, фирменный мотив — живые кубики.
  *
  * Порядок повествования: обещание (герой) → ранний сигнал доверия
- * (полоса локаций) → доказательство скорости (преимущества) → чем
- * эта скорость измеряется (ширина канала) → кто отвечает за данные
- * (безопасность) → как продукт получить (шаги) → где он работает
- * (устройства) → сколько стоит → где физически стоят серверы →
- * финальный призыв. Доказательство идёт раньше цены — решение
- * принимается до того, как читатель увидит цифру.
+ * (полоса локаций) → кто мы и что у нас есть (реестр направлений) →
+ * доказательство скорости (преимущества) → чем эта скорость
+ * измеряется (ширина канала) → кто отвечает за данные (безопасность)
+ * → как продукт получить (шаги) → где он работает (устройства) →
+ * сколько стоит → что получает компания → где физически стоят
+ * серверы → финальный призыв. Доказательство идёт раньше цены —
+ * решение принимается до того, как читатель увидит цифру.
+ *
+ * Адресатов у страницы два. Реестр направлений стоит сразу после
+ * первого экрана: посетитель-компания должен увидеть, что здесь есть
+ * что-то для него, до того как решит, что попал на витрину для
+ * частных лиц. Развёрнутый разговор для компаний идёт ниже, после
+ * цены: договор и счёт обсуждают, когда продукт уже проверен.
  *
  * Скорость и безопасность разведены в два соседних блока намеренно:
  * это два разных возражения («будет тормозить» и «а данные?»), и
@@ -76,6 +85,10 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
         {/* Каждая секция расходится слоями на собственной прокрутке:
             заголовок отстаёт от содержимого, между планами появляется
             глубина. Прогресс считает один слушатель на секцию. */}
+        {/* Реестр направлений: одна сеть — четыре способа ей
+            пользоваться. Отвечает на «кто вы такие» и показывает
+            второму адресату, что он не ошибся дверью. */}
+        <ScrollLayer><GroupSection /></ScrollLayer>
         <ScrollLayer><BenefitsSection /></ScrollLayer>
         <ScrollLayer><ChannelSection /></ScrollLayer>
 
@@ -87,6 +100,11 @@ export default function LandingPage({ referralCode }: LandingPageProps) {
         <ScrollLayer><HowItWorksSection /></ScrollLayer>
         <ScrollLayer><DevicesSection /></ScrollLayer>
         <ScrollLayer><PricingSection /></ScrollLayer>
+
+        {/* Компаниям — после цены: корпоративный покупатель сначала
+            проверяет продукт, а бумаги смотрит потом. */}
+        <ScrollLayer><BusinessSection /></ScrollLayer>
+
         <ScrollLayer><LocationsSection /></ScrollLayer>
       </main>
 

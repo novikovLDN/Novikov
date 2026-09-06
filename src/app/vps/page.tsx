@@ -200,7 +200,7 @@ export default function VpsPage() {
                   : "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-[color:var(--px-line)] hover:border-[color:var(--px-line-2)]"
               }`}
             >
-              <div className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase mb-4 ${t.highlight ? "text-[color:var(--px-accent)]" : "text-[color:var(--px-text-4)]"}`}>
+              <div className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase mb-4 ${t.highlight ? "text-[color:var(--px-accent-text)]" : "text-[color:var(--px-text-4)]"}`}>
                 {t.tag}
               </div>
               <h3 className="font-mts-wide text-[26px] font-bold leading-[1.1] tracking-tight mb-6">{t.name}</h3>
@@ -337,7 +337,7 @@ export default function VpsPage() {
           <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
             Разверните свой VPS
           </h2>
-          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-text-2)] mt-6 max-w-[46ch] mx-auto">
+          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-accent-ink)] mt-6 max-w-[46ch] mx-auto">
             От $7,99/мес. Root, NVMe и защита от DDoS — в базе.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">

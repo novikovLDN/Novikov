@@ -59,7 +59,7 @@ export default function SiteFooter() {
             <Link
               href="/"
               className="ls-tap ls-tap-brand gap-2 text-white rounded-lg"
-              aria-label="Atlas Secure — на главную"
+              aria-label="atlas.secure — на главную"
             >
               <BrandMark />
               <span className="text-[13px] tracking-[0.16em] uppercase font-medium">

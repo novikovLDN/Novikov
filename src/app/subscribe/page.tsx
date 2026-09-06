@@ -324,7 +324,7 @@ function SubscribeContent() {
                     </span>
                   </div>
                   {selectedPeriod.discount && (
-                    <div className="inline-flex mt-2 font-mts-wide text-[11px] font-semibold tracking-[0.06em] px-2.5 py-1 rounded-full bg-[color:var(--px-accent-dim)] text-[color:var(--px-accent)]">
+                    <div className="inline-flex mt-2 font-mts-wide text-[11px] font-semibold tracking-[0.06em] px-2.5 py-1 rounded-full bg-[color:var(--px-accent-dim)] text-[color:var(--px-accent-text)]">
                       экономия {selectedPeriod.discount}
                     </div>
                   )}
@@ -730,7 +730,7 @@ function PeriodCard({
       <div className="flex items-center justify-between gap-3">
         <div
           className={`font-mts-wide text-[13px] tracking-[0.14em] uppercase font-semibold ${
-            featured ? "text-[color:var(--px-accent)]" : "text-[color:var(--px-text-3)]"
+            featured ? "text-[color:var(--px-accent-text)]" : "text-[color:var(--px-text-3)]"
           }`}
         >
           {opt.label}
@@ -739,7 +739,7 @@ function PeriodCard({
           <span
             className={`font-mts-wide text-[11px] font-semibold px-2.5 py-1 rounded-full ${
               featured
-                ? "bg-[color:var(--px-accent-dim)] text-[color:var(--px-accent)]"
+                ? "bg-[color:var(--px-accent-dim)] text-[color:var(--px-accent-text)]"
                 : "bg-[color:var(--px-good-dim)] text-[color:var(--px-good)]"
             }`}
           >
@@ -767,7 +767,7 @@ function PeriodCard({
 
       <div
         className={`mt-6 font-mts-wide inline-flex items-center gap-2 text-[14px] font-medium ${
-          featured ? "text-[color:var(--px-accent)]" : "text-[color:var(--px-text)]"
+          featured ? "text-[color:var(--px-accent-text)]" : "text-[color:var(--px-text)]"
         }`}
       >
         Выбрать

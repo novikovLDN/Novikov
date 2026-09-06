@@ -206,7 +206,7 @@ export default function VdsPage() {
               }`}
             >
               <div className="flex items-center justify-between mb-6">
-                <span className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase ${t.highlight ? "text-[color:var(--px-accent)]" : "text-[color:var(--px-text-4)]"}`}>
+                <span className={`font-mts-wide text-[11px] tracking-[0.14em] uppercase ${t.highlight ? "text-[color:var(--px-accent-text)]" : "text-[color:var(--px-text-4)]"}`}>
                   {t.badge}
                 </span>
                 <span className={`font-mts-wide text-[13px] font-semibold ${t.highlight ? "text-[color:var(--px-text)]" : "text-[color:var(--px-text-2)]"}`}>
@@ -309,7 +309,7 @@ export default function VdsPage() {
           <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
             Заберите своё железо
           </h2>
-          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-text-2)] mt-6 max-w-[46ch] mx-auto">
+          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-accent-ink)] mt-6 max-w-[46ch] mx-auto">
             От $29,99/мес. Полное железо, полный контроль, без компромиссов.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">

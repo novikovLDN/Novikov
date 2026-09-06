@@ -21,9 +21,13 @@ import Icon from "./Icon";
  * страница длинная, и точка входа в регистрацию нужна на всём её
  * протяжении. Замер позиции идёт в rAF, слушатель пассивный.
  */
+/* Второй адресат сайта должен быть виден из шапки на любой странице:
+   компания не станет искать вход для себя, пролистывая витрину для
+   частных лиц. */
 const NAV = [
   { label: "Главная", href: "/" },
   { label: "Тарифы", href: "/pricing" },
+  { label: "Бизнес", href: "/business" },
   { label: "Поддержка", href: "/support" },
 ];
 
@@ -63,7 +67,11 @@ export default function SiteHeader() {
     <>
       <header className={`px-header${solid ? " px-header-solid" : ""}`}>
         <div className="px-shell flex items-center justify-between gap-4">
-          <Link href="/" className="px-brand" aria-label="Atlas Secure — на главную">
+          {/* Подпись начинается с видимого написания логотипа:
+              доступное имя обязано содержать видимый текст, иначе
+              голосовое управление («нажми atlas.secure») не находит
+              ссылку. Аудит label-content-name-mismatch. */}
+          <Link href="/" className="px-brand" aria-label="atlas.secure — на главную">
             <BrandMark size={20} />
             <span className="px-wordmark">atlas.secure</span>
           </Link>

@@ -12,6 +12,7 @@ const COLUMNS: Array<{ title: string; links: Array<{ label: string; href: string
     title: "Продукт",
     links: [
       { label: "Тарифы", href: "/pricing" },
+      { label: "Для бизнеса", href: "/business" },
       { label: "Устройства", href: "/devices" },
       { label: "Безопасность", href: "/security" },
       { label: "Инфраструктура", href: "/infrastructure" },
@@ -53,14 +54,24 @@ export default function SiteFooter() {
       <div className="px-shell">
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-10">
           <div className="lg:col-span-4">
-            <Link href="/" className="px-brand" aria-label="Atlas Secure — на главную">
+            {/* Подпись начинается с видимого написания логотипа:
+                доступное имя обязано содержать видимый текст, иначе
+                голосовое управление («нажми atlas.secure») не находит
+                ссылку. Аудит label-content-name-mismatch. */}
+            <Link href="/" className="px-brand" aria-label="atlas.secure — на главную">
               <BrandMark size={20} />
               <span className="px-wordmark">atlas.secure</span>
             </Link>
             <p className="px-body mt-5 max-w-[36ch]">
-              Ускоритель интернета. Стабильное соединение и низкий пинг на любом
-              устройстве, настройка за минуту.
+              Ускоритель интернета и серверная инфраструктура. Частным лицам —
+              соединение без просадок, компаниям — машины и подключения по
+              договору.
             </p>
+            {/* Принадлежность к группе объявлена и человеку здесь, и
+                машине — в schema.org (SiteJsonLd, parentOrganization).
+                Официальное наименование группы и реквизиты — в
+                COMPLIANCE-CHECK.md, до подтверждения не публикуются. */}
+            <p className="px-caption mt-4">Часть группы QoDev</p>
           </div>
 
           <nav className="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10" aria-label="Разделы сайта">

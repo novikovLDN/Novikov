@@ -41,7 +41,7 @@ export default function HowItWorksSection() {
           eyebrow="Как это работает"
           title={["От почты до подключения —", "одна минута"]}
           titleId="how-title"
-          index="04"
+          index="05"
         />
       </div>
 
