@@ -1,0 +1,226 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Три направления ребрендинга на одном содержании.
+   Обоснование и источники — TRENDS-2.md.
+
+   Общая часть задаёт только строение. Всё, что отличает направления —
+   материал, гарнитуры, цвет, плотность — объявлено в блоках .pv-a,
+   .pv-b и .pv-c через одни и те же токены.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.pv {
+  --pv-gutter: clamp(20px, 5vw, 64px);
+  --pv-max: 1200px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body-font);
+  min-height: 100dvh;
+}
+.pv-wrap { width: 100%; max-width: var(--pv-max); margin-inline: auto; padding-inline: var(--pv-gutter); }
+
+/* Панель сравнения. В продукт не идёт. */
+.pv-switch {
+  position: fixed;
+  bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 8px 8px 12px;
+  max-width: calc(100vw - 24px);
+  background: #101214;
+  color: #fff;
+  border-radius: 999px;
+  box-shadow: 0 12px 40px -12px rgba(0,0,0,.5);
+  font-family: var(--pv-sans), system-ui, sans-serif;
+  font-size: 13px;
+}
+.pv-switch-btn {
+  padding: 8px 14px; border-radius: 999px; color: rgba(255,255,255,.62);
+  text-decoration: none; white-space: nowrap;
+}
+.pv-switch-on { background: #fff; color: #101214; font-weight: 600; }
+.pv-switch-idea { padding-left: 8px; color: rgba(255,255,255,.5); font-size: 12px; }
+@media (max-width: 720px) { .pv-switch-idea { display: none; } }
+
+/* ─── Строение, общее для всех направлений ────────────────────── */
+.pv-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px;
+  max-width: var(--pv-max); margin-inline: auto;
+  padding: clamp(20px, 3vw, 32px) var(--pv-gutter);
+}
+.pv-mark { font-family: var(--display-font); font-size: 20px; font-weight: var(--mark-weight); letter-spacing: var(--mark-tracking); }
+.pv-head-nav { display: flex; align-items: center; gap: clamp(16px, 2.5vw, 32px); font-size: 14px; }
+.pv-head-nav a { color: inherit; text-decoration: none; opacity: .72; }
+.pv-head-nav a:hover { opacity: 1; }
+.pv-head-cta { padding: 10px 18px; border: 1px solid var(--line); border-radius: var(--r); opacity: 1 !important; }
+
+.pv-hero { padding-block: clamp(48px, 9vh, 110px) clamp(48px, 8vh, 96px); }
+.pv-kicker { margin: 0 0 clamp(20px, 3vh, 32px); font-size: 13px; letter-spacing: var(--label-tracking); text-transform: var(--label-case); color: var(--fg-2); }
+.pv-h1 {
+  margin: 0;
+  font-family: var(--display-font);
+  font-weight: var(--h1-weight);
+  font-size: var(--h1-size);
+  line-height: var(--h1-leading);
+  letter-spacing: var(--h1-tracking);
+  max-width: 15ch;
+}
+.pv-h1 em { font-style: var(--h1-em-style); color: var(--accent); }
+.pv-lede { margin: clamp(20px, 3vh, 32px) 0 0; font-size: clamp(17px, 1.5vw, 21px); line-height: 1.5; color: var(--fg-2); max-width: 46ch; }
+
+.pv-cta { margin-top: clamp(28px, 4vh, 44px); display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
+.pv-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 52px; padding: 14px 26px;
+  background: var(--btn-bg); color: var(--btn-fg);
+  border: 1px solid var(--btn-border);
+  border-radius: var(--r);
+  font-family: var(--body-font); font-size: 15px; font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--btn-shadow);
+  transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s, background-color .25s;
+}
+.pv-btn:hover { transform: translateY(-1px); box-shadow: var(--btn-shadow-hover); }
+.pv-btn-quiet { background: transparent; color: var(--fg); border-color: var(--line); box-shadow: none; }
+.pv-cta-note { font-size: 14px; color: var(--fg-3); max-width: 34ch; }
+
+.pv-facts {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: clamp(20px, 3vw, 40px);
+  margin: clamp(40px, 6vh, 72px) 0 0;
+  padding-top: clamp(24px, 3vh, 36px);
+  border-top: 1px solid var(--line);
+}
+@media (min-width: 760px) { .pv-facts { grid-template-columns: repeat(4, 1fr); } }
+.pv-facts dt { font-family: var(--display-font); font-size: clamp(26px, 3vw, 38px); font-weight: var(--num-weight); letter-spacing: -.02em; }
+.pv-facts dd { margin: 6px 0 0; font-size: 13px; color: var(--fg-3); }
+
+.pv-proof { padding-block: clamp(56px, 9vh, 120px); background: var(--band); }
+.pv-label { margin: 0 0 clamp(24px, 4vh, 40px); font-size: 12px; letter-spacing: var(--label-tracking); text-transform: var(--label-case); color: var(--fg-3); }
+.pv-proof-grid { display: grid; gap: clamp(16px, 2.5vw, 28px); }
+@media (min-width: 860px) { .pv-proof-grid { grid-template-columns: repeat(3, 1fr); } }
+.pv-card { padding: var(--card-pad); background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--r-card); backdrop-filter: var(--card-blur); box-shadow: var(--card-shadow); }
+.pv-card-n { display: block; font-family: var(--body-font); font-size: 12px; letter-spacing: .12em; color: var(--accent); margin-bottom: 14px; }
+.pv-h3 { margin: 0; font-family: var(--display-font); font-size: clamp(19px, 1.9vw, 24px); font-weight: var(--h3-weight); line-height: 1.2; letter-spacing: -.015em; }
+.pv-body { margin: 12px 0 0; font-size: 15px; line-height: 1.6; color: var(--fg-2); }
+
+.pv-price { padding-block: clamp(56px, 9vh, 120px); }
+.pv-price-inner { display: grid; gap: 28px; align-items: end; }
+@media (min-width: 860px) { .pv-price-inner { grid-template-columns: minmax(0,1fr) auto; } }
+.pv-price-value { margin: 0 0 14px; font-family: var(--display-font); font-size: clamp(48px, 7vw, 88px); font-weight: var(--num-weight); line-height: 1; letter-spacing: -.035em; }
+.pv-price-value span { font-family: var(--body-font); font-size: clamp(15px, 1.4vw, 19px); font-weight: 500; letter-spacing: 0; color: var(--fg-3); }
+
+.pv-foot { padding-block: 28px 96px; border-top: 1px solid var(--line); font-size: 13px; color: var(--fg-3); }
+.pv-foot .pv-wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+
+/* ═══ A. «ТИХИЙ» — премиальный минимализм ════════════════════════
+   Тёплая бумага, глубокие чернила, один спокойный акцент. Дисплей —
+   антиква. Движения нет вовсе, кроме микроотклика кнопки: премиальный
+   конец 2026 определяется тишиной, а не эффектами. */
+.pv-a {
+  --bg: #F6F3ED; --band: #F0ECE3;
+  --fg: #17191A; --fg-2: #4A4E50; --fg-3: #7A7E80;
+  --accent: #2E5E4E;
+  --line: rgba(23,25,26,.14);
+  --display-font: var(--pv-serif), Georgia, serif;
+  --body-font: var(--pv-sans), system-ui, sans-serif;
+  --h1-size: clamp(40px, 6.2vw, 82px);
+  --h1-weight: 400; --h1-leading: 1.06; --h1-tracking: -.022em; --h1-em-style: italic;
+  --h3-weight: 500; --num-weight: 400;
+  --mark-weight: 500; --mark-tracking: -.01em;
+  --label-tracking: .14em; --label-case: uppercase;
+  --r: 6px; --r-card: 8px;
+  --card-bg: transparent; --card-border: transparent; --card-blur: none; --card-shadow: none;
+  --card-pad: 0 clamp(16px,2vw,28px) 0 0;
+  --btn-bg: #17191A; --btn-fg: #F6F3ED; --btn-border: #17191A;
+  --btn-shadow: none; --btn-shadow-hover: 0 10px 24px -12px rgba(23,25,26,.5);
+}
+/* Карточек нет — только колонки, разделённые линией. */
+.pv-a .pv-card + .pv-card { border-left: 1px solid var(--line); padding-left: clamp(16px,2vw,28px); }
+.pv-a .pv-h1 { max-width: 13ch; }
+
+/* ═══ B. «СТЕКЛО» — глубина и материал ═══════════════════════════
+   Глубокий сине-графитовый корпус с мягким светом вместо плоского
+   чёрного. Матовые панели: альфа 5–8%, размытие 26px, граница около
+   0,1 — значения из практики 2026, а не на глаз. */
+.pv-b {
+  --bg: #0D1014; --band: transparent;
+  --fg: #F2F4F6; --fg-2: rgba(242,244,246,.74); --fg-3: rgba(242,244,246,.52);
+  --accent: #F0B98A;
+  --line: rgba(242,244,246,.14);
+  --display-font: var(--pv-sans), system-ui, sans-serif;
+  --body-font: var(--pv-sans), system-ui, sans-serif;
+  --h1-size: clamp(42px, 6.6vw, 88px);
+  --h1-weight: 700; --h1-leading: 1.02; --h1-tracking: -.038em; --h1-em-style: normal;
+  --h3-weight: 700; --num-weight: 700;
+  --mark-weight: 800; --mark-tracking: -.03em;
+  --label-tracking: .16em; --label-case: uppercase;
+  --r: 12px; --r-card: 20px;
+  --card-bg: rgba(255,255,255,.055); --card-border: rgba(255,255,255,.1);
+  --card-blur: blur(26px); --card-shadow: 0 24px 60px -30px rgba(0,0,0,.8);
+  --card-pad: clamp(22px, 2.4vw, 34px);
+  --btn-bg: #F0B98A; --btn-fg: #1A1206; --btn-border: transparent;
+  --btn-shadow: 0 16px 40px -20px rgba(240,185,138,.8);
+  --btn-shadow-hover: 0 22px 52px -20px rgba(240,185,138,.9);
+  position: relative;
+  isolation: isolate;
+}
+/* Источник света, а не градиентная заливка: два мягких пятна — тёплое
+   сверху справа и холодное слева. */
+.pv-b::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(58% 44% at 78% 8%, rgba(240,185,138,.16), transparent 68%),
+    radial-gradient(52% 42% at 12% 26%, rgba(96,132,214,.16), transparent 70%),
+    #0D1014;
+}
+.pv-b .pv-hero .pv-wrap { position: relative; }
+
+/* ═══ C. «ЖУРНАЛ» — редакционная подача ══════════════════════════
+   Печатная культура: колонки, линейки, буквица, капитель. Кинетики
+   нет — её роль выполняет вёрстка. */
+.pv-c {
+  --bg: #EFEAE0; --band: #E7E1D4;
+  --fg: #171310; --fg-2: #46403A; --fg-3: #7A736A;
+  --accent: #A3301F;
+  --line: rgba(23,19,16,.18);
+  --display-font: var(--pv-serif), Georgia, serif;
+  --body-font: var(--pv-sans), system-ui, sans-serif;
+  --h1-size: clamp(44px, 7.4vw, 104px);
+  --h1-weight: 700; --h1-leading: .98; --h1-tracking: -.028em; --h1-em-style: italic;
+  --h3-weight: 700; --num-weight: 700;
+  --mark-weight: 700; --mark-tracking: -.02em;
+  --label-tracking: .2em; --label-case: uppercase;
+  --r: 0px; --r-card: 0px;
+  --card-bg: transparent; --card-border: transparent; --card-blur: none; --card-shadow: none;
+  --card-pad: 20px 0 0;
+  --btn-bg: #A3301F; --btn-fg: #FBF7F0; --btn-border: #A3301F;
+  --btn-shadow: none; --btn-shadow-hover: 0 10px 24px -14px rgba(163,48,31,.7);
+}
+.pv-c .pv-h1 { max-width: 12ch; }
+.pv-c .pv-card { border-top: 2px solid var(--fg); }
+.pv-c .pv-card-n { font-family: var(--display-font); font-size: 13px; letter-spacing: .06em; }
+/* Буквица в первой карточке — знак редакционного набора. */
+.pv-c .pv-card:first-child .pv-body::first-letter {
+  float: left;
+  font-family: var(--display-font);
+  font-size: 3.1em;
+  line-height: .84;
+  padding: 4px 8px 0 0;
+  color: var(--accent);
+}
+.pv-c .pv-facts dt { font-variant-numeric: lining-nums; }
+.pv-c .pv-kicker { border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-btn { transition: none; }
+}
+
+/* Слои прежнего бренда — курсор и зерно — живут в корневом layout и
+   попадали в кадр превью, мешая сравнению. Гасим их на страницах
+   сравнения: :has() смотрит вверх по дереву, потому что эти слои —
+   соседи содержимого, а не его потомки. */
+body:has(.pv) .b-cursor,
+body:has(.pv) .b-grain,
+body:has(.pv) .b-navbar { display: none !important; }
+body:has(.pv) { background: #EFEAE0; }
