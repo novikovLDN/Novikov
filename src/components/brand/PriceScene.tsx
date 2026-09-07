@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { PERIODS, PERIOD_LABEL, PLANS, PLAN_SPEED, discountPercent, formatRub, pricePerMonth, type Period, type PlanId } from "@/lib/plans";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
+import ScrambleLabel from "./ScrambleLabel";
 
 /**
  * ЦЕНА — как объект, а не как таблица.
@@ -30,8 +31,8 @@ export default function PriceScene() {
   return (
     <section className="b-section b-paper b-price" aria-labelledby="price-title">
       <div className="b-shell">
-        <header className="b-price-head">
-          <p className="b-label">Цена</p>
+        <header className="b-price-head b-enter">
+          <ScrambleLabel text="Цена" />
           <h2 id="price-title" className="b-lg">
             {formatRub(pricePerMonth("basic", 12))} ₽ <br />в месяц
           </h2>

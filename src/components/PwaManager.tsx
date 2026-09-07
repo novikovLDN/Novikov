@@ -111,34 +111,27 @@ export default function PwaManager() {
   if (!showInstall || dismissed) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto animate-fade-in-up">
-      <div className="bg-card border border-border/50 rounded-2xl p-4 shadow-xl shadow-black/20">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--px-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <div className="b-install" role="dialog" aria-labelledby="pwa-install-title">
+      <div className="b-install-card">
+        <div className="b-install-row">
+          <span className="b-install-mark" aria-hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
+          </span>
+          <div className="b-install-copy">
+            <p id="pwa-install-title" className="b-install-title">Приложение на главный экран</p>
+            <p className="b-install-note">Открывается как обычное приложение и умеет присылать уведомления.</p>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm">Установить приложение</p>
-            <p className="text-muted text-xs mt-0.5">Добавьте Atlas Secure на главный экран для быстрого доступа и push-уведомлений</p>
-          </div>
-          <button
-            onClick={handleDismiss}
-            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-card-hover transition-colors shrink-0"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
+          <button onClick={handleDismiss} className="b-install-x" aria-label="Закрыть">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
         </div>
-        <button
-          onClick={handleInstall}
-          className="w-full h-10 rounded-xl bg-primary text-[color:var(--px-accent-ink)] font-medium text-sm hover:bg-primary-hover transition-all btn-press mt-3 flex items-center justify-center gap-2"
-        >
+        <button onClick={handleInstall} className="b-btn b-btn-acid b-install-cta">
           Установить
         </button>
       </div>

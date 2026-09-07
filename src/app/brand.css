@@ -79,7 +79,12 @@
   /* Дисплейная шкала. Верх шкалы намеренно за пределами разумного:
      заголовок — объект в кадре, а не подпись над контентом. */
   --t-mega:  clamp(4rem, 15vw, 20rem);
-  --t-xl:    clamp(2.75rem, 8.5vw, 9rem);
+  /* Нижний порог опущен с 2,75rem. На 320px он давал 44px, и самое
+     длинное слово манифеста («интернета», «разбирать») не помещалось
+     в строку: грид-колонка вставала по min-content и распирала
+     документ на 64px вбок. Клэмп обязан иметь порог, при котором
+     самое длинное слово макета ещё влезает в самый узкий экран. */
+  --t-xl:    clamp(2rem, 8.5vw, 9rem);
   --t-lg:    clamp(2rem, 5vw, 4.5rem);
   --t-md:    clamp(1.5rem, 2.6vw, 2.25rem);
   --t-body:  clamp(1rem, 1.15vw, 1.1875rem);
@@ -173,7 +178,9 @@
 .b-mega { font-size: var(--t-mega); }
 .b-xl   { font-size: var(--t-xl); }
 .b-lg   { font-size: var(--t-lg); line-height: 0.9; letter-spacing: -0.04em; }
-.b-md   { font-size: var(--t-md); line-height: 1.02; letter-spacing: -0.03em; }
+/* Строки выравниваются по длине. На .b-mega и .b-xl не применяем:
+   там перенос — решение вёрстки, а не браузера. */
+.b-md   { font-size: var(--t-md); line-height: 1.02; letter-spacing: -0.03em; text-wrap: balance; }
 
 .b-body {
   font-size: var(--t-body);
@@ -181,6 +188,10 @@
   color: var(--fg-2);
   max-width: 46ch;
   margin: 0;
+  /* Браузер сам избегает висячего слова в последней строке. Аудит
+     находил их в описаниях шагов и в составе тарифов на пяти
+     ширинах из восьми. */
+  text-wrap: pretty;
 }
 .b-lede {
   font-size: clamp(1.125rem, 1.7vw, 1.5rem);
@@ -189,6 +200,7 @@
   color: var(--fg);
   max-width: 30ch;
   margin: 0;
+  text-wrap: pretty;
 }
 /* Служебная метка. Моноширинный шрифт здесь не используется
    намеренно: CLI-панель — фирменный приём Railway и половины
@@ -660,8 +672,11 @@
 .b-js .b-manifest-stage {
   display: grid;
   place-items: center start;
+  /* Без этого колонка грида встаёт по min-content самого длинного
+     слова и не даёт странице сузиться. */
+  grid-template-columns: minmax(0, 1fr);
 }
-.b-js .b-manifest-line { grid-area: 1 / 1; }
+.b-js .b-manifest-line { grid-area: 1 / 1; min-width: 0; }
 .b-manifest-line + .b-manifest-line { margin-top: 0.4em; }
 .b-js .b-manifest-line + .b-manifest-line { margin-top: 0; }
 
@@ -1223,4 +1238,183 @@
     animation-duration: 0s !important;
     animation-delay: 0s !important;
   }
+}
+
+/* ═══ Полоса загрузки маршрута ════════════════════════════════════
+   Показывается, только если навигация заняла больше 180 мс: на
+   быстром переходе мигание хуже отсутствия индикатора. Полоса
+   разгоняется до 70% и там ждёт — врать про «почти готово» нельзя,
+   но и замирать на нуле она не должна.
+
+   Работает и при пониженной анимации: это индикатор состояния, а не
+   украшение. Движение в этом режиме заменяется постоянной полосой. */
+.b-navbar {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 99;
+  height: 2px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 120ms var(--e-out);
+}
+.b-navbar-on { opacity: 1; }
+.b-navbar-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--acid);
+  transform-origin: left center;
+}
+.b-navbar-on .b-navbar-fill { animation: b-navbar 2.4s var(--e-out) forwards; }
+@keyframes b-navbar {
+  0%   { width: 0; }
+  40%  { width: 48%; }
+  100% { width: 74%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .b-navbar { transition: none; }
+  .b-navbar-on .b-navbar-fill { animation: none; width: 60%; }
+}
+
+/* ═══ Лента фактов ════════════════════════════════════════════════
+   Шов между сценами. Позицию ведёт скрипт (собственный ход плюс
+   толчок от прокрутки складываются в одну запись в transform);
+   CSS-анимации на дорожке нет намеренно — две силы, пишущие в одно
+   свойство, дают рывок ровно в момент прокрутки. */
+.b-band {
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--on-ink);
+  border-block: var(--rule) solid var(--ink-3);
+  padding-block: clamp(14px, 2.4vh, 22px);
+}
+.b-marquee { overflow: hidden; }
+.b-marquee-track { display: flex; width: max-content; will-change: transform; }
+.b-marquee-row { display: flex; list-style: none; margin: 0; padding: 0; }
+.b-marquee-item {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(12px, 1.4vw, 20px);
+  padding-inline: clamp(16px, 2vw, 32px);
+  font-family: var(--display);
+  font-size: clamp(0.9375rem, 1.5vw, 1.375rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+/* Разделитель — та же ячейка, из которой сложена стена героя. */
+.b-marquee-dot { width: 8px; height: 8px; background: var(--acid); flex-shrink: 0; }
+
+/* ═══ Появление секций нативным таймлайном ════════════════════════
+   Там, где браузер понимает animation-timeline: view(), проявление
+   считает он сам — без наблюдателя, без rAF и без единого слушателя.
+   Правило добавочное: где поддержки нет, элемент просто виден.
+   Прозрачность не трогаем на первом экране — она задерживает LCP;
+   здесь это безопасно, элементы приходят ниже сгиба. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .b-enter {
+      animation: b-enter linear both;
+      animation-timeline: view();
+      animation-range: entry 8% cover 24%;
+    }
+  }
+}
+@keyframes b-enter {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ═══ Предложение установить приложение ═══════════════════════════
+   Прежняя версия — белая карточка со скруглением 16px и тенью — на
+   чернильном сайте читалась как всплывшее окно другого продукта. */
+.b-install {
+  position: fixed;
+  inset-inline: var(--gutter);
+  bottom: var(--gutter);
+  z-index: 94;
+  max-width: 460px;
+  margin-inline: auto;
+  animation: b-install-in var(--d-slow) var(--e-out) both;
+}
+@keyframes b-install-in {
+  from { opacity: 0; transform: translateY(16px); }
+}
+.b-install-card {
+  padding: 1.125rem;
+  background: var(--ink-2);
+  border: var(--rule) solid var(--ink-3);
+  border-left: 3px solid var(--acid);
+  color: var(--on-ink);
+}
+.b-install-row { display: flex; align-items: flex-start; gap: 0.875rem; }
+.b-install-mark {
+  display: grid;
+  place-items: center;
+  width: 36px; height: 36px;
+  flex-shrink: 0;
+  background: rgba(214, 255, 63, 0.12);
+  color: var(--acid);
+}
+.b-install-copy { flex: 1; min-width: 0; }
+.b-install-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.b-install-note { margin: 0.35rem 0 0; font-size: var(--t-small); line-height: 1.45; color: var(--on-ink-2); }
+.b-install-x {
+  display: grid;
+  place-items: center;
+  width: 44px; height: 44px;
+  margin: -0.6rem -0.5rem 0 0;
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  color: var(--on-ink-3);
+  cursor: pointer;
+}
+.b-install-x:hover { color: var(--acid); }
+.b-install-x:focus-visible { outline: 3px solid var(--acid); outline-offset: -3px; }
+.b-install-cta { width: 100%; justify-content: center; margin-top: 1rem; min-height: 48px; padding-block: 0.8rem; }
+
+@media (prefers-reduced-motion: reduce) { .b-install { animation: none; } }
+
+/* ═══ Инструкция установки на iOS ═════════════════════════════════
+   Полноэкранное окно на служебной палитре старого слоя. Утилиты
+   Tailwind v4 компилируются в var(--color-*), поэтому окно
+   перекрашивается подменой этих переменных в своей области — как
+   страницы старой системы. Разметку не трогаем: двести строк
+   пошаговой инструкции переписывать ради цвета незачем. */
+.b-ios {
+  --color-background: var(--ink);
+  --color-background-secondary: var(--ink-2);
+  --color-foreground: var(--on-ink);
+  --color-card: var(--ink-2);
+  --color-card-hover: var(--ink-3);
+  --color-card-active: var(--ink-3);
+  --color-border: var(--ink-3);
+  --color-border-light: var(--ink-3);
+  --color-primary: var(--acid);
+  --color-primary-hover: #E6FF8A;
+  --color-primary-light: rgba(214, 255, 63, 0.14);
+  --color-muted: var(--on-ink-2);
+  --color-muted-light: var(--on-ink-3);
+  --color-accent: var(--acid);
+  --color-accent-light: rgba(214, 255, 63, 0.14);
+  --font-mts-wide: var(--display);
+  --font-sans: var(--text);
+  color: var(--on-ink);
+}
+.b-ios [class*="rounded"] { border-radius: 0 !important; }
+/* Стеклянная панель с размытием — приём прежнего слоя; здесь просто
+   чернильная плита с линией. */
+.b-ios .glass {
+  background: var(--ink);
+  backdrop-filter: none;
+  border-bottom: var(--rule) solid var(--ink-3);
 }

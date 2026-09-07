@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { DEVICE_LIMIT } from "@/lib/plans";
+import ScrambleLabel from "./ScrambleLabel";
 
 /**
  * КАК ЭТО РАБОТАЕТ — залипающая сцена из трёх шагов.
@@ -73,8 +74,8 @@ export default function HowScene() {
     <section ref={root} id="how" className="b-section b-paper b-how" aria-labelledby="how-title">
       <div className="b-how-stick">
         <div className="b-shell b-how-inner">
-          <header className="b-how-head">
-            <p className="b-label">Как это работает</p>
+          <header className="b-how-head b-enter">
+            <ScrambleLabel text="Как это работает" />
             <h2 id="how-title" className="b-lg">
               Три шага, <br />и ни одного лишнего
             </h2>

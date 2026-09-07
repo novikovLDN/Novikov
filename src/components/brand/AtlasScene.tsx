@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { CITY_COUNT, COUNTRY_COUNT, LOCATIONS, plural } from "@/lib/locations";
+import ScrambleLabel from "./ScrambleLabel";
 
 /**
  * АТЛАС — горизонтальная лента стран.
@@ -58,8 +59,8 @@ export default function AtlasScene() {
 
   return (
     <section ref={root} className="b-section b-paper b-atlas" aria-labelledby="atlas-title">
-      <div className="b-shell b-atlas-head">
-        <p className="b-label">Атлас</p>
+      <div className="b-shell b-atlas-head b-enter">
+        <ScrambleLabel text="Атлас" />
         <h2 id="atlas-title" className="b-lg">
           {/* Число и его форма считаются вместе: «22 городов» — то, что
               получается, если склонение зашить руками под сегодняшнее

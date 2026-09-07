@@ -49,7 +49,7 @@ export default function IosInstallBanner() {
   // ─── Guide Screen ────────────────────────────────────────────
   if (showGuide) {
     return (
-      <div className="fixed inset-0 z-[60] bg-background overflow-y-auto">
+      <div className="b-ios fixed inset-0 z-[60] bg-background overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 z-10 glass safe-top">
           <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">

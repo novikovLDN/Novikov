@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import BrandHeader from "./BrandHeader";
 import HeroScene from "./HeroScene";
 import ManifestoScene from "./ManifestoScene";
+import FactsBand from "./FactsBand";
 import HowScene from "./HowScene";
 import AtlasScene from "./AtlasScene";
 import PriceScene from "./PriceScene";
@@ -50,6 +51,10 @@ export default function Home({ referralCode }: { referralCode?: string }) {
         <HeroScene />
         {/* Три утверждения и переворот корпуса из чернил в бумагу. */}
         <ManifestoScene />
+        {/* Шов между «зачем» и «как»: лента проверяемых чисел,
+            которая слышит прокрутку. */}
+        <FactsBand />
+
         {/* Как получить: три шага, кадр держится на месте. */}
         <HowScene />
         {/* Где работает: лента стран едет вбок. */}
