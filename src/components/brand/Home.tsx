@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import BrandHeader from "./BrandHeader";
+import MotionField from "./MotionField";
+import PacketRail from "./PacketRail";
 import HeroScene from "./HeroScene";
 import ManifestoScene from "./ManifestoScene";
 import FactsBand from "./FactsBand";
@@ -47,6 +49,11 @@ export default function Home({ referralCode }: { referralCode?: string }) {
     <div className="b-root">
       <a href="#main" className="b-skip">К содержимому</a>
       <SmoothScroll />
+      {/* Одно поле движения на страницу: скорость прокрутки пружиной
+          и потеря сигнала при простое. Всё остальное подключается к
+          нему одной строкой CSS. */}
+      <MotionField />
+      <PacketRail />
       <Cursor />
       <div className="b-grid-lines" aria-hidden />
 

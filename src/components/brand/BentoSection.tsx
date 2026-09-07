@@ -32,7 +32,7 @@ export default function BentoSection() {
           {typo("Что внутри подписки")}
         </h2>
 
-        <div className="b-bento">
+        <div className="b-bento b-vel">
           {/* Ведущая ячейка: главный аргумент и его число. */}
           <article className="b-cell b-cell-lead">
             <p className="b-label">Ширина канала</p>

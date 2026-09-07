@@ -2166,3 +2166,111 @@ html, body { background: var(--ink); }
 .b-hero-probe .b-probe-note { padding-bottom: 12px; font-size: var(--t-micro); }
 
 .b-hero-metric { min-width: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ЖИВОЙ СЛОЙ
+
+   Не зрелище, а непрерывная тихая жизнь: медленные детали, которые
+   держат атмосферу и не забирают внимание. Всё подключено к одному
+   полю движения (--b-vel и data-signal в корне документа) — своего
+   скрипта у этих слоёв нет.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Трафик: поток пакетов у края страницы ───────────────────────
+   Буквальное изображение того, что происходит, когда продукт
+   включён. Абстрактные частицы значили бы ровно то же, что и на
+   любом другом сайте, то есть ничего. */
+.b-rail-flow {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: max(10px, calc((100vw - var(--shell)) / 2 - 26px));
+  width: 3px;
+  z-index: 6;
+  pointer-events: none;
+}
+@media (max-width: 1100px) { .b-rail-flow { display: none; } }
+.b-rail-line {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, var(--line) 12%, var(--line) 88%, transparent);
+}
+.b-packet {
+  position: absolute;
+  left: -1px;
+  width: 5px;
+  height: 5px;
+  background: var(--acid);
+  opacity: 0.55;
+  /* Собственный ход у каждого пакета свой, плюс общий множитель от
+     скорости прокрутки: при движении страницы поток разгоняется. */
+  animation: b-packet-run calc(9s / (1 + abs(var(--b-vel, 0)) * 2.4)) linear infinite;
+  animation-delay: calc(var(--i) * -1.28s);
+}
+@keyframes b-packet-run {
+  from { transform: translateY(-6vh); }
+  to   { transform: translateY(106vh); }
+}
+/* Каждый третий пакет идёт обратным курсом — ответ от узла. */
+.b-packet:nth-child(3n) {
+  background: var(--neon-3);
+  opacity: 0.4;
+  animation-name: b-packet-back;
+}
+@keyframes b-packet-back {
+  from { transform: translateY(106vh); }
+  to   { transform: translateY(-6vh); }
+}
+
+/* ─── Инерция: скорость прокрутки как физический вес ──────────────
+   Пружина проскакивает цель и возвращается, поэтому наклон читается
+   как отдача материала, а не как плавное скольжение. Величина
+   намеренно мизерная: это фон восприятия, текст не должен плыть под
+   читающим глазом. */
+.b-vel {
+  transform: skewY(calc(var(--b-vel, 0) * 0.35deg))
+             translate3d(0, calc(var(--b-vel, 0) * -6px), 0);
+  will-change: transform;
+}
+
+/* ─── Потеря сигнала при простое ──────────────────────────────────
+   Продукт — про соединение, и его собственная нестабильность на
+   секунду напоминает, зачем он нужен. Реже раза в паузу и никогда при
+   пониженной анимации. */
+[data-signal="lost"] .b-hero-title,
+[data-signal="lost"] .b-mark,
+[data-signal="lost"] .b-hero-rail {
+  animation: b-block-glitch 300ms steps(1) 1;
+}
+[data-signal="lost"] .b-term-dot,
+[data-signal="lost"] .b-mark-cell { background: var(--neon-2); }
+[data-signal="lost"] .b-rail-flow { opacity: 0.25; }
+.b-rail-flow { transition: opacity 240ms var(--e-out); }
+
+/* ─── Дыхание узлов в атласе ──────────────────────────────────────
+   Карточки светятся по очереди, как узлы, отчитывающиеся о себе.
+   Волна идёт вдоль ленты, а не мигает вся сразу. */
+.b-atlas-card { position: relative; }
+.b-atlas-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: var(--acid);
+  opacity: 0;
+  animation: b-node-report 9s ease-in-out infinite;
+  animation-delay: calc(var(--n, 0) * 0.42s);
+}
+@keyframes b-node-report {
+  0%, 88%, 100% { opacity: 0; }
+  92% { opacity: 0.85; }
+  96% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .b-packet, .b-atlas-card::after { animation: none; }
+  .b-vel { transform: none; }
+  [data-signal="lost"] .b-hero-title,
+  [data-signal="lost"] .b-mark,
+  [data-signal="lost"] .b-hero-rail { animation: none; }
+}

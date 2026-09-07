@@ -79,8 +79,8 @@ export default function AtlasScene() {
       </div>
 
       <ul ref={track} className="b-atlas-track">
-        {LOCATIONS.map((l) => (
-          <li key={l.code} className="b-atlas-card">
+        {LOCATIONS.map((l, i) => (
+          <li key={l.code} className="b-atlas-card" style={{ ["--n" as string]: i }}>
             <span className="b-atlas-code b-num">{l.code}</span>
             <ScrambleOnHover text={l.country} className="b-atlas-country" />
             <span className="b-atlas-cities">{l.cities.join(" · ")}</span>
