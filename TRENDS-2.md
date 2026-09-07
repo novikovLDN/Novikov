@@ -168,3 +168,41 @@ Serif**, из гротесков — **Onest** и **Manrope**.
 [FontVibe: киберпанк-текст, 2026](https://fontvibe.ai/blog/cyberpunk-text-effects-guide) ·
 [Subframe: глитч-эффекты и читаемость](https://www.subframe.com/tips/css-text-glitch-effect-examples) ·
 [Muzli: ошибки веб-дизайна](https://muz.li/blog/10-web-design-mistakes-and-how-to-avoid-them/)
+
+---
+
+## 6. Третий заход: интерактив, модульность, платформа
+
+**Первый экран уходит от картинки к взаимодействию.** Разборы 2026
+формулируют механику прямо: когда интерфейс мгновенно отвечает на
+действие, человек читает это как признак компетентности — снижается
+неопределённость и растёт вовлечённость. Пассивная прокрутка
+превращается в активное исследование. Отсюда демонстрация доступа:
+вводишь адрес — видишь, как выглядит ответ до и после.
+
+**Бенто-сетка.** Модульные ячейки разного размера задают порядок
+чтения без единого дополнительного элемента оформления. Обоснование
+не эстетическое: ячейка ставит зрительную точку, и читатель успевает
+переварить одно утверждение прежде, чем перейти к следующему (закон
+Миллера про семь блоков). Технический стек 2026 — CSS Grid, subgrid и
+контейнерные запросы: внутренняя раскладка ячейки считается от ЕЁ
+ширины, а не от ширины экрана.
+
+**Платформа догнала библиотеки.** Container queries, View Transitions,
+Popover API, anchor positioning и scroll-driven анимации стабильно
+поддержаны в Chrome 130+, Safari 18+ и Firefox 130+. Оговорка: anchor
+positioning уехал первым в Chromium и до уровня «везде безопасно» ещё
+не дошёл — нужен запасной вариант.
+
+**Микровзаимодействия — целенаправленные, а не декоративные.** Тренд
+2026 уходит от эффектных анимаций к функциональным: подтверждение
+действия, подсказка состояния, отклик на ввод.
+
+## Источники третьего захода
+
+[Acodez: микровзаимодействия и моушн](https://acodez.in/micro-interactions-motion-design/) ·
+[MoxMind: интерактивные тренды 2026](https://moxmindinteractive.com/blogs/top-5-interactive-web-trends) ·
+[SaaSFrame: бенто-сетки на практике](https://www.saasframe.io/blog/designing-bento-grids-that-actually-work-a-2026-practical-guide) ·
+[Inkbot: бенто и конверсия](https://inkbotdesign.com/bento-grid-design/) ·
+[Chrome for Developers: anchored container queries](https://developer.chrome.com/blog/anchored-container-queries) ·
+[Web Standards 2026: контейнерные запросы, View Transitions, Popover, anchor positioning](https://www.youngju.dev/blog/culture/2026-05-16-web-standards-2026-container-queries-view-transitions-popover-anchor-positioning-css-nesting-deep-dive.en)

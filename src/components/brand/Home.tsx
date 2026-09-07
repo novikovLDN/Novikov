@@ -5,6 +5,8 @@ import BrandHeader from "./BrandHeader";
 import HeroScene from "./HeroScene";
 import ManifestoScene from "./ManifestoScene";
 import FactsBand from "./FactsBand";
+import AccessProbe from "./AccessProbe";
+import BentoSection from "./BentoSection";
 import HowScene from "./HowScene";
 import AtlasScene from "./AtlasScene";
 import PriceScene from "./PriceScene";
@@ -54,6 +56,14 @@ export default function Home({ referralCode }: { referralCode?: string }) {
         {/* Шов между «зачем» и «как»: лента проверяемых чисел,
             которая слышит прокрутку. */}
         <FactsBand />
+
+        {/* Интерактивный кусок продукта: вводишь адрес — видишь, как
+            выглядит ответ до и после. */}
+        <AccessProbe />
+
+        {/* Состав подписки модульной сеткой: ячейка даёт зрительную
+            точку, разный размер задаёт порядок чтения. */}
+        <BentoSection />
 
         {/* Как получить: три шага, кадр держится на месте. */}
         <HowScene />

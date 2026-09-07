@@ -1968,3 +1968,134 @@ html, body { background: var(--ink); }
   .b-mark-spot:nth-child(n + 3) { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .b-mark-spot { animation: none; } }
+
+/* ═══ Демонстрация доступа ════════════════════════════════════════
+   Интерактивный кусок продукта: вводишь адрес — видишь, как выглядит
+   ответ до и после. Панель терминальная, как и всё машинное. */
+.b-probe { background: var(--ink); color: var(--on-ink); }
+.b-probe-inner { display: grid; gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
+@media (min-width: 1000px) {
+  .b-probe-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+}
+.b-probe-copy { display: grid; gap: 1rem; }
+.b-probe-term { background: var(--ink-2); border: var(--rule) solid var(--ink-3); }
+/* Строка ввода умеет переноситься. Подпись «$ atlas check» не
+   переносится по смыслу, поле требует места, кнопка тоже — вместе
+   их минимальная ширина распирала документ на 79px на 390px. */
+.b-probe-field {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  border-bottom: var(--rule) solid var(--ink-3);
+}
+.b-probe-prompt {
+  padding: 0 0 0 12px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--acid);
+  white-space: nowrap;
+}
+.b-probe-input {
+  flex: 1 1 8ch;
+  min-width: 0;
+  min-height: 52px;
+  padding: 12px;
+  background: transparent;
+  border: 0;
+  color: var(--on-ink);
+  font-family: var(--mono);
+  /* 16px на телефоне: при меньшем Safari увеличивает страницу при
+     фокусе, и человек дозаполняет форму в зуме. */
+  font-size: 16px;
+}
+@media (min-width: 640px) { .b-probe-input { font-size: 14px; } }
+/* На узком экране подпись занимает свою строку, поле и кнопка —
+   следующую: втроём они в 390px не помещаются. */
+@media (max-width: 560px) {
+  .b-probe-prompt { flex: 1 0 100%; padding: 12px 12px 0; }
+  .b-probe-input { flex: 1 1 auto; }
+}
+.b-probe-input:focus { outline: none; }
+.b-probe-input:focus-visible { outline: 2px solid var(--acid); outline-offset: -2px; }
+.b-probe-input::placeholder { color: var(--on-ink-3); }
+.b-probe-go {
+  flex: 1 0 auto;
+  min-height: 52px;
+  padding: 0 18px;
+  background: var(--acid);
+  color: var(--ink);
+  border: 0;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.b-probe-go:focus-visible { outline: 3px solid var(--on-ink); outline-offset: -3px; }
+.b-probe-out {
+  margin: 0;
+  padding: 14px 12px;
+  min-height: 92px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--on-ink-3);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.b-probe-ok { display: block; color: var(--acid); }
+.b-probe-note {
+  margin: 0;
+  padding: 0 12px 14px;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--on-ink-3);
+  max-width: 52ch;
+}
+
+/* ═══ Бенто ═══════════════════════════════════════════════════════
+   Модульная сетка: разный размер ячеек задаёт порядок чтения без
+   единого дополнительного элемента оформления, а сама ячейка даёт
+   зрительную точку — читатель успевает переварить одно утверждение
+   прежде, чем перейти к следующему. */
+.b-bento-sec { padding-block: clamp(72px, 10vh, 130px); background: var(--bg); color: var(--fg); }
+.b-bento-title { margin-top: 1rem; margin-bottom: clamp(2rem, 5vh, 3rem); }
+.b-bento { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .b-bento { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1060px) { .b-bento { grid-template-columns: repeat(4, 1fr); } }
+
+.b-cell {
+  /* Ячейка — контейнер: её внутренняя раскладка считается от
+     собственной ширины, а не от ширины окна. Широкая ячейка на
+     телефоне и узкая на десктопе — разные ситуации при одном и том же
+     вьюпорте. */
+  container-type: inline-size;
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  padding: clamp(18px, 2vw, 26px);
+  background: var(--surface, transparent);
+  border: var(--rule) solid var(--line);
+}
+@media (min-width: 1060px) {
+  .b-cell-lead { grid-column: span 2; grid-row: span 2; }
+  .b-cell-wide { grid-column: span 2; }
+}
+.b-cell-figure {
+  margin: 0.35rem 0 0;
+  font-family: var(--display);
+  font-size: clamp(2rem, 4.4vw, 3.25rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.b-cell-lead .b-cell-figure { font-size: clamp(2.75rem, 7vw, 5.5rem); }
+.b-cell-figure-word { color: var(--acid-deep); }
+.b-cell-btn { margin-top: 1rem; justify-self: start; }
+/* Широкая ячейка кладёт число и подпись в строку. */
+@container (min-width: 420px) {
+  .b-cell-wide .b-cell-figure { display: inline-block; margin-right: 0.75rem; }
+}
