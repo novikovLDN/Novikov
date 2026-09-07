@@ -2153,6 +2153,8 @@ html, body { background: var(--ink); }
    решения, ради которых и заведена. */
 @media (max-width: 760px) {
   .b-hero-say .b-trust { display: none; }
+  .b-race .b-hero-say { gap: 0.75rem; }
+  .b-race-grid { gap: 1rem; }
   .b-hero-grid { margin-top: clamp(0.75rem, 2vh, 1.25rem); gap: 1rem; }
   .b-hero-say { gap: 0.75rem; }
   /* Оговорка про демонстрацию скрывается ТОЛЬКО до первого ответа.
@@ -2436,4 +2438,81 @@ html, body { background: var(--ink); }
 @media (prefers-reduced-motion: reduce) {
   .b-split-hint .b-split-handle { animation: none; }
   .b-split-live, .b-split-title-live { transition: none; }
+}
+
+/* ═══ Первый экран: гонка двух полос ══════════════════════════════
+   Ничего трогать не нужно — забег идёт сам и повторяется. Это
+   буквальное изображение слова «ускоритель»: одна дорожка ползёт и
+   застревает, вторая проскакивает и упирается в готово. */
+.b-race .b-hero-title {
+  margin-top: clamp(0.75rem, 2vh, 1.5rem);
+  /* «Ускоритель интернета» вдвое длиннее прежнего заголовка и всегда
+     ложится в две строки. Кегль считается и от высоты окна: при
+     прежнем кадр вырастал до 1098px при экране 900 и полоса
+     показаний уезжала за нижний край. */
+  font-size: max(2.5rem, min(11vw, 14.5vh));
+}
+.b-race-grid {
+  margin-top: clamp(1rem, 3vh, 2rem);
+  display: grid;
+  gap: clamp(1rem, 3vw, 3rem);
+  align-items: start;
+}
+@media (min-width: 1000px) {
+  .b-race-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+}
+
+.b-lanes { display: grid; gap: clamp(1.25rem, 3.5vh, 2.75rem); align-content: center; min-height: 100%; }
+.b-lane { display: grid; gap: clamp(0.4rem, 1vh, 0.7rem); }
+.b-lane-name { margin: 0; }
+.b-lane-track {
+  position: relative;
+  /* Дорожки крупные: гонка — главное в кадре, а не подпись под
+     заголовком. При высоте 14px под ними пустовала треть экрана. */
+  height: clamp(16px, 2.6vh, 26px);
+  background: var(--ink-2);
+  border: var(--rule) solid var(--ink-3);
+  overflow: hidden;
+}
+.b-lane-fill {
+  display: block;
+  height: 100%;
+  /* Ширину ведёт скрипт; переход сглаживает шаг между кадрами, но
+     остаётся коротким — иначе полоса «догоняет» саму себя и застой
+     перестаёт читаться застоем. */
+  transition: width 90ms linear;
+}
+.b-lane-slow {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255, 46, 136, 0.75) 0 8px,
+    rgba(255, 46, 136, 0.35) 8px 16px
+  );
+}
+.b-lane-fast { background: var(--acid); }
+.b-lane-value {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.5rem, 3.2vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--on-ink-2);
+}
+.b-lane-hot .b-lane-value { color: var(--acid); }
+.b-lane-note {
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-ink-3);
+}
+/* Быстрая дорожка отмечена кислотной линией слева: одна и та же
+   разметка «главного» по всему сайту. */
+.b-lane-hot { padding-left: 14px; border-left: 2px solid var(--acid); margin-left: -16px; }
+@media (max-width: 640px) { .b-lane-hot { margin-left: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .b-lane-fill { transition: none; }
 }
