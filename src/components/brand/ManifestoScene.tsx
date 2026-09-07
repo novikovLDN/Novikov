@@ -48,7 +48,7 @@ export default function ManifestoScene() {
           start: "top top",
           end: "+=" + window.innerHeight * 2.4,
           pin: true,
-          scrub: 0.8,
+          scrub: 1.25,
         },
       });
 

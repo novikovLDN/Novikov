@@ -208,21 +208,33 @@ export default function BorderWall() {
       mx = (e.clientX - r.left) * dpr;
       my = (r.height - (e.clientY - r.top)) * dpr; // ось Y в GL снизу вверх
     };
-    const onLeave = () => { mx = -9999; my = -9999; };
+    const onLeave = () => { mx = -9999; my = -9999; smx = -9999; smy = -9999; };
 
     let raf = 0;
     let visible = true;
     const start = performance.now();
+    // Сглаженные значения. Растворение и курсор догоняют цель, а не
+    // прыгают за ней: при прямом присвоении стена дёргалась вместе с
+    // колесом, а след курсора рвался на быстром движении.
+    let dissolve = 0;
+    let smx = -9999;
+    let smy = -9999;
 
     const frame = () => {
       raf = requestAnimationFrame(frame);
       if (!visible) return;
       const r = host.getBoundingClientRect();
       // Растворение считается от того, сколько сцены уже ушло вверх.
-      const p = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height)));
+      const target = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height))) * 1.25;
+      dissolve += (target - dissolve) * 0.12;
+      // Курсор появляется мгновенно, но движется с инерцией: без
+      // первой ветки след тянулся бы через весь экран от края.
+      if (smx < -5000) { smx = mx; smy = my; }
+      else { smx += (mx - smx) * 0.16; smy += (my - smy) * 0.16; }
+
       gl.uniform1f(u.time, (performance.now() - start) / 1000);
-      gl.uniform1f(u.dissolve, p * 1.25);
-      gl.uniform2f(u.mouse, mx, my);
+      gl.uniform1f(u.dissolve, dissolve);
+      gl.uniform2f(u.mouse, smx, smy);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
 

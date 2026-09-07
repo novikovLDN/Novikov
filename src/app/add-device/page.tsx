@@ -293,27 +293,22 @@ export default function AddDevice() {
   ];
 
   return (
-    <div className="bg-[color:var(--px-bg)] min-h-dvh flex flex-col text-black">
+    <div className="px-page min-h-dvh flex flex-col">
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
         <Link href="/" className="flex items-center gap-2">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
+          <span className="b-mark-cell" aria-hidden />
+            <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-[color:var(--px-text)]">Atlas</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-black/60">
+        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-[color:var(--px-text-2)]">
           {navLinks.map((l) => (
-            <Link key={l.href} href={l.href} className="hover:text-black transition-colors">{l.label}</Link>
+            <Link key={l.href} href={l.href} className="hover:text-[color:var(--px-text)] transition-colors">{l.label}</Link>
           ))}
         </nav>
 
         <button
-          className="md:hidden w-11 h-11 rounded-full bg-black/[0.04] border border-black/10 flex items-center justify-center active:scale-[0.95] transition-transform"
+          className="md:hidden w-11 h-11 rounded-full bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] flex items-center justify-center active:scale-[0.95] transition-transform"
           onClick={() => setMenuOpen(true)}
           aria-label="Меню"
         >
@@ -359,7 +354,7 @@ export default function AddDevice() {
             </svg>
             Назад · {backLabel}
           </button>
-          <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45">
+          <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)]">
             {stepLabel}
           </span>
         </div>
@@ -368,13 +363,13 @@ export default function AddDevice() {
         {step === "platform" && (
           <>
             <div className="mb-10 sm:mb-14">
-              <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">
+              <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">
                 Добавление устройства
               </div>
               <h1 className="font-mts-wide text-[36px] sm:text-[52px] leading-[1.02] tracking-tight font-bold">
                 На каком<br />устройстве?
               </h1>
-              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.5] text-black/60 mt-6 max-w-[52ch]">
+              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.5] text-[color:var(--px-text-2)] mt-6 max-w-[52ch]">
                 Ваш ключ подписки работает на любом устройстве. Выберите платформу — покажем подходящее приложение и QR-код для быстрого добавления.
               </p>
             </div>
@@ -384,16 +379,16 @@ export default function AddDevice() {
                 <button
                   key={p.id}
                   onClick={() => handleSelectPlatform(p.id)}
-                  className="group text-left bg-[color:var(--px-surface)] border border-black/[0.06] rounded-2xl p-5 sm:p-6 flex items-center gap-5 hover:border-black/[0.15] hover:-translate-y-0.5 transition-all active:scale-[0.99]"
+                  className="group text-left bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6 flex items-center gap-5 hover:border-[color:var(--px-line-2)] hover:-translate-y-0.5 transition-all active:scale-[0.99]"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-black/[0.04] flex items-center justify-center shrink-0 text-black/70 group-hover:text-black transition-colors">
+                  <div className="w-12 h-12 rounded-xl bg-[color:var(--px-surface-2)] flex items-center justify-center shrink-0 text-[color:var(--px-text-2)] group-hover:text-[color:var(--px-text)] transition-colors">
                     <PlatformIcon id={p.id} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-mts-wide text-[16px] sm:text-[17px] font-medium text-black">{p.name}</div>
-                    <div className="font-mts-wide text-[12px] text-black/45 mt-0.5">{p.detail}</div>
+                    <div className="font-mts-wide text-[16px] sm:text-[17px] font-medium text-[color:var(--px-text)]">{p.name}</div>
+                    <div className="font-mts-wide text-[12px] text-[color:var(--px-text-4)] mt-0.5">{p.detail}</div>
                   </div>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-black/30 group-hover:text-black/70 transition-colors shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[color:var(--px-text-4)] group-hover:text-[color:var(--px-text-2)] transition-colors shrink-0">
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 </button>
@@ -406,13 +401,13 @@ export default function AddDevice() {
         {step === "app" && platform && (
           <>
             <div className="mb-10 sm:mb-14">
-              <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">
+              <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">
                 Приложение для подключения
               </div>
               <h1 className="font-mts-wide text-[36px] sm:text-[52px] leading-[1.02] tracking-tight font-bold">
                 В какое<br />приложение?
               </h1>
-              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.5] text-black/60 mt-6 max-w-[52ch]">
+              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.5] text-[color:var(--px-text-2)] mt-6 max-w-[52ch]">
                 Для {PLATFORMS.find((p) => p.id === platform)?.name} есть несколько подходящих клиентов. Выберите один — добавим подписку туда.
               </p>
             </div>
@@ -422,16 +417,16 @@ export default function AddDevice() {
                 <button
                   key={app.id}
                   onClick={() => { setAppIndex(i); setStep("instruction"); }}
-                  className="group text-left bg-[color:var(--px-surface)] border border-black/[0.06] rounded-2xl p-5 sm:p-6 flex items-center gap-5 hover:border-black/[0.15] hover:-translate-y-0.5 transition-all active:scale-[0.99]"
+                  className="group text-left bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6 flex items-center gap-5 hover:border-[color:var(--px-line-2)] hover:-translate-y-0.5 transition-all active:scale-[0.99]"
                 >
-                  <div className="w-14 h-14 rounded-2xl bg-black text-white flex items-center justify-center shrink-0 font-mts-wide text-[22px] font-bold">
+                  <div className="w-14 h-14 rounded-2xl bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] flex items-center justify-center shrink-0 font-mts-wide text-[22px] font-bold">
                     {app.name[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-mts-wide text-[17px] sm:text-[19px] font-medium text-black">{app.name}</div>
-                    <div className="font-mts-wide text-[12px] text-black/45 mt-0.5 uppercase tracking-[0.10em]">{app.storeLabel}</div>
+                    <div className="font-mts-wide text-[17px] sm:text-[19px] font-medium text-[color:var(--px-text)]">{app.name}</div>
+                    <div className="font-mts-wide text-[12px] text-[color:var(--px-text-4)] mt-0.5 uppercase tracking-[0.10em]">{app.storeLabel}</div>
                   </div>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-black/30 group-hover:text-black/70 transition-colors shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[color:var(--px-text-4)] group-hover:text-[color:var(--px-text-2)] transition-colors shrink-0">
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 </button>
@@ -444,7 +439,7 @@ export default function AddDevice() {
         {step === "instruction" && currentApp && (
           <>
             <div className="mb-10 sm:mb-12">
-              <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-black/45 mb-4">
+              <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">
                 {PLATFORMS.find((p) => p.id === currentApp.platform)?.name} · {currentApp.name}
               </div>
               <h1 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.05] tracking-tight font-bold max-w-[18ch]">
@@ -454,9 +449,9 @@ export default function AddDevice() {
 
             {/* QR card */}
             {getKeyUrl() && (
-              <div className="bg-[color:var(--px-surface)] border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
+              <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 mb-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-lg bg-black text-white flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-lg bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] flex items-center justify-center">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3"  width="7" height="7" />
                       <rect x="14" y="3" width="7" height="7" />
@@ -465,16 +460,16 @@ export default function AddDevice() {
                     </svg>
                   </div>
                   <div>
-                    <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45">Импорт</div>
+                    <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)]">Импорт</div>
                     <h3 className="font-mts-wide text-[16px] sm:text-[18px] font-bold leading-tight">QR-код подписки</h3>
                   </div>
                 </div>
 
-                <p className="font-mts-wide text-[13px] sm:text-[14px] leading-[1.55] text-black/60 mb-6">
+                <p className="font-mts-wide text-[13px] sm:text-[14px] leading-[1.55] text-[color:var(--px-text-2)] mb-6">
                   {currentApp.instructions.qrHint}
                 </p>
 
-                <div className="bg-[color:var(--px-surface)] border border-black/[0.08] rounded-2xl p-5 sm:p-6 flex items-center justify-center mx-auto max-w-[280px]">
+                <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6 flex items-center justify-center mx-auto max-w-[280px]">
                   <QRCodeSVG
                     value={getKeyUrl()!}
                     size={220}
@@ -487,8 +482,8 @@ export default function AddDevice() {
             )}
 
             {/* Steps card */}
-            <div className="bg-[color:var(--px-surface)] border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
-              <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mb-4">
+            <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 mb-4">
+              <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">
                 Пошаговая инструкция
               </div>
               <h3 className="font-mts-wide text-[18px] sm:text-[22px] font-bold leading-tight mb-6">
@@ -497,10 +492,10 @@ export default function AddDevice() {
               <ol className="space-y-4">
                 {currentApp.instructions.steps.map((s, i) => (
                   <li key={i} className="flex gap-4">
-                    <div className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center shrink-0 mt-0.5 font-mts-wide text-[12px] font-bold tabular-nums">
+                    <div className="w-7 h-7 rounded-full bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] flex items-center justify-center shrink-0 mt-0.5 font-mts-wide text-[12px] font-bold tabular-nums">
                       {i + 1}
                     </div>
-                    <p className="font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] text-black/75 pt-1">{s}</p>
+                    <p className="font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] text-[color:var(--px-text)] pt-1">{s}</p>
                   </li>
                 ))}
               </ol>
@@ -508,15 +503,15 @@ export default function AddDevice() {
 
             {/* Manual key card */}
             {getKeyUrl() && (
-              <div className="bg-[color:var(--px-surface)] border border-black/[0.06] rounded-3xl p-6 sm:p-8 mb-4">
-                <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mb-3">
+              <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 mb-4">
+                <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-3">
                   Или скопируйте вручную
                 </div>
                 <h3 className="font-mts-wide text-[18px] sm:text-[22px] font-bold leading-tight mb-5">
                   Ключ подписки
                 </h3>
 
-                <div className="bg-black/[0.04] border border-black/[0.08] rounded-2xl p-4 mb-4 font-mono text-xs break-all leading-relaxed text-black/70 select-all">
+                <div className="bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] rounded-2xl p-4 mb-4 font-mono text-xs break-all leading-relaxed text-[color:var(--px-text-2)] select-all">
                   {getKeyUrl()}
                 </div>
 

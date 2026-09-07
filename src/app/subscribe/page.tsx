@@ -71,7 +71,7 @@ export default function SubscribePage() {
     <Suspense
       fallback={
         <div className="bg-[color:var(--px-bg)] min-h-dvh flex items-center justify-center">
-          <LoadingSpinner size="lg" className="text-black" />
+          <LoadingSpinner size="lg" className="text-[color:var(--px-text)]" />
         </div>
       }
     >
@@ -197,7 +197,7 @@ function SubscribeContent() {
   const showSteps = step === "plans" || step === "periods" || step === "payment-methods";
 
   return (
-    <div className="bg-[color:var(--px-bg)] min-h-dvh flex flex-col text-black">
+    <div className="px-page min-h-dvh flex flex-col">
       <TopBar
         menuOpen={menuOpen}
         setMenuOpen={setMenuOpen}
@@ -218,12 +218,12 @@ function SubscribeContent() {
               <div
                 key={i}
                 className={`h-1 rounded-full transition-all duration-500 ease-out ${
-                  i <= stepNum ? "flex-1 bg-black/85" : "w-8 bg-black/10"
+                  i <= stepNum ? "flex-1 bg-[color:var(--px-accent)]" : "w-8 bg-[color:var(--px-line)]"
                 }`}
               />
             ))}
           </div>
-          <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-black/45 mt-3">
+          <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mt-3">
             Шаг {stepNum} из 3 —{" "}
             {step === "plans" ? "Тариф" : step === "periods" ? "Срок" : "Оплата"}
           </div>
@@ -237,9 +237,9 @@ function SubscribeContent() {
             <div className="mb-10 sm:mb-12">
               <h1 className="font-mts-wide text-[36px] sm:text-[48px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
                 Выберите<br />
-                <span className="text-black/45">тариф</span>
+                <span className="text-[color:var(--px-text-4)]">тариф</span>
               </h1>
-              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[52ch]">
+              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-[color:var(--px-text-2)] mt-6 max-w-[52ch]">
                 Два тарифа, одинаковая инфраструктура. Plus добавляет приоритетную полосу и резервные каналы.
               </p>
             </div>
@@ -258,9 +258,9 @@ function SubscribeContent() {
               <PlanChip plan={selectedPlan} />
               <h1 className="font-mts-wide text-[36px] sm:text-[48px] lg:text-[56px] leading-[1.02] tracking-tight font-bold mt-5">
                 Выберите<br />
-                <span className="text-black/45">срок</span>
+                <span className="text-[color:var(--px-text-4)]">срок</span>
               </h1>
-              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[52ch]">
+              <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-[color:var(--px-text-2)] mt-6 max-w-[52ch]">
                 Чем дольше срок — тем ниже цена за месяц. Отмена в один клик из личного кабинета.
               </p>
             </div>
@@ -281,12 +281,12 @@ function SubscribeContent() {
 
             {loading && (
               <div className="flex items-center justify-center gap-2 mt-6">
-                <LoadingSpinner size="sm" className="text-black" />
-                <p className="font-mts-wide text-black/60 text-[13px]">Создаём платёж…</p>
+                <LoadingSpinner size="sm" className="text-[color:var(--px-text)]" />
+                <p className="font-mts-wide text-[color:var(--px-text-2)] text-[13px]">Создаём платёж…</p>
               </div>
             )}
 
-            <p className="font-mts-wide text-black/45 text-[12px] text-center mt-8 leading-[1.6]">
+            <p className="font-mts-wide text-[color:var(--px-text-4)] text-[12px] text-center mt-8 leading-[1.6]">
               Оплата через защищённую платёжную систему · 15 минут на оплату
             </p>
           </section>
@@ -298,7 +298,7 @@ function SubscribeContent() {
             <div className="mb-8 sm:mb-10">
               <h1 className="font-mts-wide text-[36px] sm:text-[48px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
                 Способ<br />
-                <span className="text-black/45">оплаты</span>
+                <span className="text-[color:var(--px-text-4)]">оплаты</span>
               </h1>
             </div>
 
@@ -337,26 +337,26 @@ function SubscribeContent() {
               <button
                 onClick={handlePayYooKassa}
                 disabled={loading}
-                className="w-full text-left bg-[color:var(--px-surface)] border border-black/[0.06] rounded-3xl p-6 sm:p-7 flex items-center gap-5 transition-colors hover:border-black/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full text-left bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-7 flex items-center gap-5 transition-colors hover:border-[color:var(--px-line-2)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <div className="w-14 h-14 rounded-2xl bg-black text-white flex items-center justify-center shrink-0">
+                <div className="w-14 h-14 rounded-2xl bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] flex items-center justify-center shrink-0">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="5" width="20" height="14" rx="2" />
                     <line x1="2" y1="10" x2="22" y2="10" />
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-mts-wide text-[16px] sm:text-[17px] font-semibold text-black">
+                  <div className="font-mts-wide text-[16px] sm:text-[17px] font-semibold text-[color:var(--px-text)]">
                     Карта или СБП
                   </div>
-                  <div className="font-mts-wide text-[13px] text-black/60 mt-1">
+                  <div className="font-mts-wide text-[13px] text-[color:var(--px-text-2)] mt-1">
                     Visa, Mastercard, МИР, СБП
                   </div>
                 </div>
                 {loading ? (
-                  <LoadingSpinner size="sm" className="text-black shrink-0" />
+                  <LoadingSpinner size="sm" className="text-[color:var(--px-text)] shrink-0" />
                 ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-black/45 shrink-0">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-text-4)] shrink-0">
                     <path d="M9 18l6-6-6-6" />
                   </svg>
                 )}
@@ -365,7 +365,7 @@ function SubscribeContent() {
 
             {error && <ErrorNote>{error}</ErrorNote>}
 
-            <div className="mt-8 flex items-center gap-2 justify-center text-black/45">
+            <div className="mt-8 flex items-center gap-2 justify-center text-[color:var(--px-text-4)]">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" />
                 <path d="M7 11V7a5 5 0 0110 0v4" />
@@ -380,13 +380,13 @@ function SubscribeContent() {
         {/* ═══ Processing ═══ */}
         {step === "processing" && (
           <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--px-surface)] border border-black/[0.06] mb-8">
-              <LoadingSpinner size="lg" className="text-black" />
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--px-surface)] border border-[color:var(--px-line)] mb-8">
+              <LoadingSpinner size="lg" className="text-[color:var(--px-text)]" />
             </div>
             <h1 className="font-mts-wide text-[36px] sm:text-[48px] leading-[1.02] tracking-tight font-bold">
               Проверяем оплату
             </h1>
-            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[48ch] mx-auto">
+            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-[color:var(--px-text-2)] mt-6 max-w-[48ch] mx-auto">
               Пожалуйста, подождите. Проверяем статус вашего платежа…
             </p>
           </section>
@@ -395,7 +395,7 @@ function SubscribeContent() {
         {/* ═══ Success ═══ */}
         {step === "success" && (
           <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--px-good)] text-white mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--px-good)] text-[color:var(--px-accent-ink)] mb-8">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
@@ -403,7 +403,7 @@ function SubscribeContent() {
             <h1 className="font-mts-wide text-[40px] sm:text-[56px] leading-[1.02] tracking-tight font-bold">
               Оплата принята
             </h1>
-            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[48ch] mx-auto mb-10">
+            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-[color:var(--px-text-2)] mt-6 max-w-[48ch] mx-auto mb-10">
               Подписка успешно продлена. Ключ активен и готов к использованию.
             </p>
             <Link
@@ -421,7 +421,7 @@ function SubscribeContent() {
         {/* ═══ Failed ═══ */}
         {step === "failed" && (
           <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--color-danger)] text-white mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--color-danger)] text-[color:var(--px-accent-ink)] mb-8">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
@@ -429,9 +429,9 @@ function SubscribeContent() {
             </div>
             <h1 className="font-mts-wide text-[40px] sm:text-[56px] leading-[1.02] tracking-tight font-bold">
               Оплата<br />
-              <span className="text-black/45">не прошла</span>
+              <span className="text-[color:var(--px-text-4)]">не прошла</span>
             </h1>
-            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[48ch] mx-auto mb-10">
+            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-[color:var(--px-text-2)] mt-6 max-w-[48ch] mx-auto mb-10">
               Платёж отклонён или отменён. Попробуйте ещё раз или используйте другую карту.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -461,7 +461,7 @@ function SubscribeContent() {
         {/* ═══ Expired ═══ */}
         {step === "expired" && (
           <section className="max-w-[720px] mx-auto w-full px-5 sm:px-8 pt-16 sm:pt-24 pb-16 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--color-warning)] text-white mb-8">
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-[color:var(--color-warning)] text-[color:var(--px-accent-ink)] mb-8">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
@@ -469,9 +469,9 @@ function SubscribeContent() {
             </div>
             <h1 className="font-mts-wide text-[40px] sm:text-[56px] leading-[1.02] tracking-tight font-bold">
               Время<br />
-              <span className="text-black/45">истекло</span>
+              <span className="text-[color:var(--px-text-4)]">истекло</span>
             </h1>
-            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-black/70 mt-6 max-w-[48ch] mx-auto mb-10">
+            <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.6] text-[color:var(--px-text-2)] mt-6 max-w-[48ch] mx-auto mb-10">
               Платёж не был оплачен в течение 15 минут и аннулирован. Создайте новый.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -528,19 +528,12 @@ function TopBar({
       <div className="flex items-center justify-between px-5 sm:px-8 pt-6 sm:pt-8">
         <div className="flex items-center gap-3 sm:gap-5">
           <Link href="/" className="flex items-center gap-2">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path d="M5 5 L1 1 M5 5 L5 1 M5 5 L1 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M19 5 L23 1 M19 5 L19 1 M19 5 L23 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">
-              atlas.secure
-            </span>
+            <span className="b-mark-cell" aria-hidden />
+            <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-[color:var(--px-text)]">Atlas</span>
           </Link>
           <button
             onClick={onBack}
-            className="hidden sm:inline-flex items-center gap-1.5 font-mts-wide text-[13px] text-black/60 hover:text-black transition-colors pl-3 border-l border-black/15"
+            className="hidden sm:inline-flex items-center gap-1.5 font-mts-wide text-[13px] text-[color:var(--px-text-2)] hover:text-[color:var(--px-text)] transition-colors pl-3 border-l border-[color:var(--px-line-2)]"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -549,16 +542,16 @@ function TopBar({
           </button>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-black/60">
+        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-[color:var(--px-text-2)]">
           {links.map((l) => (
-            <Link key={l.href} href={l.href} className="hover:text-black transition-colors">
+            <Link key={l.href} href={l.href} className="hover:text-[color:var(--px-text)] transition-colors">
               {l.label}
             </Link>
           ))}
         </nav>
 
         <button
-          className="md:hidden w-11 h-11 rounded-full bg-[color:var(--px-surface)] border border-black/10 flex items-center justify-center active:scale-[0.95] transition-transform"
+          className="md:hidden w-11 h-11 rounded-full bg-[color:var(--px-surface)] border border-[color:var(--px-line)] flex items-center justify-center active:scale-[0.95] transition-transform"
           onClick={() => setMenuOpen(true)}
           aria-label="Меню"
         >
@@ -572,7 +565,7 @@ function TopBar({
       <div className="sm:hidden px-5 pt-4">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-1.5 font-mts-wide text-[13px] text-black/60"
+          className="inline-flex items-center gap-1.5 font-mts-wide text-[13px] text-[color:var(--px-text-2)]"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -630,12 +623,16 @@ function PlanCard({
   highlighted?: boolean;
 }) {
   const cheapestPerMonth = Math.min(...PRICES[plan].map((p) => p.perMonth));
+  // На кислотной заливке текст обязан быть чернильным, на обычной
+  // карточке — цветом чернил корпуса. Белая заливка убрана: на
+  // чернильном корпусе --px-text светлый, и светлый текст на белой
+  // карточке не читался вовсе.
   const cardBg = highlighted
     ? "bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)]"
-    : "bg-white text-black border border-black/[0.06]";
-  const bodyText = highlighted ? "text-black/75" : "text-black/70";
-  const muted = highlighted ? "text-black/60" : "text-black/55";
-  const divider = highlighted ? "bg-black/15" : "bg-black/[0.08]";
+    : "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border border-[color:var(--px-line)]";
+  const bodyText = highlighted ? "text-[color:var(--px-accent-ink)]" : "text-[color:var(--px-text-2)]";
+  const muted = highlighted ? "text-[color:var(--px-accent-ink)]" : "text-[color:var(--px-text-2)]";
+  const divider = highlighted ? "bg-[color:var(--px-line-2)]" : "bg-[color:var(--px-line)]";
 
   return (
     <button
@@ -647,7 +644,7 @@ function PlanCard({
           {PLANS[plan].name}
         </div>
         {highlighted && (
-          <span className="font-mts-wide text-[10px] font-bold uppercase tracking-[0.14em] text-black/70 bg-black/10 px-2.5 py-1 rounded-full">
+          <span className="font-mts-wide text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--px-text-2)] bg-[color:var(--px-line)] px-2.5 py-1 rounded-full">
             Популярный
           </span>
         )}
@@ -660,7 +657,7 @@ function PlanCard({
       </p>
 
       <div className="mt-6 flex items-baseline gap-2">
-        <span className="font-mts-wide text-[44px] sm:text-[52px] font-bold leading-none tabular-nums tracking-tight">
+        <span className={`font-mts-wide text-[44px] sm:text-[52px] font-bold leading-none tabular-nums tracking-tight ${highlighted ? "text-[color:var(--px-accent-ink)]" : "text-[color:var(--px-text)]"}`}>
           от {cheapestPerMonth}
         </span>
         <span className={`font-mts-wide text-[16px] font-medium ${muted}`}>₽/мес</span>
@@ -672,8 +669,12 @@ function PlanCard({
         {PLANS[plan].features.map((f) => (
           <li
             key={f.text}
+            /* На кислотной заливке чернила, на обычной карточке —
+               чернила корпуса. Раньше обе ветки давали один и тот же
+               светлый цвет, и на акцентной карточке список не
+               читался. */
             className={`flex items-start gap-3 font-mts-wide text-[14px] sm:text-[15px] leading-[1.4] ${
-              highlighted ? "text-black/85" : "text-black/85"
+              highlighted ? "text-[color:var(--px-accent-ink)]" : "text-[color:var(--px-text)]"
             }`}
           >
             <svg
@@ -685,7 +686,7 @@ function PlanCard({
               strokeWidth="2.4"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={`mt-0.5 shrink-0 ${highlighted ? "text-black/70" : "text-black/50"}`}
+              className={`mt-0.5 shrink-0 ${highlighted ? "text-[color:var(--px-accent-ink)]" : "text-[color:var(--px-text-2)]"}`}
             >
               <polyline points="20 6 9 17 4 12" />
             </svg>

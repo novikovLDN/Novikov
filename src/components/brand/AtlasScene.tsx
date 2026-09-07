@@ -48,7 +48,7 @@ export default function AtlasScene() {
           start: "top top",
           end: () => "+=" + distance(),
           pin: true,
-          scrub: 0.7,
+          scrub: 1.1,
           invalidateOnRefresh: true,
         },
       });

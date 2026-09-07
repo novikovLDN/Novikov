@@ -58,7 +58,7 @@ export default function HowScene() {
           start: "top top",
           end: "+=" + window.innerHeight * 1.5 * STEPS.length,
           pin: ".b-how-stick",
-          scrub: true,
+          scrub: 1.1,
           onUpdate: (self) => {
             const i = Math.min(STEPS.length - 1, Math.floor(self.progress * STEPS.length));
             setActive(i);

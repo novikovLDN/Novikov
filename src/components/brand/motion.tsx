@@ -21,6 +21,13 @@ import { useGSAP } from "@gsap/react";
  */
 gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 
+/* Единая кривая и единая длительность на весь сайт. Раньше каждая
+   сцена объявляла своё: где-то power4 за 0,9 с, где-то линейно за
+   0,3 — движение читалось как набор разных механизмов. power2.out
+   тормозит мягче, чем power4: тот выстреливает и почти мгновенно
+   замирает, отчего короткие перемещения выглядят дёргаными. */
+gsap.defaults({ ease: "power2.out", duration: 0.9 });
+
 export { gsap, ScrollTrigger, SplitText, useGSAP };
 
 /** Одно место, где спрашивают про пониженную анимацию. */
@@ -62,7 +69,14 @@ export function SmoothScroll() {
     // кадра и не должны стоять на пути отрисовки.
     import("lenis").then(({ default: Lenis }) => {
       if (cancelled) return;
-      const instance = new Lenis({ autoRaf: false, duration: 1.05 });
+      const instance = new Lenis({
+        autoRaf: false,
+        // Длиннее выкат и более пологая кривая: прокрутка догоняет
+        // палец мягче, а сцены со scrub перестают дёргаться на
+        // резком движении колеса.
+        duration: 1.35,
+        easing: (t: number) => 1 - Math.pow(1 - t, 3.2),
+      });
       lenis = instance;
       instance.on("scroll", ScrollTrigger.update);
       update = (time: number) => instance.raf(time * 1000);
@@ -124,8 +138,11 @@ export function Cursor() {
     const tick = () => {
       // Догоняющая инерция: курсор отстаёт ровно настолько, чтобы
       // читаться как объект, а не как второй указатель.
-      x += (tx - x) * 0.18;
-      y += (ty - y) * 0.18;
+      // Инерция курсора мягче: 0,18 давали почти мгновенное
+      // прилипание к указателю, и точка переставала читаться
+      // как отдельный объект.
+      x += (tx - x) * 0.13;
+      y += (ty - y) * 0.13;
       node.style.setProperty("--x", `${x}px`);
       node.style.setProperty("--y", `${y}px`);
       raf = requestAnimationFrame(tick);

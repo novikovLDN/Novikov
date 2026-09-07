@@ -71,7 +71,7 @@ export default function KineticHeadline({
         const t = gsap.to(state, {
           wght: 900,
           ease: "none",
-          scrollTrigger: { trigger: node, start: "top 70%", end: "bottom top", scrub: 0.6 },
+          scrollTrigger: { trigger: node, start: "top 70%", end: "bottom top", scrub: 1 },
           onUpdate: () => {
             node.style.fontVariationSettings = `"wght" ${Math.round(state.wght)}`;
           },
@@ -99,7 +99,7 @@ export default function KineticHeadline({
         weightTween = gsap.to(state, {
           wght: 900,
           ease: "none",
-          scrollTrigger: { trigger: node, start: "top 70%", end: "bottom top", scrub: 0.6 },
+          scrollTrigger: { trigger: node, start: "top 70%", end: "bottom top", scrub: 1 },
           onUpdate: () => {
             node.style.fontVariationSettings = `"wght" ${Math.round(state.wght)}`;
           },
