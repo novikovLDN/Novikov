@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef } from "react";
 import KineticHeadline from "./KineticHeadline";
+import AsciiWall from "./AsciiWall";
 import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { PLANS, formatRub } from "@/lib/plans";
@@ -59,6 +60,12 @@ export default function OutroScene() {
 
   return (
     <section ref={root} className="b-outro" aria-labelledby="outro-title">
+      {/* Стена из знаков, сквозь которую идёт пробой. Последний кадр
+          был самым пустым на странице — теперь он самый плотный. */}
+      <AsciiWall rows={16} cols={72} />
+      <span className="b-tape b-tape-acid b-outro-tape" aria-hidden>
+        доступ_открыт
+      </span>
       <div className="b-shell b-outro-inner">
         <KineticHeadline
           text="Проверьте сами"
@@ -66,14 +73,17 @@ export default function OutroScene() {
           id="outro-title"
           className="b-mega b-outro-title"
           weightScroll={false}
+          glitch
         />
         <p className="b-lede b-outro-lede">
           {typo(`${TRIAL_DAYS} дня бесплатно. Без карты и без обещаний, которые нельзя проверить за эти три дня.`)}
         </p>
         <div className="b-outro-actions">
-          <Link href="/auth" className="b-btn b-btn-acid b-magnet">
-            Начать
-          </Link>
+          <span className="b-hud">
+            <Link href="/auth" className="b-btn b-btn-acid b-magnet">
+              Начать
+            </Link>
+          </span>
           <Link href="/pricing" className="b-link b-outro-alt">
             от {formatRub(PLANS.basic[1])} ₽ в месяц
           </Link>

@@ -42,6 +42,16 @@ export default function HeroScene() {
     <section className="b-hero" aria-labelledby="hero-title">
       <BorderWall />
 
+      {/* Скотч поверх макета: элемент улицы, а не сетки. Кладётся на
+          пустое место — поверх текста читался бы как ошибка вёрстки.
+          Код узла собран из числа стран, а не выдуман. */}
+      <span className="b-tape b-tape-acid b-hero-tape-1" aria-hidden>
+        //ATLAS_NODE_{COUNTRY_COUNT}
+      </span>
+      <span className="b-tape b-tape-neon b-hero-tape-2" aria-hidden>
+        стена_не_твоя
+      </span>
+
       <div className="b-hero-body b-shell">
         <p className="b-label b-hero-kicker">
           Atlas <span aria-hidden>—</span> VPN
@@ -55,6 +65,7 @@ export default function HeroScene() {
           id="hero-title"
           className="b-mega b-hero-title"
           reveal="css"
+          glitch
         />
 
         <div className="b-hero-say">
@@ -62,15 +73,19 @@ export default function HeroScene() {
             {typo("Atlas — это VPN. Шифрует трафик, меняет страну, открывает то, что перестало открываться.")}
           </p>
           <div className="b-hero-actions">
-            <Link href="/auth" className="b-btn b-btn-acid">
-              {TRIAL_DAYS} дня бесплатно
-            </Link>
+            {/* Прицельные скобки обозначают главное действие в кадре
+                углами, а не рамкой — как это делает интерфейс прицела. */}
+            <span className="b-hud">
+              <Link href="/auth" className="b-btn b-btn-acid">
+                Взломать стену
+              </Link>
+            </span>
             <Link href="/pricing" className="b-btn b-btn-ghost">
               {monthly} ₽ в месяц
             </Link>
           </div>
           <p className="b-hero-fine">
-            {typo("Без карты. Отмена в один клик. Мы не храним историю подключений.")}
+            {typo(`${TRIAL_DAYS} дня бесплатно, без карты. Отмена в один клик. Историю подключений не храним.`)}
           </p>
         </div>
       </div>

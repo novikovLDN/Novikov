@@ -31,6 +31,7 @@ export default function KineticHeadline({
   id,
   weightScroll = true,
   reveal = "chars",
+  glitch = false,
 }: {
   text: string;
   className?: string;
@@ -54,6 +55,11 @@ export default function KineticHeadline({
    * поверх уже нарисованного.
    */
   reveal?: "chars" | "css";
+  /** Расщеплять ли канал: два клона в маджента и циане рывком
+   *  расходятся раз в несколько секунд и по наведению. Ставится на
+   *  главные заголовки, а не на все подряд — сбой обязан оставаться
+   *  событием. */
+  glitch?: boolean;
 }) {
   const ref = useRef<HTMLElement>(null);
   const reduced = usePrefersReducedMotion();
@@ -120,7 +126,10 @@ export default function KineticHeadline({
       // @ts-expect-error — общий ref для h1/h2/p
       ref={ref}
       id={id}
-      className={reveal === "css" ? `${className} b-rise` : className}
+      className={[className, reveal === "css" ? "b-rise" : "", glitch ? "b-glitch" : ""]
+        .filter(Boolean)
+        .join(" ")}
+      data-text={glitch ? text : undefined}
       aria-label={text}
     >
       {text}

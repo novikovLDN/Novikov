@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { display, text } from "./fonts";
+import { display, text, mono } from "./fonts";
 import "./globals.css";
 import "./brand.css";
 import CookieConsent from "@/components/CookieConsent";
@@ -77,7 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className={`${display.variable} ${text.variable}`} suppressHydrationWarning>
+    <html lang="ru" className={`${display.variable} ${text.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         {/* Фирменный шрифт лежит у нас же (/public/fonts) и объявлен
             через @font-face в globals.css. Предзагрузка нужна потому,

@@ -45,6 +45,14 @@
   --acid-deep:  #5A6B0E;
   --acid-rgb:   214, 255, 63;
 
+  /* Каналы сбоя. Это НЕ третий и четвёртый акценты: маджента и циан
+     живут только в расщеплении канала и в глитче, то есть в кадре
+     появляются рывком и исчезают. Красить ими текст, заливки или
+     границы запрещено — правило «один яркий акцент» остаётся в силе,
+     сбой ему не противоречит, потому что он не статичен. */
+  --neon-2:     #FF2E88;
+  --neon-3:     #00E5FF;
+
   /* ─── Чернила на бумаге и наоборот ──────────────────────────────
      Текстовые слои объявлены для обоих состояний явно. Наследование
      цвета от предка уже один раз стоило этому проекту невидимого
@@ -73,8 +81,10 @@
      Grotesk — для русского сайта они отпадают целиком.
      Текст — Onest: вариативный гибрид геометрического и
      гуманистического гротеска. */
-  --display: var(--font-display), "Arial Black", sans-serif;
+  --display: var(--font-display), "Arial Narrow", sans-serif;
   --text:    var(--font-text), "Helvetica Neue", sans-serif;
+  /* Машинный слой: служебные метки, показания, коды, ASCII. */
+  --mono:    var(--font-mono-brand), ui-monospace, monospace;
 
   /* Дисплейная шкала. Верх шкалы намеренно за пределами разумного:
      заголовок — объект в кадре, а не подпись над контентом. */
@@ -89,7 +99,10 @@
   --t-md:    clamp(1.5rem, 2.6vw, 2.25rem);
   --t-body:  clamp(1rem, 1.15vw, 1.1875rem);
   --t-small: 0.875rem;
-  --t-micro: 0.6875rem;
+  /* 11px браузер на телефоне считает нечитаемым и режет за это
+     оценку. Служебная метка обязана оставаться служебной, но не
+     обязана быть мельче порога читаемости. */
+  --t-micro: 0.75rem;
 
   /* ─── Движение ───────────────────────────────────────────────────
      Кривые и тайминги — часть фирменного стиля, а не случайные
@@ -174,9 +187,11 @@ html, body { background: var(--ink); }
 /* ═══ Типографика ═════════════════════════════════════════════════ */
 .b-mega, .b-xl, .b-lg, .b-md {
   font-family: var(--display);
-  font-weight: 800;
-  line-height: 0.84;
-  letter-spacing: -0.045em;
+  /* Сжатый гротеск набирает вес иначе: 800 у него уже почти чёрный,
+     а трекинг не нужно ужимать так сильно, как широкому. */
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.01em;
   text-transform: uppercase;
   margin: 0;
 }
@@ -211,7 +226,7 @@ html, body { background: var(--ink); }
    намеренно: CLI-панель — фирменный приём Railway и половины
    инфраструктурных сайтов. Ту же «приборность» даёт разрядка. */
 .b-label {
-  font-family: var(--text);
+  font-family: var(--mono);
   font-size: var(--t-micro);
   font-weight: 600;
   letter-spacing: 0.22em;
@@ -1599,3 +1614,179 @@ html, body { background: var(--ink); }
 .b-price-note { max-width: 42ch; }
 .b-price-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1.25rem; margin-top: 0.5rem; }
 .b-price-alt { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--t-small); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ЦИФРОПАНКОВЫЙ СЛОЙ
+
+   Слияние двух направлений: корпус, стена и сцены остаются прежними,
+   сверху ложится язык DedSec — расщепление канала, ASCII, дизеринг,
+   скан-линии, наклейки, прицельные скобки.
+
+   Правило дозировки взято из практики 2026 (TRENDS-2.md §3 D): неон,
+   глитч и ретрофутуризм там работают акцентом, а не корпусом. Сбой
+   живёт на заголовках, кнопке и переходах между сценами; всё
+   остальное остаётся строгой вёрсткой. Если глитчить всё, страница
+   превращается в шум и перестаёт читаться.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ─── Расщепление канала ──────────────────────────────────────────
+   Два клона заголовка в маджента и циане рывком расходятся и
+   возвращаются. Клоны рисуются псевдоэлементами из data-text, поэтому
+   в дереве доступности их нет и диктор читает один текст. */
+.b-glitch { position: relative; }
+.b-glitch::before,
+.b-glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  will-change: transform, clip-path;
+}
+.b-glitch::before { color: var(--neon-2); animation: b-split-a 6.5s steps(1) infinite; }
+.b-glitch::after  { color: var(--neon-3); animation: b-split-b 6.5s steps(1) infinite; }
+@keyframes b-split-a {
+  0%, 88%, 100% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+  89% { opacity: .9; clip-path: inset(14% 0 66% 0); transform: translate(-4px, 1px); }
+  91% { opacity: .9; clip-path: inset(58% 0 22% 0); transform: translate(5px, -2px); }
+  93% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+}
+@keyframes b-split-b {
+  0%, 88%, 100% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+  90% { opacity: .85; clip-path: inset(32% 0 46% 0); transform: translate(4px, -1px); }
+  92% { opacity: .85; clip-path: inset(70% 0 8% 0); transform: translate(-5px, 2px); }
+  94% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+}
+/* Наведение вызывает сбой немедленно — отклик, а не ожидание цикла. */
+@media (hover: hover) and (pointer: fine) {
+  .b-glitch:hover::before { animation: b-split-a 420ms steps(1) 1; animation-delay: -370ms; }
+  .b-glitch:hover::after  { animation: b-split-b 420ms steps(1) 1; animation-delay: -370ms; }
+}
+
+/* ─── Скан-линии и дизеринг ───────────────────────────────────────
+   Поверх чернильных сцен. Очень слабые: это фактура сигнала, а не
+   эффект «старого монитора» во весь экран. */
+/* Слой привязан к КОНКРЕТНЫМ чернильным секциям, а не висит поверх
+   всего документа. Общий фиксированный слой накрывал и бумажные
+   сцены, где тёмная сетка по светлому читается типографским браком, а
+   выключить её оттуда нельзя: слой лежит в разметке рядом с
+   содержимым, а не внутри него. */
+.b-hero::after,
+.b-manifest::after,
+.b-band::after,
+.b-outro::after,
+.b-footer::after,
+.px-page::after,
+.auth-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,0,0,.5) 0 1px, transparent 1px 3px),
+    radial-gradient(rgba(244,243,239,.05) 1px, transparent 1px);
+  background-size: 100% 3px, 4px 4px;
+}
+.b-manifest::after, .b-band::after, .b-footer::after { position: absolute; }
+.px-page, .auth-shell, .b-manifest, .b-band, .b-footer { position: relative; }
+/* Внутри манифеста корпус переворачивается в бумагу — сигнальная
+   сетка вместе с ним гаснет. */
+.b-manifest.b-paper::after { opacity: 0; }
+
+/* ─── Терминальные метки ──────────────────────────────────────────
+   Машинный слой отделён от сказанного человеком не только шрифтом,
+   но и префиксом. */
+.b-label::before { content: "// "; color: var(--acid); }
+.b-paper .b-label::before { color: var(--acid-deep); }
+
+/* ─── Наклейки ────────────────────────────────────────────────────
+   Скотч поверх макета: элемент улицы, а не сетки. Кладётся только на
+   пустое место — поверх текста скотч читается как ошибка вёрстки. */
+.b-tape {
+  position: absolute;
+  z-index: 3;
+  padding: 6px 13px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.b-tape-acid { background: var(--acid); }
+.b-tape-neon { background: var(--neon-2); }
+
+/* ─── Прицельные скобки ───────────────────────────────────────────
+   Обозначают главное действие в кадре так же, как их обозначает
+   интерфейс прицела: углами, а не рамкой. */
+.b-hud { position: relative; display: inline-flex; }
+.b-hud::before,
+.b-hud::after {
+  content: "";
+  position: absolute;
+  width: 12px; height: 12px;
+  border: 2px solid var(--acid);
+  pointer-events: none;
+  transition: inset var(--d-base) var(--e-out);
+}
+.b-hud::before { top: -7px; left: -7px; border-right: 0; border-bottom: 0; }
+.b-hud::after  { bottom: -7px; right: -7px; border-left: 0; border-top: 0; }
+.b-paper .b-hud::before, .b-paper .b-hud::after { border-color: var(--acid-deep); }
+
+/* ─── ASCII-полотно ───────────────────────────────────────────────
+   Сетка знаков, сквозь которую идёт диагональный пробой. */
+.b-ascii {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  margin: 0;
+  font-family: var(--mono);
+  /* Не мельче 12px. ASCII-полотно — это тысячи текстовых узлов, и на
+     мобильном профиле оно составляло 88% всего текста страницы:
+     браузерный аудит считал документ набранным нечитаемым кеглем и
+     резал оценку. Крупнее сетка знаков только выигрывает — она
+     перестаёт быть кашей. */
+  font-size: clamp(12px, 1vw, 14px);
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+  color: rgba(var(--acid-rgb), 0.26);
+  white-space: pre;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(160deg, transparent 28%, #000 80%);
+  mask-image: linear-gradient(160deg, transparent 28%, #000 80%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .b-glitch::before, .b-glitch::after { animation: none; opacity: 0; }
+  .b-scan { display: none; }
+}
+
+/* ─── Наклейки первого экрана и финала ───────────────────────────── */
+.b-hero-tape-1 {
+  top: clamp(88px, 12vh, 140px);
+  right: clamp(12px, 4vw, 72px);
+  transform: rotate(-3.5deg);
+}
+.b-hero-tape-2 {
+  bottom: clamp(96px, 16vh, 190px);
+  right: clamp(12px, 7vw, 150px);
+  transform: rotate(2.5deg);
+}
+/* На узком экране первый экран и так плотный: второй скотч уходит. */
+@media (max-width: 900px) { .b-hero-tape-1 { display: none; } }
+@media (max-width: 560px) { .b-hero-tape-2 { display: none; } }
+
+.b-outro { position: relative; overflow: hidden; }
+.b-outro-inner { position: relative; z-index: 2; }
+.b-outro-tape {
+  bottom: clamp(24px, 6vh, 64px);
+  right: clamp(12px, 8vw, 160px);
+  transform: rotate(-2deg);
+}
+@media (max-width: 560px) { .b-outro-tape { display: none; } }

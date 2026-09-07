@@ -1,4 +1,4 @@
-import { Unbounded, Onest } from "next/font/google";
+import { Oswald, Onest, JetBrains_Mono } from "next/font/google";
 
 /**
  * Гарнитуры бренда 2027. Обоснование выбора — TRENDS.md §5.
@@ -21,10 +21,30 @@ import { Unbounded, Onest } from "next/font/google";
    профиле. Без списка приезжает один вариативный файл на семейство,
    с непрерывной осью веса — той самой, к которой привязана прокрутка
    заголовка. */
-export const display = Unbounded({
+/**
+ * Дисплей — сжатый гротеск вместо прежнего широкого.
+ *
+ * Unbounded давал плакатность, но не давал дерзости: широкое очко
+ * читается спокойно и дорого. Направление сменилось на цифропанк
+ * (TRENDS-2.md §3 D), а его заголовок — надпись на стене: узкая,
+ * плотная, капсом. Oswald вариативный и с кириллицей.
+ */
+export const display = Oswald({
   subsets: ["cyrillic", "latin"],
   display: "swap",
   variable: "--font-display",
+});
+
+/**
+ * Терминальный слой: служебные метки, показания, коды.
+ *
+ * У DedSec ASCII и моноширинный набор — часть языка, а не украшение:
+ * они отделяют «машинное» от «сказанного человеком».
+ */
+export const mono = JetBrains_Mono({
+  subsets: ["cyrillic", "latin"],
+  display: "swap",
+  variable: "--font-mono-brand",
 });
 
 export const text = Onest({
