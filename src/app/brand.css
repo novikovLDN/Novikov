@@ -322,6 +322,12 @@
   overflow: hidden;
   padding-bottom: 0.14em;
   margin-bottom: -0.14em;
+  /* Знаки внутри слова — отдельные inline-block-коробки, и браузер
+     имеет полное право перенести строку между ними. На «Проверьте»
+     это давало «Проверьт» / «е» / «сами»: слово разорвано посреди
+     себя. Перенос внутри слова запрещён; если слово не влезает,
+     уменьшается кегль, а не ломается слово. */
+  white-space: nowrap;
 }
 .b-char { display: inline-block; will-change: transform; }
 
@@ -690,9 +696,20 @@
 }
 .b-how-inner { width: 100%; display: grid; gap: clamp(2rem, 5vw, 4rem); }
 @media (min-width: 1000px) {
-  .b-how-inner { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr); align-items: start; }
+  .b-how-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 1.9fr); align-items: start; }
 }
 .b-how-head { display: grid; gap: 1rem; align-content: start; }
+/* Дисплейная шкала рассчитана на широкую колонку. В колонке шириной
+   в треть экрана 72px разваливали заголовок на пять строк
+   («Три» / «шага,» / «и ни» / «одного» / «лишнего»). */
+/* Межстрочный интервал 0.9 рассчитан на одну-две строки крупного
+   заголовка. На трёх строках он склеивал их: запятая «ШАГА,» лезла
+   в «И НИ ОДНОГО», а то — в «ЛИШНЕГО». */
+.b-how-head h2 {
+  font-size: clamp(1.75rem, 3.2vw, 3rem);
+  line-height: 1.02;
+  text-wrap: balance;
+}
 .b-how-list { list-style: none; margin: 0; padding: 0; border-top: var(--rule) solid var(--line); }
 
 .b-how-item {
@@ -875,7 +892,10 @@
   background: var(--ink);
   color: var(--on-ink);
 }
-.b-outro-title { font-size: max(3rem, min(14vw, 26vh)); }
+/* Кегль подобран так, чтобы «Проверьте» помещалось в строку на
+   любой ширине: у Unbounded широкое очко, и 14vw упирались в поля
+   ровно на 1440. */
+.b-outro-title { font-size: max(2.5rem, min(11.5vw, 24vh)); }
 .b-outro-lede { margin-top: clamp(1.5rem, 4vh, 2.5rem); }
 .b-outro-actions {
   margin-top: clamp(1.75rem, 4vh, 3rem);
@@ -1417,4 +1437,82 @@
   background: var(--ink);
   backdrop-filter: none;
   border-bottom: var(--rule) solid var(--ink-3);
+}
+
+/* ═══ Живой фон светлых сцен ══════════════════════════════════════
+   Первый экран держит WebGL-стена. Ниже, на бумажных сценах, за
+   содержанием идёт то же пиксельное поле — но средствами CSS: сетка
+   медленно дрейфует, а кислотное пятно дышит. Ни одного лишнего
+   слушателя и ни одной строки JS.
+
+   Двигается только transform, поэтому слой считает композитор.
+   Смещение сетки кратно её шагу (17px), поэтому цикл незаметен: к
+   концу анимации рисунок совпадает сам с собой. */
+.b-live {
+  position: relative;
+  isolation: isolate;
+  /* clip, а не hidden: hidden создаёт скролл-контейнер и ломает
+     прикреплённые сцены внутри. Обрезка нужна потому, что слой фона
+     намеренно выходит за границы секции — без неё он расширял
+     прокручиваемую область документа на 32px вбок. */
+  overflow: clip;
+}
+.b-live > * { position: relative; z-index: 1; }
+.b-live::before,
+.b-live::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+.b-live::before {
+  inset: -34px;
+  background-image:
+    linear-gradient(var(--line) var(--rule), transparent var(--rule)),
+    linear-gradient(90deg, var(--line) var(--rule), transparent var(--rule));
+  background-size: 17px 17px;
+  opacity: 0.55;
+  animation: b-drift 26s linear infinite;
+}
+@keyframes b-drift {
+  to { transform: translate3d(-17px, -17px, 0); }
+}
+/* Дыхание акцентом. Пятно большое и очень слабое: это подсветка
+   материала, а не световое пятно на сцене. */
+.b-live::after {
+  inset: 0;
+  background: radial-gradient(58% 46% at 76% 18%, rgba(var(--acid-rgb), 0.16), transparent 70%);
+  opacity: 0.5;
+  animation: b-breathe 15s var(--e-in-out) infinite alternate;
+}
+@keyframes b-breathe {
+  from { opacity: 0.28; transform: translate3d(-3%, 0, 0) scale(1); }
+  to   { opacity: 0.62; transform: translate3d(3%, 2%, 0) scale(1.12); }
+}
+
+/* ═══ Зерно ═══════════════════════════════════════════════════════
+   Тонкая плёнка поверх всего сайта. Убирает цифровую стерильность
+   плоских заливок: у чернил появляется материал, у кислоты — вес.
+   Слой перерисовывается ступенями, а не плавно: непрерывное движение
+   зерна читается как рябь на плохом видео. */
+.b-grain {
+  position: fixed;
+  inset: -120px;
+  z-index: 92;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+  animation: b-grain 700ms steps(4) infinite;
+}
+@keyframes b-grain {
+  0%   { transform: translate3d(0, 0, 0); }
+  25%  { transform: translate3d(-24px, 14px, 0); }
+  50%  { transform: translate3d(18px, -20px, 0); }
+  75%  { transform: translate3d(-12px, -8px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .b-live::before, .b-live::after, .b-grain { animation: none; }
 }

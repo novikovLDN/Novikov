@@ -6,6 +6,7 @@ import KineticHeadline from "./KineticHeadline";
 import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { PLANS, formatRub } from "@/lib/plans";
+import { typo } from "@/lib/typo";
 
 /**
  * ФИНАЛ — последний кадр во весь экран.
@@ -67,8 +68,7 @@ export default function OutroScene() {
           weightScroll={false}
         />
         <p className="b-lede b-outro-lede">
-          {TRIAL_DAYS} дня бесплатно. Без карты и без обещаний, которые нельзя
-          проверить за эти три дня.
+          {typo(`${TRIAL_DAYS} дня бесплатно. Без карты и без обещаний, которые нельзя проверить за эти три дня.`)}
         </p>
         <div className="b-outro-actions">
           <Link href="/auth" className="b-btn b-btn-acid b-magnet">

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PERIODS, PERIOD_LABEL, PLANS, PLAN_SPEED, discountPercent, formatRub, pricePerMonth, type Period, type PlanId } from "@/lib/plans";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import ScrambleLabel from "./ScrambleLabel";
+import { typo } from "@/lib/typo";
 
 /**
  * ЦЕНА — как объект, а не как таблица.
@@ -29,7 +30,7 @@ export default function PriceScene() {
   const [period, setPeriod] = useState<Period>(12);
 
   return (
-    <section className="b-section b-paper b-price" aria-labelledby="price-title">
+    <section className="b-section b-paper b-live b-price" aria-labelledby="price-title">
       <div className="b-shell">
         <header className="b-price-head b-enter">
           <ScrambleLabel text="Цена" />
@@ -72,7 +73,7 @@ export default function PriceScene() {
                 {formatRub(PLANS[id][period])} ₽ за {PERIOD_LABEL[period].accusative}
               </p>
               <p className="b-plan-speed b-num">{PLAN_SPEED[id]} Гбит/с</p>
-              <p className="b-body b-plan-note">{PLAN_META[id].note}</p>
+              <p className="b-body b-plan-note">{typo(PLAN_META[id].note)}</p>
               <Link href="/auth" className={`b-btn ${id === "plus" ? "b-btn-acid" : "b-btn-ghost"} b-plan-cta`}>
                 Начать
               </Link>

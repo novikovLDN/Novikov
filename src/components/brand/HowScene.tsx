@@ -5,6 +5,7 @@ import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { DEVICE_LIMIT } from "@/lib/plans";
 import ScrambleLabel from "./ScrambleLabel";
+import { typo } from "@/lib/typo";
 
 /**
  * КАК ЭТО РАБОТАЕТ — залипающая сцена из трёх шагов.
@@ -71,13 +72,16 @@ export default function HowScene() {
   );
 
   return (
-    <section ref={root} id="how" className="b-section b-paper b-how" aria-labelledby="how-title">
+    <section ref={root} id="how" className="b-section b-paper b-live b-how" aria-labelledby="how-title">
       <div className="b-how-stick">
         <div className="b-shell b-how-inner">
           <header className="b-how-head b-enter">
             <ScrambleLabel text="Как это работает" />
+            {/* Ручного переноса нет: в узкой колонке он складывался с
+                естественным и давал пять строк. Строки выравнивает
+                браузер (text-wrap: balance у .b-lg-заголовков колонки). */}
             <h2 id="how-title" className="b-lg">
-              Три шага, <br />и ни одного лишнего
+              {typo("Три шага, и ни одного лишнего")}
             </h2>
           </header>
 
@@ -90,8 +94,8 @@ export default function HowScene() {
               >
                 <span className="b-how-n b-num">{s.n}</span>
                 <div>
-                  <h3 className="b-md b-how-t">{s.t}</h3>
-                  <p className="b-body b-how-d">{s.d}</p>
+                  <h3 className="b-md b-how-t">{typo(s.t)}</h3>
+                  <p className="b-body b-how-d">{typo(s.d)}</p>
                 </div>
                 <span className="b-how-m">
                   <span className="b-num b-how-m-value">{s.m}</span>

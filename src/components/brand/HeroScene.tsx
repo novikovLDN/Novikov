@@ -6,6 +6,7 @@ import KineticHeadline, { RollingNumber } from "./KineticHeadline";
 import { DEVICE_LIMIT, PLANS, PLAN_SPEED } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
+import { typo } from "@/lib/typo";
 
 /**
  * Первый экран.
@@ -58,8 +59,7 @@ export default function HeroScene() {
 
         <div className="b-hero-say">
           <p className="b-lede">
-            Atlas — это VPN. Шифрует трафик, меняет страну, открывает то, что
-            перестало открываться.
+            {typo("Atlas — это VPN. Шифрует трафик, меняет страну, открывает то, что перестало открываться.")}
           </p>
           <div className="b-hero-actions">
             <Link href="/auth" className="b-btn b-btn-acid">
@@ -70,7 +70,7 @@ export default function HeroScene() {
             </Link>
           </div>
           <p className="b-hero-fine">
-            Без карты. Отмена в один клик. Мы не храним историю подключений.
+            {typo("Без карты. Отмена в один клик. Мы не храним историю подключений.")}
           </p>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { CITY_COUNT, COUNTRY_COUNT, LOCATIONS, plural } from "@/lib/locations";
 import ScrambleLabel from "./ScrambleLabel";
+import { typo } from "@/lib/typo";
 
 /**
  * АТЛАС — горизонтальная лента стран.
@@ -58,7 +59,7 @@ export default function AtlasScene() {
   );
 
   return (
-    <section ref={root} className="b-section b-paper b-atlas" aria-labelledby="atlas-title">
+    <section ref={root} className="b-section b-paper b-live b-atlas" aria-labelledby="atlas-title">
       <div className="b-shell b-atlas-head b-enter">
         <ScrambleLabel text="Атлас" />
         <h2 id="atlas-title" className="b-lg">
@@ -70,8 +71,7 @@ export default function AtlasScene() {
           {CITY_COUNT} {plural(CITY_COUNT, ["город", "города", "городов"])}
         </h2>
         <p className="b-body">
-          Точку выбираете вы. Ближайшая отвечает за двенадцать миллисекунд,
-          самая дальняя — за сто шестьдесят.
+          {typo("Точку выбираете вы. Ближайшая отвечает за двенадцать миллисекунд, самая дальняя — за сто шестьдесят.")}
         </p>
       </div>
 
