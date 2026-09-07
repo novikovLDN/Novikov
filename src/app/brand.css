@@ -2099,3 +2099,27 @@ html, body { background: var(--ink); }
 @container (min-width: 420px) {
   .b-cell-wide .b-cell-figure { display: inline-block; margin-right: 0.75rem; }
 }
+
+/* ─── Полоса доверия ──────────────────────────────────────────────
+   Короткие проверяемые утверждения вдоль всего пути: у первого
+   экрана, у цены, у финала. Не блок «почему нам можно верить», а
+   тихая строка, которую видно в момент решения. */
+.b-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-small);
+  line-height: 1.4;
+  color: var(--fg-3);
+}
+.b-trust li { display: inline-flex; align-items: center; gap: 0.5rem; }
+.b-trust-tick {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  background: var(--acid);
+}
+.b-trust-paper .b-trust-tick { background: var(--acid-deep); }

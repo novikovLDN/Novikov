@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import ScrambleLabel from "./ScrambleLabel";
+import TrustStrip from "./TrustStrip";
 import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { useEnterGlitch } from "./useEnterGlitch";
 import { typo } from "@/lib/typo";
@@ -119,6 +120,8 @@ export default function PriceScene() {
                 `Есть Plus за ${formatRub(pricePerMonth("plus", period))} ₽: канал ${PLAN_SPEED.plus} вместо ${PLAN_SPEED.basic} Гбит/с. Больше разницы между ними нет.`,
               )}
             </p>
+
+            <TrustStrip tone="paper" />
 
             <div className="b-price-actions">
               <Link href="/auth" className="b-btn b-btn-acid">

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import BorderWall from "./BorderWall";
+import TrustStrip from "./TrustStrip";
 import KineticHeadline, { RollingNumber } from "./KineticHeadline";
 import { DEVICE_LIMIT, PLANS, PLAN_SPEED } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
@@ -83,6 +84,7 @@ export default function HeroScene() {
               {monthly} ₽ в месяц
             </Link>
           </div>
+          <TrustStrip />
           <p className="b-hero-fine">
             {typo(`${TRIAL_DAYS} дня бесплатно, без карты. Отмена в один клик. Историю подключений не храним.`)}
           </p>

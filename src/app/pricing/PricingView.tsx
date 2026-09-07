@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import BrandHeader from "@/components/brand/BrandHeader";
 import BrandFooter from "@/components/brand/BrandFooter";
-import BrandFaq, { type BrandFaqItem } from "@/components/brand/BrandFaq";
+import BrandFaq from "@/components/brand/BrandFaq";
+import TrustStrip from "@/components/brand/TrustStrip";
+import { FAQ } from "@/lib/faq";
 import KineticHeadline from "@/components/brand/KineticHeadline";
 import OutroScene from "@/components/brand/OutroScene";
 import { SmoothScroll } from "@/components/brand/motion";
@@ -42,32 +44,6 @@ import { TRIAL_DAYS } from "@/lib/brand-facts";
  *   3. «Честная цена» — слово «честная» в цене всегда читается как
  *      оправдание.
  */
-const FAQ: BrandFaqItem[] = [
-  {
-    q: "Как быстро подключусь после оплаты?",
-    a: "Сразу. Подписка активируется автоматически после подтверждения от платёжного оператора — ключ и QR-код появятся в личном кабинете, там же ссылка на приложение под ваше устройство.",
-  },
-  {
-    q: "На каких устройствах работает?",
-    a: `iPhone и iPad, Android, macOS, Windows и Android TV. Одна подписка работает на ${DEVICE_LIMIT} устройствах одновременно — их можно менять в любой момент.`,
-  },
-  {
-    q: "Можно ли сменить тариф?",
-    a: "Да, из личного кабинета. Новый тариф начинает действовать сразу, остаток по прежнему пересчитывается пропорционально.",
-  },
-  {
-    q: "Как проходит оплата?",
-    a: "Через авторизованного платёжного оператора. На оплату отводится 15 минут с момента создания платёжной сессии; после подтверждения подписка активируется автоматически.",
-  },
-  {
-    q: "Можно ли вернуть деньги?",
-    a: "Да. Возврат возможен в течение 14 дней с момента платежа, если оказание услуги прекращено по нашей вине — порядок описан в Условиях использования.",
-  },
-  {
-    q: "Храните ли вы историю подключений?",
-    a: "Нет. Ни посещённые сайты, ни DNS-запросы, ни история подключений не записываются и не хранятся. Хранить нечего — значит нечего и передать.",
-  },
-];
 
 export default function PricingView() {
   const [period, setPeriod] = useState<Period>(12);
@@ -154,6 +130,8 @@ export default function PricingView() {
                 );
               })}
             </div>
+
+            <TrustStrip />
 
             <p className="b-plan-fine">
               На обоих тарифах: {COUNTRY_COUNT} стран на выбор, {DEVICE_LIMIT} устройств
