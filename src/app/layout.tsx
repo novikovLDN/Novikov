@@ -8,6 +8,7 @@ import IosInstallBanner from "@/components/IosInstallBanner";
 import { I18nProvider } from "@/lib/i18n";
 import SiteJsonLd from "@/components/pixel/SiteJsonLd";
 import { Cursor } from "@/components/brand/motion";
+import PageTransition from "@/components/brand/PageTransition";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atlassecure.uk"),
@@ -117,6 +118,8 @@ export default function RootLayout({
               подсвечивал карточки .px-spot, которых в новой системе
               нет. Оба грузились на каждой странице сайта. */}
           <Cursor />
+          {/* Смена страницы как монтажная склейка. */}
+          <PageTransition />
           <PwaManager />
           <IosInstallBanner />
         </I18nProvider>

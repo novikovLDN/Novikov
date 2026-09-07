@@ -1192,3 +1192,35 @@
 .auth-shell .auth-input-error,
 .auth-shell .auth-code-cell-error { border-color: #FF6B4A; }
 .auth-shell .auth-input-error:focus { border-color: #FF6B4A; box-shadow: none; }
+
+/* ═══ Переходы между страницами ═══════════════════════════════════
+   Смена страницы — монтажная склейка, а не перезагрузка кадра:
+   уходящая страница чуть проваливается, приходящая поднимается.
+   Двигаются только прозрачность и transform, длительность короткая —
+   переход обязан ускорять чтение, а не показывать себя.
+
+   При пониженной анимации подмена мгновенная: длительности
+   обнуляются, содержимое меняется без движения. */
+@view-transition { navigation: auto; }
+
+::view-transition-old(root) {
+  animation: b-page-out 220ms var(--e-in-out) both;
+}
+::view-transition-new(root) {
+  animation: b-page-in 320ms var(--e-out) both;
+}
+@keyframes b-page-out {
+  to { opacity: 0; transform: translateY(-1.5%); }
+}
+@keyframes b-page-in {
+  from { opacity: 0; transform: translateY(2%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
