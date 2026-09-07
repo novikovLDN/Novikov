@@ -42,7 +42,7 @@ export default function HeroScene() {
   return (
     <section className="b-hero" aria-labelledby="hero-title">
       <BorderWall />
-      <ScatterSkulls seed={3} count={6} />
+      <ScatterSkulls seed={3} count={3} />
 
       {/* Скотч поверх макета: элемент улицы, а не сетки. Кладётся на
           пустое место — поверх текста читался бы как ошибка вёрстки.
@@ -50,12 +50,9 @@ export default function HeroScene() {
       <span className="b-tape b-tape-acid b-hero-tape-1" aria-hidden>
         //ATLAS_NODE_{COUNTRY_COUNT}
       </span>
-      <span className="b-tape b-tape-neon b-hero-tape-2" aria-hidden>
-        стена_не_твоя
-      </span>
 
       <div className="b-hero-body b-shell">
-        <p className="b-label b-hero-kicker">
+        <p className="b-label b-label-sys b-hero-kicker">
           Atlas <span aria-hidden>—</span> VPN
           <span className="b-hero-hint" aria-hidden>
             проведите курсором
@@ -78,7 +75,7 @@ export default function HeroScene() {
             {/* Прицельные скобки обозначают главное действие в кадре
                 углами, а не рамкой — как это делает интерфейс прицела. */}
             <span className="b-hud">
-              <Link href="/auth" className="b-btn b-btn-acid">
+              <Link href="/auth" className="b-btn b-btn-acid b-btn-hot">
                 Взломать стену
               </Link>
             </span>

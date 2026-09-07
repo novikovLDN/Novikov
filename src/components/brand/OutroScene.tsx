@@ -64,7 +64,7 @@ export default function OutroScene() {
       {/* Стена из знаков, сквозь которую идёт пробой. Последний кадр
           был самым пустым на странице — теперь он самый плотный. */}
       <AsciiWall rows={16} cols={72} />
-      <ScatterSkulls seed={29} count={5} />
+      <ScatterSkulls seed={29} count={3} />
       <span className="b-tape b-tape-acid b-outro-tape" aria-hidden>
         доступ_открыт
       </span>
@@ -82,7 +82,7 @@ export default function OutroScene() {
         </p>
         <div className="b-outro-actions">
           <span className="b-hud">
-            <Link href="/auth" className="b-btn b-btn-acid b-magnet">
+            <Link href="/auth" className="b-btn b-btn-acid b-btn-hot b-magnet">
               Начать
             </Link>
           </span>

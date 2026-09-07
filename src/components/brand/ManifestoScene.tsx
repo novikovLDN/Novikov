@@ -75,7 +75,7 @@ export default function ManifestoScene() {
   return (
     <section ref={root} className="b-manifest" aria-labelledby="manifest-title">
       <h2 id="manifest-title" className="b-sr">Зачем это нужно</h2>
-      <ScatterSkulls seed={7} count={4} />
+      <ScatterSkulls seed={7} count={3} />
       <div className="b-shell b-manifest-stage">
         {LINES.map((line, i) => (
           <p key={line} className="b-manifest-line b-xl" data-i={i}>

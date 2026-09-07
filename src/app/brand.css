@@ -1524,7 +1524,9 @@ html, body { background: var(--ink); }
   inset: -120px;
   z-index: 92;
   pointer-events: none;
-  opacity: 0.05;
+  /* Тише прежнего: строки развёртки уже дают фактуру, и два шумовых
+     слоя в полную силу превращали чернила в грязь. */
+  opacity: 0.03;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
   animation: b-grain 700ms steps(4) infinite;
@@ -1670,9 +1672,11 @@ html, body { background: var(--ink); }
 
 /* Кнопка главного действия тоже сбоит — но только под курсором:
    постоянно дёргающийся призыв читается как поломка, а не как стиль. */
+/* Сбой только у ГЛАВНОГО действия в кадре, а не у каждой кислотной
+   кнопки сайта: если сбоят все, ни одна не выделена. */
 @media (hover: hover) and (pointer: fine) {
-  .b-btn-acid { position: relative; }
-  .b-btn-acid:hover { animation: b-btn-glitch 320ms steps(1) 1; }
+  .b-btn-hot { position: relative; }
+  .b-btn-hot:hover { animation: b-btn-glitch 320ms steps(1) 1; }
 }
 @keyframes b-btn-glitch {
   0%   { transform: none; }
@@ -1684,8 +1688,10 @@ html, body { background: var(--ink); }
 
 /* Редкий прокат строки развёртки по чернильным сценам: полоса
    проходит сверху вниз раз в полминуты. Один слой, только transform. */
-.b-hero::before,
-.b-outro::before {
+/* Прокат строки развёртки — только в первом экране. В финале уже
+   работает ASCII-полотно, и два разных сигнальных приёма в одном
+   кадре дерутся между собой. */
+.b-hero::before {
   content: "";
   position: absolute;
   inset-inline: 0;
@@ -1703,7 +1709,7 @@ html, body { background: var(--ink); }
   100% { transform: translateY(120vh); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .b-hero::before, .b-outro::before, .b-btn-acid:hover { animation: none; }
+  .b-hero::before, .b-btn-hot:hover { animation: none; }
 }
 /* Наведение вызывает сбой немедленно — отклик, а не ожидание цикла. */
 @media (hover: hover) and (pointer: fine) {
@@ -1731,11 +1737,13 @@ html, body { background: var(--ink); }
   inset: 0;
   z-index: 5;
   pointer-events: none;
-  opacity: 0.5;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(0,0,0,.5) 0 1px, transparent 1px 3px),
-    radial-gradient(rgba(244,243,239,.05) 1px, transparent 1px);
-  background-size: 100% 3px, 4px 4px;
+  /* Только строки развёртки. Точки дизеринга отсюда убраны: они
+     ложились поверх собственной сетки стены и зерна — три слоя шума
+     на одном экране. Правило стиля: один громкий элемент в кадре,
+     остальное тихо. */
+  opacity: 0.42;
+  background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.5) 0 1px, transparent 1px 3px);
+  background-size: 100% 3px;
 }
 .b-manifest::after, .b-band::after, .b-footer::after { position: absolute; }
 .px-page, .auth-shell, .b-manifest, .b-band, .b-footer,
@@ -1747,8 +1755,12 @@ html, body { background: var(--ink); }
 /* ─── Терминальные метки ──────────────────────────────────────────
    Машинный слой отделён от сказанного человеком не только шрифтом,
    но и префиксом. */
-.b-label::before { content: "// "; color: var(--acid); }
-.b-paper .b-label::before { color: var(--acid-deep); }
+/* Префикс машинного слоя ставится ТОЛЬКО у надзаголовка секции.
+   Раньше он стоял у каждой служебной подписи, включая подписи внутри
+   карточек и показаний, — постоянная машинная болтовня вместо
+   акцента. */
+.b-label-sys::before { content: "// "; color: var(--acid); }
+.b-paper .b-label-sys::before { color: var(--acid-deep); }
 
 /* ─── Наклейки ────────────────────────────────────────────────────
    Скотч поверх макета: элемент улицы, а не сетки. Кладётся только на
@@ -1934,7 +1946,7 @@ html, body { background: var(--ink); }
 .b-marks { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
 .b-mark-spot {
   position: absolute;
-  opacity: 0.16;
+  opacity: 0.12;
   animation: b-spot 11s steps(1) infinite;
   animation-delay: var(--spot-delay, 0ms);
 }

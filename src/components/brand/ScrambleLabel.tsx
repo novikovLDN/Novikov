@@ -20,7 +20,7 @@ const POOL = "АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ0123456789
 
 export default function ScrambleLabel({
   text,
-  className = "b-label",
+  className = "b-label b-label-sys",
   as: Tag = "p",
 }: {
   text: string;

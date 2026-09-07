@@ -8,7 +8,6 @@ import ScrambleLabel from "./ScrambleLabel";
 import Terminal, { type TerminalLine } from "./Terminal";
 import { useEnterGlitch } from "./useEnterGlitch";
 import { typo } from "@/lib/typo";
-import ScatterSkulls from "./ScatterSkulls";
 
 /**
  * КАК ЭТО РАБОТАЕТ — залипающая сцена из трёх шагов.
@@ -102,7 +101,6 @@ export default function HowScene() {
       }}
       id="how"
       className="b-section b-paper b-live b-how" aria-labelledby="how-title">
-      <ScatterSkulls seed={11} count={4} />
       <div className="b-how-stick">
         <div className="b-shell b-how-inner">
           <header className="b-how-head b-enter">
