@@ -1,3 +1,4 @@
+import { TRIAL_DAYS } from "./brand-facts";
 /**
  * Remnawave API client.
  *
@@ -792,7 +793,11 @@ export async function createUserWithExpire(
  * convert. Three days matches the mainstream trial length in the
  * Russian VPN market (Дядя Ваня VPN's "Ванечка", Amnezia, etc).
  */
-export const TRIAL_DURATION_DAYS = 3;
+/* Значение живёт в src/lib/brand-facts.ts — файле без серверных
+   зависимостей, чтобы витрина могла взять то же число, не втягивая в
+   браузерный бандл клиент панели. Второй константы с тем же смыслом
+   в проекте быть не должно. */
+export const TRIAL_DURATION_DAYS = TRIAL_DAYS;
 export const TRIAL_DURATION_MS = TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000;
 
 /** 3-day unlimited trial wrapper. */

@@ -1,0 +1,77 @@
+import Link from "next/link";
+
+/**
+ * Футер.
+ *
+ * Один на все страницы: собственный набор ссылок на каждой странице —
+ * это второй, расходящийся источник правды о структуре сайта.
+ *
+ * Принадлежность группе объявлена и здесь, и машиночитаемо в
+ * schema.org (SiteJsonLd). Официальное наименование группы и реквизиты
+ * требуют подтверждения — см. COMPLIANCE-CHECK.md.
+ */
+const COLUMNS: Array<{ title: string; links: Array<{ label: string; href: string }> }> = [
+  {
+    title: "Продукт",
+    links: [
+      { label: "Тарифы", href: "/pricing" },
+      { label: "Устройства", href: "/devices" },
+      { label: "Безопасность", href: "/security" },
+    ],
+  },
+  {
+    title: "Компания",
+    links: [
+      { label: "О нас", href: "/about" },
+      { label: "Контакты", href: "/contact" },
+      { label: "Поддержка", href: "/support" },
+    ],
+  },
+  {
+    title: "Правовое",
+    links: [
+      { label: "Условия", href: "/terms" },
+      { label: "Приватность", href: "/privacy" },
+    ],
+  },
+];
+
+export default function BrandFooter() {
+  const FOUNDED = 2016;
+  const year = new Date().getFullYear();
+  const span = year > FOUNDED ? `${FOUNDED}–${year}` : String(FOUNDED);
+
+  return (
+    <footer className="b-footer">
+      <div className="b-shell">
+        <div className="b-footer-top">
+          <Link href="/" className="b-mark b-footer-mark" aria-label="Atlas — на главную">
+            <span className="b-mark-cell" aria-hidden />
+            Atlas
+          </Link>
+
+          <nav className="b-footer-nav" aria-label="Разделы сайта">
+            {COLUMNS.map((c) => (
+              <div key={c.title}>
+                <h2 className="b-label">{c.title}</h2>
+                <ul>
+                  {c.links.map((l) => (
+                    <li key={l.href}>
+                      <Link href={l.href} className="b-footer-link">{l.label}</Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
+        </div>
+
+        <div className="b-footer-bottom">
+          <span className="b-num">© {span} Atlas Secure</span>
+          <span>Часть группы QoDev</span>
+          <span>Гонконг (SAR)</span>
+        </div>
+      </div>
+    </footer>
+  );
+}

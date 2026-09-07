@@ -6,9 +6,10 @@ import { CONSENT_KEY, announceConsentSettled } from "@/lib/overlay-queue";
 /**
  * Согласие на cookie.
  *
- * Приведено к дизайн-системе: поверхности --px-surface/--px-surface-2,
- * мягкий радиус, кнопки .px-btn. Раньше блок жил на прежней палитре и
- * читался как деталь другого сайта поверх новой страницы.
+ * Переведено на бренд-слой 2027: чернильная плита без скруглений,
+ * кислотная кнопка, дисплейный шрифт в заголовках. Прежняя версия —
+ * белая карточка с оранжевой кнопкой и радиусом 14px — на чернильном
+ * первом экране читалась как всплывшее окно другого сайта.
  *
  * Правовой текст сохранён дословно — он согласован и не является
  * предметом редизайна.
@@ -41,24 +42,24 @@ export default function CookieConsent() {
   return (
     <>
       <div
-        className={`px-consent${showDetails ? " px-consent-hidden" : ""}`}
+        className={`b-consent${showDetails ? " b-consent-hidden" : ""}`}
         role="region"
         aria-label="Использование cookie"
       >
-        <div className="px-consent-card">
-          <p className="px-body">
+        <div className="b-consent-card">
+          <p className="b-consent-text">
             Мы используем минимально необходимые файлы cookie для обеспечения работы сервиса:
             авторизации и безопасности вашей учётной записи. Мы не используем рекламные или
             аналитические cookie.
           </p>
           <div className="mt-4 flex items-center gap-3">
-            <button type="button" onClick={handleAccept} className="px-btn px-btn-sm px-btn-primary flex-1">
+            <button type="button" onClick={handleAccept} className="b-btn b-btn-acid b-consent-accept">
               Принять
             </button>
             <button
               type="button"
               onClick={() => setShowDetails(true)}
-              className="px-btn px-btn-sm px-btn-secondary"
+              className="b-btn b-btn-ghost b-consent-more"
             >
               Подробнее
             </button>
@@ -67,21 +68,21 @@ export default function CookieConsent() {
       </div>
 
       {showDetails && (
-        <div className="px-sheet" onClick={() => setShowDetails(false)}>
-          <div className="px-sheet-scrim" aria-hidden />
+        <div className="b-sheet" onClick={() => setShowDetails(false)}>
+          <div className="b-sheet-scrim" aria-hidden />
           <div
-            className="px-sheet-panel"
+            className="b-sheet-panel"
             role="dialog"
             aria-modal="true"
             aria-labelledby="cookie-policy-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="px-sheet-head">
-              <h2 id="cookie-policy-title" className="px-h3">Политика использования cookie</h2>
+            <div className="b-sheet-head">
+              <h2 id="cookie-policy-title" className="b-md">Политика использования cookie</h2>
               <button
                 type="button"
                 onClick={() => setShowDetails(false)}
-                className="px-icon-btn"
+                className="b-sheet-x"
                 aria-label="Закрыть"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -90,10 +91,10 @@ export default function CookieConsent() {
               </button>
             </div>
 
-            <div className="px-sheet-body">
+            <div className="b-sheet-body">
               <section>
-                <h3 className="px-sheet-h">Какие данные мы обрабатываем</h3>
-                <p className="px-body">
+                <h3 className="b-sheet-h">Какие данные мы обрабатываем</h3>
+                <p className="b-sheet-body-text">
                   Atlas Secure использует исключительно функциональные cookie-файлы, необходимые
                   для корректной работы сервиса. Мы не собираем и не обрабатываем данные в рекламных
                   или маркетинговых целях.
@@ -101,25 +102,25 @@ export default function CookieConsent() {
               </section>
 
               <section>
-                <h3 className="px-sheet-h">Типы используемых cookie</h3>
+                <h3 className="b-sheet-h">Типы используемых cookie</h3>
                 <div className="flex flex-col gap-3">
                   {COOKIE_TYPES.map((c) => (
-                    <div key={c.name} className="px-card-2 p-4">
+                    <div key={c.name} className="b-sheet-item">
                       <div className="flex items-center justify-between gap-3 mb-1.5">
-                        <span className="text-[14px] font-medium text-[color:var(--px-text)]">{c.name}</span>
-                        <span className="px-tag">{c.tag}</span>
+                        <span className="b-sheet-item-name">{c.name}</span>
+                        <span className="b-sheet-tag">{c.tag}</span>
                       </div>
-                      <p className="px-caption">{c.text}</p>
+                      <p className="b-sheet-note">{c.text}</p>
                     </div>
                   ))}
                 </div>
               </section>
 
               <section>
-                <h3 className="px-sheet-h">Чего мы не делаем</h3>
+                <h3 className="b-sheet-h">Чего мы не делаем</h3>
                 <ul className="flex flex-col gap-2">
                   {NEVER.map((t) => (
-                    <li key={t} className="flex items-start gap-2.5 px-caption">
+                    <li key={t} className="b-sheet-never">
                       <NoMark />
                       {t}
                     </li>
@@ -128,8 +129,8 @@ export default function CookieConsent() {
               </section>
 
               <section>
-                <h3 className="px-sheet-h">Правовое основание</h3>
-                <p className="px-caption">
+                <h3 className="b-sheet-h">Правовое основание</h3>
+                <p className="b-sheet-note">
                   Обработка данных осуществляется на основании законного интереса оператора в обеспечении
                   функционирования сервиса (статья 6(1)(f) GDPR). Используемые cookie являются строго
                   необходимыми для предоставления запрошенной вами услуги и не требуют отдельного
@@ -139,8 +140,8 @@ export default function CookieConsent() {
               </section>
 
               <section>
-                <h3 className="px-sheet-h">Управление cookie</h3>
-                <p className="px-caption">
+                <h3 className="b-sheet-h">Управление cookie</h3>
+                <p className="b-sheet-note">
                   Вы можете в любой момент удалить cookie через настройки вашего браузера. Обратите
                   внимание, что удаление сессионного cookie приведёт к необходимости повторной
                   авторизации в сервисе.
@@ -148,11 +149,11 @@ export default function CookieConsent() {
               </section>
             </div>
 
-            <div className="px-sheet-foot">
+            <div className="b-sheet-foot">
               <button
                 type="button"
                 onClick={() => { handleAccept(); setShowDetails(false); }}
-                className="px-btn px-btn-md px-btn-primary px-btn-block"
+                className="b-btn b-btn-acid b-sheet-done"
               >
                 Принять и закрыть
               </button>

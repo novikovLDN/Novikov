@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
+import { display, text } from "./fonts";
 import "./globals.css";
+import "./brand.css";
 import CookieConsent from "@/components/CookieConsent";
 import CustomCursor from "@/components/CustomCursor";
 import { SpotlightLayer } from "@/components/pixel/effects";
@@ -13,23 +15,23 @@ export const metadata: Metadata = {
   // Заголовок по умолчанию для страниц, которые не объявили свой.
   // Шаблон добавляет имя компании к заголовку раздела — иначе в
   // выдаче все страницы сайта выглядят одинаково.
+  // Ребрендинг 2027: продукт называется тем, чем является. Прежний
+  // заголовок («ускоритель интернета») был эвфемизмом — он заставлял
+  // читателя думать, что это другой продукт.
   title: {
-    default: "Atlas Secure — ускоритель интернета и серверы",
-    template: "%s — Atlas Secure",
+    default: "Atlas — VPN, который не притворяется",
+    template: "%s — Atlas",
   },
   description:
-    "Atlas Secure — ускоритель интернета и серверная инфраструктура. Частным лицам: стабильное соединение и низкий пинг на любом устройстве, канал 25 Гбит/с на тарифе Basic и 75 Гбит/с на Plus. Компаниям: подключения для сотрудников, виртуальные и выделенные машины по договору.",
+    "Atlas — VPN для телефона и компьютера. Шифрует трафик, меняет страну, открывает то, что перестало открываться. 19 стран, 14 устройств на подписке, 199 ₽ в месяц. Три дня бесплатно, без карты. Историю подключений не храним.",
   keywords: [
-    "Atlas Secure",
-    "ускоритель интернета",
-    "стабильный интернет",
-    "низкий пинг",
-    "интернет для игр",
-    "стриминг без просадок",
-    "серверы для бизнеса",
-    "виртуальный сервер",
-    "выделенный сервер",
-    "подключение для сотрудников",
+    "Atlas VPN",
+    "VPN",
+    "VPN для телефона",
+    "быстрый VPN",
+    "VPN без логов",
+    "VPN 19 стран",
+    "VPN подписка",
   ],
   icons: {
     icon: [
@@ -42,15 +44,15 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   openGraph: {
-    // Описание обязано повторять числа страниц, а не жить своей
-    // жизнью: скорость канала — 25 Гбит/с на Basic и 75 на Plus
-    // (src/lib/plans.ts, PLAN_SPEED), доступность — 99,98%.
-    title: "Atlas Secure — ускоритель интернета и серверы",
+    // Описание повторяет числа страниц, а не живёт своей жизнью:
+    // страны — src/lib/locations.ts, устройства и цена —
+    // src/lib/plans.ts, срок пробного доступа — src/lib/brand-facts.ts.
+    title: "Atlas — VPN, который не притворяется",
     description:
-      "Игры, созвоны и стриминг без фризов — сразу на всех устройствах. Канал до 75 Гбит/с, целевая доступность 99,98%. Компаниям — подключения и машины по договору.",
+      "Шифрует трафик, меняет страну, открывает то, что перестало открываться. 19 стран, 14 устройств, 199 ₽ в месяц. Три дня бесплатно, без карты.",
     type: "website",
     locale: "ru_RU",
-    siteName: "Atlas Secure",
+    siteName: "Atlas",
   },
 };
 
@@ -75,7 +77,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" suppressHydrationWarning>
+    <html lang="ru" className={`${display.variable} ${text.variable}`} suppressHydrationWarning>
       <head>
         {/* Фирменный шрифт лежит у нас же (/public/fonts) и объявлен
             через @font-face в globals.css. Предзагрузка нужна потому,

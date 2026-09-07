@@ -1,26 +1,26 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import LandingPage from "./landing-page";
+import HomeView from "@/components/brand/Home";
 
 interface PageProps {
   searchParams: Promise<{ step?: string; ref?: string }>;
 }
 
-export default async function Home({ searchParams }: PageProps) {
+export default async function IndexRoute({ searchParams }: PageProps) {
   const params = await searchParams;
   const cookieStore = await cookies();
 
-  // If user is logged in, go to dashboard
+  // Вошедший человек на витрине не задерживается.
   const session = cookieStore.get("session")?.value;
   if (session) {
     redirect("/dashboard");
   }
 
-  // If in the middle of auth flow, redirect to auth page
+  // Середина входа по коду живёт на своей странице.
   if (params.step === "code") {
     const url = `/auth?step=code${params.ref ? `&ref=${params.ref}` : ""}`;
     redirect(url);
   }
 
-  return <LandingPage referralCode={params.ref} />;
+  return <HomeView referralCode={params.ref} />;
 }

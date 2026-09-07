@@ -1,0 +1,926 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ATLAS — бренд-слой 2027. Направление «ГРАНИЦА».
+
+   Обоснование каждого решения: TRENDS.md.
+
+   Коротко о том, чего здесь НЕТ и почему:
+   — нет тёплого почти-чёрного с одним рационированным акцентом и
+     радиусами 6–8px. Это дефолт индустрии 2026 года (Vercel Geist,
+     Linear, Railway); сайт, собранный по нему, читается как шаблон;
+   — нет Inter, Roboto, Arial, Open Sans и system-ui в дисплее;
+   — нет фиолетово-розовых градиентов и серо-синих палитр;
+   — нет скруглений вообще. Граница — это прямая линия.
+
+   Система строится на одном конфликте: ЧЕРНИЛА против БУМАГИ.
+   Первый экран чернильный, середина страницы внезапно переворачивается
+   в бумагу, финал возвращается в чернила. Кислота — единственный
+   цвет, и она работает как маркер, которым стирают границу.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── Корпус ─────────────────────────────────────────────────────
+     Два состояния страницы, а не два цвета «фон/текст». Каждая сцена
+     объявляет, в каком она состоянии, и берёт оттуда всю пару. */
+  --ink:        #0B0B0C;   /* чернила: закрыто, до */
+  --ink-2:      #141416;   /* поверхность на чернилах */
+  --ink-3:      #1E1E21;   /* граница на чернилах */
+  --paper:      #EFEDE6;   /* бумага: открыто, после */
+  --paper-2:    #E4E1D7;   /* поверхность на бумаге */
+  --paper-3:    #D5D1C4;   /* граница на бумаге */
+
+  /* ─── Кислота ────────────────────────────────────────────────────
+     Ровно один цвет на весь бренд. Лаймово-жёлтый читается как след
+     маркера, а не как «акцент интерфейса», и не совпадает ни с одной
+     палитрой конкурентов (там щит, замок и глобус в фиолетовом).
+
+     Правило применения жёсткое и следует из контраста:
+       на чернилах кислота — ТЕКСТ и линия (16:1);
+       на бумаге кислота — ЗАЛИВКА под чернильным текстом
+       (как текст на бумаге она даёт 1,4:1 и запрещена). */
+  --acid:       #D6FF3F;
+  /* Кислота, придавленная до читаемости ЧЕРНИЛАМИ, а не осветлённая.
+     Прежнее значение #A8CC1F давало на бумаге 1,6:1 — им были набраны
+     номера шагов и коды стран, то есть текст, который не читался
+     вовсе. Тёмная олива того же семейства даёт 5,1:1. */
+  --acid-deep:  #5A6B0E;
+  --acid-rgb:   214, 255, 63;
+
+  /* ─── Чернила на бумаге и наоборот ──────────────────────────────
+     Текстовые слои объявлены для обоих состояний явно. Наследование
+     цвета от предка уже один раз стоило этому проекту невидимого
+     текста при смене корпуса. */
+  --on-ink:     #F4F3EF;
+  --on-ink-2:   rgba(244, 243, 239, 0.72);
+  --on-ink-3:   rgba(244, 243, 239, 0.55);
+  --on-paper:   #0B0B0C;
+  --on-paper-2: rgba(11, 11, 12, 0.72);
+  /* 0,52 давало 3,8:1 на 11-пиксельных служебных метках — ниже
+     порога AA. Тот же слой на чернилах поднят с 0,48 по той же
+     причине (4,4:1). */
+  --on-paper-3: rgba(11, 11, 12, 0.62);
+
+  /* Текущее состояние. Сцена переключает эти два значения, всё
+     остальное считается от них. */
+  --bg:         var(--ink);
+  --fg:         var(--on-ink);
+  --fg-2:       var(--on-ink-2);
+  --fg-3:       var(--on-ink-3);
+  --line:       var(--ink-3);
+
+  /* ─── Типографика ────────────────────────────────────────────────
+     Дисплей — Unbounded: вариативный, кириллица, 1300+ глифов,
+     открытая лицензия. Кириллицы нет ни у Neue Machina, ни у Clash
+     Grotesk — для русского сайта они отпадают целиком.
+     Текст — Onest: вариативный гибрид геометрического и
+     гуманистического гротеска. */
+  --display: var(--font-display), "Arial Black", sans-serif;
+  --text:    var(--font-text), "Helvetica Neue", sans-serif;
+
+  /* Дисплейная шкала. Верх шкалы намеренно за пределами разумного:
+     заголовок — объект в кадре, а не подпись над контентом. */
+  --t-mega:  clamp(4rem, 15vw, 20rem);
+  --t-xl:    clamp(2.75rem, 8.5vw, 9rem);
+  --t-lg:    clamp(2rem, 5vw, 4.5rem);
+  --t-md:    clamp(1.5rem, 2.6vw, 2.25rem);
+  --t-body:  clamp(1rem, 1.15vw, 1.1875rem);
+  --t-small: 0.875rem;
+  --t-micro: 0.6875rem;
+
+  /* ─── Движение ───────────────────────────────────────────────────
+     Кривые и тайминги — часть фирменного стиля, а не случайные
+     числа в компонентах. Одна «фирменная» кривая: резкий старт,
+     долгий выкат — так двигается то, что сорвалось с места. */
+  --e-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --e-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --e-snap:   cubic-bezier(0.2, 1.4, 0.4, 1);
+  --d-fast:   180ms;
+  --d-base:   320ms;
+  --d-slow:   640ms;
+  --d-scene:  1100ms;
+
+  /* ─── Сетка ──────────────────────────────────────────────────────
+     12 колонок как основа, которую элементы нарушают намеренно. */
+  --cols:   12;
+  --gutter: clamp(16px, 4vw, 40px);
+  --shell:  1560px;
+  --rule:   1px;
+}
+
+/* Состояние «бумага» — переворот в середине страницы. */
+.b-paper {
+  --bg:   var(--paper);
+  --fg:   var(--on-paper);
+  --fg-2: var(--on-paper-2);
+  --fg-3: var(--on-paper-3);
+  --line: var(--paper-3);
+}
+
+/* ═══ Корпус ══════════════════════════════════════════════════════ */
+.b-root {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--text);
+  font-synthesis-weight: none;
+  transition: background-color var(--d-slow) var(--e-in-out),
+              color var(--d-slow) var(--e-in-out);
+}
+.b-section {
+  position: relative;
+  background: var(--bg);
+  color: var(--fg);
+  transition: background-color var(--d-slow) var(--e-in-out),
+              color var(--d-slow) var(--e-in-out);
+}
+.b-shell {
+  width: 100%;
+  max-width: var(--shell);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Каркас колонок виден как элемент оформления: сетка не прячется,
+   она предъявлена — и тем заметнее, когда её нарушают. */
+.b-grid-lines {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+  opacity: 0.5;
+}
+@media (min-width: 1024px) {
+  .b-grid-lines {
+    display: block;
+    background-image: repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent calc(100% / 6 - var(--rule)),
+      var(--line) calc(100% / 6 - var(--rule)),
+      var(--line) calc(100% / 6)
+    );
+  }
+}
+
+/* ═══ Типографика ═════════════════════════════════════════════════ */
+.b-mega, .b-xl, .b-lg, .b-md {
+  font-family: var(--display);
+  font-weight: 800;
+  line-height: 0.84;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  margin: 0;
+}
+.b-mega { font-size: var(--t-mega); }
+.b-xl   { font-size: var(--t-xl); }
+.b-lg   { font-size: var(--t-lg); line-height: 0.9; letter-spacing: -0.04em; }
+.b-md   { font-size: var(--t-md); line-height: 1.02; letter-spacing: -0.03em; }
+
+.b-body {
+  font-size: var(--t-body);
+  line-height: 1.45;
+  color: var(--fg-2);
+  max-width: 46ch;
+  margin: 0;
+}
+.b-lede {
+  font-size: clamp(1.125rem, 1.7vw, 1.5rem);
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--fg);
+  max-width: 30ch;
+  margin: 0;
+}
+/* Служебная метка. Моноширинный шрифт здесь не используется
+   намеренно: CLI-панель — фирменный приём Railway и половины
+   инфраструктурных сайтов. Ту же «приборность» даёт разрядка. */
+.b-label {
+  font-family: var(--text);
+  font-size: var(--t-micro);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin: 0;
+}
+.b-acid { color: var(--acid); }
+.b-paper .b-acid { color: var(--acid-deep); }
+.b-num { font-family: var(--display); font-variant-numeric: tabular-nums; }
+
+/* ═══ Граница — фирменный объект ══════════════════════════════════
+   Горизонтальная линия, разрезающая страницу. Не разделитель секций,
+   а сам предмет разговора: до неё — закрыто, после — открыто. */
+.b-border {
+  position: relative;
+  height: var(--rule);
+  background: var(--line);
+  overflow: visible;
+}
+.b-border::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: var(--b-erased, 0%);
+  background: var(--acid);
+  transition: width var(--d-scene) var(--e-out);
+}
+
+/* ═══ Действия ════════════════════════════════════════════════════
+   Прямоугольник без единого скругления. Заливка кислотой, чернила
+   поверх — единственное сочетание, дающее и удар, и контраст 15:1. */
+.b-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75em;
+  min-height: 56px;
+  padding: 1rem 1.75rem;
+  border: var(--rule) solid transparent;
+  font-family: var(--display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--d-fast) var(--e-out),
+              color var(--d-fast) var(--e-out),
+              border-color var(--d-fast) var(--e-out);
+}
+.b-btn-acid { background: var(--acid); color: var(--ink); }
+.b-btn-acid:hover { background: var(--on-ink); }
+.b-btn-ghost {
+  background: transparent;
+  color: var(--fg);
+  /* Граница второстепенного действия видима на обоих корпусах. На
+     чернилах --line (#1E1E21) сливалась с фоном, и кнопка читалась
+     как ссылка — то есть теряла affordance. */
+  border-color: rgba(244, 243, 239, 0.3);
+}
+.b-paper .b-btn-ghost { border-color: rgba(11, 11, 12, 0.28); }
+.b-btn-ghost:hover { border-color: var(--acid); color: var(--acid); }
+.b-paper .b-btn-ghost:hover { color: var(--acid-deep); border-color: var(--acid-deep); }
+.b-btn:focus-visible { outline: 3px solid var(--acid); outline-offset: 3px; }
+.b-paper .b-btn:focus-visible { outline-color: var(--ink); }
+
+.b-link {
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: var(--rule) solid var(--line);
+  transition: border-color var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out);
+}
+.b-link:hover { color: var(--acid); border-color: var(--acid); }
+.b-paper .b-link:hover { color: var(--acid-deep); border-color: var(--acid-deep); }
+.b-link:focus-visible { outline: 3px solid var(--acid); outline-offset: 3px; }
+.b-paper .b-link:focus-visible { outline-color: var(--ink); }
+
+/* ═══ Доступность ═════════════════════════════════════════════════ */
+.b-sr {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* Переход к содержимому — первая цель табуляции на странице со
+   сложной сценой в начале. */
+.b-skip {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 100;
+  padding: 1rem 1.5rem;
+  background: var(--acid);
+  color: var(--ink);
+  font-family: var(--display);
+  text-transform: uppercase;
+  transform: translateY(-110%);
+}
+.b-skip:focus { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .b-root, .b-section, .b-border::after, .b-btn, .b-link { transition: none; }
+}
+
+/* ═══ Кинетический набор ══════════════════════════════════════════
+   SplitText кладёт слова и знаки в эти классы. Слово работает
+   маской: знаки выезжают из-под его нижнего края, а не появляются
+   поверх соседней строки. Запас снизу компенсирует хвосты Д, Ц, Щ —
+   без него маска срезает их вместе с движением. */
+.b-word {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+.b-char { display: inline-block; will-change: transform; }
+
+/* ═══ Первый экран ════════════════════════════════════════════════ */
+.b-hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;                 /* заголовок уходит за край кадра,
+                                       но не за край документа */
+  padding-block: clamp(88px, 12vh, 150px) clamp(18px, 3vh, 32px);
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+/* Стена. Под ней — статичный пиксельный фон на CSS: он же остаётся
+   единственным изображением, если WebGL недоступен или человек
+   попросил меньше движения. */
+.b-wall { position: absolute; inset: 0; z-index: 0; }
+.b-wall::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--ink-3) var(--rule), transparent var(--rule)),
+    linear-gradient(90deg, var(--ink-3) var(--rule), transparent var(--rule));
+  background-size: 17px 17px;
+  -webkit-mask-image: linear-gradient(180deg, transparent 8%, #000 92%);
+  mask-image: linear-gradient(180deg, transparent 8%, #000 92%);
+  opacity: 0.7;
+}
+.b-wall-canvas { position: relative; display: block; width: 100%; height: 100%; }
+
+.b-hero-body { position: relative; z-index: 1; width: 100%; }
+
+.b-hero-kicker { display: flex; align-items: baseline; gap: 1.25rem; flex-wrap: wrap; }
+.b-hero-hint {
+  color: var(--acid);
+  letter-spacing: 0.18em;
+  animation: b-blink 3.4s var(--e-in-out) infinite;
+}
+@keyframes b-blink { 0%, 62%, 100% { opacity: 0.35; } 78% { opacity: 1; } }
+/* Указатель есть не везде: на тачскрине подсказка про курсор — ложь. */
+@media (hover: none), (pointer: coarse) { .b-hero-hint { display: none; } }
+
+/* Заголовок выходит за правый край кадра: сетка предъявлена и тут же
+   нарушена. Это единственное место на сайте, где текст обрезается. */
+.b-hero-title {
+  margin-top: clamp(1rem, 3vh, 2.5rem);
+  margin-right: -8vw;
+  font-variation-settings: "wght" 500;
+  /* Кегль считается и от ширины, и от ВЫСОТЫ окна. Только по ширине
+     заголовок выталкивал полосу показаний за нижний край экрана на
+     ноутбучном 1440×900 — кадр обязан помещаться целиком вместе с
+     ней. Нижняя граница держит масштаб на узком экране, где заголовок
+     намеренно уходит за правый край. */
+  font-size: max(3.25rem, min(15vw, 19.5vh));
+}
+
+/* Смысл и действие уезжают в правую половину: левый край намеренно
+   пуст — там работает стена. */
+.b-hero-say {
+  margin-top: clamp(1.25rem, 3.5vh, 2.75rem);
+  display: grid;
+  gap: clamp(1rem, 2vh, 1.5rem);
+  justify-items: start;
+}
+@media (min-width: 960px) {
+  .b-hero-say { margin-left: 50%; max-width: 42ch; }
+}
+.b-hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.b-hero-fine { font-size: var(--t-small); color: var(--fg-3); max-width: 40ch; margin: 0; }
+
+/* Полоса показаний прижата к низу кадра. */
+.b-hero-rail {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(1rem, 3vw, 2.5rem);
+  padding-top: clamp(1.25rem, 3vh, 2rem);
+  border-top: var(--rule) solid var(--ink-3);
+  margin: 0;
+}
+@media (min-width: 720px) { .b-hero-rail { grid-template-columns: repeat(4, 1fr); } }
+.b-hero-rail dd {
+  margin: 0.4rem 0 0;
+  font-size: clamp(1.5rem, 3.4vw, 2.75rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+/* ═══ Курсор ══════════════════════════════════════════════════════
+   Точка света, а не второй указатель. Живёт только там, где есть
+   настоящий указатель, и никогда не перехватывает нажатия. */
+.b-cursor { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .b-cursor[data-on="true"] {
+    display: block;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 90;
+    width: 14px; height: 14px;
+    margin: -7px 0 0 -7px;
+    background: var(--acid);
+    pointer-events: none;
+    transform: translate3d(var(--x, 50vw), var(--y, 50vh), 0);
+    transition: width var(--d-fast) var(--e-snap), height var(--d-fast) var(--e-snap),
+                margin var(--d-fast) var(--e-snap), opacity var(--d-fast) var(--e-out);
+    /* Смешивания difference здесь нет: на бумажных сценах оно
+       превращало кислотный квадрат в синий, и курсор читался как
+       чужой элемент. Тонкая чернильная обводка держит видимость на
+       обоих корпусах без подмены цвета. */
+    outline: 1px solid var(--ink);
+  }
+  .b-cursor[data-over="true"] {
+    width: 42px; height: 42px;
+    margin: -21px 0 0 -21px;
+    opacity: 0.85;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .b-cursor { display: none !important; }
+  .b-hero-hint { animation: none; opacity: 1; }
+}
+
+/* ═══ Шапка ═══════════════════════════════════════════════════════
+   Уезжает вверх при прокрутке вниз и возвращается при прокрутке
+   вверх. Стеклянной панели с размытием нет намеренно — это визитная
+   карточка сайта, собранного по умолчанию. */
+.b-header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 80;
+  transform: translateY(0);
+  transition: transform var(--d-base) var(--e-out),
+              background-color var(--d-base) var(--e-out);
+  color: var(--on-ink);
+}
+.b-header-up { transform: translateY(-100%); }
+.b-header-solid { background: var(--ink); border-bottom: var(--rule) solid var(--ink-3); }
+
+.b-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 72px;
+}
+
+/* Зона нажатия 44px берётся полями, а не размером надписи: логотип
+   на телефоне — одна из двух постоянно доступных целей. */
+.b-mark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 0.5rem;
+  gap: 0.6rem;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: inherit;
+  text-decoration: none;
+}
+/* Та же ячейка, из которой сложена стена первого экрана. */
+.b-mark-cell { width: 11px; height: 11px; background: var(--acid); }
+.b-mark:focus-visible { outline: 3px solid var(--acid); outline-offset: 4px; }
+
+.b-nav { display: none; margin-left: auto; gap: 2rem; }
+@media (min-width: 900px) { .b-nav { display: flex; } }
+.b-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--t-small);
+  font-weight: 500;
+  color: var(--on-ink-2);
+  text-decoration: none;
+  transition: color var(--d-fast) var(--e-out);
+}
+.b-nav-link:hover { color: var(--acid); }
+.b-nav-link:focus-visible { outline: 3px solid var(--acid); outline-offset: 4px; }
+
+.b-header-cta {
+  margin-left: auto;
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.8125rem;
+  color: var(--on-ink);
+  border-color: var(--ink-3);
+}
+@media (min-width: 900px) { .b-header-cta { margin-left: 0; } }
+
+/* ═══ Согласие на cookie ══════════════════════════════════════════
+   Чернильная плита без скруглений и без размытия. Прежняя белая
+   карточка с оранжевой кнопкой на чернильном первом экране читалась
+   как всплывшее окно другого сайта. */
+.b-consent {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 95;
+  padding: var(--gutter);
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.b-consent-hidden { display: none; }
+.b-consent-card {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 640px;
+  padding: 1.25rem;
+  background: var(--ink-2);
+  border: var(--rule) solid var(--ink-3);
+  border-left: 3px solid var(--acid);
+  color: var(--on-ink);
+}
+.b-consent-text { font-size: var(--t-small); line-height: 1.5; color: var(--on-ink-2); margin: 0; }
+.b-consent-card > div { margin-top: 1rem; display: flex; gap: 0.5rem; }
+.b-consent-accept { flex: 1; min-height: 48px; padding-block: 0.8rem; font-size: 0.8125rem; }
+.b-consent-more {
+  min-height: 48px;
+  padding-block: 0.8rem;
+  font-size: 0.8125rem;
+  color: var(--on-ink);
+  border-color: var(--ink-3);
+}
+
+/* ─── Развёрнутая политика ──────────────────────────────────────── */
+.b-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 96;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+@media (min-width: 720px) { .b-sheet { align-items: center; } }
+.b-sheet-scrim { position: absolute; inset: 0; background: rgba(11, 11, 12, 0.82); }
+.b-sheet-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 720px;
+  max-height: 88svh;
+  background: var(--ink-2);
+  border: var(--rule) solid var(--ink-3);
+  color: var(--on-ink);
+}
+.b-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem var(--gutter);
+  border-bottom: var(--rule) solid var(--ink-3);
+}
+.b-sheet-x {
+  display: grid;
+  place-items: center;
+  width: 44px; height: 44px;
+  flex-shrink: 0;
+  background: transparent;
+  border: var(--rule) solid var(--ink-3);
+  color: var(--on-ink-2);
+  cursor: pointer;
+}
+.b-sheet-x:hover { color: var(--acid); border-color: var(--acid); }
+.b-sheet-x:focus-visible { outline: 3px solid var(--acid); outline-offset: 3px; }
+.b-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.5rem var(--gutter);
+  overflow-y: auto;
+}
+.b-sheet-h {
+  font-family: var(--display);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin: 0 0 0.75rem;
+}
+.b-sheet-body-text, .b-sheet-note {
+  font-size: var(--t-small);
+  line-height: 1.55;
+  color: var(--on-ink-2);
+  margin: 0;
+}
+.b-sheet-note { color: var(--on-ink-3); }
+.b-sheet-item { padding: 1rem; background: var(--ink); border: var(--rule) solid var(--ink-3); }
+.b-sheet-item + .b-sheet-item { margin-top: 0.75rem; }
+.b-sheet-item-name { font-size: 0.875rem; font-weight: 600; }
+.b-sheet-tag {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  background: var(--acid);
+  color: var(--ink);
+  font-size: var(--t-micro);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.b-sheet-never {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--on-ink-2);
+}
+.b-sheet-foot { padding: 1.25rem var(--gutter); border-top: var(--rule) solid var(--ink-3); }
+.b-sheet-done { width: 100%; justify-content: center; }
+
+/* ═══ Манифест: переворот корпуса ═════════════════════════════════ */
+.b-manifest {
+  position: relative;
+  /* Ровно один экран и ни пикселя сверх. Раньше к нему добавлялись
+     160px полей сверху и снизу: после открепления сцены строка
+     уезжала вверх, а пустая коробка продолжала занимать кадр —
+     читатель видел три четверти экрана пустой бумаги. */
+  height: 100svh;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.b-manifest-stage { position: relative; width: 100%; }
+.b-manifest-line {
+  max-width: 22ch;
+  margin: 0;
+  will-change: transform, opacity;
+}
+/* Со скриптом строки лежат одна на другой и сменяются. Без него —
+   стоят подряд и просто читаются. Прятать содержимое разрешено
+   только после того, как механизм показа доказал работоспособность. */
+/* Со скриптом строки лежат одна на другой ПО ЦЕНТРУ кадра. Раньше
+   они были прижаты к верху крошечной сцены, и после открепления
+   секции под ними оставалась пустая половина экрана. */
+.b-js .b-manifest-stage {
+  display: grid;
+  place-items: center start;
+}
+.b-js .b-manifest-line { grid-area: 1 / 1; }
+.b-manifest-line + .b-manifest-line { margin-top: 0.4em; }
+.b-js .b-manifest-line + .b-manifest-line { margin-top: 0; }
+
+/* ═══ Три шага ════════════════════════════════════════════════════ */
+.b-how { background: var(--bg); color: var(--fg); }
+.b-how-stick {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding-block: clamp(72px, 10vh, 120px);
+}
+.b-how-inner { width: 100%; display: grid; gap: clamp(2rem, 5vw, 4rem); }
+@media (min-width: 1000px) {
+  .b-how-inner { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.6fr); align-items: start; }
+}
+.b-how-head { display: grid; gap: 1rem; align-content: start; }
+.b-how-list { list-style: none; margin: 0; padding: 0; border-top: var(--rule) solid var(--line); }
+
+.b-how-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.5rem 1.25rem;
+  padding-block: clamp(1.25rem, 3vh, 2rem);
+  border-bottom: var(--rule) solid var(--line);
+  /* Неактивный шаг приглушается ЦВЕТОМ, а не прозрачностью.
+     opacity: 0.34 множилась на прозрачность самих чернил и давала
+     1,6–2,2:1 — то есть три четверти списка просто нельзя было
+     прочитать. Приглушённый слой чернил держит 5,3:1 и остаётся
+     заметно тише активного. */
+  color: var(--fg-3);
+  transition: color var(--d-base) var(--e-out);
+}
+@media (min-width: 720px) {
+  .b-how-item { grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 1.75rem; }
+}
+.b-how-item-on { color: var(--fg); }
+.b-how-n { font-size: 0.8125rem; font-weight: 700; color: inherit; padding-top: 0.35em; }
+.b-how-item-on .b-how-n { color: var(--acid-deep); }
+.b-how-t { margin: 0; color: inherit; }
+/* Описание наследует цвет шага целиком: собственный --fg-2 у .b-body
+   перебивал приглушение и делал неактивный шаг таким же заметным. */
+.b-how-d { margin-top: 0.6rem; color: inherit; }
+.b-how-item-on .b-how-d { color: var(--fg-2); }
+.b-how-m .b-label { color: inherit; }
+.b-how-m { grid-column: 2; display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.75rem; }
+@media (min-width: 720px) {
+  .b-how-m { grid-column: 3; margin-top: 0; align-items: flex-end; text-align: right; }
+}
+.b-how-m-value { font-size: clamp(1.25rem, 2.4vw, 1.875rem); font-weight: 700; letter-spacing: -0.03em; }
+
+/* ═══ Атлас: лента стран ══════════════════════════════════════════ */
+.b-atlas {
+  background: var(--bg);
+  color: var(--fg);
+  padding-block: clamp(72px, 10vh, 130px);
+  overflow: hidden;
+}
+.b-atlas-head { display: grid; gap: 1rem; margin-bottom: clamp(2rem, 5vh, 3.5rem); }
+.b-atlas-track {
+  display: flex;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  padding-inline: var(--gutter);
+  width: max-content;
+  border-top: var(--rule) solid var(--line);
+  border-bottom: var(--rule) solid var(--line);
+}
+.b-atlas-card {
+  position: relative;
+  flex: 0 0 clamp(210px, 22vw, 280px);
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  padding: clamp(1.25rem, 2.5vw, 2rem) clamp(1rem, 1.6vw, 1.5rem) clamp(2rem, 3vw, 2.75rem);
+  border-right: var(--rule) solid var(--line);
+}
+.b-atlas-card:first-child { border-left: var(--rule) solid var(--line); }
+.b-atlas-code { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.16em; color: var(--acid-deep); }
+.b-atlas-country {
+  font-family: var(--display);
+  font-size: clamp(1.125rem, 1.7vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.b-atlas-cities { font-size: var(--t-small); color: var(--fg-3); }
+.b-atlas-lat { display: flex; align-items: baseline; gap: 0.35rem; margin-top: 0.75rem; }
+.b-atlas-ms { font-size: clamp(1.75rem, 3vw, 2.5rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+/* Полоса задержки: разницу между 12 и 160 мс видно, а цифрам надо
+   верить. */
+.b-atlas-bar {
+  position: absolute;
+  left: 0; bottom: 0;
+  height: 4px;
+  width: var(--w, 10%);
+  background: var(--acid-deep);
+}
+/* На телефоне лента листается пальцем: сцена там не нужна и мешает. */
+@media (max-width: 759px) {
+  .b-atlas-track {
+    width: auto;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: calc(var(--gutter) * -1);
+    scrollbar-width: none;
+  }
+  .b-atlas-track::-webkit-scrollbar { display: none; }
+  .b-atlas-card { flex-basis: 72vw; scroll-snap-align: start; }
+}
+
+/* ═══ Цена ════════════════════════════════════════════════════════ */
+.b-price {
+  background: var(--bg);
+  color: var(--fg);
+  padding-block: clamp(72px, 10vh, 130px);
+}
+.b-price-head { display: grid; gap: 1rem; max-width: 46ch; }
+.b-period {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin-block: clamp(2rem, 5vh, 3rem) clamp(1.5rem, 3vh, 2rem);
+  border: var(--rule) solid var(--line);
+  width: max-content;
+  max-width: 100%;
+}
+.b-period-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 52px;
+  padding: 0.75rem 1.1rem;
+  background: transparent;
+  border: 0;
+  border-right: var(--rule) solid var(--line);
+  color: var(--fg-2);
+  font-family: var(--display);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out);
+}
+.b-period-btn:last-child { border-right: 0; }
+.b-period-btn:hover { color: var(--fg); }
+.b-period-on { background: var(--fg); color: var(--bg); }
+.b-period-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; }
+/* Скидка приглушается слоем чернил, а не прозрачностью: opacity
+   множилась на альфу самого цвета и давала 3,8:1. */
+.b-period-off { font-size: var(--t-micro); letter-spacing: 0.06em; color: var(--fg-3); }
+.b-period-on .b-period-off { color: var(--bg); opacity: 0.75; }
+
+.b-price-grid { display: grid; gap: 0; border: var(--rule) solid var(--line); }
+@media (min-width: 860px) { .b-price-grid { grid-template-columns: 1fr 1fr; } }
+.b-plan {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border-bottom: var(--rule) solid var(--line);
+}
+@media (min-width: 860px) {
+  .b-plan { border-bottom: 0; border-right: var(--rule) solid var(--line); }
+  .b-plan:last-child { border-right: 0; }
+}
+.b-plan-hi { background: var(--acid); color: var(--ink); }
+.b-plan-hi .b-label, .b-plan-hi .b-body, .b-plan-hi .b-plan-total { color: rgba(11, 11, 12, 0.72); }
+.b-plan-value {
+  font-family: var(--display);
+  font-size: clamp(2.75rem, 6vw, 4.5rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  margin: 0.5rem 0 0;
+}
+.b-plan-unit { font-size: 0.28em; font-weight: 600; letter-spacing: 0; }
+.b-plan-total { font-size: var(--t-small); color: var(--fg-3); margin: 0; }
+.b-plan-speed {
+  margin: 1rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.b-plan-note { margin-top: 0.5rem; }
+.b-plan-cta { margin-top: 1.75rem; justify-content: center; }
+.b-plan-hi .b-btn-acid { background: var(--ink); color: var(--acid); }
+.b-plan-hi .b-btn-acid:hover { background: var(--on-paper-2); }
+
+/* ═══ Финал ═══════════════════════════════════════════════════════ */
+.b-outro {
+  min-height: 100svh;
+  display: grid;
+  align-content: center;
+  padding-block: clamp(80px, 12vh, 160px);
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.b-outro-title { font-size: max(3rem, min(14vw, 26vh)); }
+.b-outro-lede { margin-top: clamp(1.5rem, 4vh, 2.5rem); }
+.b-outro-actions {
+  margin-top: clamp(1.75rem, 4vh, 3rem);
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
+  flex-wrap: wrap;
+}
+.b-outro-alt {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--t-small);
+  color: var(--on-ink-2);
+  border-color: var(--ink-3);
+}
+.b-magnet { will-change: transform; }
+
+/* ═══ Футер ═══════════════════════════════════════════════════════ */
+.b-footer {
+  background: var(--ink);
+  color: var(--on-ink);
+  border-top: var(--rule) solid var(--ink-3);
+  padding-block: clamp(3rem, 7vh, 5rem) clamp(1.5rem, 3vh, 2.5rem);
+}
+.b-footer-top { display: grid; gap: 2.5rem; }
+@media (min-width: 860px) { .b-footer-top { grid-template-columns: 1fr 2fr; } }
+.b-footer-mark { font-size: 1.25rem; }
+.b-footer-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 2rem; }
+.b-footer-nav ul { list-style: none; margin: 0.5rem 0 0; padding: 0; display: grid; }
+.b-footer-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--t-small);
+  color: var(--on-ink-2);
+  text-decoration: none;
+  transition: color var(--d-fast) var(--e-out);
+}
+.b-footer-link:hover { color: var(--acid); }
+.b-footer-link:focus-visible { outline: 3px solid var(--acid); outline-offset: 3px; }
+.b-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+  padding-top: 1.25rem;
+  border-top: var(--rule) solid var(--ink-3);
+  font-size: var(--t-small);
+  color: var(--on-ink-3);
+}
+
+/* Подъём заголовка первого экрана. Двигается только transform:
+   прозрачность не трогаем намеренно — иначе браузер считает элемент
+   ненарисованным, и метрика LCP ждёт конца анимации. */
+.b-rise { animation: b-rise 820ms var(--e-out) both; }
+@keyframes b-rise {
+  from { transform: translateY(9%); }
+  to   { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .b-rise { animation: none; }
+}
