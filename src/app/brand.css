@@ -924,3 +924,110 @@
 @media (prefers-reduced-motion: reduce) {
   .b-rise { animation: none; }
 }
+
+/* ═══ Первый экран внутренней страницы ════════════════════════════
+   Не во весь вьюпорт: посетитель уже знает, зачем пришёл, и ему
+   нужен контент, а не второй плакат. Заголовок такой же крупный,
+   как на главной, но кадр не резервируется под него целиком. */
+.b-page-hero {
+  padding-block: clamp(120px, 18vh, 200px) clamp(2rem, 6vh, 4rem);
+  background: var(--bg);
+  color: var(--fg);
+}
+.b-page-title {
+  margin-top: clamp(1rem, 3vh, 2rem);
+  font-size: max(3rem, min(14vw, 22vh));
+  font-variation-settings: "wght" 500;
+}
+.b-page-lede { margin-top: clamp(1.5rem, 4vh, 2.5rem); max-width: 44ch; }
+
+.b-plans { padding-block: clamp(2rem, 5vh, 3rem) clamp(72px, 10vh, 130px); }
+.b-plan-list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 1.25rem 0 0;
+  border-top: var(--rule) solid var(--line);
+  display: grid;
+  gap: 0.625rem;
+  font-size: var(--t-small);
+  line-height: 1.4;
+  color: var(--fg-2);
+}
+.b-plan-hi .b-plan-list { border-top-color: rgba(11, 11, 12, 0.2); color: rgba(11, 11, 12, 0.78); }
+/* Маркер списка — та же ячейка, из которой сложена стена героя. */
+.b-plan-list li { display: grid; grid-template-columns: 9px minmax(0, 1fr); gap: 0.75rem; align-items: start; }
+.b-plan-list li::before {
+  content: "";
+  width: 9px; height: 9px;
+  margin-top: 0.4em;
+  background: var(--acid);
+}
+.b-plan-hi .b-plan-list li::before { background: var(--ink); }
+.b-plan-fine {
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
+  font-size: var(--t-small);
+  line-height: 1.5;
+  color: var(--fg-3);
+  max-width: 60ch;
+}
+
+/* ═══ Вопросы и ответы ════════════════════════════════════════════ */
+.b-faq-section { padding-block: clamp(72px, 10vh, 130px); background: var(--bg); color: var(--fg); }
+.b-faq-title { margin-top: 1rem; margin-bottom: clamp(2rem, 5vh, 3.5rem); }
+.b-faq { border-top: var(--rule) solid var(--line); }
+.b-faq-item { border-bottom: var(--rule) solid var(--line); }
+.b-faq-item h3 { margin: 0; font: inherit; }
+.b-faq-q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+  min-height: 72px;
+  padding: 1.25rem 0;
+  background: transparent;
+  border: 0;
+  color: var(--fg);
+  font-family: var(--display);
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--d-fast) var(--e-out);
+}
+.b-faq-q:hover { color: var(--acid); }
+.b-paper .b-faq-q:hover { color: var(--acid-deep); }
+.b-faq-q:focus-visible { outline: 3px solid var(--acid); outline-offset: -3px; }
+
+/* Плюс, который поворачивается в минус. Шеврона нет: в системе нет
+   ни одной скруглённой формы. */
+.b-faq-sign { position: relative; width: 16px; height: 16px; flex-shrink: 0; }
+.b-faq-sign::before,
+.b-faq-sign::after {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto 0;
+  height: 2px;
+  margin-top: -1px;
+  background: currentColor;
+  transition: transform var(--d-base) var(--e-out), opacity var(--d-base) var(--e-out);
+}
+.b-faq-sign::after { transform: rotate(90deg); }
+.b-faq-open .b-faq-sign::after { transform: rotate(0deg); opacity: 0; }
+
+/* Панель сворачивается высотой, а не выключается из дерева: поиск по
+   странице находит ответ и в свёрнутом виде. */
+.b-faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--d-base) var(--e-out);
+}
+.b-faq-open .b-faq-panel { grid-template-rows: 1fr; }
+.b-faq-panel-inner { overflow: hidden; }
+.b-faq-panel-inner .b-body { padding-bottom: 1.5rem; max-width: 62ch; }
+
+@media (prefers-reduced-motion: reduce) {
+  .b-faq-panel, .b-faq-sign::before, .b-faq-sign::after, .b-faq-q { transition: none; }
+}

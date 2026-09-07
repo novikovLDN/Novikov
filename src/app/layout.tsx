@@ -3,12 +3,11 @@ import { display, text } from "./fonts";
 import "./globals.css";
 import "./brand.css";
 import CookieConsent from "@/components/CookieConsent";
-import CustomCursor from "@/components/CustomCursor";
-import { SpotlightLayer } from "@/components/pixel/effects";
 import PwaManager from "@/components/PwaManager";
 import IosInstallBanner from "@/components/IosInstallBanner";
 import { I18nProvider } from "@/lib/i18n";
 import SiteJsonLd from "@/components/pixel/SiteJsonLd";
+import { Cursor } from "@/components/brand/motion";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atlassecure.uk"),
@@ -112,10 +111,12 @@ export default function RootLayout({
             {children}
           </div>
           <CookieConsent />
-          <CustomCursor />
-          {/* Подсветка за курсором для всех карточек с .px-spot —
-              один слушатель на документ вместо ref в каждой. */}
-          <SpotlightLayer />
+          {/* Курсор бренда — точка, которая стирает границу. Прежние
+              CustomCursor и SpotlightLayer убраны: первый давал на
+              обновлённых страницах второй курсор поверх нового, второй
+              подсвечивал карточки .px-spot, которых в новой системе
+              нет. Оба грузились на каждой странице сайта. */}
+          <Cursor />
           <PwaManager />
           <IosInstallBanner />
         </I18nProvider>
