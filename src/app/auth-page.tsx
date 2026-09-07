@@ -1078,11 +1078,14 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 function AuthTopBar() {
   return (
     <div className="px-shell flex items-center justify-between pt-6 sm:pt-8">
-      <a href="/" className="px-brand" aria-label="atlas.secure — на главную">
-        <BrandMark size={20} />
-        <span className="px-wordmark">atlas.secure</span>
+      {/* Марка бренда 2027: квадратная ячейка — та же, из которой
+          сложена стена первого экрана. Прежний знак и написание
+          «atlas.secure» относились к снятой системе. */}
+      <a href="/" className="b-mark" aria-label="Atlas — на главную">
+        <span className="b-mark-cell" aria-hidden />
+        Atlas
       </a>
-      <a href="/pricing" className="px-chip">Тарифы</a>
+      <a href="/pricing" className="b-btn b-btn-ghost b-header-cta">Тарифы</a>
     </div>
   );
 }

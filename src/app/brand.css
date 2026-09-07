@@ -1031,3 +1031,164 @@
 @media (prefers-reduced-motion: reduce) {
   .b-faq-panel, .b-faq-sign::before, .b-faq-sign::after, .b-faq-q { transition: none; }
 }
+
+/* ═══ Страницы старой системы: перекраска через токены ════════════
+   Пока разметка внутренних страниц переписывается на .b-*, они
+   получают брендовый корпус подменой значений: внутри .px-page
+   токены прежней системы указывают на чернила, бумагу и кислоту.
+   Ни одна из этих страниц об этом не знает — они рисуют те же
+   .px-card, .px-btn и .px-h2, только другим материалом.
+
+   Альтернативой было оставить полсайта на светлом оранжевом корпусе
+   до конца перевода: переход по любой ссылке из шапки уводил бы на
+   визуально другой продукт. Это хуже, чем временный компромисс.
+
+   Блок удаляется страница за страницей — вместе с последней .px-*
+   разметкой. */
+.px-page {
+  --px-bg:          var(--ink);
+  --px-surface:     var(--ink-2);
+  --px-surface-2:   var(--ink);
+  --px-text:        var(--on-ink);
+  --px-text-2:      var(--on-ink-2);
+  --px-text-3:      var(--on-ink-2);
+  --px-text-4:      var(--on-ink-3);
+  --px-line:        var(--ink-3);
+  --px-line-2:      rgba(244, 243, 239, 0.3);
+  --px-grid-line:   var(--ink-3);
+
+  --px-accent:      var(--acid);
+  --px-accent-hi:   #E6FF8A;
+  --px-accent-lo:   var(--acid);
+  --px-accent-top:  var(--acid);
+  --px-accent-ink:  var(--ink);
+  --px-accent-text: var(--acid);
+  --px-accent-dim:  rgba(214, 255, 63, 0.12);
+  --px-accent-line: rgba(214, 255, 63, 0.5);
+  --px-accent-rgb:  214, 255, 63;
+  --px-brick:       var(--acid);
+  --px-brick-2:     var(--ink-3);
+  --px-glow:        none;
+  --px-glow-soft:   none;
+  --px-bad:         #FF6B4A;
+
+  --px-r-card: 0;
+  --px-r-btn:  0;
+  --px-r-chip: 0;
+  --px-lift-1: none;
+  --px-lift-2: none;
+  --px-lift-3: none;
+  --px-edge:        none;
+  --px-edge-strong: none;
+
+  --font-mts-wide: var(--display);
+  --font-sans: var(--text);
+
+  background: var(--ink);
+  color: var(--on-ink);
+}
+/* Пиксельная подложка на чернилах: тот же шаг, что у стены героя. */
+.px-page > .px-grid-bg {
+  background-image:
+    linear-gradient(var(--ink-3) var(--rule), transparent var(--rule)),
+    linear-gradient(90deg, var(--ink-3) var(--rule), transparent var(--rule));
+  background-size: 17px 17px;
+  opacity: 0.55;
+}
+/* Радиусы, записанные числом мимо токенов, тоже снимаются: в системе
+   нет ни одной скруглённой формы. */
+.px-page [class*="rounded"] { border-radius: 0 !important; }
+
+/* ═══ Вход: перекраска через токены ═══════════════════════════════
+   Страница входа — самый ответственный экран продукта: тысяча строк
+   логики с кодом из письма, ошибками, таймерами, passkey и рефералом.
+   Переписывать её разметку ради оформления — риск сломать вход ради
+   цвета, поэтому она перекрашивается НА УРОВНЕ ТОКЕНОВ: внутри
+   .auth-shell значения старой системы подменяются брендовыми, и все
+   .px-* правила внутри рисуют уже новый корпус, не зная об этом.
+
+   Это временная мера на время перевода сайта. Когда флоу входа
+   получит собственную разметку на .b-*, блок удаляется целиком. */
+.auth-shell {
+  --px-bg:          var(--ink);
+  --px-surface:     var(--ink-2);
+  --px-surface-2:   var(--ink);
+  --px-text:        var(--on-ink);
+  --px-text-2:      var(--on-ink-2);
+  --px-text-3:      var(--on-ink-2);
+  --px-text-4:      var(--on-ink-3);
+  --px-line:        var(--ink-3);
+  --px-line-2:      rgba(244, 243, 239, 0.3);
+
+  --px-accent:      var(--acid);
+  --px-accent-hi:   #E6FF8A;
+  --px-accent-lo:   var(--acid);
+  --px-accent-top:  var(--acid);
+  --px-accent-ink:  var(--ink);
+  --px-accent-text: var(--acid);
+  --px-accent-dim:  rgba(214, 255, 63, 0.12);
+  --px-accent-line: rgba(214, 255, 63, 0.5);
+  --px-accent-rgb:  214, 255, 63;
+  --px-glow:        none;
+  --px-glow-soft:   none;
+
+  /* Ни одного скругления и ни одной тени: граница — прямая линия. */
+  --px-r-card: 0;
+  --px-r-btn:  0;
+  --px-r-chip: 0;
+  --px-lift-1: none;
+  --px-lift-2: none;
+  --px-lift-3: none;
+  --px-edge:        none;
+  --px-edge-strong: none;
+
+  /* Дисплейная гарнитура бренда вместо прежней фирменной. */
+  --font-mts-wide: var(--display);
+  --font-sans: var(--text);
+
+  background: var(--ink);
+  color: var(--on-ink);
+  font-family: var(--text);
+}
+/* Пиксельная подложка старой системы на чернилах не читается —
+   вместо неё та же сетка, что держит первый экран. */
+.auth-shell > .px-grid-bg {
+  background-image:
+    linear-gradient(var(--ink-3) var(--rule), transparent var(--rule)),
+    linear-gradient(90deg, var(--ink-3) var(--rule), transparent var(--rule));
+  background-size: 17px 17px;
+  opacity: 0.6;
+}
+.auth-shell .auth-card { background: var(--ink-2); border-color: var(--ink-3); }
+.auth-shell .auth-input,
+.auth-shell .auth-code-cell {
+  background: var(--ink);
+  border-color: var(--ink-3);
+  color: var(--on-ink);
+  border-radius: 0;
+}
+.auth-shell .auth-input:focus,
+.auth-shell .auth-code-cell:focus {
+  border-color: var(--acid);
+  box-shadow: none;
+  outline: 2px solid var(--acid);
+  outline-offset: 2px;
+}
+.auth-shell .auth-cta {
+  border-radius: 0;
+  background: var(--acid);
+  color: var(--ink);
+  font-family: var(--display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.auth-shell .auth-cta-ghost {
+  background: transparent;
+  color: var(--on-ink);
+  border-color: rgba(244, 243, 239, 0.3);
+}
+.auth-shell .auth-cta-ghost:hover { background: transparent; border-color: var(--acid); color: var(--acid); }
+/* Ошибка ввода: красный служебной палитры на чернилах слишком тёмный. */
+.auth-shell .auth-input-error,
+.auth-shell .auth-code-cell-error { border-color: #FF6B4A; }
+.auth-shell .auth-input-error:focus { border-color: #FF6B4A; box-shadow: none; }

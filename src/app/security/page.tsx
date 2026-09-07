@@ -199,7 +199,7 @@ export default function SecurityPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-[color:var(--px-accent)] text-[color:var(--px-text)] px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
+      <section className="bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
         <div className="max-w-[900px] mx-auto text-center">
           <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
             Ваша приватность —<br />без компромиссов

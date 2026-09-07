@@ -55,7 +55,9 @@ const CHANNELS = [
 ];
 
 function ChannelIcon({ kind }: { kind: string }) {
-  const stroke = "#111";
+  // Глиф наследует цвет от родителя: жёстко заданный тёмный
+  // хекс на чернильном корпусе давал невидимую иконку.
+  const stroke = "currentColor";
   if (kind === "telegram") {
     return (
       <svg width="18" height="18" viewBox="0 0 24 24" fill={stroke}>
@@ -217,8 +219,8 @@ export default function ContactPage() {
         <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-10">
           {sent ? (
             <div className="text-center py-10 sm:py-14">
-              <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-black flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <div className="w-14 h-14 mx-auto mb-6 bg-[color:var(--px-accent)] flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--px-accent-ink)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 6L9 17l-5-5" />
                 </svg>
               </div>
@@ -245,7 +247,7 @@ export default function ContactPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Имя, например Александр"
-                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text-4)] focus:outline-none focus:border-black/50 transition-colors"
+                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text-4)] focus:outline-none focus:border-[color:var(--px-accent)] transition-colors"
                 />
               </div>
 
@@ -259,7 +261,7 @@ export default function ContactPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="email@company.com"
-                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text-4)] focus:outline-none focus:border-black/50 transition-colors"
+                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text-4)] focus:outline-none focus:border-[color:var(--px-accent)] transition-colors"
                 />
               </div>
 
@@ -295,7 +297,7 @@ export default function ContactPage() {
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Расскажите о задачах..."
                   rows={4}
-                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text-4)] focus:outline-none focus:border-black/50 transition-colors resize-none"
+                  className="font-mts-wide w-full bg-[color:var(--px-bg)] border border-[color:var(--px-line)] rounded-2xl px-5 py-4 text-[15px] text-[color:var(--px-text)] placeholder:text-[color:var(--px-text-4)] focus:outline-none focus:border-[color:var(--px-accent)] transition-colors resize-none"
                 />
               </div>
 
@@ -329,7 +331,7 @@ export default function ContactPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="bg-[color:var(--px-accent)] text-[color:var(--px-text)] px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
+      <section className="bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
         <div className="max-w-[900px] mx-auto text-center">
           <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
             Готовы начать?
