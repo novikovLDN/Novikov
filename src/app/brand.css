@@ -436,11 +436,13 @@ html, body { background: var(--ink); }
 }
 @media (min-width: 720px) { .b-hero-rail { grid-template-columns: repeat(4, 1fr); } }
 .b-hero-rail dd {
-  margin: 0.4rem 0 0;
-  font-size: clamp(1.5rem, 3.4vw, 2.75rem);
+  margin: 0.35rem 0 0;
+  font-size: clamp(1.375rem, 3vw, 2.25rem);
   font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
+  font-family: var(--display);
+  text-transform: uppercase;
 }
 
 /* ═══ Курсор ══════════════════════════════════════════════════════
@@ -1688,10 +1690,12 @@ html, body { background: var(--ink); }
 
 /* Редкий прокат строки развёртки по чернильным сценам: полоса
    проходит сверху вниз раз в полминуты. Один слой, только transform. */
-/* Прокат строки развёртки — только в первом экране. В финале уже
-   работает ASCII-полотно, и два разных сигнальных приёма в одном
-   кадре дерутся между собой. */
-.b-hero::before {
+/* Прокат строки развёртки снят с первого экрана вместе с его
+   пересборкой: теперь там живёт демонстрация доступа, и внимание
+   должно идти к ней, а не к пробегающей полосе. Правило прежнее —
+   один громкий элемент в кадре. Приём остаётся в системе и может
+   вернуться на страницу, где кадр пустее. */
+.b-hero-roll::before {
   content: "";
   position: absolute;
   inset-inline: 0;
@@ -1709,7 +1713,7 @@ html, body { background: var(--ink); }
   100% { transform: translateY(120vh); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .b-hero::before, .b-btn-hot:hover { animation: none; }
+  .b-hero-roll::before, .b-btn-hot:hover { animation: none; }
 }
 /* Наведение вызывает сбой немедленно — отклик, а не ожидание цикла. */
 @media (hover: hover) and (pointer: fine) {
@@ -2015,12 +2019,16 @@ html, body { background: var(--ink); }
 @media (max-width: 560px) {
   .b-probe-prompt { flex: 1 0 100%; padding: 12px 12px 0; }
   .b-probe-input { flex: 1 1 auto; }
+  .b-probe-go { flex: 1 0 auto; }
 }
 .b-probe-input:focus { outline: none; }
 .b-probe-input:focus-visible { outline: 2px solid var(--acid); outline-offset: -2px; }
 .b-probe-input::placeholder { color: var(--on-ink-3); }
 .b-probe-go {
-  flex: 1 0 auto;
+  /* По ширине содержимого. Растягивание нужно только когда строка
+     перенеслась на узком экране — иначе кнопка занимала половину
+     терминала и перетягивала на себя весь кадр. */
+  flex: 0 0 auto;
   min-height: 52px;
   padding: 0 18px;
   background: var(--acid);
@@ -2123,3 +2131,38 @@ html, body { background: var(--ink); }
   background: var(--acid);
 }
 .b-trust-paper .b-trust-tick { background: var(--acid-deep); }
+
+/* ═══ Первый экран: сетка вокруг демонстрации ═════════════════════
+   Слева смысл и действие, справа терминал. Одна колонка ниже 1000px:
+   терминал должен быть шириной в экран, иначе строки вывода
+   переносятся посреди адреса. */
+.b-hero-grid {
+  margin-top: clamp(1.25rem, 3vh, 2.25rem);
+  display: grid;
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  align-items: start;
+}
+@media (min-width: 1000px) {
+  .b-hero-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); }
+}
+.b-hero-say { display: grid; gap: clamp(0.875rem, 2vh, 1.25rem); justify-items: start; }
+.b-hero-probe { min-width: 0; }
+/* На телефоне кадр обязан помещаться целиком вместе с полосой
+   показаний. Полоса доверия из первого экрана там убирается — она
+   повторяется у цены и на странице тарифов, то есть в тех же точках
+   решения, ради которых и заведена. */
+@media (max-width: 760px) {
+  .b-hero-say .b-trust { display: none; }
+  .b-hero-grid { margin-top: clamp(0.75rem, 2vh, 1.25rem); gap: 1rem; }
+  .b-hero-say { gap: 0.75rem; }
+  /* Оговорка про демонстрацию скрывается ТОЛЬКО до первого ответа.
+     Как только появился результат, она обязана быть на экране: это
+     единственное, что отличает демонстрацию от обещания проверки. */
+  .b-hero-probe [data-stage="idle"] .b-probe-note { display: none; }
+}
+/* Внутри первого экрана вывод короче: кадр обязан помещаться целиком
+   вместе с полосой показаний. */
+.b-hero-probe .b-probe-out { min-height: 74px; padding-block: 10px; }
+.b-hero-probe .b-probe-note { padding-bottom: 12px; font-size: var(--t-micro); }
+
+.b-hero-metric { min-width: 0; }

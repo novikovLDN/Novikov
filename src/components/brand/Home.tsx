@@ -5,7 +5,6 @@ import BrandHeader from "./BrandHeader";
 import HeroScene from "./HeroScene";
 import ManifestoScene from "./ManifestoScene";
 import FactsBand from "./FactsBand";
-import AccessProbe from "./AccessProbe";
 import BentoSection from "./BentoSection";
 import HowScene from "./HowScene";
 import AtlasScene from "./AtlasScene";
@@ -23,6 +22,11 @@ import { Cursor, SmoothScroll } from "./motion";
  * снимается → где работает → сколько стоит → начать.
  */
 export default function Home({ referralCode }: { referralCode?: string }) {
+  // Реферальный код подставляется в ссылку входа, а не только
+  // складывается в память устройства: приглашённый мог прийти по
+  // ссылке и уйти на вход в том же клике.
+  const primaryHref = referralCode ? `/auth?ref=${encodeURIComponent(referralCode)}` : "/auth";
+
   // Реферальный код запоминается на устройстве и подставляется на
   // входе. Витрина от него не зависит и остаётся статической.
   // Состояния, которые прячут содержимое до срабатывания скрипта,
@@ -50,16 +54,12 @@ export default function Home({ referralCode }: { referralCode?: string }) {
 
       <main id="main">
         {/* Стена закрывает кадр, курсор её стирает. */}
-        <HeroScene />
+        <HeroScene primaryHref={primaryHref} />
         {/* Три утверждения и переворот корпуса из чернил в бумагу. */}
         <ManifestoScene />
         {/* Шов между «зачем» и «как»: лента проверяемых чисел,
             которая слышит прокрутку. */}
         <FactsBand />
-
-        {/* Интерактивный кусок продукта: вводишь адрес — видишь, как
-            выглядит ответ до и после. */}
-        <AccessProbe />
 
         {/* Состав подписки модульной сеткой: ячейка даёт зрительную
             точку, разный размер задаёт порядок чтения. */}

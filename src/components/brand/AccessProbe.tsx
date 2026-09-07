@@ -25,7 +25,7 @@ const NEAREST = [...LOCATIONS].sort((a, b) => a.latencyMs - b.latencyMs)[0];
 
 type Stage = "idle" | "run" | "done";
 
-export default function AccessProbe() {
+export default function AccessProbe({ compact = false }: { compact?: boolean }) {
   const [host, setHost] = useState("");
   const [stage, setStage] = useState<Stage>("idle");
   const [lines, setLines] = useState<string[]>([]);
@@ -65,21 +65,12 @@ export default function AccessProbe() {
     });
   };
 
-  return (
-    <section className="b-section b-probe" aria-labelledby="probe-title">
-      <div className="b-shell b-probe-inner">
-        <div className="b-probe-copy">
-          <p className="b-label b-label-sys">Демонстрация</p>
-          <h2 id="probe-title" className="b-lg">
-            Введите адрес — покажем, как это выглядит
-          </h2>
-          <p className="b-body">
-            Слева то, что видит браузер без нас. Справа — то же самое через
-            ближайшую точку выхода.
-          </p>
-        </div>
-
-        <form className="b-probe-term" onSubmit={run}>
+  const term = (
+    // Состояние выведено в атрибут: оговорка про демонстрацию на
+    // узком экране показывается ровно тогда, когда есть что
+    // оговаривать, — до ввода она занимала бы место зря, а после
+    // ввода скрывать её нельзя.
+    <form className="b-probe-term" data-stage={stage} onSubmit={run}>
           <div className="b-term-bar" aria-hidden>
             <span className="b-term-dot" />
             atlas@probe — проверка доступа
@@ -118,12 +109,32 @@ export default function AccessProbe() {
                 ))}
           </pre>
 
-          <p className="b-probe-note">
-            Демонстрация: показывает вид ответа, а не результат запроса к сайту.
-            Проверить доступ можно только с вашего устройства — для этого и есть
-            три бесплатных дня.
+      <p className="b-probe-note">
+        Демонстрация: показывает вид ответа, а не результат запроса к сайту.
+        Проверить доступ можно только с вашего устройства — для этого и есть
+        три бесплатных дня.
+      </p>
+    </form>
+  );
+
+  // Внутри первого экрана — только сам терминал: заголовок и
+  // объяснение там уже есть, и повторять их незачем.
+  if (compact) return term;
+
+  return (
+    <section className="b-section b-probe" aria-labelledby="probe-title">
+      <div className="b-shell b-probe-inner">
+        <div className="b-probe-copy">
+          <p className="b-label b-label-sys">Демонстрация</p>
+          <h2 id="probe-title" className="b-lg">
+            Введите адрес — покажем, как это выглядит
+          </h2>
+          <p className="b-body">
+            Слева то, что видит браузер без нас. Справа — то же самое через
+            ближайшую точку выхода.
           </p>
-        </form>
+        </div>
+        {term}
       </div>
     </section>
   );
