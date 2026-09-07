@@ -5,6 +5,8 @@ import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { DEVICE_LIMIT } from "@/lib/plans";
 import ScrambleLabel from "./ScrambleLabel";
+import Terminal, { type TerminalLine } from "./Terminal";
+import { useEnterGlitch } from "./useEnterGlitch";
 import { typo } from "@/lib/typo";
 
 /**
@@ -18,6 +20,25 @@ import { typo } from "@/lib/typo";
  * Скорость задаётся высотой сцены, а не таймером: полтора экрана на
  * шаг. При одном экране шаг проскакивает раньше, чем строка дочитана.
  */
+/** Машинный взгляд на тот же шаг. Числа — из кода, а не из головы. */
+const TERM: TerminalLine[][] = [
+  [
+    { kind: "cmd", text: "atlas signup --email" },
+    { kind: "out", text: "код отправлен · срок 10 минут" },
+    { kind: "out", text: "вход выполнен за 30 секунд" },
+  ],
+  [
+    { kind: "cmd", text: "atlas key --show" },
+    { kind: "out", text: "ключ и QR-код готовы" },
+    { kind: "out", text: `устройств в подписке: ${DEVICE_LIMIT}` },
+  ],
+  [
+    { kind: "cmd", text: "atlas up" },
+    { kind: "out", text: "соединение поднято" },
+    { kind: "out", text: `пробный доступ: ${TRIAL_DAYS} дня` },
+  ],
+];
+
 const STEPS = [
   {
     n: "01",
@@ -45,6 +66,7 @@ const STEPS = [
 export default function HowScene() {
   const root = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
+  const glitchRef = useEnterGlitch<HTMLElement>();
   const reduced = usePrefersReducedMotion();
 
   useGSAP(
@@ -72,7 +94,13 @@ export default function HowScene() {
   );
 
   return (
-    <section ref={root} id="how" className="b-section b-paper b-live b-how" aria-labelledby="how-title">
+    <section
+      ref={(n) => {
+        root.current = n;
+        glitchRef.current = n;
+      }}
+      id="how"
+      className="b-section b-paper b-live b-how" aria-labelledby="how-title">
       <div className="b-how-stick">
         <div className="b-shell b-how-inner">
           <header className="b-how-head b-enter">
@@ -83,6 +111,11 @@ export default function HowScene() {
             <h2 id="how-title" className="b-lg">
               {typo("Три шага, и ни одного лишнего")}
             </h2>
+            {/* Машинный взгляд на активный шаг. Содержательное
+                объяснение остаётся абзацем справа: терминал ничего не
+                заменяет, он показывает то же самое со стороны
+                системы. */}
+            <Terminal lines={TERM[active]} step={active} />
           </header>
 
           <ol className="b-how-list">

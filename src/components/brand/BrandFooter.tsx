@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PixelSkull from "./PixelSkull";
 
 /**
  * Футер.
@@ -46,7 +47,7 @@ export default function BrandFooter() {
       <div className="b-shell">
         <div className="b-footer-top">
           <Link href="/" className="b-mark b-footer-mark" aria-label="Atlas — на главную">
-            <span className="b-mark-cell" aria-hidden />
+            <PixelSkull />
             Atlas
           </Link>
 

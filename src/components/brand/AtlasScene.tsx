@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { CITY_COUNT, COUNTRY_COUNT, LOCATIONS, plural } from "@/lib/locations";
 import ScrambleLabel from "./ScrambleLabel";
+import ScrambleOnHover from "./ScrambleOnHover";
 import { typo } from "@/lib/typo";
 
 /**
@@ -79,7 +80,7 @@ export default function AtlasScene() {
         {LOCATIONS.map((l) => (
           <li key={l.code} className="b-atlas-card">
             <span className="b-atlas-code b-num">{l.code}</span>
-            <span className="b-atlas-country">{l.country}</span>
+            <ScrambleOnHover text={l.country} className="b-atlas-country" />
             <span className="b-atlas-cities">{l.cities.join(" · ")}</span>
             <span className="b-atlas-lat">
               <span className="b-num b-atlas-ms">{l.latencyMs}</span>

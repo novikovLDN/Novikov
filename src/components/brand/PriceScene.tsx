@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import ScrambleLabel from "./ScrambleLabel";
 import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
+import { useEnterGlitch } from "./useEnterGlitch";
 import { typo } from "@/lib/typo";
 import {
   PERIODS,
@@ -37,6 +38,7 @@ import { TRIAL_DAYS } from "@/lib/brand-facts";
 export default function PriceScene() {
   const [period, setPeriod] = useState<Period>(12);
   const numRef = useRef<HTMLSpanElement>(null);
+  const glitchRef = useEnterGlitch<HTMLDivElement>();
   const shown = useRef(pricePerMonth("basic", 12));
   const reduced = usePrefersReducedMotion();
 
@@ -74,7 +76,7 @@ export default function PriceScene() {
 
         <h2 id="price-title" className="b-sr">Сколько стоит</h2>
 
-        <div className="b-price-object">
+        <div ref={glitchRef} className="b-price-object">
           <p className="b-price-figure b-num" aria-hidden>
             {/* Значение продублировано в тексте ниже — диктору не нужно
                 читать перетекающие цифры. */}

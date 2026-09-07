@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import PixelSkull from "./PixelSkull";
 
 /**
  * Шапка.
@@ -52,7 +53,7 @@ export default function BrandHeader() {
     <header className={`b-header${hidden ? " b-header-up" : ""}${solid ? " b-header-solid" : ""}`}>
       <div className="b-shell b-header-inner">
         <Link href="/" className="b-mark" aria-label="Atlas — на главную">
-          <span className="b-mark-cell" aria-hidden />
+          <PixelSkull />
           Atlas
         </Link>
 

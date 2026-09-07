@@ -1,6 +1,7 @@
 "use client";
 
 import VelocityMarquee from "./VelocityMarquee";
+import { useEnterGlitch } from "./useEnterGlitch";
 import { DEVICE_LIMIT, PLANS, PLAN_SPEED, formatRub } from "@/lib/plans";
 import { CITY_COUNT, COUNTRY_COUNT, plural } from "@/lib/locations";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
@@ -25,8 +26,10 @@ const FACTS = [
 ];
 
 export default function FactsBand() {
+  const ref = useEnterGlitch<HTMLElement>();
+
   return (
-    <section className="b-band" aria-label="Что входит">
+    <section ref={ref} className="b-band" aria-label="Что входит">
       <VelocityMarquee items={FACTS} />
     </section>
   );

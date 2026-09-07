@@ -1790,3 +1790,90 @@ html, body { background: var(--ink); }
   transform: rotate(-2deg);
 }
 @media (max-width: 560px) { .b-outro-tape { display: none; } }
+
+/* ─── Знак: череп из ячеек ────────────────────────────────────────
+   Тот же строительный элемент, что у стены первого экрана. */
+.b-skull {
+  display: grid;
+  grid-template-columns: repeat(var(--skull-cols), var(--skull-cell));
+  grid-template-rows: repeat(var(--skull-rows), var(--skull-cell));
+  flex-shrink: 0;
+}
+.b-skull i { display: block; background: var(--acid); }
+.b-paper .b-skull i { background: var(--acid-deep); }
+/* На наведении марки череп коротко теряет синхронизацию. */
+@media (hover: hover) and (pointer: fine) {
+  .b-mark:hover .b-skull i:nth-child(3n) { background: var(--neon-2); }
+  .b-mark:hover .b-skull i:nth-child(4n) { background: var(--neon-3); }
+}
+
+/* ─── Сбой при входе секции в кадр ────────────────────────────────
+   Картинка на мгновение теряет синхронизацию: блок дёргается по
+   горизонтали и расходится по каналам. Длится 260 мс и играет ровно
+   один раз за посещение. */
+.b-glitched { animation: b-block-glitch 260ms steps(1) 1; }
+@keyframes b-block-glitch {
+  0%   { transform: none; filter: none; }
+  16%  { transform: translate3d(-7px, 0, 0);
+         filter: drop-shadow(4px 0 var(--neon-2)) drop-shadow(-4px 0 var(--neon-3)); }
+  32%  { transform: translate3d(6px, 0, 0); clip-path: inset(10% 0 48% 0); }
+  48%  { transform: translate3d(-4px, 0, 0); clip-path: inset(54% 0 16% 0); }
+  64%  { transform: translate3d(3px, 0, 0);
+         filter: drop-shadow(-3px 0 var(--neon-2)) drop-shadow(3px 0 var(--neon-3)); }
+  80%  { transform: translate3d(-1px, 0, 0); clip-path: inset(0 0 0 0); }
+  100% { transform: none; filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .b-glitched { animation: none; }
+}
+
+/* ─── Псевдотерминал ──────────────────────────────────────────────
+   Машинный взгляд на шаг. Панель тёмная даже на бумажной сцене: у
+   терминала не бывает светлого корпуса, и контраст с бумагой вокруг
+   как раз и делает его отдельным объектом, а не блоком вёрстки. */
+.b-term {
+  margin-top: clamp(1.5rem, 3vh, 2.25rem);
+  max-width: 46ch;
+  background: var(--ink);
+  border: var(--rule) solid var(--ink-3);
+  color: var(--on-ink);
+  font-family: var(--mono);
+  overflow: hidden;
+}
+.b-term-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-bottom: var(--rule) solid var(--ink-3);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-ink-3);
+}
+.b-term-dot { width: 8px; height: 8px; background: var(--acid); flex-shrink: 0; }
+.b-term-body {
+  margin: 0;
+  padding: 14px 12px 16px;
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.b-term-line { display: block; }
+.b-term-cmd { color: var(--acid); }
+.b-term-out { color: var(--on-ink-2); }
+/* Курсор набора моргает только пока строка набирается. */
+.b-term-caret {
+  display: inline-block;
+  width: 8px; height: 1em;
+  margin-left: 2px;
+  background: var(--acid);
+  vertical-align: -2px;
+  animation: b-caret 900ms steps(2) infinite;
+}
+@keyframes b-caret { 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .b-term-caret { animation: none; opacity: 0; }
+}
