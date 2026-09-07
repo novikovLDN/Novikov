@@ -7,6 +7,7 @@ import { DEVICE_LIMIT, PLANS, PLAN_SPEED } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { typo } from "@/lib/typo";
+import ScatterSkulls from "./ScatterSkulls";
 
 /**
  * Первый экран.
@@ -41,6 +42,7 @@ export default function HeroScene() {
   return (
     <section className="b-hero" aria-labelledby="hero-title">
       <BorderWall />
+      <ScatterSkulls seed={3} count={6} />
 
       {/* Скотч поверх макета: элемент улицы, а не сетки. Кладётся на
           пустое место — поверх текста читался бы как ошибка вёрстки.

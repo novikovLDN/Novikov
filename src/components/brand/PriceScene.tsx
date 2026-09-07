@@ -6,6 +6,7 @@ import ScrambleLabel from "./ScrambleLabel";
 import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { useEnterGlitch } from "./useEnterGlitch";
 import { typo } from "@/lib/typo";
+import ScatterSkulls from "./ScatterSkulls";
 import {
   PERIODS,
   PERIOD_LABEL,
@@ -71,6 +72,7 @@ export default function PriceScene() {
 
   return (
     <section className="b-section b-paper b-live b-price" aria-labelledby="price-title">
+      <ScatterSkulls seed={23} count={4} />
       <div className="b-shell">
         <ScrambleLabel text="Цена" />
 

@@ -8,6 +8,7 @@ import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { PLANS, formatRub } from "@/lib/plans";
 import { typo } from "@/lib/typo";
+import ScatterSkulls from "./ScatterSkulls";
 
 /**
  * ФИНАЛ — последний кадр во весь экран.
@@ -63,6 +64,7 @@ export default function OutroScene() {
       {/* Стена из знаков, сквозь которую идёт пробой. Последний кадр
           был самым пустым на странице — теперь он самый плотный. */}
       <AsciiWall rows={16} cols={72} />
+      <ScatterSkulls seed={29} count={5} />
       <span className="b-tape b-tape-acid b-outro-tape" aria-hidden>
         доступ_открыт
       </span>

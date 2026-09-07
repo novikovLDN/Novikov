@@ -6,6 +6,7 @@ import { CITY_COUNT, COUNTRY_COUNT, LOCATIONS, plural } from "@/lib/locations";
 import ScrambleLabel from "./ScrambleLabel";
 import ScrambleOnHover from "./ScrambleOnHover";
 import { typo } from "@/lib/typo";
+import ScatterSkulls from "./ScatterSkulls";
 
 /**
  * АТЛАС — горизонтальная лента стран.
@@ -61,6 +62,7 @@ export default function AtlasScene() {
 
   return (
     <section ref={root} className="b-section b-paper b-live b-atlas" aria-labelledby="atlas-title">
+      <ScatterSkulls seed={19} count={4} />
       <div className="b-shell b-atlas-head b-enter">
         <ScrambleLabel text="Атлас" />
         <h2 id="atlas-title" className="b-lg">

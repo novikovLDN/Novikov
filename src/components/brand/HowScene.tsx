@@ -8,6 +8,7 @@ import ScrambleLabel from "./ScrambleLabel";
 import Terminal, { type TerminalLine } from "./Terminal";
 import { useEnterGlitch } from "./useEnterGlitch";
 import { typo } from "@/lib/typo";
+import ScatterSkulls from "./ScatterSkulls";
 
 /**
  * КАК ЭТО РАБОТАЕТ — залипающая сцена из трёх шагов.
@@ -101,6 +102,7 @@ export default function HowScene() {
       }}
       id="how"
       className="b-section b-paper b-live b-how" aria-labelledby="how-title">
+      <ScatterSkulls seed={11} count={4} />
       <div className="b-how-stick">
         <div className="b-shell b-how-inner">
           <header className="b-how-head b-enter">
@@ -108,7 +110,7 @@ export default function HowScene() {
             {/* Ручного переноса нет: в узкой колонке он складывался с
                 естественным и давал пять строк. Строки выравнивает
                 браузер (text-wrap: balance у .b-lg-заголовков колонки). */}
-            <h2 id="how-title" className="b-lg">
+            <h2 id="how-title" className="b-lg b-glitch" data-text="ТРИ ШАГА, И НИ ОДНОГО ЛИШНЕГО">
               {typo("Три шага, и ни одного лишнего")}
             </h2>
             {/* Машинный взгляд на активный шаг. Содержательное

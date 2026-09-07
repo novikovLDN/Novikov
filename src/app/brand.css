@@ -1643,19 +1643,67 @@ html, body { background: var(--ink); }
   opacity: 0;
   will-change: transform, clip-path;
 }
-.b-glitch::before { color: var(--neon-2); animation: b-split-a 6.5s steps(1) infinite; }
-.b-glitch::after  { color: var(--neon-3); animation: b-split-b 6.5s steps(1) infinite; }
+/* Цикл укорочен с 6,5 до 4,2 с, и вспышек в нём две вместо одной:
+   сбой должен встречаться чаще, но оставаться событием — при
+   непрерывном мигании он перестаёт читаться как сбой и становится
+   фоном. */
+.b-glitch::before { color: var(--neon-2); animation: b-split-a 4.2s steps(1) infinite; }
+.b-glitch::after  { color: var(--neon-3); animation: b-split-b 4.2s steps(1) infinite; }
 @keyframes b-split-a {
-  0%, 88%, 100% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
-  89% { opacity: .9; clip-path: inset(14% 0 66% 0); transform: translate(-4px, 1px); }
-  91% { opacity: .9; clip-path: inset(58% 0 22% 0); transform: translate(5px, -2px); }
+  0%, 43%, 100% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+  44% { opacity: .85; clip-path: inset(22% 0 58% 0); transform: translate(-3px, 1px); }
+  46% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+  88% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+  89% { opacity: .9; clip-path: inset(14% 0 66% 0); transform: translate(-5px, 1px); }
+  91% { opacity: .9; clip-path: inset(58% 0 22% 0); transform: translate(6px, -2px); }
   93% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
 }
 @keyframes b-split-b {
-  0%, 88%, 100% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
-  90% { opacity: .85; clip-path: inset(32% 0 46% 0); transform: translate(4px, -1px); }
-  92% { opacity: .85; clip-path: inset(70% 0 8% 0); transform: translate(-5px, 2px); }
+  0%, 43%, 100% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+  45% { opacity: .8; clip-path: inset(60% 0 18% 0); transform: translate(3px, -1px); }
+  47% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+  88% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+  90% { opacity: .85; clip-path: inset(32% 0 46% 0); transform: translate(5px, -1px); }
+  92% { opacity: .85; clip-path: inset(70% 0 8% 0); transform: translate(-6px, 2px); }
   94% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+}
+
+/* Кнопка главного действия тоже сбоит — но только под курсором:
+   постоянно дёргающийся призыв читается как поломка, а не как стиль. */
+@media (hover: hover) and (pointer: fine) {
+  .b-btn-acid { position: relative; }
+  .b-btn-acid:hover { animation: b-btn-glitch 320ms steps(1) 1; }
+}
+@keyframes b-btn-glitch {
+  0%   { transform: none; }
+  25%  { transform: translate3d(-3px, 0, 0); box-shadow: 3px 0 0 var(--neon-2), -3px 0 0 var(--neon-3); }
+  50%  { transform: translate3d(3px, 0, 0); box-shadow: -2px 0 0 var(--neon-2), 2px 0 0 var(--neon-3); }
+  75%  { transform: translate3d(-1px, 0, 0); box-shadow: none; }
+  100% { transform: none; box-shadow: none; }
+}
+
+/* Редкий прокат строки развёртки по чернильным сценам: полоса
+   проходит сверху вниз раз в полминуты. Один слой, только transform. */
+.b-hero::before,
+.b-outro::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 22vh;
+  z-index: 6;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(var(--acid-rgb), 0.05), transparent);
+  animation: b-roll 27s linear infinite;
+}
+@keyframes b-roll {
+  0%, 82% { transform: translateY(-30vh); opacity: 0; }
+  84% { opacity: 1; }
+  99% { transform: translateY(120vh); opacity: 1; }
+  100% { transform: translateY(120vh); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .b-hero::before, .b-outro::before, .b-btn-acid:hover { animation: none; }
 }
 /* Наведение вызывает сбой немедленно — отклик, а не ожидание цикла. */
 @media (hover: hover) and (pointer: fine) {
@@ -1690,7 +1738,8 @@ html, body { background: var(--ink); }
   background-size: 100% 3px, 4px 4px;
 }
 .b-manifest::after, .b-band::after, .b-footer::after { position: absolute; }
-.px-page, .auth-shell, .b-manifest, .b-band, .b-footer { position: relative; }
+.px-page, .auth-shell, .b-manifest, .b-band, .b-footer,
+.b-how, .b-atlas, .b-price { position: relative; }
 /* Внутри манифеста корпус переворачивается в бумагу — сигнальная
    сетка вместе с ним гаснет. */
 .b-manifest.b-paper::after { opacity: 0; }
@@ -1877,3 +1926,33 @@ html, body { background: var(--ink); }
 @media (prefers-reduced-motion: reduce) {
   .b-term-caret { animation: none; opacity: 0; }
 }
+
+/* ─── Черепа россыпью ─────────────────────────────────────────────
+   Метки на стене: по краям кадра, в стороне от текста, с редким
+   миганием у каждой своей фазы. Не перехватывают указатель и скрыты
+   от диктора — это граффити, а не элемент интерфейса. */
+.b-marks { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.b-mark-spot {
+  position: absolute;
+  opacity: 0.16;
+  animation: b-spot 11s steps(1) infinite;
+  animation-delay: var(--spot-delay, 0ms);
+}
+@keyframes b-spot {
+  0%, 92%, 100% { opacity: 0.14; }
+  93% { opacity: 0.5; }
+  94% { opacity: 0.14; }
+  96% { opacity: 0.42; }
+  97% { opacity: 0.14; }
+}
+.b-mark-neon i { background: var(--neon-2) !important; }
+.b-mark-cyan i { background: var(--neon-3) !important; }
+/* На бумажных сценах метки заметно тише: по светлому даже слабая
+   кислота лезет в глаза сильнее, чем по чернилам. */
+.b-paper .b-mark-spot { opacity: 0.1; }
+.b-paper .b-mark-spot i { background: var(--acid-deep); }
+@media (max-width: 640px) {
+  /* На телефоне кадр узкий: метки по краям налезали бы на текст. */
+  .b-mark-spot:nth-child(n + 3) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .b-mark-spot { animation: none; } }
