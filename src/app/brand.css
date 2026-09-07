@@ -846,7 +846,7 @@ html, body { background: var(--ink); }
   transition: background-color var(--d-fast) var(--e-out), color var(--d-fast) var(--e-out);
 }
 .b-period-btn:last-child { border-right: 0; }
-.b-period-btn:hover { color: var(--fg); }
+.b-period-btn:not(.b-period-on):hover { color: var(--fg); }
 .b-period-on { background: var(--fg); color: var(--bg); }
 .b-period-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; }
 /* Скидка приглушается слоем чернил, а не прозрачностью: opacity
@@ -1525,3 +1525,77 @@ html, body { background: var(--ink); }
 @media (prefers-reduced-motion: reduce) {
   .b-live::before, .b-live::after, .b-grain { animation: none; }
 }
+
+/* ═══ Цена как объект ═════════════════════════════════════════════
+   Одно число во весь кадр вместо сравнительной таблицы: сравнение
+   тарифов живёт на странице тарифов, главная обязана только назвать
+   цену. Число перетекает между значениями при смене срока — видно,
+   как оно падает от месяца к году. */
+.b-price-object {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
+  align-items: center;
+}
+@media (min-width: 1000px) {
+  .b-price-object { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+}
+.b-price-figure {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(0.5rem, 1.4vw, 1.25rem);
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  /* Кегль от ширины И от высоты: число обязано помещаться в кадр
+     целиком вместе со шкалой. */
+  font-size: max(4rem, min(19vw, 30vh));
+  line-height: 0.82;
+  letter-spacing: -0.06em;
+  color: var(--fg);
+}
+.b-price-unit {
+  /* Единица не переносится: «₽/» и «мес» на разных строках читались
+     как две разные подписи. */
+  white-space: nowrap;
+  font-size: clamp(1rem, 1.9vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fg-3);
+}
+.b-price-side { display: grid; gap: 1.25rem; align-content: start; }
+
+/* Шкала сроков: не пилюли, а деления прибора. */
+.b-scale {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: var(--rule) solid var(--line);
+}
+.b-scale-btn {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 64px;
+  padding: 0.85rem 0.5rem;
+  background: transparent;
+  border: 0;
+  border-right: var(--rule) solid var(--line);
+  color: var(--fg-2);
+  font-family: var(--display);
+  cursor: pointer;
+  transition: background-color var(--d-base) var(--e-out), color var(--d-base) var(--e-out);
+}
+.b-scale-btn:last-child { border-right: 0; }
+/* Наведение осветляет ТОЛЬКО неактивные деления. Правило с
+   псевдоклассом весит больше правила активного состояния, и на
+   активной кнопке оно перекрашивало текст в цвет её же фона —
+   подпись пропадала под курсором. */
+.b-scale-btn:not(.b-scale-on):hover { color: var(--fg); }
+.b-scale-on { background: var(--fg); color: var(--bg); }
+.b-scale-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; }
+.b-scale-label { font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; }
+.b-scale-off { font-size: var(--t-micro); letter-spacing: 0.06em; color: var(--fg-3); }
+.b-scale-on .b-scale-off { color: var(--bg); opacity: 0.7; }
+
+.b-price-note { max-width: 42ch; }
+.b-price-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 1.25rem; margin-top: 0.5rem; }
+.b-price-alt { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--t-small); }

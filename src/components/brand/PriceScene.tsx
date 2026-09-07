@@ -1,84 +1,132 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { PERIODS, PERIOD_LABEL, PLANS, PLAN_SPEED, discountPercent, formatRub, pricePerMonth, type Period, type PlanId } from "@/lib/plans";
-import { TRIAL_DAYS } from "@/lib/brand-facts";
+import { useRef, useState } from "react";
 import ScrambleLabel from "./ScrambleLabel";
+import { gsap, useGSAP, usePrefersReducedMotion } from "./motion";
 import { typo } from "@/lib/typo";
+import {
+  PERIODS,
+  PERIOD_LABEL,
+  PLANS,
+  PLAN_SPEED,
+  discountPercent,
+  formatRub,
+  pricePerMonth,
+  savings,
+  type Period,
+} from "@/lib/plans";
+import { TRIAL_DAYS } from "@/lib/brand-facts";
 
 /**
  * ЦЕНА — как объект, а не как таблица.
  *
- * Сравнительной таблицы с галочками здесь нет намеренно: тарифов
- * два, и разница между ними одна — ширина канала. Таблица на две
- * колонки существует, чтобы выглядеть как таблица.
+ * Что было и почему переделано: здесь стояли две плиты тарифов с
+ * переключателем срока — ровно то же самое, что на /pricing. Два
+ * одинаковых блока цен на одном сайте не дают читателю ничего:
+ * главная обязана назвать цену, а не заменить собой страницу цен.
  *
- * Вместо неё — само число в дисплейном кегле и переключатель срока
- * рядом. Цифра меняется при переключении, и видно, как она падает:
- * это и есть аргумент за длинный период.
+ * Стало: одно число во весь кадр. Срок переключается шкалой рядом, и
+ * число перетекает между значениями — видно, как оно падает от месяца
+ * к году. Это и есть аргумент за длинный период, и он показан, а не
+ * рассказан. Сравнение тарифов живёт там, где ему место, — на
+ * странице тарифов.
  *
- * Все суммы — src/lib/plans.ts, тот же файл читает касса. Писать
- * цену руками в разметке запрещено.
+ * Все суммы — src/lib/plans.ts, тот же файл читает касса.
  */
-const PLAN_META: Record<PlanId, { name: string; note: string }> = {
-  basic: { name: "Basic", note: "Хватает для всего, кроме тяжёлых загрузок в четыре потока." },
-  plus: { name: "Plus", note: "Втрое шире канал. Заметно на 4K и на больших файлах." },
-};
-
 export default function PriceScene() {
   const [period, setPeriod] = useState<Period>(12);
+  const numRef = useRef<HTMLSpanElement>(null);
+  const shown = useRef(pricePerMonth("basic", 12));
+  const reduced = usePrefersReducedMotion();
+
+  const value = pricePerMonth("basic", period);
+  const save = savings("basic", period);
+
+  // Число не подменяется, а перетекает: разница между 199 и 133
+  // читается как движение, а не как смена подписи.
+  useGSAP(
+    () => {
+      const node = numRef.current;
+      if (!node) return;
+      if (reduced) {
+        node.textContent = formatRub(value);
+        shown.current = value;
+        return;
+      }
+      const state = { n: shown.current };
+      const t = gsap.to(state, {
+        n: value,
+        duration: 0.7,
+        ease: "power3.out",
+        onUpdate: () => { node.textContent = formatRub(Math.round(state.n)); },
+        onComplete: () => { shown.current = value; },
+      });
+      return () => t.kill();
+    },
+    { dependencies: [value, reduced] },
+  );
 
   return (
     <section className="b-section b-paper b-live b-price" aria-labelledby="price-title">
       <div className="b-shell">
-        <header className="b-price-head b-enter">
-          <ScrambleLabel text="Цена" />
-          <h2 id="price-title" className="b-lg">
-            {formatRub(pricePerMonth("basic", 12))} ₽ <br />в месяц
-          </h2>
-          <p className="b-body">
-            Столько стоит Basic, если платить за год. Помесячно —{" "}
-            {formatRub(PLANS.basic[1])} ₽. {TRIAL_DAYS} дня до оплаты бесплатно, карта не нужна.
+        <ScrambleLabel text="Цена" />
+
+        <h2 id="price-title" className="b-sr">Сколько стоит</h2>
+
+        <div className="b-price-object">
+          <p className="b-price-figure b-num" aria-hidden>
+            {/* Значение продублировано в тексте ниже — диктору не нужно
+                читать перетекающие цифры. */}
+            <span ref={numRef}>{formatRub(value)}</span>
+            <span className="b-price-unit">₽/мес</span>
           </p>
-        </header>
 
-        <div className="b-period" role="group" aria-label="Срок оплаты">
-          {PERIODS.map((p) => {
-            const off = discountPercent("basic", p);
-            return (
-              <button
-                key={p}
-                type="button"
-                className={`b-period-btn${p === period ? " b-period-on" : ""}`}
-                aria-pressed={p === period}
-                onClick={() => setPeriod(p)}
-              >
-                {PERIOD_LABEL[p].short}
-                {off > 0 && <span className="b-period-off">−{off}%</span>}
-              </button>
-            );
-          })}
-        </div>
+          <p className="b-sr">
+            {formatRub(value)} рублей в месяц при оплате за {PERIOD_LABEL[period].accusative}
+          </p>
 
-        <div className="b-price-grid">
-          {(Object.keys(PLAN_META) as PlanId[]).map((id) => (
-            <article key={id} className={`b-plan${id === "plus" ? " b-plan-hi" : ""}`}>
-              <p className="b-label">{PLAN_META[id].name}</p>
-              <p className="b-plan-value b-num">
-                {formatRub(pricePerMonth(id, period))}
-                <span className="b-plan-unit"> ₽/мес</span>
-              </p>
-              <p className="b-plan-total">
-                {formatRub(PLANS[id][period])} ₽ за {PERIOD_LABEL[period].accusative}
-              </p>
-              <p className="b-plan-speed b-num">{PLAN_SPEED[id]} Гбит/с</p>
-              <p className="b-body b-plan-note">{typo(PLAN_META[id].note)}</p>
-              <Link href="/auth" className={`b-btn ${id === "plus" ? "b-btn-acid" : "b-btn-ghost"} b-plan-cta`}>
-                Начать
+          <div className="b-price-side">
+            <div className="b-scale" role="group" aria-label="Срок оплаты">
+              {PERIODS.map((p) => {
+                const off = discountPercent("basic", p);
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    className={`b-scale-btn${p === period ? " b-scale-on" : ""}`}
+                    aria-pressed={p === period}
+                    onClick={() => setPeriod(p)}
+                  >
+                    <span className="b-scale-label">{PERIOD_LABEL[p].short}</span>
+                    <span className="b-scale-off">{off > 0 ? `−${off}%` : " "}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="b-body b-price-note">
+              {typo(
+                save > 0
+                  ? `Тариф Basic, ${formatRub(PLANS.basic[period])} ₽ за ${PERIOD_LABEL[period].accusative} — на ${formatRub(save)} ₽ меньше, чем платить помесячно.`
+                  : `Тариф Basic, ${formatRub(PLANS.basic[period])} ₽ за ${PERIOD_LABEL[period].accusative}. Дальше — как удобно.`,
+              )}
+            </p>
+            <p className="b-body b-price-note">
+              {typo(
+                `Есть Plus за ${formatRub(pricePerMonth("plus", period))} ₽: канал ${PLAN_SPEED.plus} вместо ${PLAN_SPEED.basic} Гбит/с. Больше разницы между ними нет.`,
+              )}
+            </p>
+
+            <div className="b-price-actions">
+              <Link href="/auth" className="b-btn b-btn-acid">
+                {TRIAL_DAYS} дня бесплатно
               </Link>
-            </article>
-          ))}
+              <Link href="/pricing" className="b-link b-price-alt">
+                Сравнить тарифы
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>
