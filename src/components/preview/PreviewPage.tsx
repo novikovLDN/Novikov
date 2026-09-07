@@ -6,6 +6,7 @@ import { DEVICE_LIMIT, PLANS, PLAN_SPEED, formatRub, pricePerMonth } from "@/lib
 import { COUNTRY_COUNT } from "@/lib/locations";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { typo } from "@/lib/typo";
+import AsciiWall from "./AsciiWall";
 import { VARIANTS, type Variant } from "./variants";
 
 /**
@@ -25,6 +26,7 @@ const META: Record<Variant, { name: string; idea: string }> = {
   a: { name: "Тихий", idea: "Премиальный минимализм: антиква, воздух, почти нет движения" },
   b: { name: "Стекло", idea: "Глубина и материал: матовые панели, мягкий свет, пространство" },
   c: { name: "Журнал", idea: "Редакционная подача: колонки, линейки, буквица" },
+  d: { name: "Дерзкий", idea: "Цифропанк: трафарет, глитч, ASCII, наклейки, неон на бетоне" },
 };
 
 const FACTS: Array<[string, string]> = [
@@ -78,9 +80,18 @@ export default function PreviewPage({ variant }: { variant: Variant }) {
       <main>
         {/* ─── Первый экран ─────────────────────────────────────── */}
         <section className="pv-hero">
+          {variant === "d" && (
+            <>
+              {/* Стена из знаков за содержанием — язык DedSec собран из
+                  дизеринга, ASCII и глитча, а не из иллюстраций. */}
+              <AsciiWall />
+              <span className="pv-tape pv-tape-1" aria-hidden>//ATLAS_NODE_19</span>
+              <span className="pv-tape pv-tape-2" aria-hidden>СТЕНА_НЕ_ТВОЯ</span>
+            </>
+          )}
           <div className="pv-wrap">
             <p className="pv-kicker">Atlas — VPN для телефона и компьютера</p>
-            <h1 className="pv-h1">
+            <h1 className="pv-h1" data-text="Интернет без стен">
               Интернет <em>без стен</em>
             </h1>
             <p className="pv-lede">
@@ -88,9 +99,11 @@ export default function PreviewPage({ variant }: { variant: Variant }) {
             </p>
 
             <div className="pv-cta">
-              <Link href="/auth" className="pv-btn">
-                Попробовать {TRIAL_DAYS} дня бесплатно
-              </Link>
+              <span className="pv-hud">
+                <Link href="/auth" className="pv-btn" data-glitch="Взломать стену">
+                  {variant === "d" ? "Взломать стену" : `Попробовать ${TRIAL_DAYS} дня бесплатно`}
+                </Link>
+              </span>
               <span className="pv-cta-note">
                 {typo(`Без карты. Дальше ${formatRub(year)} ₽ в месяц при оплате за год.`)}
               </span>

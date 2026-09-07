@@ -1,4 +1,4 @@
-import { Literata, Manrope } from "next/font/google";
+import { Literata, Manrope, Oswald, JetBrains_Mono } from "next/font/google";
 
 /**
  * Гарнитуры превью-направлений.
@@ -18,4 +18,20 @@ export const sans = Manrope({
   subsets: ["cyrillic", "latin"],
   display: "swap",
   variable: "--pv-sans",
+});
+
+/** Сжатый гротеск под трафаретный набор: у DedSec заголовок — это
+ *  надпись на стене, а не типографика в макете. Вариативный, с
+ *  кириллицей. */
+export const stencil = Oswald({
+  subsets: ["cyrillic", "latin"],
+  display: "swap",
+  variable: "--pv-stencil",
+});
+
+/** Терминальный слой: ASCII, дизеринг, показания. Кириллица есть. */
+export const mono = JetBrains_Mono({
+  subsets: ["cyrillic", "latin"],
+  display: "swap",
+  variable: "--pv-mono",
 });

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import PreviewPage from "@/components/preview/PreviewPage";
 import { VARIANTS, type Variant } from "@/components/preview/variants";
-import { serif, sans } from "../fonts";
+import { serif, sans, stencil, mono } from "../fonts";
 
 /**
  * /preview/a|b|c — три направления ребрендинга на одном содержании.
@@ -31,7 +31,7 @@ export default async function PreviewRoute({
   const { variant } = await params;
   if (!(VARIANTS as readonly string[]).includes(variant)) notFound();
   return (
-    <div className={`${serif.variable} ${sans.variable}`}>
+    <div className={`${serif.variable} ${sans.variable} ${stencil.variable} ${mono.variable}`}>
       <PreviewPage variant={variant as Variant} />
     </div>
   );
