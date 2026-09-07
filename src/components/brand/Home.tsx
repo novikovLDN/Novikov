@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import BrandHeader from "./BrandHeader";
 import MotionField from "./MotionField";
 import PacketRail from "./PacketRail";
-import HeroScene from "./HeroScene";
+import SplitHero from "./SplitHero";
 import ManifestoScene from "./ManifestoScene";
 import FactsBand from "./FactsBand";
 import BentoSection from "./BentoSection";
@@ -61,7 +61,9 @@ export default function Home({ referralCode }: { referralCode?: string }) {
 
       <main id="main">
         {/* Стена закрывает кадр, курсор её стирает. */}
-        <HeroScene primaryHref={primaryHref} />
+        {/* Экран разрезан на «без Atlas» и «через Atlas»; границу
+            двигают рукой, и вместе с ней чинится заголовок. */}
+        <SplitHero primaryHref={primaryHref} />
         {/* Три утверждения и переворот корпуса из чернил в бумагу. */}
         <ManifestoScene />
         {/* Шов между «зачем» и «как»: лента проверяемых чисел,

@@ -2274,3 +2274,166 @@ html, body { background: var(--ink); }
   [data-signal="lost"] .b-mark,
   [data-signal="lost"] .b-hero-rail { animation: none; }
 }
+
+/* ═══ Первый экран: граница, которую двигают рукой ════════════════
+   Экран разрезан вертикально: слева интернет без нас, справа он же
+   через Atlas. Разрез трогает ТОЛЬКО среду — содержание лежит над
+   ним и видно при любом положении границы. */
+.b-split { position: relative; overflow: hidden; }
+.b-split-dead,
+.b-split-live { position: absolute; inset: 0; }
+
+/* Мёртвая сторона: погасшая сетка и коды ошибок. */
+.b-split-dead {
+  background:
+    repeating-linear-gradient(0deg, rgba(244,243,239,.035) 0 1px, transparent 1px 18px),
+    repeating-linear-gradient(90deg, rgba(244,243,239,.035) 0 1px, transparent 1px 18px),
+    #08080A;
+}
+.b-split-dead .b-ascii { color: rgba(244, 243, 239, 0.12); }
+.b-dead-log {
+  position: absolute;
+  left: clamp(16px, 4vw, 56px);
+  bottom: clamp(96px, 16vh, 190px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  line-height: 2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 46, 136, 0.55);
+}
+.b-dead-log li::before { content: "! "; }
+.b-dead-log li:nth-child(2n) { color: rgba(244, 243, 239, 0.28); }
+/* На телефоне журнал ошибок налезал на подписи показаний. Оставляем
+   две строки и поднимаем выше: смысл («тут не работает») читается и
+   с двух. */
+@media (max-width: 760px) {
+  .b-dead-log { bottom: auto; top: 46%; line-height: 1.9; }
+  .b-dead-log li:nth-child(n + 3) { display: none; }
+}
+
+/* Живая сторона открывается справа от границы. */
+.b-split-live {
+  clip-path: inset(0 0 0 var(--split));
+  transition: clip-path 90ms linear;
+}
+.b-dragging .b-split-live { transition: none; }
+
+/* Метки сторон. */
+.b-split-tag {
+  position: absolute;
+  top: clamp(88px, 12vh, 132px);
+  z-index: 4;
+  padding: 5px 11px;
+  font-family: var(--mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.b-split-tag-dead {
+  left: clamp(16px, 4vw, 56px);
+  background: var(--neon-2);
+  color: var(--ink);
+}
+.b-split-tag-live {
+  right: clamp(16px, 4vw, 56px);
+  background: var(--acid);
+  color: var(--ink);
+}
+
+/* Граница. Ручка — настоящий слайдер: тянется мышью и пальцем,
+   двигается стрелками, объявляет своё значение. */
+.b-split-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--split);
+  width: 44px;
+  margin-left: -22px;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  cursor: ew-resize;
+  touch-action: none;
+  background: transparent;
+  border: 0;
+}
+.b-split-handle::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: var(--acid);
+  box-shadow: 0 0 22px -4px rgba(var(--acid-rgb), 0.8);
+}
+.b-split-grip {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  background: var(--acid);
+  display: grid;
+  place-items: center;
+}
+/* Стрелки в обе стороны — из тех же ячеек, что и всё остальное. */
+.b-split-grip::before,
+.b-split-grip::after {
+  content: "";
+  position: absolute;
+  width: 6px; height: 6px;
+  background: var(--ink);
+}
+.b-split-grip::before { left: 7px; }
+.b-split-grip::after { right: 7px; }
+.b-split-handle:focus-visible { outline: 3px solid var(--on-ink); outline-offset: 2px; }
+
+/* Заголовок разрезан той же границей: слева сбит, справа цел. */
+.b-split-title { position: relative; }
+.b-split-title-dead,
+.b-split-title-live { display: block; }
+.b-split-title-dead {
+  color: rgba(244, 243, 239, 0.34);
+  text-shadow: 2px 0 rgba(255, 46, 136, 0.5), -2px 0 rgba(0, 229, 255, 0.4);
+}
+.b-split-title-live {
+  position: absolute;
+  inset: 0;
+  color: var(--on-ink);
+  clip-path: inset(0 0 0 var(--split));
+  transition: clip-path 90ms linear;
+}
+.b-dragging .b-split-title-live { transition: none; }
+
+/* Подсказка движением: граница один раз мягко качается. */
+.b-split-hint .b-split-handle { animation: b-split-nudge 1500ms var(--e-in-out) 1; }
+@keyframes b-split-nudge {
+  0%, 100% { transform: translateX(0); }
+  28% { transform: translateX(26px); }
+  62% { transform: translateX(-14px); }
+}
+
+/* Содержание всегда над разрезом. Указатель оно при этом не
+   перехватывает: слой лежит поверх ручки на всю ширину экрана, и на
+   широком мониторе нажатие на границу уходило в пустое место текста,
+   а не в слайдер. Ловят указатель только те элементы, по которым
+   действительно нажимают. */
+.b-split .b-hero-body,
+.b-split .b-hero-rail { z-index: 9; pointer-events: none; }
+.b-split .b-hero-body a,
+.b-split .b-hero-body button,
+.b-split .b-hero-body .b-hud { pointer-events: auto; }
+.b-split .b-hero-say { max-width: 44ch; }
+.b-split .b-hero-title { margin-top: clamp(1.5rem, 5vh, 3.5rem); }
+@media (min-width: 1000px) {
+  /* Смысл и действие уходят в правую половину — на сторону, где
+     доступ уже открыт. */
+  .b-split .b-hero-say { margin-left: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .b-split-hint .b-split-handle { animation: none; }
+  .b-split-live, .b-split-title-live { transition: none; }
+}
