@@ -171,8 +171,13 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
         </section>
 
         {/* ── Сцена 5: три шага ───────────────────────────────────── */}
-        <section className="gh-scene gh-shell gh-in" id="how" aria-labelledby="how-title">
+        <section className="gh-scene gh-shell gh-in gh-steps-scene" id="how" aria-labelledby="how-title">
           <h2 id="how-title" className="gh-h2">Три шага, и ни одного лишнего</h2>
+          {/* Приём №2 каталога: `timeline-scope` отдаёт один
+              источник прогресса двум ветвям DOM — этой полосе и
+              содержимому списка. Раньше для этого требовался
+              наблюдатель и общее состояние в React. */}
+          <div className="gh-steps-rail" aria-hidden><span /></div>
           <ol className="gh-steps">
             <li className="gh-step">
               <span className="gh-step-n">01</span>
@@ -212,7 +217,7 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
 
         {/* ── Сцена 6: атлас ──────────────────────────────────────── */}
         <section className="gh-scene gh-shell gh-in" aria-labelledby="atlas-title">
-          <h2 id="atlas-title" className="gh-h2">Девятнадцать стран</h2>
+          <h2 id="atlas-title" className="gh-h2 gh-masked">Девятнадцать стран</h2>
           <p className="gh-p">
             Точку выбираете вы. Ближайшая отвечает за {CLOSEST.latencyMs} миллисекунд,
             самая дальняя — за {MAX_MS}.
@@ -228,6 +233,17 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
               aria-label={`Карта присутствия: ${COUNTRY_COUNT} стран`}
             >
               <path className="gh-map-land" d={landPath(3)} />
+              {/* Приём №26: контур вычерчивается по мере чтения.
+                  Приём №27: пакет ведёт offset-path — браузер сам
+                  двигает точку по кривой, и путь виден в разметке. */}
+              <path
+                className="gh-map-outline"
+                d={landPath(3)}
+                fill="none"
+                stroke="var(--g-chart)"
+                strokeWidth="0.6"
+                opacity="0.5"
+              />
               {LOCATIONS.map((l) => {
                 const { x, y } = project(l.lat, l.lon);
                 return <circle key={l.code} className="gh-map-node" cx={x} cy={y} r={5} />;

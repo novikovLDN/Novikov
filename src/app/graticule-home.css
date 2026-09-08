@@ -327,3 +327,193 @@
 /* ═══ Сцена 8: финал ════════════════════════════════════════════════ */
 .gh-outro { min-height: 82svh; display: grid; align-content: center; background: var(--g-vellum); border-top: var(--g-rule) solid var(--g-line); }
 .gh-outro h2 { font-size: clamp(2.5rem, 9vw, 7rem); line-height: 0.95; letter-spacing: -0.045em; max-width: 14ch; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   МОУШН: пятнадцать приёмов из docs/01_ANIMATION_CATALOG.md.
+
+   Все — нативные scroll-driven, ни одной библиотеки и ни одной строки
+   клиентского JavaScript: страница остаётся серверным компонентом.
+   Считает компоновщик, поэтому моушн не соревнуется с гидратацией за
+   главный поток.
+
+   Каждый блок помечен номером приёма из каталога.
+
+   Правило слоя: всё, что ниже, живёт под
+   `@supports (animation-timeline: view())` и
+   `prefers-reduced-motion: no-preference`. Без поддержки и при
+   просьбе о меньшем движении страница отрисована целиком и статично —
+   ни одна из этих анимаций не отвечает за появление содержимого.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+
+    /* ── №9. Вес заголовка по прокрутке ───────────────────────────
+       Вариативная ось wght Golos Text: пока первый экран уходит
+       вверх, заголовок наливается от 700 к 900. Ось меняется у
+       ОДНОГО элемента: смена начертания вызывает пересчёт раскладки,
+       и делать это у каждого знака нельзя. */
+    .gh-title {
+      animation: gh-weight linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    @keyframes gh-weight {
+      from { font-variation-settings: "wght" 700; letter-spacing: -0.045em; }
+      to   { font-variation-settings: "wght" 900; letter-spacing: -0.055em; }
+    }
+
+    /* ── №7. Прогресс первого экрана в переменную ─────────────────
+       Значение отдаётся в CSS, слои расходятся правилами. Ни
+       наблюдателя, ни rAF. */
+    .gh-hero {
+      animation: gh-progress linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    @keyframes gh-progress { from { --p: 0; } to { --p: 1; } }
+    /* Гратикул расходится по мере ухода кадра: сетка живая, а не
+       нарисованная один раз. */
+    .gh-parallel::after { transform: scaleX(calc(1 - var(--p, 0) * 0.6)); transform-origin: left center; }
+
+    /* ── №1 и №34. Манифест: закреплённый кадр и осветление ────────
+       Кадр держит `position: sticky`, а не перехват прокрутки:
+       колесо и жест работают как обычно. Строка проявляется
+       фиксированной маской — без расчёта позиции каждой буквы. */
+    .gh-beat { position: sticky; top: 0; }
+    .gh-beat p {
+      animation: gh-beat-in linear both;
+      animation-timeline: view();
+      animation-range: entry 15% cover 35%;
+    }
+    @keyframes gh-beat-in {
+      from { opacity: 0; clip-path: inset(0 0 100% 0); }
+      to   { opacity: 1; clip-path: inset(0 0 0% 0); }
+    }
+
+    /* ── №19. Кинетический шов ────────────────────────────────────
+       Полоса фактов едет вбок сама и ускоряется на прокрутке:
+       вместо пустой отбивки между сценами — проверяемые числа. */
+    .gh-facts ul {
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      width: max-content;
+      animation: gh-seam linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+    @keyframes gh-seam {
+      from { transform: translateX(4%); }
+      to   { transform: translateX(-14%); }
+    }
+
+    /* ── №5. Липкая сетка состава ─────────────────────────────────
+       Громкая ячейка держится в кадре, пока тихие проходят мимо. */
+    @media (min-width: 1100px) {
+      .gh-cell-loud { position: sticky; top: 96px; }
+    }
+
+    /* ── №2. Общий таймлайн: полоса сцены и линия шага ─────────────
+       `timeline-scope` отдаёт один источник прогресса двум разным
+       ветвям DOM: полосе под заголовком и линии внутри шага. Раньше
+       для этого требовался наблюдатель и общее состояние. */
+    .gh-steps-scene { timeline-scope: --steps; }
+    .gh-steps {
+      view-timeline: --steps block;
+    }
+    .gh-steps-rail span {
+      animation: gh-rail linear both;
+      animation-timeline: --steps;
+      animation-range: cover 0% cover 100%;
+      transform-origin: left center;
+    }
+    @keyframes gh-rail { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+    /* ── №4. Вход и выход одной строкой ───────────────────────────
+       Строка списка локаций въезжает снизу и уходит вверх: две
+       анимации на одном view-timeline, без наблюдателя. */
+    .gh-loc li {
+      animation: gh-row-in linear both, gh-row-out linear both;
+      animation-timeline: view();
+      animation-range: entry 20% entry 70%, exit 30% exit 100%;
+    }
+    @keyframes gh-row-in  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes gh-row-out { to   { opacity: 0.35; } }
+
+    /* ── №26. Прорисовка береговой линии ──────────────────────────
+       Карта вычерчивается по мере чтения, а не появляется готовой. */
+    .gh-map-outline {
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      pathLength: 1;
+      animation: gh-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 40%;
+    }
+    @keyframes gh-draw { to { stroke-dashoffset: 0; } }
+
+    /* Приёма №27 (пакет по offset-path) здесь нет намеренно: по
+       каталогу он относится к странице инфраструктуры, где маршрут
+       пакета — содержание, а не украшение. Правило без элемента —
+       мёртвый код, и его лучше не заводить заранее. */
+
+    /* ── №12. Финал набирается по знакам ──────────────────────────
+       Разбивки на элементы нет: клип по строке даёт тот же эффект и
+       не плодит семьдесят узлов DOM. */
+    .gh-outro h2 {
+      animation: gh-type linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 30%;
+    }
+    @keyframes gh-type {
+      from { clip-path: inset(0 100% 0 0); }
+      to   { clip-path: inset(0 0 0 0); }
+    }
+
+    /* ── №29. Изолинии полосы ─────────────────────────────────────
+       Скорость канала показана расходящимися линиями, а не столбиком. */
+    .gh-cell-loud .gh-cell-figure {
+      animation: gh-iso linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 30%;
+    }
+    @keyframes gh-iso {
+      from { letter-spacing: 0.06em; opacity: 0.55; }
+      to   { letter-spacing: -0.035em; opacity: 1; }
+    }
+  }
+}
+
+/* ── №14. Текст как маска ───────────────────────────────────────────
+   Внутри букв видно материал, а не заливку. Работает без
+   scroll-driven, поэтому вне блока выше. */
+.gh-masked {
+  background: linear-gradient(105deg, var(--g-ink) 0%, var(--g-chart-deep) 55%, var(--g-sounding) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ── №16. Табличные цифры (уже применены выше по файлу) ─────────────
+   ── №6. Лента со scroll-snap на телефоне ───────────────────────── */
+@media (max-width: 719px) {
+  .gh-cells {
+    grid-auto-flow: column;
+    grid-auto-columns: 78%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .gh-cells::-webkit-scrollbar { display: none; }
+  .gh-cell { scroll-snap-align: start; }
+}
+
+/* Полоса прочтения сцены «три шага» — разметка под приём №2. */
+.gh-steps-rail {
+  height: 2px;
+  background: var(--g-line);
+  margin-top: 1.25rem;
+  overflow: hidden;
+}
+.gh-steps-rail span { display: block; height: 100%; background: var(--g-chart); transform: scaleX(0); transform-origin: left center; }
