@@ -12,7 +12,7 @@ import SiteFooter from "@/components/pixel/SiteFooter";
  * the earlier PremiumPage implementation: dedicated physical
  * servers, Intel Xeon Scalable / AMD EPYC, NVMe RAID 10, up to
  * 200 Gb/s network, up to 1 TB RAM, IPMI/KVM, private VLAN,
- * from $29.99/mo. CPU line-up: EPYC 9354P (recommended), EPYC
+ * from $80/mo. CPU line-up: EPYC 9354P (recommended), EPYC
  * 9554, Xeon Gold 6548Y, Xeon 6430.
  */
 
@@ -28,7 +28,7 @@ const CPU_TIERS = [
     name:    "EPYC 9354P",
     badge:   "Рекомендуем",
     highlight: true,
-    price:   "От $29,99",
+    price:   "От $80",
     d:       "32 ядра Zen 4c. 360W TDP. До 128 линий PCIe 5.0 для NVMe и сетевых карт.",
     specs: [
       ["Ядра",     "32 физических"],
@@ -140,7 +140,7 @@ const HARDWARE: Array<[string, string]> = [
   ["ЦОДы",                 "Франкфурт · Москва · Сидней"],
   ["Аптайм SLA",           "99,98% с компенсацией"],
   ["Поддержка",            "NOC 24/7/365"],
-  ["Стартовая цена",       "От $29,99 / мес"],
+  ["Стартовая цена",       "От $80 / мес"],
 ];
 
 export default function VdsPage() {
@@ -192,7 +192,7 @@ export default function VdsPage() {
             Всегда свежий<br />кремний
           </h2>
           <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.5] text-[color:var(--px-text-3)] mt-6 max-w-[58ch]">
-            Четыре поколения процессоров под разные профили нагрузки. Начиная от $29,99/мес за EPYC 9354P.
+            Четыре поколения процессоров под разные профили нагрузки. Начиная от $80/мес за EPYC 9354P.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -295,12 +295,6 @@ export default function VdsPage() {
             </div>
           ))}
         </div>
-        <div className="mt-8">
-          <Link href="/vps" className="px-link gap-2 text-[14px]">
-            Сравнить с VPS
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-          </Link>
-        </div>
       </section>
 
       {/* Final CTA */}
@@ -310,7 +304,7 @@ export default function VdsPage() {
             Заберите своё железо
           </h2>
           <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-accent-ink)] mt-6 max-w-[46ch] mx-auto">
-            От $29,99/мес. Полное железо, полный контроль, без компромиссов.
+            От $80/мес. Полное железо, полный контроль, без компромиссов.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
             <Link href="/subscribe" className="px-btn px-btn-md px-btn-secondary">

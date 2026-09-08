@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
+import { usePrefersReducedMotion } from "./reduced-motion";
 
 /**
  * Слой движения бренда.
@@ -29,19 +30,6 @@ gsap.registerPlugin(ScrollTrigger, SplitText, useGSAP);
 gsap.defaults({ ease: "power2.out", duration: 0.9 });
 
 export { gsap, ScrollTrigger, SplitText, useGSAP };
-
-/** Одно место, где спрашивают про пониженную анимацию. */
-export function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => setReduced(mq.matches);
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, []);
-  return reduced;
-}
 
 /**
  * Плавная прокрутка (Lenis) в связке с тикером GSAP.
@@ -96,66 +84,12 @@ export function SmoothScroll() {
   return null;
 }
 
-/**
- * Курсор.
- *
- * Не «кружок вместо стрелки» — точка света, которая стирает границу:
- * тот же жест, что в первом экране, только в масштабе интерфейса.
- * Позицию ведёт rAF и CSS-переменные, React в этом не участвует.
- *
- * Показывается только там, где есть настоящий указатель: на тачскрине
- * курсора нет, и рисовать его там нечему.
- */
-export function Cursor() {
-  const reduced = usePrefersReducedMotion();
-  const ref = useRef<HTMLDivElement>(null);
+/* Хук пониженной анимации и курсор вынесены в собственные модули.
+   Причина не косметическая: `Cursor` стоит в корневой разметке, и
+   импорт из этого файла тянул GSAP вместе с ScrollTrigger и SplitText
+   в общий чанк — то есть на каждую страницу сайта, включая кабинет,
+   где ни одной gsap-анимации нет. Здесь они только переэкспортируются,
+   чтобы сцены бренда продолжали брать всё движение из одного места. */
+export { usePrefersReducedMotion };
+export { Cursor } from "./Cursor";
 
-  useEffect(() => {
-    if (reduced) return;
-    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-
-    const node = ref.current;
-    if (!node) return;
-
-    let x = window.innerWidth / 2;
-    let y = window.innerHeight / 2;
-    let tx = x;
-    let ty = y;
-    let raf = 0;
-    let over = false;
-
-    const onMove = (e: PointerEvent) => {
-      tx = e.clientX;
-      ty = e.clientY;
-      const el = e.target as HTMLElement | null;
-      const hot = !!el?.closest("a, button, [data-cursor]");
-      if (hot !== over) {
-        over = hot;
-        node.dataset.over = hot ? "true" : "false";
-      }
-    };
-
-    const tick = () => {
-      // Догоняющая инерция: курсор отстаёт ровно настолько, чтобы
-      // читаться как объект, а не как второй указатель.
-      // Инерция курсора мягче: 0,18 давали почти мгновенное
-      // прилипание к указателю, и точка переставала читаться
-      // как отдельный объект.
-      x += (tx - x) * 0.13;
-      y += (ty - y) * 0.13;
-      node.style.setProperty("--x", `${x}px`);
-      node.style.setProperty("--y", `${y}px`);
-      raf = requestAnimationFrame(tick);
-    };
-
-    node.dataset.on = "true";
-    window.addEventListener("pointermove", onMove, { passive: true });
-    raf = requestAnimationFrame(tick);
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      cancelAnimationFrame(raf);
-    };
-  }, [reduced]);
-
-  return <div ref={ref} className="b-cursor" aria-hidden />;
-}

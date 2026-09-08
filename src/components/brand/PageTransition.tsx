@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { usePrefersReducedMotion } from "./motion";
+import { usePrefersReducedMotion } from "./reduced-motion";
 
 /**
  * Переходы между страницами и предзагрузка маршрутов.
@@ -23,14 +23,15 @@ import { usePrefersReducedMotion } from "./motion";
  * не дольше HOLD_MS. Не успел — переход отпускается, и дальше работает
  * обычная отрисовка с полосой загрузки. Замороженный экран без единого
  * признака жизни хуже, чем переход без анимации: он читается как
- * зависание.
+ * зависание. Отсюда же короткий кадр: 220 мс заморозки на каждом
+ * клике читались как подтормаживание всего сайта.
  *
  * ПРЕДЗАГРУЗКА. Тяжёлые маршруты (вход — тысяча строк логики вместе с
  * passkey) начинают грузиться при наведении и при касании, до клика.
  * Это самый дешёвый способ убрать ожидание: к моменту нажатия код
  * обычно уже на месте.
  */
-const HOLD_MS = 220;
+const HOLD_MS = 140;
 /** Полоса показывается не сразу: на быстрой навигации мигание хуже
  *  отсутствия индикатора. */
 const BAR_DELAY_MS = 180;
@@ -84,10 +85,15 @@ export default function PageTransition() {
       prefetched.current.add(key);
       try { router.prefetch(key); } catch { /* маршрут мог исчезнуть */ }
     };
-    document.addEventListener("pointerenter", warm, { capture: true });
+    // pointerover, а не pointerenter с перехватом: enter не всплывает,
+    // и перехватывающий слушатель на документе получал по событию на
+    // каждый элемент входимой цепочки предков — десятки вызовов
+    // closest() на одно движение мыши. over всплывает, и хватает
+    // одного события на смену элемента под указателем.
+    document.addEventListener("pointerover", warm, { passive: true });
     document.addEventListener("touchstart", warm, { capture: true, passive: true });
     return () => {
-      document.removeEventListener("pointerenter", warm, { capture: true });
+      document.removeEventListener("pointerover", warm);
       document.removeEventListener("touchstart", warm, { capture: true });
     };
   }, [router, targetOf]);

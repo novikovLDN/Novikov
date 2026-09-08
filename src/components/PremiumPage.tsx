@@ -71,8 +71,7 @@ export default function PremiumPage({ children, title }: { children: ReactNode; 
           <div className="pl-footer-col">
             <h4>Product</h4>
             <Link href="/vpn">Pro</Link>
-            <Link href="/vps">VPS</Link>
-            <Link href="/vds">VDS</Link>
+            <Link href="/vds">VDS · выделенные серверы</Link>
             <Link href="/pricing">{t("nav.pricing")}</Link>
           </div>
           <div className="pl-footer-col">

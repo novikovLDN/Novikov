@@ -168,10 +168,9 @@ export default function BusinessView() {
             </dl>
 
             <p className="px-caption mt-8">
-              Нужны виртуальные или выделенные машины —{" "}
-              <Link href="/vps" className="px-link-inline">параметры VPS</Link> и{" "}
+              Нужны выделенные машины —{" "}
               <Link href="/vds" className="px-link-inline">параметры VDS</Link> опубликованы
-              отдельно. В заявке можно указать и то, и другое.
+              отдельно. В заявке можно указать конфигурацию.
             </p>
           </div>
         </section>

@@ -7,7 +7,7 @@ import PwaManager from "@/components/PwaManager";
 import IosInstallBanner from "@/components/IosInstallBanner";
 import { I18nProvider } from "@/lib/i18n";
 import SiteJsonLd from "@/components/pixel/SiteJsonLd";
-import { Cursor } from "@/components/brand/motion";
+import { Cursor } from "@/components/brand/Cursor";
 import PageTransition from "@/components/brand/PageTransition";
 
 export const metadata: Metadata = {
@@ -19,11 +19,11 @@ export const metadata: Metadata = {
   // заголовок («ускоритель интернета») был эвфемизмом — он заставлял
   // читателя думать, что это другой продукт.
   title: {
-    default: "Atlas — ускоритель интернета и VPS",
+    default: "Atlas — ускоритель интернета и выделенные серверы",
     template: "%s — Atlas",
   },
   description:
-    "Atlas — ускоритель интернета: VPN для телефона и компьютера и виртуальные серверы. Шифрует трафик, меняет страну и открывает то, что перестало открываться. 19 стран, 14 устройств на подписке, 199 ₽ в месяц. Три дня бесплатно, без карты.",
+    "Atlas — ускоритель интернета: VPN для телефона и компьютера и выделенные серверы. Шифрует трафик, меняет страну и открывает то, что перестало открываться. 19 стран, 14 устройств на подписке, 199 ₽ в месяц. Три дня бесплатно, без карты.",
   keywords: [
     "Atlas VPN",
     "VPN",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     // Описание повторяет числа страниц, а не живёт своей жизнью:
     // страны — src/lib/locations.ts, устройства и цена —
     // src/lib/plans.ts, срок пробного доступа — src/lib/brand-facts.ts.
-    title: "Atlas — ускоритель интернета и VPS",
+    title: "Atlas — ускоритель интернета и выделенные серверы",
     description:
       "Шифрует трафик, меняет страну, открывает то, что перестало открываться. 19 стран, 14 устройств, 199 ₽ в месяц. Три дня бесплатно, без карты.",
     type: "website",

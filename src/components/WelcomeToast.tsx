@@ -71,7 +71,7 @@ export default function WelcomeToast({ telegramLinkToken, subscriptionEnd }: Wel
   if (!visible) return null;
 
   return (
-    <div className="fixed top-16 right-3 sm:right-6 z-50 w-[calc(100%-1.5rem)] sm:w-auto sm:max-w-sm animate-fade-in-up">
+    <div className="fixed bottom-3 sm:bottom-6 right-3 sm:right-6 z-50 w-[calc(100%-1.5rem)] sm:w-auto sm:max-w-sm animate-fade-in-up">
       <div className="relative bg-[color:var(--px-surface)] border border-[color:var(--px-accent-line)] rounded-2xl  overflow-hidden">
         {/* Header */}
         <div className="flex items-start gap-3 p-4 sm:p-5 pb-0">
@@ -82,16 +82,16 @@ export default function WelcomeToast({ telegramLinkToken, subscriptionEnd }: Wel
             </svg>
           </div>
           <div className="flex-1 min-w-0 pr-6">
-            <h3 className="font-mts-wide font-bold text-sm sm:text-base text-black leading-tight">
+            <h3 className="font-mts-wide font-bold text-sm sm:text-base text-[color:var(--px-text)] leading-tight">
               Осталось: {timeLeft || "..."}
             </h3>
-            <p className="font-mts-wide text-xs sm:text-sm text-black/55 leading-relaxed mt-1.5">
-              Ваш тестовый ключ активен ещё <b className="text-black">{timeLeft || "..."}</b>. Для приобретения полноценной подписки перейдите в Telegram-бот.
+            <p className="font-mts-wide text-xs sm:text-sm text-[color:var(--px-text-2)] leading-relaxed mt-1.5">
+              Ваш тестовый ключ активен ещё <b className="text-[color:var(--px-text)]">{timeLeft || "..."}</b>. Для приобретения полноценной подписки перейдите в Telegram-бот.
             </p>
           </div>
           <button
             onClick={handleClose}
-            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/[0.04] flex items-center justify-center text-black/45 hover:text-black/80 transition-colors"
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-[color:var(--px-surface-2)] flex items-center justify-center text-[color:var(--px-text-3)] hover:text-[color:var(--px-text)] transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -115,7 +115,7 @@ export default function WelcomeToast({ telegramLinkToken, subscriptionEnd }: Wel
           </a>
           <button
             onClick={() => { handleClose(); router.push("/devices"); }}
-            className="font-mts-wide h-10 sm:h-11 rounded-xl bg-black text-white font-medium text-sm hover:bg-neutral-800 transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+            className="font-mts-wide h-10 sm:h-11 rounded-xl bg-[color:var(--px-surface-2)] text-[color:var(--px-text)] border border-[color:var(--px-line)] font-medium text-sm hover:border-[color:var(--px-line-2)] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />

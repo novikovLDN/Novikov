@@ -158,7 +158,7 @@ export default function Dashboard() {
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <LoadingSpinner size="lg" />
-            <p className="font-mts-wide text-black/50 text-sm">Загрузка…</p>
+            <p className="font-mts-wide text-[color:var(--px-text-3)] text-sm">Загрузка…</p>
           </div>
         </div>
       </div>
@@ -318,8 +318,8 @@ export default function Dashboard() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="dv2-eyebrow mb-1">Telegram-бот</div>
-                      <h3 className="font-mts-wide text-[15px] font-medium text-black leading-tight">Atlas Secure Bot</h3>
-                      <p className="font-mts-wide text-[12px] text-black/50 mt-1 leading-snug">
+                      <h3 className="font-mts-wide text-[15px] font-medium text-[color:var(--px-text)] leading-tight">Atlas Secure Bot</h3>
+                      <p className="font-mts-wide text-[12px] text-[color:var(--px-text-3)] mt-1 leading-snug">
                         Управление подпиской с любого устройства
                       </p>
                     </div>
@@ -345,8 +345,8 @@ export default function Dashboard() {
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-mts-wide text-[13px] font-medium text-black leading-tight">Telegram привязан</div>
-                    <div className="font-mts-wide text-[11px] text-black/50 mt-0.5">Подписка синхронизирована с ботом</div>
+                    <div className="font-mts-wide text-[13px] font-medium text-[color:var(--px-text)] leading-tight">Telegram привязан</div>
+                    <div className="font-mts-wide text-[11px] text-[color:var(--px-text-3)] mt-0.5">Подписка синхронизирована с ботом</div>
                   </div>
                   {unlinkStep === 0 ? (
                     <button
@@ -423,12 +423,12 @@ export default function Dashboard() {
                   onClick={() => setShowLogoutConfirm(true)}
                   className="px-btn px-btn-sm px-btn-secondary px-btn-block group"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="text-black/55 group-hover:text-[#EF4444] transition-colors">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-text-2)] group-hover:text-[#EF4444] transition-colors">
                     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
                     <polyline points="16 17 21 12 16 7" />
                     <line x1="21" y1="12" x2="9" y2="12" />
                   </svg>
-                  <span className="text-black/70 group-hover:text-[#EF4444] transition-colors">Выйти</span>
+                  <span className="text-[color:var(--px-text-2)] group-hover:text-[#EF4444] transition-colors">Выйти</span>
                 </button>
               </div>
             </div>
@@ -439,7 +439,7 @@ export default function Dashboard() {
             <div className="fixed inset-0 z-50 flex items-center justify-center px-4" onClick={() => !loggingOut && setShowLogoutConfirm(false)}>
               <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
               <div
-                className="relative bg-[color:var(--px-surface)] border border-black/[0.06] rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-sm animate-scale-in"
+                className="relative bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl sm:rounded-3xl p-5 sm:p-7 w-full max-w-sm animate-scale-in"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex justify-center mb-4">
@@ -452,8 +452,8 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <h3 className="font-mts-wide text-base sm:text-lg font-bold text-center mb-2 text-black">Выйти из аккаунта?</h3>
-                <p className="font-mts-wide text-black/55 text-xs sm:text-sm text-center mb-6 leading-relaxed">
+                <h3 className="font-mts-wide text-base sm:text-lg font-bold text-center mb-2 text-[color:var(--px-text)]">Выйти из аккаунта?</h3>
+                <p className="font-mts-wide text-[color:var(--px-text-2)] text-xs sm:text-sm text-center mb-6 leading-relaxed">
                   Для повторного входа потребуется подтверждение по email.
                 </p>
 
@@ -487,6 +487,10 @@ export default function Dashboard() {
           )}
         </main>
 
+        {/* Слои остаются внутри .dashboard-v2: снаружи у них другая
+            палитра — белая карточка с коралловой кнопкой посреди
+            чернильного кабинета. За то, чтобы правило подложки не
+            сбивало им `fixed`, отвечает исключение в globals.css. */}
         <WelcomeToast telegramLinkToken={data?.telegramLinkToken} subscriptionEnd={data?.subscriptionEnd} />
         <TelegramLinkBanner telegramLinked={data?.telegramLinked ?? false} telegramLinkToken={data?.telegramLinkToken} />
         <PasskeyPrompt />
@@ -516,14 +520,14 @@ function DashboardTopBar({
           <path d="M5 19 L1 23 M5 19 L5 23 M5 19 L1 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M19 19 L23 23 M19 19 L19 23 M19 19 L23 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-black/85">atlas.secure</span>
+        <span className="font-mts-wide text-[13px] tracking-[0.16em] uppercase text-[color:var(--px-text)]">atlas.secure</span>
       </Link>
 
       <div className="flex items-center gap-2">
-        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-black/60 mr-2">
-          <Link href="/pricing"  className="hover:text-black transition-colors">Тарифы</Link>
-          <Link href="/devices"  className="hover:text-black transition-colors">Устройства</Link>
-          <Link href="/support"  className="hover:text-black transition-colors">Поддержка</Link>
+        <nav className="hidden md:flex items-center gap-6 font-mts-wide text-[14px] text-[color:var(--px-text-2)] mr-2">
+          <Link href="/pricing"  className="hover:text-[color:var(--px-text)] transition-colors">Тарифы</Link>
+          <Link href="/devices"  className="hover:text-[color:var(--px-text)] transition-colors">Устройства</Link>
+          <Link href="/support"  className="hover:text-[color:var(--px-text)] transition-colors">Поддержка</Link>
         </nav>
         <button
           onClick={onNotifications}

@@ -16,8 +16,7 @@ import SiteFooter from "@/components/pixel/SiteFooter";
 
 const INTERESTS: Array<{ value: string; label: string }> = [
   { value: "vpn",        label: "Pro" },
-  { value: "vps",        label: "VPS" },
-  { value: "vds",        label: "VDS" },
+  { value: "vds",        label: "VDS · выделенные серверы" },
   { value: "enterprise", label: "Enterprise" },
   { value: "security",   label: "Безопасность" },
   { value: "other",      label: "Другое" },

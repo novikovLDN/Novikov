@@ -114,7 +114,7 @@ export default function RaceHero({ primaryHref }: { primaryHref: string }) {
           {/* ─── Смысл и действие ───────────────────────────────── */}
           <div className="b-hero-say">
             <p className="b-lede">
-              {typo("Atlas — это VPN и виртуальные серверы. Шифрует трафик, меняет страну и открывает то, что перестало открываться.")}
+              {typo("Atlas Secure — это передовое решение VPS-ускорителя. Шифрует трафик, меняет страну и открывает то, что перестало открываться.")}
             </p>
 
             <div className="b-hero-actions">
@@ -123,8 +123,8 @@ export default function RaceHero({ primaryHref }: { primaryHref: string }) {
                   {TRIAL_DAYS} дня бесплатно
                 </Link>
               </span>
-              <Link href="/vps" className="b-btn b-btn-ghost">
-                Серверы VPS
+              <Link href="/vds" className="b-btn b-btn-ghost">
+                Выделенные серверы
               </Link>
             </div>
 

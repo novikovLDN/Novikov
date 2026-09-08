@@ -13,7 +13,7 @@ import AtlasScene from "./AtlasScene";
 import PriceScene from "./PriceScene";
 import OutroScene from "./OutroScene";
 import BrandFooter from "./BrandFooter";
-import { Cursor, SmoothScroll } from "./motion";
+import { SmoothScroll } from "./motion";
 
 /**
  * Главная страница — направление «ГРАНИЦА» (TRENDS.md §11).
@@ -54,7 +54,6 @@ export default function Home({ referralCode }: { referralCode?: string }) {
           нему одной строкой CSS. */}
       <MotionField />
       <PacketRail />
-      <Cursor />
       <div className="b-grid-lines" aria-hidden />
 
       <BrandHeader />

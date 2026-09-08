@@ -511,62 +511,13 @@ input:-webkit-autofill:focus {
   100% { transform: translateX(200%); }
 }
 
-/* Custom cursor — desktop only */
-@media (pointer: fine) {
-  html, body {
-    cursor: none;
-  }
-  a, button, input, textarea, select, [role="button"] {
-    cursor: none;
-  }
-}
-
-/* Пиксельный плюс вместо точки — фирменный мотив курсора (research/07
-   применён к самому курсору): две ступенчатые полосы вместо круга,
-   image-rendering: pixelated не даёт браузеру их сгладить. */
-.custom-cursor-dot {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 12px;
-  height: 12px;
-  background:
-    linear-gradient(#fff, #fff) center / 4px 12px no-repeat,
-    linear-gradient(#fff, #fff) center / 12px 4px no-repeat;
-  image-rendering: pixelated;
-  pointer-events: none;
-  z-index: 9999;
-  will-change: transform;
-  mix-blend-mode: difference;
-  transition: opacity 0.2s;
-}
-
-/* mix-blend-mode вместо цвета, завязанного на тему: кольцо остаётся
-   видимым и на светлом корпусе, и на тёмных фокальных вставках без
-   отдельного правила на каждый фон. */
-.custom-cursor-circle {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 40px;
-  height: 40px;
-  border: 1.5px solid #fff;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9998;
-  will-change: transform;
-  mix-blend-mode: difference;
-  transition: transform 0.15s ease-out, opacity 0.2s, border-color 0.3s, background-color 0.3s;
-}
-
-.custom-cursor-circle.cursor-hover {
-  /* Обычный blend вместо difference: акцент должен остаться коралловым,
-     а не непредсказуемо инвертированным цветом фона под курсором. */
-  mix-blend-mode: normal;
-  border-color: var(--px-accent);
-  background: rgba(var(--px-accent-rgb), 0.14);
-}
-
+/* Своего курсора у светлого корпуса нет.
+   Правило `cursor: none` стояло здесь глобально — оно осталось от
+   CustomCursor, который из проекта убран. В результате на всём сайте
+   прятался системный указатель, а рисовался только чернильный
+   `.b-cursor` из brand.css: в кабинете это давало экран без курсора
+   вовсе — ни I-луча над полем, ни ладони над кнопкой. Курсор бренда
+   теперь живёт только на чернильных страницах (см. brand.css). */
 
 /* ══════════════════════════════════════════════════════════════
    PREMIUM LANDING PAGE — Linear-style for Atlas Secure
@@ -1665,7 +1616,13 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
   text-rendering: optimizeLegibility;
 }
 
-.dashboard-v2 > * { position: relative; z-index: 1; }
+/* Содержимое поднимается над подложкой карточки.
+
+   Исключение по `fixed` обязательно: у правила `.dashboard-v2 > *`
+   ровно та же специфичность, что у утилиты `fixed`, и оно её
+   перебивало — тосты и баннеры вместо угла экрана вставали в конец
+   документа и наезжали друг на друга под последней карточкой. */
+.dashboard-v2 > *:not([class~="fixed"]) { position: relative; z-index: 1; }
 
 .dv2-card {
   background: var(--px-surface);
@@ -1887,7 +1844,7 @@ html.premium-page body { background-image: none; background: #0A0A0B; }
    сохранён для обратной совместимости разметки и намеренно пуст. */
 .px-grid-bg { display: none; }
 
-.px-page > * { position: relative; z-index: 1; }
+.px-page > *:not([class~="fixed"]) { position: relative; z-index: 1; }
 
 /* Зерно — материал, а не текстура ради текстуры: оно снимает
    «пластиковую» ровность больших плоскостей и прячет полосы на

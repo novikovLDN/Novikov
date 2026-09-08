@@ -59,7 +59,7 @@ export default function TelegramLinkBanner({ telegramLinked, telegramLinkToken }
           {/* Close button */}
           <button
             onClick={handleClose}
-            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/[0.04] flex items-center justify-center text-black/45 hover:text-black/80 transition-colors"
+            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-[color:var(--px-surface-2)] flex items-center justify-center text-[color:var(--px-text-3)] hover:text-[color:var(--px-text)] transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -75,10 +75,10 @@ export default function TelegramLinkBanner({ telegramLinked, telegramLinkToken }
               </svg>
             </div>
             <div className="min-w-0">
-              <h3 className="font-mts-wide font-bold text-sm sm:text-base leading-tight text-black">
+              <h3 className="font-mts-wide font-bold text-sm sm:text-base leading-tight text-[color:var(--px-text)]">
                 Привяжите Telegram
               </h3>
-              <p className="font-mts-wide text-xs sm:text-sm text-black/55 mt-1 leading-relaxed">
+              <p className="font-mts-wide text-xs sm:text-sm text-[color:var(--px-text-2)] mt-1 leading-relaxed">
                 Синхронизация подписки, баланс и управление — всё в боте
               </p>
             </div>

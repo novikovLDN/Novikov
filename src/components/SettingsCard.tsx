@@ -88,7 +88,7 @@ export default function SettingsCard() {
       {/* Button — matches the light-shell dashboard control row */}
       <button
         onClick={() => setOpen(!open)}
-        className="font-mts-wide h-[52px] w-full rounded-2xl bg-[color:var(--px-surface)] border border-black/[0.06] text-black/85 font-medium text-[13px] hover:border-black/[0.14] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
+        className="font-mts-wide h-[52px] w-full rounded-2xl bg-[color:var(--px-surface)] border border-[color:var(--px-line)] text-[color:var(--px-text)] font-medium text-[13px] hover:border-[color:var(--px-line-2)] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
       >
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="1.5" fill="currentColor" />
@@ -110,29 +110,29 @@ export default function SettingsCard() {
             {/* Passkey */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-black/[0.04] border border-black/[0.06] flex items-center justify-center shrink-0 text-black/70">
+                <div className="w-9 h-9 rounded-xl bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] flex items-center justify-center shrink-0 text-[color:var(--px-text-2)]">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="4" y="11" width="16" height="10" rx="2" />
                     <path d="M8 11V7a4 4 0 018 0v4" />
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[13px] font-medium text-black/90">Быстрый вход</p>
-                  <p className="text-[11px] text-black/45">
+                  <p className="text-[13px] font-medium text-[color:var(--px-text)]">Быстрый вход</p>
+                  <p className="text-[11px] text-[color:var(--px-text-3)]">
                     {passkeyStatus === "success" ? "Настроен" : hasPasskey ? "Face ID / Touch ID" : "Не настроен"}
                   </p>
                 </div>
               </div>
               {passkeyLoading ? (
-                <LoadingSpinner size="sm" className="text-black/60" />
+                <LoadingSpinner size="sm" className="text-[color:var(--px-text-2)]" />
               ) : hasPasskey ? (
                 confirmRemove ? (
                   <div className="flex items-center gap-1.5 shrink-0">
-                    <button onClick={() => setConfirmRemove(false)} className="text-[11px] text-black/45 px-2 py-1 rounded-lg hover:bg-black/[0.05] transition-colors">Нет</button>
+                    <button onClick={() => setConfirmRemove(false)} className="text-[11px] text-[color:var(--px-text-3)] px-2 py-1 rounded-lg hover:bg-[color:var(--px-surface-2)] transition-colors">Нет</button>
                     <button onClick={handleRemovePasskey} className="text-[11px] text-[#EF4444] font-medium px-2 py-1 rounded-lg bg-[#EF4444]/10 hover:bg-[#EF4444]/15 transition-colors">Отвязать</button>
                   </div>
                 ) : (
-                  <button onClick={() => setConfirmRemove(true)} className="text-[11px] text-black/45 hover:text-[#EF4444] transition-colors px-3 py-1.5 rounded-lg hover:bg-black/[0.05]">Отвязать</button>
+                  <button onClick={() => setConfirmRemove(true)} className="text-[11px] text-[color:var(--px-text-3)] hover:text-[#EF4444] transition-colors px-3 py-1.5 rounded-lg hover:bg-[color:var(--px-surface-2)]">Отвязать</button>
                 )
               ) : (
                 <button onClick={handleSetupPasskey} className="text-[11px] text-[var(--px-accent-hi)] font-medium px-3 py-1.5 rounded-lg bg-[color:var(--px-accent)]/10 hover:bg-[color:var(--px-accent)]/15 transition-colors">Настроить</button>
