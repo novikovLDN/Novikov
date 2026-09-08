@@ -860,19 +860,26 @@ html, body { background: var(--ink); }
 }
 
 /* ═══ Наверх ══════════════════════════════════════════════════════
-   Квадрат у правого края, по вертикали посередине. Низ экрана занят
-   баннером установки и тостами кабинета, нижний правый угол — тостом
-   пробного срока; середина правого края свободна на всех страницах.
+   Нижний правый угол — туда рука тянется за этой кнопкой на любом
+   сайте. Отступы заданы числом, а не долей экрана: это элемент
+   оболочки, он не должен уезжать от края вместе с колонкой текста.
+   24 пикселя на десктопе, 16 на телефоне — та же ступень, что у
+   баннера установки (--gutter начинается с 16).
+
+   Соседей по низу экрана двое, и оба разведены явно: баннер
+   установки на узком экране освобождает справа полосу под кнопку
+   (см. .b-install), приветственный тост кабинета поднят над ней на
+   высоту кнопки плюс отступ.
 
    Форма та же, что у всей системы: прямой угол, тонкая граница,
    моноширинная подпись. Скруглений в системе нет ни одного.
 
    z-index 88 — под курсором бренда (90) и зерном (92), но над
-   содержимым и тостами: кнопка часть оболочки, а не страницы. */
+   содержимым: кнопка часть оболочки, а не страницы. */
 .b-top {
   position: fixed;
-  right: clamp(10px, 1.6vw, 22px);
-  top: 50%;
+  right: 24px;
+  bottom: 24px;
   z-index: 88;
   display: grid;
   gap: 0.3rem;
@@ -891,7 +898,7 @@ html, body { background: var(--ink); }
      ловит нажатия сквозь невидимость. */
   opacity: 0;
   visibility: hidden;
-  transform: translate(10px, -50%);
+  transform: translateY(10px);
   transition:
     opacity var(--d-base) var(--e-out),
     transform var(--d-base) var(--e-out),
@@ -903,7 +910,7 @@ html, body { background: var(--ink); }
 .b-top[data-on="true"] {
   opacity: 1;
   visibility: visible;
-  transform: translate(0, -50%);
+  transform: none;
   transition-delay: 0s;
 }
 .b-top-label {
@@ -920,17 +927,28 @@ html, body { background: var(--ink); }
   outline: 2px solid var(--acid);
   outline-offset: 2px;
 }
-.b-top:active { transform: translate(0, -50%) scale(0.94); }
+.b-top:active { transform: scale(0.94); }
 /* На узком экране подпись снимается: 48 пикселей на слово не хватает,
    а стрелка сама по себе однозначна и подписана для скринридера. */
 @media (max-width: 479px) {
-  .b-top { width: 44px; min-height: 44px; }
+  .b-top { right: 16px; bottom: 16px; width: 44px; min-height: 44px; }
   .b-top-label { display: none; }
 }
+
+/* Пока не решён вопрос с cookie, кнопки нет вовсе.
+
+   Полоса согласия занимает низ экрана целиком и на узком экране
+   ложится прямо на угол: проверка попаданием в точку показывала под
+   курсором кнопку «Подробнее», а не возврат наверх. Спорить с ней
+   нельзя — это не сосед по углу, а вопрос, на который человек должен
+   ответить. На широком экране карточка согласия шириной 640px стоит
+   по центру и до угла не достаёт, но правило общее: пропадает
+   вопрос — появляется кнопка. */
+body:has(.b-consent) .b-top { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .b-top { transition: opacity var(--d-base) var(--e-out), visibility 0s linear var(--d-base); transform: translate(0, -50%); }
-  .b-top[data-on="true"] { transform: translate(0, -50%); }
-  .b-top:active { transform: translate(0, -50%); }
+  .b-top { transition: opacity var(--d-base) var(--e-out), visibility 0s linear var(--d-base); transform: none; }
+  .b-top[data-on="true"] { transform: none; }
+  .b-top:active { transform: none; }
 }
 
 /* ═══ Атлас: лента стран ══════════════════════════════════════════ */
@@ -1549,6 +1567,14 @@ html, body { background: var(--ink); }
   max-width: 460px;
   margin-inline: auto;
   animation: b-install-in var(--d-slow) var(--e-out) both;
+}
+/* Ниже 560px баннер занимает всю ширину и накрывал бы кнопку возврата
+   в правом нижнем углу — вместе с собственным крестиком закрытия.
+   Полоса справа отдана кнопке: 44 её пикселя плюс два отступа по 16.
+   Выше 560px баннер шириной 460px стоит по центру и до правого края
+   не достаёт — там правило не нужно. */
+@media (max-width: 559px) {
+  .b-install { inset-inline: var(--gutter) 76px; }
 }
 @keyframes b-install-in {
   from { opacity: 0; transform: translateY(16px); }

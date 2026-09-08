@@ -32,6 +32,10 @@ function formatTimeLeft(subscriptionEnd: string): string {
   return `${minutes} мин`;
 }
 
+/* Отступ снизу — от кнопки возврата к первому экрану (.b-top): она
+   стоит в том же правом нижнем углу. 16 + 44 + 16 на телефоне,
+   24 + 48 + 16 на десктопе. Раньше тост стоял на bottom-3/6 и ложился
+   прямо на кнопку. */
 export default function WelcomeToast({ telegramLinkToken, subscriptionEnd }: WelcomeToastProps) {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
@@ -71,7 +75,7 @@ export default function WelcomeToast({ telegramLinkToken, subscriptionEnd }: Wel
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-3 sm:bottom-6 right-3 sm:right-6 z-50 w-[calc(100%-1.5rem)] sm:w-auto sm:max-w-sm animate-fade-in-up">
+    <div className="fixed bottom-[76px] sm:bottom-[88px] right-3 sm:right-6 z-50 w-[calc(100%-1.5rem)] sm:w-auto sm:max-w-sm animate-fade-in-up">
       <div className="relative bg-[color:var(--px-surface)] border border-[color:var(--px-accent-line)] rounded-2xl  overflow-hidden">
         {/* Header */}
         <div className="flex items-start gap-3 p-4 sm:p-5 pb-0">
