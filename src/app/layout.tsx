@@ -71,6 +71,19 @@ export const viewport: Viewport = {
   themeColor: "#F6F5F2",
 };
 
+/**
+ * Предзагрузки MTS Wide в <head> больше нет — как и самого <head>.
+ *
+ * После ребрендинга 2027 первый экран набран Oswald, а внутри
+ * `.px-page`, `.dashboard-v2` и `.auth-shell` brand.css подменяет
+ * `--font-mts-wide` на `--display`: фирменной гарнитурой не набрана
+ * ни одна страница. Два файла по 30 КБ при этом выкачивались на
+ * каждом открытии экрана и соревновались за канал с теми шрифтами,
+ * которыми страница действительно набрана (проверено: в
+ * `document.fonts` MTS Wide не значится ни на одной странице).
+ * `@font-face` остался на месте — если разметка где-то ещё попросит
+ * MTS Wide, шрифт приедет по требованию.
+ */
 export default function RootLayout({
   children,
 }: {
@@ -78,29 +91,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" className={`${display.variable} ${text.variable} ${mono.variable}`} suppressHydrationWarning>
-      <head>
-        {/* Фирменный шрифт лежит у нас же (/public/fonts) и объявлен
-            через @font-face в globals.css. Предзагрузка нужна потому,
-            что MTS Wide набран весь текст первого экрана: без неё
-            браузер рисует страницу запасным шрифтом и переверстывает
-            её, когда фирменный доезжает. На /infrastructure это давало
-            сдвиг макета 0,23 — заголовок в 80px меняет высоту при
-            подмене шрифта. */}
-        <link
-          rel="preload"
-          href="/fonts/MTSWide-Medium.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-        <link
-          rel="preload"
-          href="/fonts/MTSWide-Bold.woff2"
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
-      </head>
       <body className="antialiased" suppressHydrationWarning>
         {/* Структурированные данные всего сайта: организация, её
             принадлежность группе и сам сайт. Один источник на проект —

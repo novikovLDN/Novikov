@@ -1,142 +1,81 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-import { usePrefersReducedMotion } from "./reduced-motion";
+import { usePathname } from "next/navigation";
 
 /**
- * Переходы между страницами и предзагрузка маршрутов.
+ * Полоса загрузки страницы.
  *
- * ПОЧЕМУ РУКАМИ, А НЕ ФЛАГОМ. `experimental.viewTransition` в этой
- * сборке Next инертен: проверено подменой document.startViewTransition —
- * при клике по ссылке он не вызывается ни разу. Правило
- * `@view-transition { navigation: auto }` относится к межстраничным
- * переходам браузера и на клиентскую навигацию App Router не влияет.
+ * ПОЧЕМУ ЗДЕСЬ БОЛЬШЕ НЕТ НИ ПЕРЕХВАТА КЛИКА, НИ VIEW TRANSITIONS.
+ * Компонент забирал навигацию себе: гасил событие до next/link,
+ * звал router.push внутри document.startViewTransition и держал
+ * кадр замороженным. Замер на собранном приложении показал, во что
+ * это обходилось:
  *
- * ФАЗА ПЕРЕХВАТА обязательна: обработчик next/link висит на корне
- * приложения, то есть внутри документа, и на всплытии срабатывает
- * раньше — зовёт preventDefault и уводит навигацию мимо перехода.
+ *   / → /support кликом через перехватчик   3619 мс
+ *   тот же переход мимо перехватчика         530 мс
+ *   / → /pricing                            3260 мс
+ *   /support → /pricing (перехватчик тот же) 57 мс
  *
- * СКОЛЬКО ДЕРЖАТЬ КАДР. Переход замораживает страницу на время своего
- * колбэка: пока он не разрешится, человек видит снимок старого экрана
- * и ничего больше. Поэтому кадр держится не «пока маршрут доедет», а
- * не дольше HOLD_MS. Не успел — переход отпускается, и дальше работает
- * обычная отрисовка с полосой загрузки. Замороженный экран без единого
- * признака жизни хуже, чем переход без анимации: он читается как
- * зависание. Отсюда же короткий кадр: 220 мс заморозки на каждом
- * клике читались как подтормаживание всего сайта.
+ * Профиль во время перехода — 2,86 с простоя из 2,96 с и ноль
+ * сетевых запросов: маршрут уже был предзагружен, страница просто
+ * стояла. Дороже всего это стоило именно тяжёлым сценам бренда, то
+ * есть первому экрану — единственному, который видят все.
  *
- * ПРЕДЗАГРУЗКА. Тяжёлые маршруты (вход — тысяча строк логики вместе с
- * passkey) начинают грузиться при наведении и при касании, до клика.
- * Это самый дешёвый способ убрать ожидание: к моменту нажатия код
- * обычно уже на месте.
+ * Навигацию ведёт next/link. Он же сам предзагружает маршрут — своя
+ * предзагрузка по наведению была дублем, а её слушатель
+ * pointerenter с перехватом на документе получал по событию на
+ * каждый элемент входимой цепочки предков.
+ *
+ * За компонентом осталось одно: показать, что переход идёт, если он
+ * не уложился в BAR_DELAY_MS. Клик слушается пассивно и ничего не
+ * отменяет.
  */
-const HOLD_MS = 140;
+
 /** Полоса показывается не сразу: на быстрой навигации мигание хуже
  *  отсутствия индикатора. */
 const BAR_DELAY_MS = 180;
 
 export default function PageTransition() {
-  const router = useRouter();
   const pathname = usePathname();
-  const resolveRef = useRef<(() => void) | null>(null);
-  const prefetched = useRef(new Set<string>());
   const [loading, setLoading] = useState(false);
   const barTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const reduced = usePrefersReducedMotion();
 
-  /** Маршрут отрисован: отпускаем и переход, и полосу. */
-  useEffect(() => {
+  const stop = useCallback(() => {
     if (barTimer.current) { clearTimeout(barTimer.current); barTimer.current = null; }
     setLoading(false);
-    if (!resolveRef.current) return;
-    const done = resolveRef.current;
-    resolveRef.current = null;
-    // Кадр на укладку: без него браузер снимает «после» до того, как
-    // новая страница встала на место, и переход мигает пустотой.
-    requestAnimationFrame(() => requestAnimationFrame(done));
-  }, [pathname]);
-
-  /** Внутренняя ссылка, по которой мы берём навигацию на себя. */
-  const targetOf = useCallback((el: EventTarget | null): URL | null => {
-    // Цель события — не всегда элемент: при перехвате на документе
-    // сюда приходит и сам документ, у которого нет closest.
-    if (!(el instanceof Element)) return null;
-    const link = el.closest("a");
-    if (!link) return null;
-    if (link.target && link.target !== "_self") return null;
-    if (link.hasAttribute("download")) return null;
-    const href = link.getAttribute("href");
-    if (!href || href.startsWith("#")) return null;
-    const url = new URL(link.href, location.href);
-    if (url.origin !== location.origin) return null;
-    if (url.pathname === location.pathname && url.hash) return null;
-    if (url.pathname === location.pathname && url.search === location.search) return null;
-    return url;
   }, []);
 
-  /* ─── Предзагрузка до клика ─────────────────────────────────── */
-  useEffect(() => {
-    const warm = (e: Event) => {
-      const url = targetOf(e.target);
-      if (!url) return;
-      const key = url.pathname + url.search;
-      if (prefetched.current.has(key)) return;
-      prefetched.current.add(key);
-      try { router.prefetch(key); } catch { /* маршрут мог исчезнуть */ }
-    };
-    // pointerover, а не pointerenter с перехватом: enter не всплывает,
-    // и перехватывающий слушатель на документе получал по событию на
-    // каждый элемент входимой цепочки предков — десятки вызовов
-    // closest() на одно движение мыши. over всплывает, и хватает
-    // одного события на смену элемента под указателем.
-    document.addEventListener("pointerover", warm, { passive: true });
-    document.addEventListener("touchstart", warm, { capture: true, passive: true });
-    return () => {
-      document.removeEventListener("pointerover", warm);
-      document.removeEventListener("touchstart", warm, { capture: true });
-    };
-  }, [router, targetOf]);
+  /** Маршрут отрисован — полосу убираем. */
+  useEffect(() => { stop(); }, [pathname, stop]);
 
-  /* ─── Перехват клика ────────────────────────────────────────── */
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (e.defaultPrevented || e.button !== 0) return;
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      const url = targetOf(e.target);
-      if (!url) return;
+      const el = e.target;
+      // Цель события — не всегда элемент: при слушателе на документе
+      // сюда приходит и сам документ, у которого нет closest.
+      if (!(el instanceof Element)) return;
+      const link = el.closest("a");
+      if (!link) return;
+      if (link.target && link.target !== "_self") return;
+      if (link.hasAttribute("download")) return;
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#")) return;
+      const url = new URL(link.href, location.href);
+      if (url.origin !== location.origin) return;
+      if (url.pathname === location.pathname) return;
 
-      const to = url.pathname + url.search + url.hash;
-      e.preventDefault();
-      // Обработчик next/link не должен получить это событие: иначе
-      // навигация уйдёт вторым путём, мимо перехода.
-      e.stopPropagation();
-
-      // Полоса загрузки нужна в любом режиме, в том числе при
-      // пониженной анимации: это индикатор состояния, а не украшение.
+      if (barTimer.current) clearTimeout(barTimer.current);
       barTimer.current = setTimeout(() => setLoading(true), BAR_DELAY_MS);
-
-      const go = () => router.push(to);
-      if (reduced || !document.startViewTransition) { go(); return; }
-
-      document.startViewTransition(
-        () =>
-          new Promise<void>((resolve) => {
-            resolveRef.current = resolve;
-            go();
-            setTimeout(() => {
-              if (resolveRef.current === resolve) {
-                resolveRef.current = null;
-                resolve();
-              }
-            }, HOLD_MS);
-          }),
-      );
     };
 
-    document.addEventListener("click", onClick, { capture: true });
-    return () => document.removeEventListener("click", onClick, { capture: true });
-  }, [router, reduced, targetOf]);
+    // Пассивно и без перехвата: обработчик next/link обязан получить
+    // это событие первым и целым.
+    document.addEventListener("click", onClick, { passive: true });
+    return () => document.removeEventListener("click", onClick);
+  }, []);
 
   useEffect(() => () => { if (barTimer.current) clearTimeout(barTimer.current); }, []);
 
