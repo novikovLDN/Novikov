@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { brand } from "./fonts";
+import { brand, displayFace } from "./fonts";
 import { PLANS, DEVICE_LIMIT, formatRub } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
@@ -115,7 +115,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className={brand.variable} suppressHydrationWarning>
+    <html lang="ru" className={`${brand.variable} ${displayFace.variable}`} suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
         {/* Структурированные данные всего сайта: организация, её
             принадлежность группе и сам сайт. Один источник на проект —

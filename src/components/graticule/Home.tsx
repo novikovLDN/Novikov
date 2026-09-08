@@ -52,6 +52,12 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
       <a href="#main" className="b-skip">К содержимому</a>
       <SiteHeader />
 
+      {/* Видимый каркас: двенадцать колонок волосяной линией во всю
+          высоту документа. Редакционная полоса предъявляет разметку,
+          а не прячет её; по этим же линиям встают неровные отступы
+          сцен. Слой лежит ПОД содержимым и не перехватывает указатель. */}
+      <div className="gh-rules" aria-hidden />
+
       <main id="main">
         {/* ── Сцена 1: прибор ─────────────────────────────────────── */}
         <section className="gh-hero" aria-labelledby="hero-title">
@@ -74,7 +80,12 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
           <h1 id="hero-title" className="gh-type">
             <span className="gh-line gh-line-1">Ускоритель</span>
             <span className="gh-line gh-line-2">интернета</span>
-            <span className="gh-line gh-line-3">без оговорок</span>
+            {/* Третья строка — не третья ступень заголовка, а выносок:
+                четверть кегля, разрядка вместо сжатия, прижат к
+                правому краю. Две выключенные строки держат блок, а
+                выносок его намеренно рвёт — иначе получается ровный
+                прямоугольник без единого события. */}
+            <span className="gh-line gh-kicker">без оговорок</span>
           </h1>
 
           <div className="gh-say">
@@ -189,7 +200,7 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
         </section>
 
         {/* ── Сцена 4: что внутри подписки ────────────────────────── */}
-        <section className="gh-scene gh-shell gh-in" aria-labelledby="inside-title">
+        <section className="gh-scene gh-shell gh-in" data-col="a" aria-labelledby="inside-title">
           <h2 id="inside-title" className="gh-h2">Что внутри подписки</h2>
           <div className="gh-cells">
             <article className="gh-cell gh-cell-loud">
@@ -224,7 +235,7 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
         </section>
 
         {/* ── Сцена 5: три шага ───────────────────────────────────── */}
-        <section className="gh-scene gh-shell gh-in gh-steps-scene" id="how" aria-labelledby="how-title">
+        <section className="gh-scene gh-shell gh-in gh-steps-scene" data-col="b" id="how" aria-labelledby="how-title">
           <h2 id="how-title" className="gh-h2">Три шага, и ни одного лишнего</h2>
           {/* Приём №2 каталога: `timeline-scope` отдаёт один
               источник прогресса двум ветвям DOM — этой полосе и
@@ -269,7 +280,7 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
         </section>
 
         {/* ── Сцена 6: атлас ──────────────────────────────────────── */}
-        <section className="gh-scene gh-shell gh-in" aria-labelledby="atlas-title">
+        <section className="gh-scene gh-shell gh-in" data-col="c" aria-labelledby="atlas-title">
           <h2 id="atlas-title" className="gh-h2 gh-masked">Девятнадцать стран</h2>
           <p className="gh-p">
             Точку выбираете вы. Ближайшая отвечает за {CLOSEST.latencyMs} миллисекунд,
@@ -352,7 +363,7 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
             Ширина канала показана полосой, а не только числом: 25 и 75
             Гбит/с сравнивать на слух трудно, а по длине — мгновенно.
             Длину полосы считает шкала прокрутки. */}
-        <section className="gh-scene gh-shell gh-in gh-price-scene" aria-labelledby="price-title">
+        <section className="gh-scene gh-shell gh-in gh-price-scene" data-col="d" aria-labelledby="price-title">
           <h2 id="price-title" className="gh-h2 gh-price-figure">
             {basicYear}<span className="gh-rub">₽</span> в&nbsp;месяц
           </h2>
