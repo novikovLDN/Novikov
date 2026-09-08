@@ -92,30 +92,6 @@
 .gh-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: clamp(1.5rem, 3vh, 2.25rem); }
 .gh-fine { margin: 1rem 0 0; font-size: var(--g-t-small); color: var(--g-ink-3); }
 
-/* ─── Кнопки ─────────────────────────────────────────────────────── */
-.gh-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 52px;
-  padding: 0.9rem 1.5rem;
-  border: var(--g-rule) solid transparent;
-  border-radius: var(--g-radius);
-  font: inherit;
-  font-weight: 600;
-  font-size: var(--g-t-small);
-  text-decoration: none;
-  cursor: pointer;
-  transition: background-color var(--g-d-fast) var(--g-e-out),
-              border-color var(--g-d-fast) var(--g-e-out),
-              color var(--g-d-fast) var(--g-e-out);
-}
-.gh-btn-primary { background: var(--g-chart); color: var(--g-on-chart); }
-.gh-btn-primary:hover { background: var(--g-chart-deep); }
-.gh-btn-quiet { background: transparent; color: var(--g-ink); border-color: var(--g-line-2); }
-.gh-btn-quiet:hover { border-color: var(--g-chart-deep); color: var(--g-chart-deep); }
-.gh-btn:focus-visible { outline: 2px solid var(--g-chart-deep); outline-offset: 3px; }
-
 /* ─── Прибор: две дорожки ────────────────────────────────────────── */
 .gh-instrument {
   padding: clamp(1.25rem, 2.5vw, 2rem);

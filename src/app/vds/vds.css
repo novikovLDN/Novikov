@@ -152,3 +152,86 @@
   color: var(--g-ink);
 }
 .g-outro p { margin: 1rem 0 0; max-width: 52ch; color: var(--g-ink-2); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   МОУШН /vds. Приёмы каталога: №41 металлическая кромка ·
+   №46 трёхмерная стопка · №29 изолинии полосы · №4 вход строки ·
+   №51 шторка · №57 цифра как объект.
+
+   Всё нативное, страница остаётся серверным компонентом.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* №41. Кромка ведущей ступени: анизотропный блик вместо ровной
+   заливки. Металл на светлом читается как материал, а не как цвет. */
+.g-tier-lead {
+  background:
+    linear-gradient(180deg, rgba(15, 122, 95, 0.06), rgba(15, 122, 95, 0) 42%),
+    var(--g-paper-2);
+  box-shadow: inset 3px 0 0 var(--g-chart);
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+
+    /* №46. Колода разъезжается: ступени лежат стопкой и расходятся по
+       мере прохода. Перспектива задана контейнеру, а не каждой
+       карточке — иначе браузер строит четыре слоя вместо одного. */
+    @media (min-width: 900px) {
+      .g-tiers { perspective: 1400px; }
+      .g-tier {
+        animation: g-deal linear both;
+        animation-timeline: view();
+        animation-range: entry 5% cover 45%;
+        transform-origin: 50% 100%;
+      }
+      @keyframes g-deal {
+        from { transform: translateY(7%) translateZ(-90px) rotateX(6deg); opacity: 0.45; }
+        to   { transform: none; opacity: 1; }
+      }
+    }
+
+    /* №29. Полоса порта наливается, а не появляется готовой:
+       ступень канала — главное содержание страницы. */
+    .g-port-fill {
+      animation: g-port linear both;
+      animation-timeline: view();
+      animation-range: entry 25% cover 40%;
+      transform-origin: left center;
+    }
+    @keyframes g-port { from { transform: scaleX(0.02); } to { transform: scaleX(1); } }
+
+    /* №4. Строки спецификации входят по одной. */
+    .g-spec div {
+      animation: g-spec-in linear both;
+      animation-timeline: view();
+      animation-range: entry 20% entry 85%;
+    }
+    @keyframes g-spec-in { from { opacity: 0.25; } to { opacity: 1; } }
+
+    /* №51. Блок честности вскрывается сверху вниз — он же главный
+       аргумент страницы, и появиться должен как заявление. */
+    .g-guarantee-card {
+      animation: g-open linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 85%;
+    }
+    @keyframes g-open {
+      from { clip-path: inset(0 0 82% 0); }
+      to   { clip-path: inset(0 0 0% 0); }
+    }
+
+    /* №57. Цена растёт в кегле по мере приближения: число — объект
+       сцены, а не строка таблицы. */
+    .g-price-num {
+      display: inline-block;
+      animation: g-price linear both;
+      animation-timeline: view();
+      animation-range: entry 25% cover 35%;
+      transform-origin: left bottom;
+    }
+    @keyframes g-price {
+      from { transform: scale(0.82); opacity: 0.5; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+  }
+}
