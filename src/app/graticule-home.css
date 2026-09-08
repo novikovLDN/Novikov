@@ -504,7 +504,9 @@
   margin-left: clamp(0.8rem, 2vw, 1.7rem);
   background: rgba(255, 255, 255, 0.32);
 }
-.gh-facts b { font-weight: 800; color: var(--g-paper); font-variant-numeric: tabular-nums; }
+/* Числа ленты — проверяемые величины из кода, и на чёрной плите они
+   получают кислоту: то же правило, что у ультрамарина на бумаге. */
+.gh-facts b { font-weight: 800; color: var(--g-acid); font-variant-numeric: tabular-nums; }
 
 /* ═══ Сцена 4: что внутри ═══════════════════════════════════════════ */
 .gh-cells { display: grid; gap: 1px; margin-top: clamp(2rem, 5vh, 3rem); background: var(--g-line); border: var(--g-rule) solid var(--g-line); }
@@ -917,6 +919,13 @@
 .gh-outro p { color: rgba(255, 255, 255, 0.72); }
 /* На чёрной плите инверсия переворачивается обратно: белая кнопка,
    чёрный текст. */
+/* Выделение и кольцо фокуса тоже следуют материалу. */
+.gh-outro ::selection,
+.gh-facts ::selection,
+.gh-beat-2 ::selection { background: var(--g-acid); color: var(--g-ink); }
+.gh-outro :focus-visible,
+.gh-facts :focus-visible { outline: 2px solid var(--g-acid); outline-offset: 3px; }
+
 .gh-outro .gh-btn-primary { background: var(--g-paper); color: var(--g-ink); }
 .gh-outro .gh-btn-primary:hover { background: rgba(255, 255, 255, 0.86); }
 .gh-outro .gh-btn-quiet { border-color: rgba(255, 255, 255, 0.45); color: var(--g-paper); }
@@ -1329,3 +1338,146 @@
     }
   }
 }
+
+/* ─── Линза-инвертор ─────────────────────────────────────────────────
+   Слой ничего не перехватывает и живёт над всем, включая чёрные плиты.
+   Размер задан в vmin, а не в пикселях: на большом экране линза должна
+   оставаться жестом, а не пятном. */
+.gh-lens {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  width: clamp(96px, 11vmin, 168px);
+  height: clamp(96px, 11vmin, 168px);
+  border-radius: 50%;
+  background: #FFFFFF;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--g-d-base) var(--g-e-out), scale var(--g-d-base) var(--g-e-out);
+  scale: 0.4;
+  will-change: transform;
+}
+.gh-lens[data-on="true"] { opacity: 1; scale: 1; }
+/* На грубом указателе слоя нет вовсе — компонент его не создаёт, но
+   правило страхует случай, когда указатель меняется на лету. */
+@media (pointer: coarse) { .gh-lens { display: none; } }
+@media (prefers-reduced-motion: reduce) { .gh-lens { display: none; } }
+
+/* ─── Полоса прочтения ───────────────────────────────────────────────
+   Считает браузер по шкале прокрутки документа: ни слушателя, ни rAF.
+   Стоит под шапкой и в её же слое, поэтому не съезжает при залипании
+   сцен. */
+.gh-read {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 120;
+  height: 2px;
+  background: var(--g-ink);
+  transform-origin: left center;
+  transform: scaleX(0);
+  pointer-events: none;
+}
+@supports (animation-timeline: scroll()) {
+  .gh-read {
+    animation: gh-read linear both;
+    animation-timeline: scroll(root block);
+  }
+  @keyframes gh-read { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ЗАКРЕПЛЁННАЯ ГОРИЗОНТАЛЬНАЯ СЦЕНА
+   Состав подписки едет вбок, пока читатель проходит высоту секции.
+   Это не перехват прокрутки: кадр держит `position: sticky`, сдвиг
+   дорожки считает шкала прокрутки секции. На телефоне приём не
+   включается — там уже есть своя лента со scroll-snap, и две
+   горизонтали в одном месте спорят.
+   ═══════════════════════════════════════════════════════════════════ */
+@media (min-width: 1000px) {
+  .gh-hscene {
+    position: relative;
+    /* Высота = экран на кадр плюс путь дорожки. Пять ячеек по 34%
+       ширины дают около двух экранов хода. */
+    min-height: 280vh;
+    padding-block: 0;
+    view-timeline-name: --hrun;
+    view-timeline-axis: block;
+    timeline-scope: --hrun;
+  }
+  .gh-hstick {
+    position: sticky;
+    top: 0;
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    gap: clamp(1.6rem, 5vh, 3rem);
+    overflow: hidden;
+  }
+  .gh-hscene .gh-cells {
+    display: flex;
+    width: max-content;
+    grid-template-columns: none;
+    margin-top: 0;
+    border: none;
+    background: none;
+    gap: 1px;
+  }
+  .gh-hscene .gh-cell {
+    flex: 0 0 clamp(280px, 30vw, 460px);
+    border: var(--g-rule) solid var(--g-line);
+    margin-left: -1px;
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .gh-hscene .gh-cells {
+        animation: gh-hrun linear both;
+        animation-timeline: --hrun;
+        animation-range: contain 0% contain 100%;
+      }
+      /* Сдвиг считается от ширины самой дорожки за вычетом экрана:
+         последняя ячейка встаёт у правого края, а не улетает за него. */
+      @keyframes gh-hrun {
+        from { transform: translate3d(0, 0, 0); }
+        to   { transform: translate3d(calc(-100% + 92vw), 0, 0); }
+      }
+    }
+  }
+}
+
+/* Выделение на бумаге — ультрамарин, на плите — кислота (правило
+   материала, см. --g-acid). */
+.gh ::selection { background: var(--g-chart); color: var(--g-paper); }
+
+/* ─── Живое измерение в финале ───────────────────────────────────────
+   «Проверьте сами» — приглашение проверить, и рядом с ним стоит то,
+   что читатель уже проверил, не нажав ничего: отклик, снятый с его
+   устройства. На чёрной плите он кислотный. */
+.gh-outro-live {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: var(--g-t-meta);
+  color: rgba(255, 255, 255, 0.62);
+}
+.gh-outro-live .gh-ping { display: flex; align-items: baseline; gap: 0.45rem; flex-wrap: wrap; }
+/* Правило материала здесь пришлось выиграть по силе: измеренное
+   значение красится правилом `.gh-ping[data-live="true"]
+   .gh-ping-value` (три класса), и без такого же селектора отклик в
+   финале оставался ультрамариновым — 2,15:1 на чёрном, то есть
+   ровно тот случай, который правило и запрещает. */
+.gh-outro-live .gh-ping[data-live="true"] .gh-ping-value,
+.gh-outro-live .gh-ping-value {
+  font-family: var(--g-display);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-acid);
+}
+.gh-outro-live .gh-ping-unit,
+.gh-outro-live .gh-ping-note { color: rgba(255, 255, 255, 0.62); }

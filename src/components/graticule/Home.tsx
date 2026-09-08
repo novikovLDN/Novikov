@@ -8,6 +8,7 @@ import { SERVER_ENTRY_USD, formatUsd } from "@/lib/servers";
 import { landPath, project, MAP_W, MAP_H } from "@/lib/world-map";
 import LivePing from "./LivePing";
 import SignalTrace from "./SignalTrace";
+import InvertLens from "./InvertLens";
 import "@/app/graticule-home.css";
 
 /**
@@ -57,6 +58,10 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
           а не прячет её; по этим же линиям встают неровные отступы
           сцен. Слой лежит ПОД содержимым и не перехватывает указатель. */}
       <div className="gh-rules" aria-hidden />
+
+      {/* Полоса прочтения: сколько документа пройдено. Считает браузер
+          по шкале прокрутки, скрипта нет. */}
+      <div className="gh-read" aria-hidden />
 
       <main id="main">
         {/* ── Сцена 1: прибор ─────────────────────────────────────── */}
@@ -199,8 +204,14 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
           </div>
         </section>
 
-        {/* ── Сцена 4: что внутри подписки ────────────────────────── */}
-        <section className="gh-scene gh-shell gh-in" data-col="a" aria-labelledby="inside-title">
+        {/* ── Сцена 4: что внутри подписки ──────────────────────────
+            Сцена закреплена: пока читатель проходит её высоту, кадр
+            стоит, а состав едет вбок. Прокрутку никто не перехватывает
+            — кадр держит `position: sticky`, а сдвиг дорожки считает
+            браузер по шкале прокрутки секции. Колесо, жест и клавиши
+            работают как обычно, и полоса прочтения идёт ровно. */}
+        <section className="gh-scene gh-in gh-hscene" data-col="a" aria-labelledby="inside-title">
+          <div className="gh-hstick gh-shell">
           <h2 id="inside-title" className="gh-h2">Что внутри подписки</h2>
           <div className="gh-cells">
             <article className="gh-cell gh-cell-loud">
@@ -231,6 +242,7 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
               <h3>Клик до отмены</h3>
               <p>Без писем в поддержку и разговоров с удерживающим менеджером.</p>
             </article>
+          </div>
           </div>
         </section>
 
@@ -407,10 +419,16 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
             <div className="gh-actions">
               <Link href={enter} className="gh-btn gh-btn-primary">Начать</Link>
             </div>
+            {/* Приглашение проверить — и рядом то, что читатель уже
+                проверил, не нажав ничего. */}
+            <p className="gh-outro-live">
+              <LivePing fallbackMs={CLOSEST.latencyMs} />
+            </p>
           </div>
         </section>
       </main>
 
+      <InvertLens />
       <SiteFooter />
     </div>
   );
