@@ -394,18 +394,7 @@
     /* ── №19. Кинетический шов ────────────────────────────────────
        Полоса фактов едет вбок сама и ускоряется на прокрутке:
        вместо пустой отбивки между сценами — проверяемые числа. */
-    .gh-facts ul {
-      flex-wrap: nowrap;
-      justify-content: flex-start;
-      width: max-content;
-      animation: gh-seam linear both;
-      animation-timeline: view();
-      animation-range: cover 0% cover 100%;
-    }
-    @keyframes gh-seam {
-      from { transform: translateX(4%); }
-      to   { transform: translateX(-14%); }
-    }
+    .gh-facts ul { flex-wrap: nowrap; justify-content: flex-start; width: max-content; }
 
     /* ── №5. Липкая сетка состава ─────────────────────────────────
        Громкая ячейка держится в кадре, пока тихие проходят мимо. */
@@ -517,3 +506,155 @@
   overflow: hidden;
 }
 .gh-steps-rail span { display: block; height: 100%; background: var(--g-chart); transform: scaleX(0); transform-origin: left center; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   ЧАСТЬ II каталога: погружение.
+   Приёмы 39, 48, 50, 51, 53, 55, 57, 62, 64 — docs/01_ANIMATION_CATALOG.md.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── №62. Живое измерение ─────────────────────────────────────────── */
+.gh-ping { display: grid; gap: 0.1rem; align-content: start; }
+.gh-ping-value {
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-ink);
+  transition: color var(--g-d-base) var(--g-e-out);
+}
+/* Пока число — оценка из таблицы, оно набрано чернилами. Как только
+   измерено на устройстве, становится акцентным: разница между
+   «заявили» и «померили» видна без подписи. */
+.gh-ping[data-live="true"] .gh-ping-value { color: var(--g-chart-deep); }
+.gh-ping-unit { font-size: var(--g-t-small); color: var(--g-ink-3); }
+.gh-ping-note { font-size: var(--g-t-meta); color: var(--g-ink-3); max-width: 22ch; line-height: 1.35; }
+
+/* ── №57. Цифра как объект сцены ──────────────────────────────────── */
+.gh-figure-object {
+  display: grid;
+  gap: 0.75rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border-left: 3px solid var(--g-chart);
+  background: var(--g-vellum);
+}
+
+/* ── №64. Тепловая карта задержек ─────────────────────────────────── */
+.gh-map-node { transition: r var(--g-d-base) var(--g-e-out); }
+.gh-loc-bar span { background: var(--g-heat, var(--g-chart)); }
+.gh-loc-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--g-heat, var(--g-chart));
+}
+
+/* ── №48. Бесшовная лента фактов ──────────────────────────────────── */
+.gh-facts { --gh-track: 1; }
+.gh-facts-track { display: flex; width: max-content; }
+.gh-facts-track ul { flex: none; }
+
+/* ── №51 и №55. Шторка и разрезанная строка ───────────────────────── */
+.gh-beat-3 p { position: relative; }
+
+/* ── №39. Каустика финала ─────────────────────────────────────────── */
+.gh-outro { position: relative; isolation: isolate; overflow: hidden; }
+.gh-outro::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background:
+    radial-gradient(38% 44% at 22% 30%, rgba(193, 14, 107, 0.10), transparent 70%),
+    radial-gradient(32% 38% at 78% 26%, rgba(13, 110, 100, 0.10), transparent 70%),
+    radial-gradient(44% 50% at 58% 82%, rgba(18, 38, 46, 0.07), transparent 72%);
+  filter: blur(4px);
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+
+    /* ── №50. Разъезд слоёв ───────────────────────────────────────
+       Передний план и фон уходят с разной скоростью. Без физики:
+       пружина требует своего цикла на каждом кадре, а разные
+       диапазоны на одном таймлайне дают тот же эффект бесплатно. */
+    .gh-hero-body > div:first-child {
+      animation: gh-layer-front linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    .gh-instrument {
+      animation: gh-layer-back linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    @keyframes gh-layer-front { to { transform: translateY(-14%); } }
+    @keyframes gh-layer-back  { to { transform: translateY(-5%); } }
+
+    /* ── №51. Шторка между сценами ────────────────────────────────
+       Следующая сцена вскрывает предыдущую полосами, а не
+       затуханием: резать кадр — приём монтажный, затухание —
+       телевизионное. */
+    .gh-facts {
+      animation: gh-blinds linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 80%;
+    }
+    @keyframes gh-blinds {
+      from { clip-path: repeating-linear-gradient(90deg, #000 0 0, transparent 0 12.5%); }
+      to   { clip-path: repeating-linear-gradient(90deg, #000 0 12.5%, transparent 12.5% 12.5%); }
+    }
+
+    /* ── №48 + №17. Бесшовная лента, которую двигает прокрутка ────
+       Дорожка продублирована в разметке, поэтому конца не видно.
+
+       Двигает её ПРОКРУТКА, а не таймер, и это не эстетический выбор.
+       Первая версия совмещала собственный бесконечный ход и
+       scroll-driven сдвиг — две силы, пишущие в один transform. Ровно
+       на этом уже спотыкался прежний слой: в момент прокрутки лента
+       дёргалась. Здесь сила одна.
+
+       Побочная выгода: бесконечных анимаций на странице не остаётся
+       вовсе, и браузер снова умеет отдать стабильный кадр — то, без
+       чего невозможны визуальные регрессии в CI. */
+    .gh-facts-track {
+      animation: gh-loop linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+    @keyframes gh-loop { to { transform: translateX(-50%); } }
+
+    /* ── №55. Строка, разрезанная сценой ──────────────────────────
+       Верхняя половина букв на одном материале, нижняя на другом:
+       граница проходит сквозь текст, а не между блоками. */
+    .gh-beat-3 p::after {
+      content: attr(data-line);
+      position: absolute;
+      inset: 0;
+      color: var(--g-ink);
+      clip-path: inset(50% 0 0 0);
+      pointer-events: none;
+    }
+
+    /* ── №53. Текст по кривой ─────────────────────────────────────
+       Подпись идёт вдоль меридиана и сдвигается по мере прохода. */
+    .gh-meridian-label {
+      animation: gh-meridian linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 60%;
+    }
+    @keyframes gh-meridian { from { startOffset: 0%; } to { startOffset: 46%; } }
+
+    /* ── №39. Каустика движется прокруткой, а не таймером ──────────
+       Бесконечная анимация фона держала бы компоновщик занятым
+       постоянно; на прокрутке она стоит ровно столько, сколько
+       читатель смотрит. */
+    .gh-outro::before {
+      animation: gh-caustic linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 100%;
+    }
+    @keyframes gh-caustic {
+      from { transform: translate3d(-3%, -2%, 0) scale(1.05); }
+      to   { transform: translate3d(3%, 2%, 0) scale(1.12); }
+    }
+  }
+}

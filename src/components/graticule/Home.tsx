@@ -6,6 +6,7 @@ import { LOCATIONS, COUNTRY_COUNT, CLOSEST } from "@/lib/locations";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { SERVER_ENTRY_USD, formatUsd } from "@/lib/servers";
 import { landPath, project, MAP_W, MAP_H } from "@/lib/world-map";
+import LivePing from "./LivePing";
 import "@/app/graticule-home.css";
 
 /**
@@ -100,8 +101,16 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
                 </span>
                 <p className="gh-lane-value">
                   <b>готово</b>
-                  <span>{CLOSEST.cities[0]} · {CLOSEST.latencyMs} мс</span>
+                  <span>{CLOSEST.cities[0]}</span>
                 </p>
+              </div>
+
+              {/* Приёмы №62 и №57 каталога: число измеряется на
+                  устройстве читателя и набрано крупнее всего, что
+                  рядом. Единственное на витрине измерение, которое
+                  человек может проверить сам. */}
+              <div className="gh-figure-object">
+                <LivePing fallbackMs={CLOSEST.latencyMs} />
               </div>
             </div>
           </div>
@@ -119,11 +128,19 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
           <h2 id="manifest-title" className="b-sr">Зачем это нужно</h2>
           <div className="gh-beat gh-beat-1"><p>Сайты и приложения перестали открываться</p></div>
           <div className="gh-beat gh-beat-2"><p>Ваш интернет тут ни при чём</p></div>
-          <div className="gh-beat gh-beat-3"><p>Включите Atlas — и они откроются</p></div>
+          <div className="gh-beat gh-beat-3">
+            {/* Приём №55: граница материала проходит сквозь
+                строку, а не между блоками. */}
+            <p data-line="Включите Atlas — и они откроются">Включите Atlas — и они откроются</p>
+          </div>
         </section>
 
         {/* ── Сцена 3: проверяемые числа ──────────────────────────── */}
+        {/* Приём №48: дорожка продублирована, поэтому конца ленты не
+            видно. Второй экземпляр скрыт от диктора — иначе он
+            прочитает список дважды. */}
         <section className="gh-facts" aria-label="Что входит">
+          <div className="gh-facts-track">
           <ul className="gh-shell">
             <li><b>{COUNTRY_COUNT}</b> стран</li>
             <li><b>{DEVICE_LIMIT}</b> устройств на подписке</li>
@@ -133,6 +150,16 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
             <li>от <b>{basicMonth}</b> ₽ в месяц</li>
             <li>отмена в один клик</li>
           </ul>
+          <ul className="gh-shell" aria-hidden>
+            <li><b>{COUNTRY_COUNT}</b> стран</li>
+            <li><b>{DEVICE_LIMIT}</b> устройств на подписке</li>
+            <li><b>{PLAN_SPEED.plus}</b> Гбит/с</li>
+            <li>логов нет</li>
+            <li><b>{TRIAL_DAYS}</b> дня бесплатно</li>
+            <li>от <b>{basicMonth}</b> ₽ в месяц</li>
+            <li>отмена в один клик</li>
+          </ul>
+          </div>
         </section>
 
         {/* ── Сцена 4: что внутри подписки ────────────────────────── */}
@@ -244,16 +271,36 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
                 strokeWidth="0.6"
                 opacity="0.5"
               />
+              {/* Приём №64: цвет узла — его время ответа. Ближние
+                  горячие, дальние остывают к чернилам. Легенда —
+                  список справа, где то же число написано словами. */}
               {LOCATIONS.map((l) => {
                 const { x, y } = project(l.lat, l.lon);
-                return <circle key={l.code} className="gh-map-node" cx={x} cy={y} r={5} />;
+                const k = (l.latencyMs - CLOSEST.latencyMs) / (MAX_MS - CLOSEST.latencyMs || 1);
+                return (
+                  <circle
+                    key={l.code}
+                    className="gh-map-node"
+                    cx={x}
+                    cy={y}
+                    r={5}
+                    fill={`color-mix(in oklab, var(--g-chart) ${Math.round((1 - k) * 100)}%, var(--g-ink-3))`}
+                  />
+                );
               })}
+              {/* Приём №53: подпись идёт вдоль меридиана. */}
+              <path id="gh-meridian" d={`M ${MAP_W * 0.06} ${MAP_H * 0.9} Q ${MAP_W * 0.5} ${MAP_H * 1.02} ${MAP_W * 0.94} ${MAP_H * 0.86}`} fill="none" />
+              <text className="gh-meridian-text" fontSize="11" fill="var(--g-ink-3)">
+                <textPath className="gh-meridian-label" href="#gh-meridian" startOffset="4%">
+                  присутствие Atlas Secure · {COUNTRY_COUNT} стран
+                </textPath>
+              </text>
             </svg>
 
             <div>
               <ul className="gh-loc">
                 {NEAR.map((l) => (
-                  <li key={l.code}>
+                  <li key={l.code} style={{ ["--g-heat" as string]: `color-mix(in oklab, var(--g-chart) ${Math.round((1 - (l.latencyMs - CLOSEST.latencyMs) / (MAX_MS - CLOSEST.latencyMs || 1)) * 100)}%, var(--g-ink-3))` }}>
                     <span className="gh-loc-name">{l.cities[0]}</span>
                     <span className="gh-loc-ms">{l.latencyMs} мс</span>
                     <span className="gh-loc-bar" aria-hidden>
