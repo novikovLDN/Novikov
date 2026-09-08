@@ -10,6 +10,15 @@ import PixelSkull from "./PixelSkull";
  * Принадлежность группе объявлена и здесь, и машиночитаемо в
  * schema.org (SiteJsonLd). Официальное наименование группы и реквизиты
  * требуют подтверждения — см. COMPLIANCE-CHECK.md.
+ *
+ * prefetch={false} на ссылках колонок. next/link по умолчанию
+ * предзагружает каждый маршрут, попавший в кадр, а футер есть на
+ * каждой странице и ведёт в восемь разделов — то есть открытие
+ * любого экрана тянуло восемь RSC-запросов и чужие чанки маршрутов,
+ * до которых читатель почти никогда не доходит. На /support это
+ * давало 101 КБ и семь лишних чанков поверх 167 КБ самой страницы.
+ * Ссылки в шапке и призывы к действию предзагрузку сохраняют: туда
+ * как раз идут.
  */
 const COLUMNS: Array<{ title: string; links: Array<{ label: string; href: string }> }> = [
   {
@@ -58,7 +67,7 @@ export default function BrandFooter() {
                 <ul>
                   {c.links.map((l) => (
                     <li key={l.href}>
-                      <Link href={l.href} className="b-footer-link">{l.label}</Link>
+                      <Link href={l.href} prefetch={false} className="b-footer-link">{l.label}</Link>
                     </li>
                   ))}
                 </ul>

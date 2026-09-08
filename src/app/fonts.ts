@@ -41,14 +41,28 @@ export const display = Oswald({
  * У DedSec ASCII и моноширинный набор — часть языка, а не украшение:
  * они отделяют «машинное» от «сказанного человеком».
  */
+/* preload: false — не «на всякий случай», а по факту употребления.
+   next/font предзагружает все подмножества всех гарнитур, объявленных
+   в разметке, а моноширинная живёт только в brand.css (одиннадцать
+   правил, все .b-*), то есть на главной и тарифах. На остальных
+   экранах два её файла выкачивались и не использовались. Без
+   предзагрузки браузер возьмёт их тогда, когда встретит элемент,
+   которому они нужны. */
 export const mono = JetBrains_Mono({
   subsets: ["cyrillic", "latin"],
   display: "swap",
+  preload: false,
   variable: "--font-mono-brand",
 });
 
+/* То же и с текстовой гарнитурой: ею набран корпус `.b-root`, а на
+   страницах PIXEL текст идёт системным стеком — проверено через
+   getComputedStyle(document.body).fontFamily. На /vds оба файла Onest
+   стояли в предзагрузке и не были затребованы ни одним глифом
+   (document.fonts: status "unloaded"). */
 export const text = Onest({
   subsets: ["cyrillic", "latin"],
   display: "swap",
+  preload: false,
   variable: "--font-text",
 });
