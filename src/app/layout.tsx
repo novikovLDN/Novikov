@@ -9,6 +9,7 @@ import { I18nProvider } from "@/lib/i18n";
 import SiteJsonLd from "@/components/pixel/SiteJsonLd";
 import { Cursor } from "@/components/brand/Cursor";
 import PageTransition from "@/components/brand/PageTransition";
+import BackToTop from "@/components/brand/BackToTop";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://atlassecure.uk"),
@@ -111,6 +112,9 @@ export default function RootLayout({
               материал. Слой не перехватывает указатель. */}
           <div className="b-grain" aria-hidden />
           <Cursor />
+          {/* Возврат к первому экрану: страница высокая, а закреплённые
+              сцены забирают по несколько экранов прокрутки каждая. */}
+          <BackToTop />
           {/* Смена страницы как монтажная склейка. */}
           <PageTransition />
           <PwaManager />

@@ -859,6 +859,80 @@ html, body { background: var(--ink); }
   .b-how-scrub .b-how-m-value { transition: none; }
 }
 
+/* ═══ Наверх ══════════════════════════════════════════════════════
+   Квадрат у правого края, по вертикали посередине. Низ экрана занят
+   баннером установки и тостами кабинета, нижний правый угол — тостом
+   пробного срока; середина правого края свободна на всех страницах.
+
+   Форма та же, что у всей системы: прямой угол, тонкая граница,
+   моноширинная подпись. Скруглений в системе нет ни одного.
+
+   z-index 88 — под курсором бренда (90) и зерном (92), но над
+   содержимым и тостами: кнопка часть оболочки, а не страницы. */
+.b-top {
+  position: fixed;
+  right: clamp(10px, 1.6vw, 22px);
+  top: 50%;
+  z-index: 88;
+  display: grid;
+  gap: 0.3rem;
+  justify-items: center;
+  align-content: center;
+  /* 44 пикселя — нижняя граница зоны нажатия; здесь 48. */
+  width: 48px;
+  min-height: 48px;
+  padding: 0.5rem 0;
+  background: var(--ink-2);
+  color: var(--on-ink);
+  border: var(--rule) solid var(--ink-3);
+  cursor: pointer;
+  /* Скрытая кнопка выведена и из отрисовки, и из дерева
+     доступности: visibility, а не одна прозрачность — иначе она
+     ловит нажатия сквозь невидимость. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(10px, -50%);
+  transition:
+    opacity var(--d-base) var(--e-out),
+    transform var(--d-base) var(--e-out),
+    background-color var(--d-fast) var(--e-out),
+    color var(--d-fast) var(--e-out),
+    border-color var(--d-fast) var(--e-out),
+    visibility 0s linear var(--d-base);
+}
+.b-top[data-on="true"] {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(0, -50%);
+  transition-delay: 0s;
+}
+.b-top-label {
+  font-family: var(--mono);
+  font-size: 0.5625rem;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+@media (hover: hover) and (pointer: fine) {
+  .b-top:hover { background: var(--acid); color: var(--ink); border-color: var(--acid); }
+}
+.b-top:focus-visible {
+  outline: 2px solid var(--acid);
+  outline-offset: 2px;
+}
+.b-top:active { transform: translate(0, -50%) scale(0.94); }
+/* На узком экране подпись снимается: 48 пикселей на слово не хватает,
+   а стрелка сама по себе однозначна и подписана для скринридера. */
+@media (max-width: 479px) {
+  .b-top { width: 44px; min-height: 44px; }
+  .b-top-label { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .b-top { transition: opacity var(--d-base) var(--e-out), visibility 0s linear var(--d-base); transform: translate(0, -50%); }
+  .b-top[data-on="true"] { transform: translate(0, -50%); }
+  .b-top:active { transform: translate(0, -50%); }
+}
+
 /* ═══ Атлас: лента стран ══════════════════════════════════════════ */
 .b-atlas {
   background: var(--bg);

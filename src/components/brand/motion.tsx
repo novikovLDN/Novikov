@@ -6,6 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 import { usePrefersReducedMotion } from "./reduced-motion";
+import { registerScroller } from "./scroll-top";
 
 /**
  * Слой движения бренда.
@@ -49,7 +50,7 @@ export function SmoothScroll() {
   useEffect(() => {
     if (reduced || started.current) return;
     started.current = true;
-    let lenis: { raf: (t: number) => void; destroy: () => void } | null = null;
+    let lenis: { raf: (t: number) => void; destroy: () => void; scrollTo: (t: number, o?: { immediate?: boolean }) => void } | null = null;
     let update: ((time: number) => void) | null = null;
     let cancelled = false;
 
@@ -67,6 +68,10 @@ export function SmoothScroll() {
       });
       lenis = instance;
       instance.on("scroll", ScrollTrigger.update);
+      // Кнопка возврата к первому экрану спрашивает способ
+      // перемещения здесь: нативный scrollTo Lenis перебивает на
+      // следующем же кадре.
+      registerScroller((y) => instance.scrollTo(y, { immediate: true }));
       update = (time: number) => instance.raf(time * 1000);
       gsap.ticker.add(update);
       gsap.ticker.lagSmoothing(0);
@@ -74,6 +79,7 @@ export function SmoothScroll() {
 
     return () => {
       cancelled = true;
+      registerScroller(null);
       if (update) gsap.ticker.remove(update);
       gsap.ticker.lagSmoothing(500, 33);
       lenis?.destroy();
