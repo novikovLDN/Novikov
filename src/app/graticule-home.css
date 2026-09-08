@@ -140,6 +140,24 @@
 }
 .gh-line-1 { font-size: min(calc(100cqw / var(--gh-k-1)), calc(58.5vh - 177px)); }
 .gh-line-2 { font-size: min(calc(100cqw / var(--gh-k-2)), calc(66.5vh - 201px)); }
+
+/* Вторая строка набрана контуром, первая — плашкой. Пара «залитое +
+   контурное» держит первый экран без единого цвета и без единого
+   объекта: это тот же материал, показанный с двух сторон.
+
+   Правило закрыто @supports намеренно: без поддержки обводки
+   `color: transparent` оставил бы пустое место вместо слова. */
+@supports (-webkit-text-stroke: 1px #000) {
+  .gh-line-2 {
+    color: transparent;
+    -webkit-text-stroke: clamp(1.5px, 0.28vw, 4px) var(--g-ink);
+    transition: color var(--g-d-base) var(--g-e-out);
+  }
+  /* Наведение на заголовок заливает контур: движение отвечает на
+     действие читателя, а не идёт само. */
+  .gh-type:hover .gh-line-2,
+  .gh-type:focus-within .gh-line-2 { color: var(--g-ink); }
+}
 /* Выносок: разрядка вместо сжатия, прижат к правому краю колонки.
    Две выключенные строки держат блок, а выносок его намеренно рвёт —
    иначе получается ровный прямоугольник без единого события.
@@ -342,15 +360,16 @@
 
 /* ─── Приборная полоса ───────────────────────────────────────────── */
 .gh-rail {
-  /* Фон рисует линии-разделители между ячейками, поэтому его нельзя
-     пускать в поля оболочки: серая плашка вылезала за крайние ячейки
-     на ширину поля с обеих сторон. */
-  background-clip: content-box;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
   margin-top: clamp(0.6rem, 1.6vh, 1.2rem);
   background: var(--g-line);
+  /* Фон рисует линии-разделители между ячейками, и в поля оболочки его
+     пускать нельзя: серая плашка вылезала за крайние ячейки на ширину
+     поля с обеих сторон. Свойство стоит ПОСЛЕ сокращённого
+     `background` — сокращённая запись сбрасывает clip обратно. */
+  background-clip: content-box;
   border-block: var(--g-rule) solid var(--g-line);
 }
 @media (min-width: 720px) { .gh-rail { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
@@ -422,34 +441,70 @@
   padding-block: clamp(3rem, 8vh, 6rem);
   text-align: center;
 }
-.gh-beat-1 { background: var(--g-paper-2); }
-.gh-beat-2 { background: var(--g-paper); }
-.gh-beat-3 { background: var(--g-vellum); }
+/* Инверсия здесь не украшение, а смысл: средний такт — единственное
+   отрицание в манифесте («ваш интернет тут ни при чём»), и он набран
+   наоборот. Переворотов на полосе три: этот такт, лента фактов и
+   финал; больше заводить нельзя — это ритм, а не материал. */
+.gh-beat-1 { background: var(--g-paper); }
+.gh-beat-2 { background: var(--g-ink); }
+.gh-beat-3 { background: var(--g-paper); }
 .gh-beat p {
   margin: 0;
-  max-width: 16ch;
-  font-size: clamp(2rem, 6.5vw, 5rem);
-  line-height: 1.02;
-  letter-spacing: -0.04em;
-  font-weight: 700;
+  max-width: 20ch;
+  font-family: var(--g-display);
+  text-transform: uppercase;
+  font-size: clamp(2.4rem, 8vw, 7rem);
+  line-height: 0.92;
+  letter-spacing: -0.012em;
+  font-weight: 800;
   color: var(--g-ink);
 }
+/* Порядок правил важнее их вида: `.gh-beat p` ниже по файлу и той же
+   силы, поэтому цвет перевёрнутого такта объявляется ПОСЛЕ него.
+   Иначе строка на чёрной плите остаётся чёрной. */
+.gh-beat-2 p { color: var(--g-paper); }
 .gh-beat-3 p { color: var(--g-ink-3); }
 
-/* ═══ Сцена 3: полоса фактов ════════════════════════════════════════ */
+/* ═══ Сцена 3: полоса фактов ════════════════════════════════════════
+   Из тонкой служебной отбивки лента стала чёрной плитой в дисплейном
+   начертании: между двумя большими сценами идёт третья, а не пауза.
+   Полоса — это шов и одновременно вторая инверсия страницы, поэтому
+   тёмных плит на витрине по-прежнему ровно две: эта и финал. */
 .gh-facts {
-  border-block: var(--g-rule) solid var(--g-line);
-  padding-block: clamp(1.25rem, 3vh, 2rem);
+  background: var(--g-ink);
+  color: var(--g-paper);
+  padding-block: clamp(0.6rem, 2vh, 1.1rem);
   overflow: hidden;
 }
 .gh-facts ul {
   margin: 0; padding: 0; list-style: none;
-  display: flex; flex-wrap: wrap; gap: 0.5rem 2.5rem;
-  justify-content: center;
-  font-size: var(--g-t-small);
-  color: var(--g-ink-2);
+  display: flex; flex-wrap: nowrap; align-items: baseline; gap: 0 clamp(1.6rem, 4vw, 3.4rem);
+  /* Дорожка размечена классом оболочки, а у оболочки max-width 1560 и
+     поля по краям. Для ленты это яд: содержимое шире коробки просто
+     вылезает за неё, и две копии дорожки рисуются одна поверх другой,
+     хотя их коробки стоят рядом. Ширину задаёт содержимое. */
+  width: max-content;
+  max-width: none;
+  padding-inline: 0;
+  font-family: var(--g-display);
+  text-transform: uppercase;
+  font-size: clamp(1.6rem, 4.4vw, 3.6rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.62);
 }
-.gh-facts b { font-weight: 600; color: var(--g-ink); font-variant-numeric: tabular-nums; }
+.gh-facts li { display: flex; align-items: baseline; gap: 0.3em; }
+/* Разделитель рисуется псевдоэлементом, а не символом в разметке:
+   диктор не должен читать «косая черта» между каждым фактом. */
+.gh-facts li::after {
+  content: "";
+  width: 0.34em; height: 0.34em;
+  margin-left: clamp(0.8rem, 2vw, 1.7rem);
+  background: rgba(255, 255, 255, 0.32);
+}
+.gh-facts b { font-weight: 800; color: var(--g-paper); font-variant-numeric: tabular-nums; }
 
 /* ═══ Сцена 4: что внутри ═══════════════════════════════════════════ */
 .gh-cells { display: grid; gap: 1px; margin-top: clamp(2rem, 5vh, 3rem); background: var(--g-line); border: var(--g-rule) solid var(--g-line); }
@@ -1206,4 +1261,71 @@
      шапка полосы свисает в поле, как в наборе. */
   .gh-scene[data-col="a"] > .gh-h2,
   .gh-scene[data-col="c"] > .gh-h2 { margin-inline-start: -8.333%; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   КИНЕТИЧЕСКИЙ СЛОЙ
+   Приёмы, которые работают на скорость чтения, а не на украшение.
+   Все — нативные, ни одной библиотеки.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Наведение переворачивает материал, а не подкрашивает его. Цвет в
+   системе означает «измерено», поэтому отклик на курсор может быть
+   только инверсией. */
+.gh-tier,
+.gh-cells > * {
+  transition:
+    background var(--g-d-fast) var(--g-e-out),
+    color var(--g-d-fast) var(--g-e-out);
+}
+.gh-tier:hover,
+.gh-cells > *:hover {
+  background: var(--g-ink);
+  color: var(--g-paper);
+}
+.gh-tier:hover .gh-tier-name,
+.gh-tier:hover .gh-tier-price,
+.gh-cells > *:hover :is(b, strong, dt, dd, h3, p, span) { color: var(--g-paper); }
+.gh-tier:hover .gh-tier-note,
+.gh-tier:hover .gh-tier-speed { color: rgba(255, 255, 255, 0.72); }
+.gh-tier:hover .gh-tier-bar { background: rgba(255, 255, 255, 0.28); }
+.gh-tier:hover .gh-tier-bar span { background: var(--g-paper); }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+
+    /* Контур первой строки заливается по мере ухода первого экрана:
+       к моменту, когда читатель уходит вниз, слово уже плотное. */
+    @supports (-webkit-text-stroke: 1px #000) {
+      .gh-line-2 {
+        animation: gh-fill linear both;
+        animation-timeline: view();
+        animation-range: exit 0% exit 70%;
+      }
+      @keyframes gh-fill {
+        from { color: transparent; }
+        to   { color: var(--g-ink); }
+      }
+    }
+
+    /* Такты манифеста набираются тем же весом, что и заголовки сцен:
+       строка уплотняется, пока читатель её проходит. */
+    .gh-beat p {
+      animation-name: gh-beat-in, gh-weight;
+      animation-range: entry 15% cover 35%, entry 20% cover 45%;
+    }
+
+    /* Лента фактов идёт своим ходом и получает толчок от прокрутки.
+       Две силы объявлены одним списком: раздельные правила перебивают
+       animation-name целиком. */
+    html:not([data-static]) .gh-facts-track {
+      animation-name: gh-loop, gh-loop;
+      animation-duration: 38s, auto;
+      animation-timing-function: linear, linear;
+      animation-iteration-count: infinite, 1;
+      animation-fill-mode: none, both;
+      animation-timeline: auto, view();
+      animation-range: normal, cover 0% cover 100%;
+    }
+  }
 }
