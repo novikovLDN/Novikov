@@ -480,24 +480,99 @@
 .gh-loc-bar span { display: block; height: 100%; background: var(--g-chart); }
 .gh-note { margin: 1.25rem 0 0; font-size: var(--g-t-meta); color: var(--g-ink-3); }
 
-/* ═══ Сцена 7: цена ═════════════════════════════════════════════════ */
-.gh-price { display: grid; gap: clamp(1.5rem, 4vw, 3rem); align-items: end; }
-@media (min-width: 900px) { .gh-price { grid-template-columns: auto minmax(0, 1fr); } }
+/* ═══ Сцена 7: цена ═════════════════════════════════════════════════
+   Строка во всю ширину, под ней реестр тарифов строками. Прежняя
+   версия ставила цифру слева, а карточки тарифов справа: та же
+   компоновка «текст слева, объект справа», от которой отказались на
+   первом экране.
+   ─────────────────────────────────────────────────────────────────── */
+.gh-price-scene { display: grid; justify-items: start; }
 .gh-price-figure {
-  font-size: clamp(4.5rem, 15vw, 12rem);
-  line-height: 0.82;
+  margin: 0;
+  font-size: clamp(2.6rem, 9.4vw, 8.5rem);
+  line-height: 0.86;
   font-weight: 700;
   letter-spacing: -0.05em;
   font-variant-numeric: tabular-nums;
   color: var(--g-ink);
 }
-.gh-price-figure small { font-size: 0.22em; font-weight: 600; letter-spacing: -0.01em; color: var(--g-ink-3); display: block; margin-top: 0.6em; }
-.gh-plans { display: grid; gap: 1px; background: var(--g-line); border: var(--g-rule) solid var(--g-line); }
-@media (min-width: 620px) { .gh-plans { grid-template-columns: repeat(2, 1fr); } }
-.gh-plan { background: var(--g-vellum); padding: clamp(1.1rem, 2.2vw, 1.6rem); display: grid; gap: 0.5rem; align-content: start; }
-.gh-plan h3 { margin: 0; font-size: var(--g-t-block); letter-spacing: -0.02em; color: var(--g-ink); }
-.gh-plan-speed { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--g-chart-deep); }
-.gh-plan p { margin: 0; font-size: var(--g-t-small); line-height: 1.5; color: var(--g-ink-2); }
+/* Знак рубля отбивается вручную: при трекинге −0.05em обычный пробел
+   съедается и «₽» садится на последнюю цифру. */
+.gh-rub { margin-inline: 0.16em 0.26em; }
+
+.gh-price-sub {
+  margin: clamp(0.6rem, 1.6vh, 1rem) 0 0;
+  font-size: var(--g-t-lead);
+  line-height: 1.4;
+  color: var(--g-ink-2);
+  max-width: 46ch;
+}
+
+/* ─── Реестр тарифов ─────────────────────────────────────────────
+   Ширина канала показана полосой, а не только числом: 25 и 75 Гбит/с
+   сравнить на слух трудно, а по длине — мгновенно. Доля считается от
+   старшего тарифа в разметке, из PLAN_SPEED, и руками нигде не
+   написана. */
+.gh-tiers {
+  width: 100%;
+  margin: clamp(1.6rem, 5vh, 3rem) 0 0;
+  display: grid;
+  border-top: var(--g-rule) solid var(--g-line);
+}
+.gh-tier {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name  price"
+    "speed price"
+    "bar   bar"
+    "note  note";
+  column-gap: clamp(1rem, 3vw, 2.5rem);
+  row-gap: 0.45rem;
+  padding-block: clamp(1.1rem, 3vh, 1.8rem);
+  border-bottom: var(--g-rule) solid var(--g-line);
+  align-items: baseline;
+}
+@media (min-width: 900px) {
+  .gh-tier {
+    grid-template-columns: 10rem 8rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      "name speed bar price"
+      "note note note note";
+    align-items: center;
+    row-gap: 0.6rem;
+  }
+}
+.gh-tier-name {
+  grid-area: name;
+  font-size: var(--g-t-block);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--g-ink);
+}
+.gh-tier-speed {
+  grid-area: speed;
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-chart-deep);
+}
+.gh-tier-bar { grid-area: bar; margin: 0; display: block; height: 6px; background: var(--g-paper-2); }
+.gh-tier-bar span { display: block; height: 100%; width: var(--w); background: var(--g-chart); transform-origin: left center; }
+.gh-tier-price {
+  grid-area: price;
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-ink);
+  white-space: nowrap;
+}
+.gh-tier-price span { font-size: var(--g-t-meta); font-weight: 400; color: var(--g-ink-3); margin-left: 0.4rem; }
+.gh-tier-note { grid-area: note; margin: 0; font-size: var(--g-t-small); line-height: 1.5; color: var(--g-ink-2); }
 
 /* ═══ Сцена 8: финал ════════════════════════════════════════════════ */
 .gh-outro { min-height: 82svh; display: grid; align-content: center; background: var(--g-vellum); border-top: var(--g-rule) solid var(--g-line); }
@@ -1019,5 +1094,18 @@
       from { background-size: 12.5% 20%, 12.5% 20%; opacity: 0.8; }
       to   { background-size: 16% 26%, 16% 26%; opacity: 0.28; }
     }
+  }
+}
+
+/* Полоса ширины канала набирается прокруткой: сравнение чертится на
+   глазах у читателя, а не приезжает готовым. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .gh-tier-bar span {
+      animation: gh-tier-fill linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 25%;
+    }
+    @keyframes gh-tier-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   }
 }

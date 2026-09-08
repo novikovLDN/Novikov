@@ -343,23 +343,39 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
         </section>
 
         {/* ── Сцена 7: цена ───────────────────────────────────────── */}
-        <section className="gh-scene gh-shell gh-in" aria-labelledby="price-title">
-          <h2 id="price-title" className="b-sr">Сколько стоит</h2>
-          <div className="gh-price">
-            <p className="gh-price-figure">
-              {basicYear} ₽
-              <small>в месяц, Basic при оплате за год</small>
-            </p>
-            <div className="gh-plans">
-              {(["basic", "plus"] as const).map((id) => (
-                <article key={id} className="gh-plan">
-                  <h3>{PLAN_CONTENT[id].name}</h3>
-                  <span className="gh-plan-speed">{PLAN_SPEED[id]} Гбит/с</span>
-                  <p>{PLAN_CONTENT[id].tagline}</p>
-                </article>
-              ))}
-            </div>
-          </div>
+        {/* Composition: строка во всю ширину, под ней реестр тарифов
+            строками. Прежняя версия ставила цифру слева, а карточки
+            тарифов справа — ровно та компоновка «текст слева, объект
+            справа», от которой отказались на первом экране; на
+            странице она держалась ещё в двух местах.
+
+            Ширина канала показана полосой, а не только числом: 25 и 75
+            Гбит/с сравнивать на слух трудно, а по длине — мгновенно.
+            Длину полосы считает шкала прокрутки. */}
+        <section className="gh-scene gh-shell gh-in gh-price-scene" aria-labelledby="price-title">
+          <h2 id="price-title" className="gh-h2 gh-price-figure">
+            {basicYear}<span className="gh-rub">₽</span> в&nbsp;месяц
+          </h2>
+          <p className="gh-price-sub">
+            Basic при оплате за год. Помесячно — {basicMonth} ₽, отмена в один клик.
+          </p>
+
+          <dl className="gh-tiers">
+            {(["basic", "plus"] as const).map((id) => (
+              <div
+                key={id}
+                className="gh-tier"
+                style={{ ["--w" as string]: `${Math.round((PLAN_SPEED[id] / PLAN_SPEED.plus) * 100)}%` }}
+              >
+                <dt className="gh-tier-name">{PLAN_CONTENT[id].name}</dt>
+                <dd className="gh-tier-speed">{PLAN_SPEED[id]} Гбит/с</dd>
+                <dd className="gh-tier-bar" aria-hidden><span /></dd>
+                <dd className="gh-tier-price">{formatRub(PLANS[id][1])} ₽<span> в месяц</span></dd>
+                <dd className="gh-tier-note">{PLAN_CONTENT[id].tagline}</dd>
+              </div>
+            ))}
+          </dl>
+
           <p className="gh-note">
             Выделенные серверы — отдельное направление, от {formatUsd(SERVER_ENTRY_USD)} в месяц.
           </p>
