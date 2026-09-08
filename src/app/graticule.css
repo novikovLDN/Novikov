@@ -254,3 +254,146 @@ html:has(.g), body:has(.g) { background: var(--g-paper); }
 @media (prefers-reduced-motion: reduce) {
   .g * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ═══ Шапка ═════════════════════════════════════════════════════════
+   Уезжает вверх при прокрутке вниз и возвращается при прокрутке
+   вверх. Стеклянной панели с размытием нет намеренно: это визитная
+   карточка сайта, собранного по умолчанию, и она стоит компоновщику
+   пересчёта на всю площадь при каждом кадре прокрутки. */
+.gx-header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 80;
+  background: var(--g-paper);
+  border-bottom: var(--g-rule) solid transparent;
+  transform: translateY(0);
+  transition: transform var(--g-d-base) var(--g-e-out),
+              border-color var(--g-d-base) var(--g-e-out);
+}
+.gx-header[data-lifted="true"] { border-bottom-color: var(--g-line); }
+.gx-header[data-hidden="true"] { transform: translateY(-100%); }
+
+.gx-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-height: 64px;
+}
+.gx-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  font-weight: 700;
+  font-size: 1.0625rem;
+  letter-spacing: -0.03em;
+  color: var(--g-ink);
+  text-decoration: none;
+}
+/* Знак — та же ячейка, из которой набрана карта присутствия: у марки
+   и у графики один строительный элемент. */
+.gx-mark-cell { width: 10px; height: 10px; background: var(--g-chart); border-radius: 1px; }
+.gx-mark:focus-visible { outline: 2px solid var(--g-chart-deep); outline-offset: 4px; }
+
+.gx-nav { display: none; margin-left: auto; align-items: center; gap: 1.75rem; }
+@media (min-width: 940px) { .gx-nav { display: flex; } }
+.gx-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--g-t-small);
+  color: var(--g-ink-2);
+  text-decoration: none;
+  transition: color var(--g-d-fast) var(--g-e-out);
+}
+.gx-link:hover { color: var(--g-ink); }
+.gx-link:focus-visible { outline: 2px solid var(--g-chart-deep); outline-offset: 4px; }
+
+/* Продукты — раскрывающийся список с пояснением, а не голые ссылки:
+   «Выделенные серверы» и «Ускоритель» без строки объяснения
+   различаются только длиной. Раскрытие на CSS, по наведению и по
+   фокусу с клавиатуры; ноль JS. */
+.gx-products { position: relative; }
+.gx-products-panel {
+  position: absolute;
+  top: 100%;
+  left: -1rem;
+  min-width: 22rem;
+  padding: 0.5rem;
+  background: var(--g-vellum);
+  border: var(--g-rule) solid var(--g-line);
+  border-radius: var(--g-radius);
+  box-shadow: var(--g-lift-2);
+  display: grid;
+  gap: 1px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity var(--g-d-fast) var(--g-e-out),
+              transform var(--g-d-fast) var(--g-e-out),
+              visibility 0s linear var(--g-d-fast);
+}
+.gx-products:hover .gx-products-panel,
+.gx-products:focus-within .gx-products-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+.gx-product {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem;
+  border-radius: var(--g-radius);
+  text-decoration: none;
+  color: var(--g-ink);
+}
+.gx-product:hover { background: var(--g-paper-2); }
+.gx-product:focus-visible { outline: 2px solid var(--g-chart-deep); outline-offset: -2px; }
+.gx-product b { font-weight: 600; font-size: var(--g-t-small); }
+.gx-product span { font-size: var(--g-t-meta); color: var(--g-ink-3); line-height: 1.4; }
+
+.gx-cta { margin-left: auto; }
+@media (min-width: 940px) { .gx-cta { margin-left: 0; } }
+
+/* ═══ Футер ═════════════════════════════════════════════════════════
+   Институциональный: структура сайта, принадлежность, юрисдикция. */
+.gx-footer {
+  background: var(--g-vellum);
+  border-top: var(--g-rule) solid var(--g-line);
+  padding-block: clamp(3rem, 8vh, 5rem) clamp(1.5rem, 4vh, 2.5rem);
+}
+.gx-footer-top { display: grid; gap: clamp(2rem, 5vw, 4rem); }
+@media (min-width: 900px) { .gx-footer-top { grid-template-columns: auto minmax(0, 1fr); } }
+.gx-footer-nav { display: grid; gap: 2rem; }
+@media (min-width: 560px) { .gx-footer-nav { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .gx-footer-nav { grid-template-columns: repeat(4, 1fr); } }
+.gx-footer-nav h2 {
+  margin: 0 0 0.75rem;
+  font-size: var(--g-t-meta);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--g-ink-3);
+}
+.gx-footer-nav ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.5rem; }
+.gx-footer-link {
+  font-size: var(--g-t-small);
+  color: var(--g-ink-2);
+  text-decoration: none;
+  transition: color var(--g-d-fast) var(--g-e-out);
+}
+.gx-footer-link:hover { color: var(--g-chart-deep); }
+.gx-footer-link:focus-visible { outline: 2px solid var(--g-chart-deep); outline-offset: 3px; }
+
+.gx-footer-bottom {
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+  padding-top: 1.25rem;
+  border-top: var(--g-rule) solid var(--g-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  font-size: var(--g-t-meta);
+  color: var(--g-ink-3);
+}
+.gx-footer-bottom span:first-child { font-variant-numeric: tabular-nums; }

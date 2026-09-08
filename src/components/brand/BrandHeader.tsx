@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import PixelSkull from "./PixelSkull";
+import { PRODUCTS, HEADER_LINKS } from "@/lib/nav";
 
 /**
  * Шапка.
@@ -15,13 +16,11 @@ import PixelSkull from "./PixelSkull";
  * и возвращается при прокрутке вверх. Стеклянная панель поверх
  * контента — визитная карточка дефолтного сайта 2024 года.
  */
-const NAV = [
-  { label: "Тарифы", href: "/pricing" },
-  // Якорь, а не отдельная страница: объяснение живёт сценой на
-  // главной, и заводить под него второй экран нечем.
-  { label: "Как работает", href: "/#how" },
-  { label: "Поддержка", href: "/support" },
-];
+/* Состав ссылок — из src/lib/nav.ts, того же модуля, который читает
+   новая шапка. Пока идёт перерисовка, оформление у них разное, а
+   структура обязана быть одна: иначе раздел появляется на одних
+   страницах и пропадает на других. */
+const NAV = [...PRODUCTS, ...HEADER_LINKS];
 
 export default function BrandHeader() {
   const [hidden, setHidden] = useState(false);

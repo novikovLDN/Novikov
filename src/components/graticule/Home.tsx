@@ -1,6 +1,6 @@
 import Link from "next/link";
-import SiteHeader from "@/components/pixel/SiteHeader";
-import SiteFooter from "@/components/pixel/SiteFooter";
+import SiteHeader from "@/components/graticule/SiteHeader";
+import SiteFooter from "@/components/graticule/SiteFooter";
 import { PLANS, PLAN_SPEED, PLAN_CONTENT, DEVICE_LIMIT, formatRub, pricePerMonth } from "@/lib/plans";
 import { LOCATIONS, COUNTRY_COUNT, CLOSEST } from "@/lib/locations";
 import { TRIAL_DAYS } from "@/lib/brand-facts";

@@ -13,7 +13,8 @@
 
 .g-page { min-height: 100dvh; display: flex; flex-direction: column; }
 .g-page > main { flex: 1; }
-.g-header-space { height: 72px; }
+/* Ровно высота фиксированной шапки: 64px. */
+.g-header-space { height: 64px; }
 
 /* ═══ Первый экран страницы ═════════════════════════════════════════
    Заголовок и одна строка смысла. Ни надзаголовка, ни «→» в кнопке. */

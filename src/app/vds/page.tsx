@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import SiteHeader from "@/components/pixel/SiteHeader";
-import SiteFooter from "@/components/pixel/SiteFooter";
+import SiteHeader from "@/components/graticule/SiteHeader";
+import SiteFooter from "@/components/graticule/SiteFooter";
 import {
   SERVERS,
   SERVER_ENTRY_USD,

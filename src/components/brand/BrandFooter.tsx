@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PixelSkull from "./PixelSkull";
+import { FOOTER_COLUMNS, FOUNDED as NAV_FOUNDED } from "@/lib/nav";
 
 /**
  * Футер.
@@ -20,34 +21,12 @@ import PixelSkull from "./PixelSkull";
  * Ссылки в шапке и призывы к действию предзагрузку сохраняют: туда
  * как раз идут.
  */
-const COLUMNS: Array<{ title: string; links: Array<{ label: string; href: string }> }> = [
-  {
-    title: "Продукт",
-    links: [
-      { label: "Тарифы", href: "/pricing" },
-      { label: "Устройства", href: "/devices" },
-      { label: "Безопасность", href: "/security" },
-    ],
-  },
-  {
-    title: "Компания",
-    links: [
-      { label: "О нас", href: "/about" },
-      { label: "Контакты", href: "/contact" },
-      { label: "Поддержка", href: "/support" },
-    ],
-  },
-  {
-    title: "Правовое",
-    links: [
-      { label: "Условия", href: "/terms" },
-      { label: "Приватность", href: "/privacy" },
-    ],
-  },
-];
+/* Состав — из src/lib/nav.ts. Оформление у прежнего и нового футера
+   разное, пока идёт перерисовка; структура одна. */
+const COLUMNS = FOOTER_COLUMNS;
 
 export default function BrandFooter() {
-  const FOUNDED = 2016;
+  const FOUNDED = NAV_FOUNDED;
   const year = new Date().getFullYear();
   const span = year > FOUNDED ? `${FOUNDED}–${year}` : String(FOUNDED);
 
