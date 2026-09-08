@@ -8,6 +8,7 @@ import { SERVER_ENTRY_USD, formatUsd } from "@/lib/servers";
 import { landPath, project, MAP_W, MAP_H } from "@/lib/world-map";
 import LivePing from "./LivePing";
 import SignalTrace from "./SignalTrace";
+import SignalField from "./SignalField";
 import InvertLens from "./InvertLens";
 import "@/app/graticule-home.css";
 
@@ -53,12 +54,6 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
       <a href="#main" className="b-skip">К содержимому</a>
       <SiteHeader />
 
-      {/* Видимый каркас: двенадцать колонок волосяной линией во всю
-          высоту документа. Редакционная полоса предъявляет разметку,
-          а не прячет её; по этим же линиям встают неровные отступы
-          сцен. Слой лежит ПОД содержимым и не перехватывает указатель. */}
-      <div className="gh-rules" aria-hidden />
-
       {/* Полоса прочтения: сколько документа пройдено. Считает браузер
           по шкале прокрутки, скрипта нет. */}
       <div className="gh-read" aria-hidden />
@@ -77,6 +72,10 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
               устройстве читателя. */}
           <div className="gh-trace-band"><SignalTrace /></div>
 
+          {/* Поле сигнала — материал кадра. Штрихи разворачиваются
+              вслед за рукой, как стружка над магнитом. */}
+          <div className="gh-field-band"><SignalField /></div>
+
           {/* Объект первого экрана — сама типографика. Три строки во
               всю ширину, вторая сдвинута, третья выходит за правый
               край. Механика снята с живых референсов: у Exo Ape
@@ -93,6 +92,13 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
             <span className="gh-line gh-kicker">без оговорок</span>
           </h1>
 
+          {/* Под заголовком — две колонки, а не одна строка в пустом
+              поле. Замер плотности (research/05_MOTION.md) показал 38–63
+              узла в кадре против медианы 135 у двадцати референсов и
+              заполнение 0,23: правило «первый экран держит четыре вещи»
+              экономило внимание за счёт того, что кадр оставался пустым
+              на три четверти. Правая колонка — не украшение: это состав
+              подписки, за которым читатель иначе уходит вниз. */}
           <div className="gh-say">
             <p className="gh-lead">Atlas&nbsp;Secure — передовое решение VPS-ускорителя.</p>
             <div className="gh-actions">
@@ -105,6 +111,31 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
             </div>
             <p className="gh-fine">Без карты. Дальше от {basicMonth} ₽ в месяц.</p>
           </div>
+
+          {/* Правая колонка несёт ДРУГОЕ содержание, а не те же числа
+              крупнее: приборная полоса внизу уже говорит «19 стран,
+              14 устройств, 75 Гбит/с». Здесь — конкретика за словом
+              «19»: ближайшие узлы и время ответа каждого, с полосой
+              вместо второго числа. Значения из src/lib/locations.ts. */}
+          <ul className="gh-brief" aria-label="Ближайшие узлы и время ответа">
+            {NEAR.slice(0, 4).map((l) => (
+              <li key={l.code}>
+                <span className="gh-brief-city">{l.cities[0]}</span>
+                <span
+                  className="gh-brief-bar"
+                  aria-hidden
+                  /* Нормируем по самому дальнему из ПОКАЗАННЫХ узлов, а
+                     не по самому дальнему из всех девятнадцати: иначе
+                     все четыре полосы упираются в левый край и разницу
+                     между 12 и 24 миллисекундами не видно. */
+                  style={{ ["--w" as string]: `${Math.round((l.latencyMs / NEAR[3].latencyMs) * 100)}%` }}
+                >
+                  <i />
+                </span>
+                <b>{l.latencyMs}<i>мс</i></b>
+              </li>
+            ))}
+          </ul>
 
           {/* Живое измерение стоит не карточкой сбоку, а пятым
               показанием приборной полосы: это такое же число, как

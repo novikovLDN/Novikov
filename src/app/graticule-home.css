@@ -61,7 +61,6 @@
   z-index: 2;
   pointer-events: none;
   background-image:
-    repeating-linear-gradient(90deg, var(--g-line) 0 1px, transparent 1px var(--gh-col)),
     repeating-linear-gradient(0deg, var(--g-line) 0 1px, transparent 1px 25%);
   /* Умножение вместо прозрачности: линия проходит сквозь букву, а не
      обрывается об неё. На чернилах умножение ничего не меняет (тёмное
@@ -172,6 +171,58 @@
   color: var(--g-ink-2);
 }
 
+/* Строка смысла и краткий состав стоят в двух колонках: слева
+   действие, справа то, за чем читатель иначе уходит вниз. */
+@media (min-width: 900px) {
+  .gh-hero {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  }
+  .gh-hero > .gh-type,
+  .gh-hero > .gh-rail { grid-column: 1 / -1; }
+  .gh-hero > .gh-say { grid-column: 1; }
+  .gh-hero > .gh-brief { grid-column: 2; align-self: end; }
+}
+
+.gh-brief {
+  position: relative;
+  z-index: 3;
+  margin: 0;
+  padding: 0 var(--g-gutter) 0 0;
+  list-style: none;
+  display: grid;
+  gap: 0;
+  border-top: var(--g-rule) solid var(--g-line);
+}
+@media (max-width: 899px) { .gh-brief { display: none; } }
+.gh-brief li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 5.5rem auto;
+  align-items: center;
+  gap: 0.7rem;
+  /* Строка реестра считается по высоте кадра, а не по эстетике:
+     четыре строки должны уложиться в ту же высоту, что и колонка
+     действия слева, иначе первый экран перестаёт помещаться в окно. */
+  padding-block: 0.4rem;
+  border-bottom: var(--g-rule) solid var(--g-line);
+}
+.gh-brief b {
+  font-family: var(--g-display);
+  font-size: clamp(1.15rem, 1.8vw, 1.6rem);
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  /* Задержка — измеренная величина, и на бумаге она синяя: то же
+     правило, что у отклика и частоты кадров. */
+  color: var(--g-chart);
+  text-align: right;
+  white-space: nowrap;
+}
+.gh-brief b i { font-style: normal; font-size: var(--g-t-meta); font-weight: 400; color: var(--g-ink-3); margin-left: 0.25rem; }
+.gh-brief-city { font-size: var(--g-t-small); color: var(--g-ink-2); }
+.gh-brief-bar { display: block; height: 2px; background: var(--g-line); }
+.gh-brief-bar i { display: block; height: 100%; width: var(--w); background: var(--g-chart); transform-origin: left center; }
+
 .gh-say {
   padding-inline: var(--g-gutter);
   display: grid;
@@ -196,7 +247,7 @@
    ═══════════════════════════════════════════════════════════════════ */
 .gh-lap {
   position: relative;
-  min-height: 230vh;
+  min-height: 150vh;
   border-top: var(--g-rule) solid var(--g-line);
   view-timeline-name: --lap;
   view-timeline-axis: block;
@@ -435,7 +486,7 @@
    Переворота в чернила нет: тёмная основа запрещена. */
 .gh-manifest { display: grid; }
 .gh-beat {
-  min-height: 100svh;
+  min-height: 78svh;
   display: grid;
   place-items: center;
   padding-block: clamp(3rem, 8vh, 6rem);
@@ -1221,10 +1272,16 @@
   }
 }
 
-/* Шаг колонки один на весь корпус: и каркас страницы, и сетка первого
-   экрана берут его отсюда. Двенадцать колонок держатся только на
-   широком экране — на телефоне это 32-пиксельные полосы, то есть
-   штриховка, а не сетка. */
+/* Шаг колонки один на весь корпус. Двенадцать колонок держатся только
+   на широком экране — на телефоне это 32-пиксельные полосы, то есть
+   штриховка, а не сетка.
+
+   СПЛОШНОГО КАРКАСА НА ВСЮ ВЫСОТУ ДОКУМЕНТА БОЛЬШЕ НЕТ. Двенадцать
+   волосяных линий во весь рост читались не как разметка полосы, а как
+   тетрадь в клетку: они добавляли кадру узлов, но ни одного объекта,
+   и вместе с полем сигнала давали кашу. Линия делит содержимое там,
+   где действительно что-то делит, — в приборной полосе, в реестре
+   тарифов, между тактами. Шаг остался: по нему стоят отступы сцен. */
 .gh { --gh-col: 25%; }                                    /*  4 колонки */
 @media (min-width: 720px)  { .gh { --gh-col: 12.5%; } }   /*  8 колонок */
 @media (min-width: 1100px) { .gh { --gh-col: 8.3333%; } } /* 12 колонок */
@@ -1236,18 +1293,6 @@
    разворот начинается с другого места, и линия колонки это видно.
    ═══════════════════════════════════════════════════════════════════ */
 .gh { position: relative; }
-.gh-rules {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  margin-inline: var(--g-gutter);
-  background-image: repeating-linear-gradient(
-    90deg,
-    var(--g-line) 0 1px,
-    transparent 1px var(--gh-col)
-  );
-}
 /* Содержимое стоит НАД каркасом. Чёрная плита финала перекрывает его
    собственным фоном — линии там свои, белые.
 
@@ -1401,7 +1446,7 @@
     position: relative;
     /* Высота = экран на кадр плюс путь дорожки. Пять ячеек по 34%
        ширины дают около двух экранов хода. */
-    min-height: 280vh;
+    min-height: 220vh;
     padding-block: 0;
     view-timeline-name: --hrun;
     view-timeline-axis: block;
@@ -1481,3 +1526,16 @@
 }
 .gh-outro-live .gh-ping-unit,
 .gh-outro-live .gh-ping-note { color: rgba(255, 255, 255, 0.62); }
+
+/* ─── Поле сигнала ───────────────────────────────────────────────────
+   Материал первого экрана. Лежит НАД сеткой и лентой прибора, но под
+   типографикой, и наложено умножением: штрихи проходят по бумаге, а
+   на буквах ничего не меняют (тёмное на тёмном). */
+.gh-field-band {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+.gh-field { display: block; width: 100%; height: 100%; color: var(--g-ink); }

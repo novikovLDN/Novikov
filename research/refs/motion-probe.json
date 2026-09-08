@@ -1,0 +1,233 @@
+[
+ {
+  "name": "ATLAS (наш)",
+  "url": "http://localhost:3000/",
+  "idle": 0.03,
+  "hover": 6.16,
+  "trans": 491.24,
+  "nodes": 38,
+  "chars": 360,
+  "media": 0,
+  "inkRatio": 0.23
+ },
+ {
+  "name": "lusion",
+  "url": "https://lusion.co/",
+  "idle": 0.26,
+  "hover": 0.28,
+  "trans": 18.9,
+  "nodes": 120,
+  "chars": 225,
+  "media": 3,
+  "inkRatio": 0.16
+ },
+ {
+  "name": "obys",
+  "url": "https://obys.agency/",
+  "idle": 0,
+  "hover": 0,
+  "trans": 0,
+  "nodes": 1201,
+  "chars": 5620,
+  "media": 39,
+  "inkRatio": 0.73
+ },
+ {
+  "name": "locomotive",
+  "url": "https://locomotive.ca/en",
+  "idle": 0,
+  "hover": 0,
+  "trans": 339.92,
+  "nodes": 60,
+  "chars": 230,
+  "media": 3,
+  "inkRatio": 1.04
+ },
+ {
+  "name": "basement",
+  "url": "https://basement.studio/",
+  "idle": 194.58,
+  "hover": 602.61,
+  "trans": 392.61,
+  "nodes": 114,
+  "chars": 509,
+  "media": 10,
+  "inkRatio": 0.25
+ },
+ {
+  "name": "exoape",
+  "url": "https://www.exoape.com/",
+  "idle": 0,
+  "hover": 106.01,
+  "trans": 0,
+  "nodes": 58,
+  "chars": 203,
+  "media": 1,
+  "inkRatio": 0.38
+ },
+ {
+  "name": "unseen",
+  "url": "https://unseen.co/",
+  "idle": 466.82,
+  "hover": -207.53,
+  "trans": 0,
+  "nodes": 268,
+  "chars": 235,
+  "media": 1,
+  "inkRatio": 0.19
+ },
+ {
+  "name": "dogstudio",
+  "url": "https://dogstudio.co/",
+  "idle": 0,
+  "hover": 0,
+  "trans": 919.11,
+  "nodes": 204,
+  "chars": 855,
+  "media": 22,
+  "inkRatio": 0.32
+ },
+ {
+  "name": "antinomy",
+  "url": "https://antinomy.studio/",
+  "idle": 0,
+  "hover": 0,
+  "trans": 403.73,
+  "nodes": 98,
+  "chars": 198,
+  "media": 4,
+  "inkRatio": 0.03
+ },
+ {
+  "name": "cuberto",
+  "url": "https://cuberto.com/",
+  "idle": 0,
+  "hover": 5.13,
+  "trans": 602.26,
+  "nodes": 83,
+  "chars": 919,
+  "media": 7,
+  "inkRatio": 0.19
+ },
+ {
+  "name": "immersive",
+  "url": "https://immersive-g.com/",
+  "idle": 163.71,
+  "hover": -19.34,
+  "trans": 41.76,
+  "nodes": 130,
+  "chars": 130,
+  "media": 8,
+  "inkRatio": 0.03
+ },
+ {
+  "name": "makereign",
+  "url": "https://makereign.com/",
+  "idle": 0,
+  "hover": 307.68,
+  "trans": 326.46,
+  "nodes": 187,
+  "chars": 636,
+  "media": 3,
+  "inkRatio": 0.31
+ },
+ {
+  "name": "tonik",
+  "url": "https://tonik.com/",
+  "idle": 0,
+  "hover": 0,
+  "trans": 244.75,
+  "nodes": 141,
+  "chars": 429,
+  "media": 9,
+  "inkRatio": 0.11
+ },
+ {
+  "name": "halolab",
+  "url": "https://www.halo-lab.com/",
+  "idle": 0.1,
+  "hover": 10,
+  "trans": 328.36,
+  "nodes": 222,
+  "chars": 471,
+  "media": 21,
+  "inkRatio": 0.15
+ },
+ {
+  "name": "resn",
+  "url": "https://resn.co.nz/",
+  "idle": 0,
+  "hover": 0,
+  "trans": 465.92,
+  "nodes": 28,
+  "chars": 55,
+  "media": 3,
+  "inkRatio": 0.2
+ },
+ {
+  "name": "activetheory",
+  "url": "https://activetheory.net/",
+  "idle": 0,
+  "hover": 0,
+  "trans": 0,
+  "nodes": 1,
+  "chars": 29,
+  "media": 0,
+  "inkRatio": 0.27
+ },
+ {
+  "name": "linear",
+  "url": "https://linear.app/",
+  "idle": 19.3,
+  "hover": -19.2,
+  "trans": 477.47,
+  "nodes": 253,
+  "chars": 737,
+  "media": 1,
+  "inkRatio": 0.18
+ },
+ {
+  "name": "arc",
+  "url": "https://arc.net/",
+  "idle": 0,
+  "hover": 0,
+  "trans": 488.56,
+  "nodes": 64,
+  "chars": 118,
+  "media": 3,
+  "inkRatio": 0.04
+ },
+ {
+  "name": "framer",
+  "url": "https://www.framer.com/",
+  "idle": 0,
+  "hover": 0.12,
+  "trans": 314.93,
+  "nodes": 558,
+  "chars": 1092,
+  "media": 7,
+  "inkRatio": 0.12
+ },
+ {
+  "name": "raycast",
+  "url": "https://www.raycast.com/",
+  "idle": 0,
+  "hover": 0,
+  "trans": 1029.59,
+  "nodes": 448,
+  "chars": 658,
+  "media": 9,
+  "inkRatio": 0.6
+ },
+ {
+  "name": "cursor",
+  "url": "https://cursor.com/",
+  "idle": 128.11,
+  "hover": -47.43,
+  "trans": 422.42,
+  "nodes": 268,
+  "chars": 1021,
+  "media": 3,
+  "inkRatio": 0.19
+ }
+]
