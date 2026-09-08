@@ -90,7 +90,7 @@ export default function PreviewPage({ variant }: { variant: Variant }) {
             </>
           )}
           <div className="pv-wrap">
-            <p className="pv-kicker">Atlas — VPN для телефона и компьютера</p>
+            <p className="pv-kicker">Atlas — VPS для телефона и компьютера</p>
             <h1 className="pv-h1" data-text="Интернет без стен">
               Интернет <em>без стен</em>
             </h1>
