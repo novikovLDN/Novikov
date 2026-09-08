@@ -1,311 +1,266 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import SiteHeader from "@/components/pixel/SiteHeader";
-import SiteFooter from "@/components/pixel/SiteFooter";
-import { CITY_COUNT, COUNTRY_COUNT, plural } from "@/lib/locations";
+import SiteHeader from "@/components/graticule/SiteHeader";
+import SiteFooter from "@/components/graticule/SiteFooter";
+import { COUNTRY_COUNT, CITY_COUNT, CLOSEST, LOCATIONS, plural } from "@/lib/locations";
+import { PLAN_SPEED, DEVICE_LIMIT } from "@/lib/plans";
+import "./infra.css";
 
 /**
- * /infrastructure — technical marketing page in the v4 light shell.
+ * /infrastructure — путешествие по сети.
  *
- * Rhythm: top bar → hero → stats → data-center cards → network
- * feature cards → registry (spec sheet) → orange CTA → footer.
- * Every technical claim (Tier ratings, peering fabrics, PUE,
- * latency, uptime SLA) is preserved verbatim from the source.
+ * ЧТО БЫЛО. Страница перечисляла Equinix FR5, M9, NEXTDC S2, DE-CIX,
+ * MSK-IX, PUE 1.3, ISO 27001, 152-ФЗ и ФСТЭК — ни одно из этих
+ * утверждений не подтверждено договором или сертификатом
+ * (COMPLIANCE-CHECK.md). Чужие товарные знаки требуют права
+ * упоминания, а сертификации — самого сертификата. Всё это снято.
+ *
+ * ЧТО ВМЕСТО. Четыре главы пути, который проходит трафик: устройство
+ * → узел → канал → железо. В каждой — только то, что можно
+ * проверить: числа из lib и то, что видно в самом продукте. Плюс
+ * отдельная глава о том, чего мы ещё НЕ подтвердили: «названная
+ * граница» — позиция бренда, и на этой странице она нужнее всего.
+ *
+ * ПОЧЕМУ ЗДЕСЬ ПОГРУЖЕНИЕ УМЕСТНО, А НА ДРУГИХ ЭКРАНАХ НЕТ. Читатель
+ * приходит сюда с вопросом «как это устроено». На такой вопрос
+ * показывают, а не перечисляют. Одиннадцать приёмов каталога, все
+ * нативные: ни библиотеки, ни строки клиентского кода.
  */
-
-const DATACENTERS = [
-  {
-    region: "EU",
-    city: "Франкфурт",
-    country: "Germany",
-    facility: "Tier IV · Equinix FR5",
-    rows: [
-      ["Комплаенс",   "GDPR · BSI C5 · ISO 27001"],
-      ["Пиринг",      "DE-CIX · 10 Tbps+"],
-      ["Питание",     "100% возобновляемое · PUE 1.3"],
-      ["Резерв",      "2N UPS · N+1 охлаждение"],
-      ["Задержка в EU", "< 3 мс"],
-    ] as Array<[string, string]>,
-  },
-  {
-    region: "RU",
-    city: "Москва",
-    country: "Russia",
-    facility: "Tier III+ · M9",
-    rows: [
-      ["Комплаенс",     "152-ФЗ · ФСТЭК · ГОСТ"],
-      ["Пиринг",        "MSK-IX · 8 Tbps"],
-      ["Питание",       "2N дизельный резерв"],
-      ["Резерв",        "2N питание · N+1 охлаждение"],
-      ["Задержка в RU", "< 5 мс"],
-    ] as Array<[string, string]>,
-  },
-  {
-    region: "APAC",
-    city: "Сидней",
-    country: "Australia",
-    facility: "Tier III · NEXTDC S2",
-    rows: [
-      ["Комплаенс",       "Privacy Act · ASD ISM · SOC 2"],
-      ["Пиринг",          "AMS-IX Pacific · Megaport"],
-      ["Питание",         "2N UPS · N+2 охлаждение"],
-      ["Покрытие",        "APAC · JP · SG · NZ"],
-      ["Задержка в APAC", "< 15 мс"],
-    ] as Array<[string, string]>,
-  },
-];
-
-const NETWORK_FEATURES = [
-  {
-    t: "Пропускная способность",
-    d: "До 200 Gb/s на сервер. Двойной аплинк, BGP Anycast, переключение регионов менее 30 секунд.",
-  },
-  {
-    t: "Задержка",
-    d: "Менее 5 мс в регионе. Оптимизированный пиринг с DE-CIX, AMS-IX, MSK-IX, Megaport.",
-  },
-  {
-    t: "SLA аптайм",
-    d: "99.98% гарантированно. Кредиты начисляются автоматически при любом нарушении в течение месяца.",
-  },
-  {
-    t: "DDoS-защита",
-    d: "Terabit-scale фильтрация апстрим. L3/L4/L7 защита, активация менее 10 секунд.",
-  },
-  {
-    t: "Мониторинг",
-    d: "Независимый Prometheus, синтетические пробы с 12 континентов, RUM-мониторинг.",
-  },
-  {
-    t: "NOC 24/7/365",
-    d: "Tier-2 инженеры круглосуточно. Реакция на инцидент менее 15 минут.",
-  },
-];
-
-const REGISTRY: Array<[string, string]> = [
-  ["Штаб-квартира",    "Гонконг, КНР (SAR)"],
-  // Опорные ЦОД и сеть локаций — разные величины: первых три, вторых
-  // девятнадцать стран. Число стран берётся из src/lib/locations.ts.
-  ["Страны присутствия", `${COUNTRY_COUNT} ${plural(COUNTRY_COUNT, ["страна", "страны", "стран"])} · ${CITY_COUNT} ${plural(CITY_COUNT, ["город", "города", "городов"])}`],
-  ["Опорные ЦОД",      "Франкфурт · Москва · Сидней"],
-  ["Скорость канала",   "25 Гбит/с на Basic · 75 Гбит/с на Plus"],
-  ["Задержка в регионе",     "< 5 мс"],
-  ["Аптайм SLA",             "99.98% гарантированно"],
-  ["Маршрутизация",     "BGP Anycast, двойной аплинк"],
-  ["Точки обмена",           "DE-CIX · MSK-IX · AMS-IX Pacific · Megaport"],
-  ["Стандарты",              "ISO/IEC 27001 · SOC 2 Type II · BSI C5 · GDPR · 152-ФЗ · ФСТЭК"],
-  ["Питание",                "2N UPS, N+1/N+2 охлаждение, дизельный резерв"],
-  ["Режим работы",           "NOC 24/7/365 · реакция < 15 мин"],
-];
-
-// Map dots for the world silhouette — coordinates preserved verbatim.
-const MAP_DOTS = {
-  na: [[120, 150], [140, 150], [160, 150], [180, 160], [200, 170], [120, 170], [140, 170], [160, 170], [100, 190], [120, 190], [140, 190], [160, 190], [180, 190], [140, 210], [160, 210], [180, 210], [200, 210], [180, 230], [200, 230], [220, 230]],
-  sa: [[260, 280], [280, 280], [260, 300], [280, 300], [300, 320], [280, 320], [280, 340], [300, 340], [280, 360], [300, 360]],
-  eu: [[480, 140], [500, 140], [520, 140], [540, 140], [480, 160], [500, 160], [520, 160], [540, 160], [560, 160], [580, 160], [500, 180], [520, 180], [540, 180], [560, 180], [580, 180]],
-  af: [[500, 220], [520, 220], [540, 220], [500, 240], [520, 240], [540, 240], [560, 240], [520, 260], [540, 260], [520, 280], [540, 280], [520, 300], [540, 300], [520, 320]],
-  as: [[600, 140], [620, 140], [640, 140], [660, 140], [680, 140], [700, 140], [720, 140], [740, 140], [760, 140], [620, 160], [640, 160], [660, 160], [680, 160], [700, 160], [720, 160], [740, 160], [640, 180], [660, 180], [680, 180], [700, 180], [720, 180], [740, 180], [660, 200], [680, 200], [700, 200], [720, 200], [740, 200], [680, 220], [700, 220], [720, 220]],
-  au: [[800, 300], [820, 300], [840, 300], [820, 320], [840, 320], [800, 320]],
+export const metadata: Metadata = {
+  title: "Инфраструктура",
+  description:
+    `Путь трафика: устройство, узел, канал, железо. ${COUNTRY_COUNT} стран, ` +
+    `${CITY_COUNT} городов, канал до ${PLAN_SPEED.plus} Гбит/с.`,
 };
 
-const DC_NODES = [
-  { x: 505, y: 155, name: "Франкфурт", label: "FRA" },
-  { x: 595, y: 140, name: "Москва",    label: "MOW" },
-  { x: 825, y: 295, name: "Сидней",    label: "SYD" },
-];
+/** Разрез стойки знаками: фотографий залов у нас нет, а сток запрещён. */
+const RACK = `  ┌─────────────────────────────────────────┐
+  │  U42   коммутатор доступа               │
+  │  U41   коммутатор доступа   ·  резерв   │
+  ├─────────────────────────────────────────┤
+  │  U40   маршрутизатор границы            │
+  │  U39   маршрутизатор границы ·  резерв  │
+  ├─────────────────────────────────────────┤
+  │  U38   фильтр трафика                   │
+  ├─────────────────────────────────────────┤
+  │  U24   узел                             │
+  │  U23   узел                             │
+  │  U22   узел                             │
+  │  U21   узел                             │
+  ├─────────────────────────────────────────┤
+  │  U08   питание  A                       │
+  │  U07   питание  B   ·  независимый ввод │
+  └─────────────────────────────────────────┘`;
+
+const ROUTE = "M 40 150 C 200 40, 340 210, 520 110 S 820 40, 1000 130";
 
 export default function InfrastructurePage() {
+  const far = [...LOCATIONS].sort((a, b) => b.latencyMs - a.latencyMs)[0];
+
   return (
-    <div className="px-page">
-      <div className="px-grid-bg" aria-hidden />
+    <div className="g gi">
       <SiteHeader />
-      <div className="px-header-spacer" aria-hidden />
 
-      {/* Hero */}
-      <section className="px-5 sm:px-8 pt-16 pb-16 sm:pt-24 sm:pb-24 max-w-[1200px] mx-auto w-full">
-        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-5">
-          Инфраструктура
-        </div>
-        <h1 className="font-mts-wide text-[40px] sm:text-[56px] lg:text-[80px] leading-[1.02] tracking-tight font-bold max-w-[14ch]">
-          {COUNTRY_COUNT} стран.<br />Один стандарт.
-        </h1>
-        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-[color:var(--px-text-3)] mt-8 max-w-[58ch]">
-          Сеть присутствия в {COUNTRY_COUNT} странах и {CITY_COUNT}{" "}
-          {plural(CITY_COUNT, ["городе", "городах", "городах"])} стоит
-          на трёх опорных дата-центрах — в Европе, России и АТР. Объекты Tier III+,
-          резервирование питания 2N, carrier-neutral пиринг, on-site операции 24/7/365.
-        </p>
-      </section>
-
-      {/* Stats */}
-      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          {[
-            [String(COUNTRY_COUNT), "Стран присутствия"],
-            ["< 5 мс",   "Задержка в регионе"],
-            ["99.98%",   "Аптайм SLA"],
-            ["24/7",     "NOC дежурит"],
-          ].map(([v, l]) => (
-            <div key={l} className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6">
-              <div className="font-mts-wide text-[32px] sm:text-[44px] font-bold leading-none tracking-tight tabular-nums">{v}</div>
-              <div className="font-mts-wide text-[12px] tracking-[0.10em] uppercase text-[color:var(--px-text-4)] mt-3">{l}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* World map card */}
-      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
-        <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-10">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
-            <div>
-              <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-3">Присутствие</div>
-              <h2 className="font-mts-wide text-[22px] sm:text-[28px] font-bold leading-tight">Три опорные точки</h2>
-            </div>
-            <div className="font-mts-wide text-[12px] tracking-[0.10em] uppercase text-[color:var(--px-text-4)]">FRA · MOW · SYD</div>
-          </div>
-
-          <div className="w-full overflow-x-auto">
-            <svg viewBox="0 0 1000 500" className="w-full min-w-[720px] h-auto" role="img" aria-label="Карта присутствия">
-              {/* Continent dots */}
-              <g fill="rgba(0,0,0,0.14)">
-                {MAP_DOTS.na.map(([x, y], i) => <circle key={`na${i}`} cx={x} cy={y} r="1.5" />)}
-                {MAP_DOTS.sa.map(([x, y], i) => <circle key={`sa${i}`} cx={x} cy={y} r="1.5" />)}
-                {MAP_DOTS.eu.map(([x, y], i) => <circle key={`eu${i}`} cx={x} cy={y} r="1.5" />)}
-                {MAP_DOTS.af.map(([x, y], i) => <circle key={`af${i}`} cx={x} cy={y} r="1.5" />)}
-                {MAP_DOTS.as.map(([x, y], i) => <circle key={`as${i}`} cx={x} cy={y} r="1.5" />)}
-                {MAP_DOTS.au.map(([x, y], i) => <circle key={`au${i}`} cx={x} cy={y} r="1.5" />)}
-              </g>
-
-              {/* Connection lines between DCs */}
-              <g stroke="currentColor" strokeWidth="1" fill="none" opacity="0.35" strokeDasharray="3 4">
-                <path d="M505 155 Q550 120 595 140" />
-                <path d="M505 155 Q665 225 825 295" />
-                <path d="M595 140 Q710 220 825 295" />
-              </g>
-
-              {/* DC nodes */}
-              {DC_NODES.map((dc) => (
-                <g key={dc.name}>
-                  <circle cx={dc.x} cy={dc.y} r="18" fill="rgba(0,0,0,0.08)" />
-                  <circle cx={dc.x} cy={dc.y} r="10" fill="rgba(0,0,0,0.20)" />
-                  <circle cx={dc.x} cy={dc.y} r="5" fill="#111" stroke="#fff" strokeWidth="1.5" />
-                  <text x={dc.x} y={dc.y - 24} textAnchor="middle" className="font-mts-wide" fontSize="11" fill="#111" fontWeight="600" letterSpacing="1">{dc.label}</text>
-                  <text x={dc.x} y={dc.y + 34} textAnchor="middle" className="font-mts-wide" fontSize="12" fill="rgba(0,0,0,0.6)">{dc.name}</text>
-                </g>
-              ))}
-            </svg>
-          </div>
-        </div>
-      </section>
-
-      {/* DC cards */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
-        <div className="mb-12 sm:mb-16 max-w-[720px]">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Объекты</div>
-          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
-            Где работают<br />ваши нагрузки
-          </h2>
-          <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.55] text-[color:var(--px-text-3)] mt-6 max-w-[58ch]">
-            Carrier-neutral объекты Tier III+ с сертифицированным комплаенсом для каждой юрисдикции.
+      <main>
+        {/* ── Первый экран: маршрут ───────────────────────────────── */}
+        <section className="gi-shell gi-hero" aria-labelledby="infra-title">
+          <h1 id="infra-title">Где проходит ваш трафик</h1>
+          <p className="gi-lead">
+            Четыре участка пути. На каждом написано, что мы делаем и что можем
+            подтвердить.
           </p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {DATACENTERS.map((dc) => (
-            <div key={dc.city} className="px-spot bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors flex flex-col">
-              <div className="flex items-center justify-between mb-6">
-                <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)]">{dc.region}</span>
-                <span className="font-mts-wide text-[11px] tracking-[0.10em] uppercase text-[color:var(--px-text-4)] inline-flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-black" />
-                  Работает
-                </span>
+          <svg className="gi-route" viewBox="0 0 1040 220" role="img"
+               aria-label="Маршрут трафика: устройство, узел Atlas, магистраль, сайт назначения">
+            <defs>
+              {/* Гуи-фильтр: формы сливаются каплями при сближении.
+                  feGaussianBlur размывает, feColorMatrix возвращает
+                  резкую границу — классический приём, здесь он
+                  изображает слияние потоков в узле. */}
+              <filter id="gi-gooey">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b" />
+                <feColorMatrix in="b" mode="matrix"
+                  values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="g" />
+                <feComposite in="SourceGraphic" in2="g" operator="atop" />
+              </filter>
+            </defs>
+
+            <path className="gi-route-line" d={ROUTE} />
+            <path className="gi-route-live" d={ROUTE} pathLength={1} />
+
+            {[
+              { x: 40, y: 150, t: "ваше устройство" },
+              { x: 520, y: 110, t: "узел Atlas" },
+              { x: 1000, y: 130, t: "сайт назначения" },
+            ].map((s) => (
+              <g key={s.t}>
+                <circle className="gi-route-stop" cx={s.x} cy={s.y} r={7} />
+                <text className="gi-route-label" x={s.x} y={s.y + 26}
+                      textAnchor={s.x > 900 ? "end" : s.x < 100 ? "start" : "middle"}>
+                  {s.t}
+                </text>
+              </g>
+            ))}
+
+            {/* Пакет идёт по тому же пути: offset-path берёт кривую
+                прямо из разметки, а не повторяет её числами. */}
+            <circle className="gi-packet" r={5} style={{ ["--gi-path" as string]: `path("${ROUTE}")` }} />
+          </svg>
+        </section>
+
+        {/* ── Глава 1: устройство ─────────────────────────────────── */}
+        <section className="gi-chapter" aria-labelledby="ch1">
+          <div className="gi-shell gi-frame">
+            <div>
+              <p className="gi-n">01 — устройство</p>
+              <h2 id="ch1">Шифрование начинается у вас</h2>
+              <p>
+                Ключ создаётся на устройстве и не покидает его. Дальше по сети
+                идёт уже закрытый трафик: провайдер видит, что соединение есть,
+                и не видит, что внутри.
+              </p>
+              <div className="gi-figures">
+                <span className="gi-fig"><b>{DEVICE_LIMIT}</b><span>устройств на подписке</span></span>
+                <span className="gi-fig"><b>0</b><span>записей о том, что вы открывали</span></span>
               </div>
-              <div className="font-mts-wide text-[22px] sm:text-[24px] font-bold leading-tight">{dc.city}</div>
-              <div className="font-mts-wide text-[12px] text-[color:var(--px-text-4)] uppercase tracking-[0.10em] mt-1 mb-2">{dc.country}</div>
-              <div className="font-mts-wide text-[13px] text-[color:var(--px-text-2)] mb-6">{dc.facility}</div>
-
-              <div className="border-t border-[color:var(--px-line)] pt-4 space-y-3 flex-1">
-                {dc.rows.map(([k, v]) => (
-                  <div key={k} className="flex items-baseline justify-between gap-3">
-                    <span className="font-mts-wide text-[12px] text-[color:var(--px-text-4)] shrink-0">{k}</span>
-                    <span className="font-mts-wide text-[13px] text-[color:var(--px-text)] font-medium text-right">{v}</span>
-                  </div>
+            </div>
+            <div>
+              {/* Полутон: плотность точек показывает, сколько данных
+                  остаётся открытым. Слева всё видно, справа — ничего. */}
+              <div className="gi-halftone" aria-hidden>
+                {Array.from({ length: 96 }, (_, i) => (
+                  <i key={i} style={{ opacity: Math.max(0.06, 1 - (i % 24) / 23) }} />
                 ))}
               </div>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Network feature cards */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
-        <div className="mb-12 sm:mb-16 max-w-[720px]">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Сеть</div>
-          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
-            Спроектировано<br />жить
-          </h2>
-          <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.55] text-[color:var(--px-text-3)] mt-6 max-w-[58ch]">
-            BGP Anycast маршрутизация, два аплинка, переключение между регионами менее 30 секунд.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {NETWORK_FEATURES.map((f, i) => (
-            <div key={f.t} className="px-spot bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors">
-              <div className="flex items-center gap-3 mb-6">
-                <span className="font-mts-wide text-[12px] font-semibold text-[color:var(--px-text-4)] tabular-nums">{String(i + 1).padStart(2, "0")}</span>
-                <span className="h-px flex-1 bg-black/10" />
-              </div>
-              <h3 className="font-mts-wide text-[20px] sm:text-[22px] font-bold leading-[1.2] tracking-tight mb-3">{f.t}</h3>
-              <p className="font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] text-[color:var(--px-text-3)]">{f.d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Registry — full spec sheet */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[900px] mx-auto w-full">
-        <div className="mb-10 sm:mb-14">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Спецификация</div>
-          <h2 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.02] tracking-tight font-bold">
-            Инфраструктура —<br />документально
-          </h2>
-        </div>
-        <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl overflow-hidden">
-          {REGISTRY.map(([k, v], i) => (
-            <div
-              key={k}
-              className={`flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 px-5 sm:px-8 py-4 sm:py-5 ${i > 0 ? "border-t border-[color:var(--px-line)]" : ""}`}
-            >
-              <div className="font-mts-wide text-[13px] text-[color:var(--px-text-4)] sm:w-[240px] shrink-0">{k}</div>
-              <div className="font-mts-wide text-[14px] sm:text-[15px] text-[color:var(--px-text)] font-medium">{v}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
-        <div className="max-w-[900px] mx-auto text-center">
-          <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
-            Разверните глобально
-          </h2>
-          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-accent-ink)] mt-6 max-w-[46ch] mx-auto">
-            Один аккаунт, три континента. Выберите регион под своих пользователей.
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
-            <Link href="/pricing" className="px-btn px-btn-md px-btn-primary">
-              Тарифы
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-            </Link>
-            <Link href="/contact" className="px-btn px-btn-md px-btn-secondary" style={{ background: "rgba(0,0,0,0.08)", color: "#000" }}>
-              Связаться с NOC
-            </Link>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* ── Глава 2: узел ───────────────────────────────────────── */}
+        <section className="gi-chapter" aria-labelledby="ch2">
+          <div className="gi-shell gi-frame">
+            <div>
+              <p className="gi-n">02 — узел</p>
+              <h2 id="ch2">Точку выбираете вы</h2>
+              <p>
+                {COUNTRY_COUNT} {plural(COUNTRY_COUNT, ["страна", "страны", "стран"])},{" "}
+                {CITY_COUNT} {plural(CITY_COUNT, ["город", "города", "городов"])}. Ближайший
+                узел отвечает за {CLOSEST.latencyMs} мс, самый дальний — за {far.latencyMs}.
+                Задержки — оценки, пока их не подтвердит эксплуатация.
+              </p>
+              <div className="gi-figures">
+                <span className="gi-fig"><b>{COUNTRY_COUNT}</b><span>стран</span></span>
+                <span className="gi-fig"><b>{CITY_COUNT}</b><span>городов</span></span>
+                <span className="gi-fig"><b>{CLOSEST.latencyMs} мс</b><span>ближайший узел</span></span>
+              </div>
+            </div>
+            <div>
+              <svg className="gi-nodes" viewBox="0 0 400 200" role="img"
+                   aria-label="Потоки сливаются в узле и расходятся дальше">
+                <g className="gi-nodes-gooey">
+                  {[38, 74, 110, 146].map((y, i) => (
+                    <circle key={y} className="gi-node-quiet" cx={60 + i * 6} cy={y} r={9} />
+                  ))}
+                  <circle className="gi-node" cx={210} cy={100} r={13} />
+                  <circle className="gi-node" cx={244} cy={100} r={10} />
+                  {[70, 100, 130].map((y) => (
+                    <circle key={y} className="gi-node-quiet" cx={340} cy={y} r={8} />
+                  ))}
+                </g>
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Глава 3: канал ──────────────────────────────────────── */}
+        <section className="gi-chapter" aria-labelledby="ch3">
+          <div className="gi-shell gi-frame">
+            <div>
+              <p className="gi-n">03 — канал</p>
+              <h2 id="ch3">Ширина трубы, а не обещание</h2>
+              <p>
+                Канал — это то, сколько данных проходит одновременно. Запас
+                считался под вечерний час пик: когда все дома и все смотрят,
+                скорость не должна падать.
+              </p>
+              <div className="gi-figures">
+                <span className="gi-fig"><b>{PLAN_SPEED.basic}</b><span>Гбит/с на Basic</span></span>
+                <span className="gi-fig"><b>{PLAN_SPEED.plus}</b><span>Гбит/с на Plus</span></span>
+              </div>
+            </div>
+            <div>
+              {/* Изолинии: ширина канала показана расходящимися
+                  линиями, а не столбиком. Basic тише, Plus громче. */}
+              <div className="gi-iso gi-iso-quiet" aria-hidden>
+                {Array.from({ length: 6 }, (_, i) => (
+                  <span key={i} style={{ width: `${28 + i * 6}%` }} />
+                ))}
+              </div>
+              <div className="gi-iso" style={{ marginTop: "1.25rem" }} aria-hidden>
+                {Array.from({ length: 10 }, (_, i) => (
+                  <span key={i} style={{ width: `${40 + i * 6}%` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Глава 4: железо ─────────────────────────────────────── */}
+        <section className="gi-chapter" aria-labelledby="ch4">
+          <div className="gi-shell gi-frame">
+            <div>
+              <p className="gi-n">04 — железо</p>
+              <h2 id="ch4">Что стоит в стойке</h2>
+              <p>
+                Два независимых ввода питания, две границы, фильтр трафика перед
+                узлами. Разрез набран знаками, а не снят на камеру: фотографий
+                чужих залов у нас нет, а стоковые мы не ставим.
+              </p>
+            </div>
+            <div>
+              <pre className="gi-rack" aria-label="Схема стойки: коммутаторы доступа, маршрутизаторы границы, фильтр трафика, узлы, два ввода питания">
+                {RACK}
+              </pre>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Честный блок ────────────────────────────────────────── */}
+        <section className="gi-shell gi-honest" aria-labelledby="honest">
+          <h2 id="honest" className="gi-chapter-h2" style={{ margin: 0, fontSize: "var(--g-t-block)", letterSpacing: "-0.02em" }}>
+            Что подтверждено, а что ещё нет
+          </h2>
+          <div className="gi-honest-cols">
+            <div>
+              <h3>Подтверждено кодом продукта</h3>
+              <ul className="gi-col-yes">
+                <li>{COUNTRY_COUNT} стран и {CITY_COUNT} городов — список в коде, из него же строится карта</li>
+                <li>Канал {PLAN_SPEED.basic} и {PLAN_SPEED.plus} Гбит/с — из состава тарифов</li>
+                <li>{DEVICE_LIMIT} устройств на подписке</li>
+                <li>История подключений, посещённых сайтов и DNS-запросов не хранится</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Ещё не подтверждено, и мы этого не пишем</h3>
+              <ul className="gi-col-ask">
+                <li>Названия площадок и точек обмена трафиком — нужно право упоминания</li>
+                <li>Сертификации и аудиты — нужен сам сертификат</li>
+                <li>Показатели времени без сбоев — нужен мониторинг с историей</li>
+                <li>Задержки по городам — сейчас это оценки, а не замеры</li>
+              </ul>
+            </div>
+          </div>
+          <p style={{ marginTop: "1.5rem", fontSize: "var(--g-t-small)", color: "var(--g-ink-3)", maxWidth: "62ch" }}>
+            Раньше на этой странице стояли названия чужих дата-центров, точек
+            обмена и сертификатов. Мы их сняли: писать то, что нельзя показать
+            по требованию, — ровно то, чего мы не делаем.
+          </p>
+          <div className="gh-actions">
+            <Link href="/vds" className="gh-btn gh-btn-primary">Выделенные серверы</Link>
+            <Link href="/security" className="gh-btn gh-btn-quiet">Что мы знаем о вас</Link>
+          </div>
+        </section>
+      </main>
 
       <SiteFooter />
     </div>
