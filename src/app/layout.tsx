@@ -2,6 +2,12 @@ import type { Metadata, Viewport } from "next";
 import { display, text, mono } from "./fonts";
 import "./globals.css";
 import "./brand.css";
+// Слой токенов светлой системы «Гратикул» (фаза 5, шаг 1). Вводится
+// рядом с действующими системами и включается постранично классом
+// `.g`: пока класса нет ни на одной странице, файл не меняет ничего.
+// Обоснование значений — docs/03_DESIGN_SYSTEM.md, порядок перевода —
+// docs/04_ARCHITECTURE.md §4.
+import "./graticule.css";
 import CookieConsent from "@/components/CookieConsent";
 import PwaManager from "@/components/PwaManager";
 import IosInstallBanner from "@/components/IosInstallBanner";
