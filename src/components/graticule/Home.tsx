@@ -281,7 +281,7 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
                 Никаких картографических библиотек и растровых подложек. */}
             <svg
               className="gh-map"
-              viewBox={`0 0 ${MAP_W} ${MAP_H}`}
+              viewBox={`0 0 ${MAP_W} ${MAP_H * 1.1}`}
               role="img"
               aria-label={`Карта присутствия: ${COUNTRY_COUNT} стран`}
             >
@@ -315,7 +315,7 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
                 );
               })}
               {/* Приём №53: подпись идёт вдоль меридиана. */}
-              <path id="gh-meridian" d={`M ${MAP_W * 0.06} ${MAP_H * 0.9} Q ${MAP_W * 0.5} ${MAP_H * 1.02} ${MAP_W * 0.94} ${MAP_H * 0.86}`} fill="none" />
+              <path id="gh-meridian" d={`M ${MAP_W * 0.04} ${MAP_H * 1.03} Q ${MAP_W * 0.5} ${MAP_H * 1.11} ${MAP_W * 0.96} ${MAP_H * 1.0}`} fill="none" />
               <text className="gh-meridian-text" fontSize="11" fill="var(--g-ink-3)">
                 <textPath className="gh-meridian-label" href="#gh-meridian" startOffset="4%">
                   присутствие Atlas Secure · {COUNTRY_COUNT} стран
@@ -371,7 +371,9 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
         {/* ── Сцена 8: финал ──────────────────────────────────────── */}
         <section className="gh-outro" aria-labelledby="outro-title">
           <div className="gh-shell">
-            <h2 id="outro-title" className="gh-h2 gh-outro-title">Проверьте сами</h2>
+            <h2 id="outro-title" className="gh-h2 gh-outro-title">
+              <Letters text="Проверьте сами" />
+            </h2>
             <p className="gh-p">
               {TRIAL_DAYS} дня без карты. Не подойдёт — просто не продлевайте.
             </p>
@@ -384,5 +386,36 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
 
       <SiteFooter />
     </div>
+  );
+}
+
+/**
+ * Разбивка строки на буквы для набора «по знакам».
+ *
+ * Делает это сервер, а не скрипт в браузере: разметка приезжает уже
+ * разобранной, и до появления JS ничего не мигает. Диктор читает
+ * исходную строку из `aria-label`, а сами буквы от него спрятаны —
+ * иначе он произносит их по одной.
+ *
+ * Разбивка двухуровневая: сначала слова, потом буквы. Без слоя слов
+ * браузер переносит строку посреди слова, потому что каждая буква для
+ * него — отдельный inline-блок. Номер знака уезжает в --i: по нему
+ * CSS сдвигает диапазон прокрутки каждой буквы.
+ */
+function Letters({ text }: { text: string }) {
+  let n = 0;
+  return (
+    <span className="gh-letters" aria-label={text}>
+      {text.split(" ").map((word, w) => (
+        <span className="gh-word" key={w} aria-hidden>
+          {[...word].map((ch, i) => (
+            <span className="gh-letter" key={i} style={{ ["--i" as string]: n++ }}>
+              {ch}
+            </span>
+          ))}
+          {w < text.split(" ").length - 1 ? " " : null}
+        </span>
+      ))}
+    </span>
   );
 }

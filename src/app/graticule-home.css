@@ -725,7 +725,10 @@
 /* ── №48. Бесшовная лента фактов ──────────────────────────────────── */
 .gh-facts { --gh-track: 1; }
 .gh-facts-track { display: flex; width: max-content; }
-.gh-facts-track ul { flex: none; }
+/* Отступ живёт ВНУТРИ дорожки, а не между дорожками: сдвиг на -50%
+   верен только тогда, когда обе копии одинаковой ширины. Внешний
+   `gap` эту симметрию ломает, и лента дёргается на стыке. */
+.gh-facts-track ul { flex: none; padding-inline-end: 2.5rem; }
 
 /* ── №51 и №55. Шторка и разрезанная строка ───────────────────────── */
 .gh-beat-3 p { position: relative; }
@@ -738,9 +741,9 @@
   inset: -20%;
   z-index: -1;
   background:
-    radial-gradient(38% 44% at 22% 30%, rgba(193, 14, 107, 0.10), transparent 70%),
-    radial-gradient(32% 38% at 78% 26%, rgba(13, 110, 100, 0.10), transparent 70%),
-    radial-gradient(44% 50% at 58% 82%, rgba(18, 38, 46, 0.07), transparent 72%);
+    radial-gradient(38% 44% at 22% 30%, color-mix(in oklab, var(--g-chart) 14%, transparent), transparent 70%),
+    radial-gradient(32% 38% at 78% 26%, color-mix(in oklab, var(--g-sounding) 10%, transparent), transparent 70%),
+    radial-gradient(44% 50% at 58% 82%, color-mix(in oklab, var(--g-ink) 7%, transparent), transparent 72%);
   filter: blur(4px);
 }
 
@@ -904,5 +907,117 @@
   @keyframes gh-lap-idle {
     from { background-position: -240px 0; }
     to   { background-position: 0 0; }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   СЛОЙ 2027 — ПЯТЬ ПРИЁМОВ, СНЯТЫХ С РАЗБОРА СТУДИЙ
+   research/03_AGENCY_TEARDOWN.md: у восемнадцати сайтов креативных
+   студий `clip-path` — основной инструмент появления (obys 40 узлов,
+   halolab 83), объёмные преобразования — второй (dogstudio 72), а
+   CSS-кейфреймов почти нет: движение там непрерывное и привязано к
+   действию читателя. Ниже — то же самое на нашем материале и без
+   единой строки скрипта.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Буквы финального призыва: базовое состояние — уже на месте.
+   Прятать разрешено только там, где механизм показа доказан. */
+.gh-letters { display: inline; }
+.gh-word { display: inline-block; white-space: pre; }
+.gh-letter { display: inline-block; }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+
+    /* ── Приём A. Угловая шторка заголовка секции ──────────────────
+       Заголовок не всплывает снизу — он открывается косым срезом,
+       как чертёж из-под кальки. Появление читается как действие, а
+       не как «блок приехал». */
+    .gh-h2 {
+      animation: gh-shutter linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 90%;
+    }
+    @keyframes gh-shutter {
+      from { clip-path: polygon(0 0, 0 0, -12% 100%, 0 100%); }
+      to   { clip-path: polygon(0 0, 112% 0, 100% 100%, 0 100%); }
+    }
+
+    /* ── Приём Б. Вес заголовка растёт по мере чтения ──────────────
+       Golos Text вариативный, ось веса 400–900. Заголовок входит в
+       кадр в 500 и набирает 700, пока читатель до него доходит: та
+       же строка, но она уплотняется под взглядом. Приём стоит ноль
+       байт — файл шрифта уже вариативный, отдельного начертания не
+       скачивается. */
+    .gh-h2 {
+      animation-name: gh-shutter, gh-weight;
+      animation-range: entry 10% entry 90%, entry 20% cover 30%;
+    }
+    @keyframes gh-weight {
+      from { font-variation-settings: "wght" 500; }
+      to   { font-variation-settings: "wght" 700; }
+    }
+
+    /* ── Приём В. Финальный призыв набирается по знакам ────────────
+       Диапазон прокрутки у каждой буквы свой: начало сдвинуто на её
+       номер. Это и есть очередь без задержек — `animation-delay` на
+       шкале прокрутки не работает, время здесь ни при чём. */
+    .gh-letter {
+      animation: gh-letter-in linear both;
+      animation-timeline: view();
+      /* Имя фазы стоит СНАРУЖИ calc(), проценты — внутри. Обратный
+         порядок (`calc(entry 8% + …)`) браузер отбрасывает целиком, и
+         все буквы получают один диапазон. */
+      animation-range-start: entry calc(8% + var(--i) * 1.6%);
+      animation-range-end: entry calc(52% + var(--i) * 1.6%);
+    }
+    @keyframes gh-letter-in {
+      from { opacity: 0; transform: translate3d(0, 0.36em, 0); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── Приём Г. Ячейки состава входят плоскостью ─────────────────
+       Не «всплыли и поехали вверх», а повернулись к читателю: карточка
+       ведёт себя как физическая плоскость. Поворот маленький (6°) —
+       больше даёт искажение текста при субпиксельной отрисовке. */
+    .gh-cells { perspective: 1400px; }
+    .gh-cells > * {
+      transform-origin: 50% 0%;
+      animation: gh-plane linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 22%;
+    }
+    @keyframes gh-plane {
+      from { opacity: 0; transform: rotateX(6deg) translate3d(0, 1.4rem, 0); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    /* ── Приём Д. Сетка первого экрана расходится на уходе ─────────
+       Пока читатель на первом экране, шаг гратикула постоянный. На
+       уходе клетка растёт: кадр разжимается, а не просто уезжает.
+       Пишется background-size — свойство композитора не занимает, а
+       холст ленты под ним живёт своим циклом. */
+    /* Две силы на одном элементе: собственный медленный ход и
+       расхождение клетки на уходе. Объявляются одним списком —
+       иначе правило холостого слоя ниже по файлу перебивает
+       `animation-name` целиком и расхождение не доезжает. */
+    html:not([data-static]) .gh-graticule {
+      animation-name: gh-drift, gh-mesh;
+      animation-duration: 34s, auto;
+      animation-timing-function: linear, linear;
+      animation-iteration-count: infinite, 1;
+      animation-fill-mode: none, both;
+      animation-timeline: auto, view();
+      animation-range: normal, exit 0% exit 100%;
+    }
+    html[data-static] .gh-graticule {
+      animation: gh-mesh linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+    @keyframes gh-mesh {
+      from { background-size: 12.5% 20%, 12.5% 20%; opacity: 0.8; }
+      to   { background-size: 16% 26%, 16% 26%; opacity: 0.28; }
+    }
   }
 }
