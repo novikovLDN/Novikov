@@ -441,3 +441,71 @@ html:has(.g), body:has(.g) { background: var(--g-paper); }
   color: var(--g-ink-3);
 }
 .gx-footer-bottom span:first-child { font-variant-numeric: tabular-nums; }
+
+/* ═══ Технологичность 2027: открытый каркас ═════════════════════════
+   Тренд 2027, названный в исследовании «tactile brutalism / radical
+   transparency»: открытая сетка, видимые структурные элементы,
+   границы в один пиксель — как сигнал честности и технической
+   точности. У нас это не заимствование: «названная граница» была
+   позицией бренда до того, как стала трендом, а гратикул —
+   предъявленная сетка — заложен в систему с первого дня.
+
+   Второе следствие того же исследования: у технического читателя
+   плотность данных важнее воздуха. Приборные панели ниже собирают
+   много проверяемых чисел в один взгляд, а не растягивают три
+   показателя на экран. */
+
+/* Каркас колонок виден как элемент оформления, а не как отладка. */
+.g-frame-rules {
+  position: relative;
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--g-line) 0 var(--g-rule),
+    transparent var(--g-rule) calc(100% / 6)
+  );
+  background-position: 0 0;
+}
+
+/* Приборная панель: плотно, ровно, с единицами. */
+.g-panel {
+  display: grid;
+  gap: var(--g-rule);
+  background: var(--g-line);
+  border: var(--g-rule) solid var(--g-line);
+}
+@media (min-width: 620px)  { .g-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1000px) { .g-panel { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.g-readout {
+  background: var(--g-vellum);
+  padding: 0.9rem 1rem;
+  display: grid;
+  gap: 0.15rem;
+  align-content: start;
+}
+.g-readout dt { font-size: var(--g-t-meta); color: var(--g-ink-3); order: 2; }
+.g-readout dd {
+  margin: 0;
+  order: 1;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-ink);
+}
+.g-readout dd small { font-size: 0.5em; font-weight: 500; color: var(--g-ink-3); margin-left: 0.25em; }
+
+/* Точность формулировки: замер и оценка выглядят по-разному, и это
+   видно без чтения подписи. */
+.g-readout[data-kind="measured"] dd { color: var(--g-sounding); }
+.g-readout[data-kind="estimate"] dd::after {
+  content: "оценка";
+  display: block;
+  font-size: 0.42em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--g-ink-3);
+  margin-top: 0.2em;
+}
+
+/* Допуск: у величины есть предел, и он написан. */
+.g-tolerance { font-size: var(--g-t-meta); color: var(--g-ink-3); }

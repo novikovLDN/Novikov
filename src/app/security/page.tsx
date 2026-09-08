@@ -1,223 +1,186 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import SiteHeader from "@/components/pixel/SiteHeader";
-import SiteFooter from "@/components/pixel/SiteFooter";
+import SiteHeader from "@/components/graticule/SiteHeader";
+import SiteFooter from "@/components/graticule/SiteFooter";
+import { DEVICE_LIMIT } from "@/lib/plans";
+import { COUNTRY_COUNT } from "@/lib/locations";
+import { TRIAL_DAYS } from "@/lib/brand-facts";
+import "./sec.css";
 
 /**
- * /security — security & privacy page in the v4 light shell.
+ * /security — что мы знаем о вас.
  *
- * Top bar → hero → feature cards → certifications grid →
- * encryption-stack table → audit-history timeline → orange CTA →
- * общий футер сайта. Language deliberately avoids restricted terms
- * (compliance): "стабильность", "низкий пинг", "ускоритель
- * интернета", "шифрование", "приватность", "безопасность".
+ * ГЛАВНЫЙ ОБЪЕКТ СЦЕНЫ — ПУСТОЙ СПИСОК. Перечень того, чего мы не
+ * храним, длиннее перечня того, что храним, и это видно с первого
+ * взгляда. Единственный экран сайта, где содержанием является
+ * пустота.
+ *
+ * ЧТО СНЯТО С ПРЕЖНЕЙ ВЕРСИИ. Она называла ISO, SOC, аудиты и
+ * сертификации, которых у нас нет на руках (COMPLIANCE-CHECK.md).
+ * Названия стандартов без самого сертификата — то же самое, что
+ * чужие товарные знаки без права упоминания.
+ *
+ * ЧТО ОСТАЛОСЬ И ПОЧЕМУ. Алгоритмы шифрования названы, но помечены
+ * как требующие подтверждения конфигурацией: они с высокой
+ * вероятностью верны, но «с высокой вероятностью» — не то основание,
+ * на котором пишут на витрине. Всё остальное — проверяемое: список
+ * того, что хранится в базе, и список того, чего в ней нет.
+ *
+ * ТЕХНОЛОГИЧНОСТЬ 2027 (исследование): открытый каркас, видимые
+ * границы в один пиксель, плотность данных вместо воздуха. У нас это
+ * не заимствование тренда: «названная граница» была позицией бренда
+ * раньше, чем стала модой.
  */
+export const metadata: Metadata = {
+  title: "Безопасность",
+  description:
+    "Что мы знаем о вас: адрес почты. Не храним ни посещённых сайтов, " +
+    "ни DNS-запросов, ни истории подключений.",
+};
 
-const FEATURES = [
-  {
-    n: "01",
-    eyebrow: "Приватность",
-    t: "Отсутствие логов",
-    d: "Мы не записываем время подключений, IP-адреса, DNS-запросы и трафик по пользователю. Чего нет — того нельзя раскрыть по запросу или потерять при утечке.",
-  },
-  {
-    n: "02",
-    eyebrow: "Стабильность",
-    t: "Мгновенное отключение",
-    d: "Системные правила фаервола останавливают весь исходящий трафик при разрыве защищённого канала. Ни один пакет не уходит в открытую сеть.",
-  },
-  {
-    n: "03",
-    eyebrow: "Шифрование",
-    t: "DNS over HTTPS",
-    d: "Каждый DNS-запрос зашифрован и маршрутизируется через наши резолверы. Провайдер не видит, к каким сайтам вы обращаетесь.",
-  },
-  {
-    n: "04",
-    eyebrow: "Безопасность",
-    t: "WebAuthn и Passkeys",
-    d: "Аутентификация без паролей через аппаратные ключи и биометрию. Устойчиво к фишингу — учётные данные невозможно украсть повторным использованием.",
-  },
+/** Что действительно лежит в базе. Список короткий — в этом суть. */
+const STORED = [
+  "Адрес электронной почты",
+  "Дата окончания подписки",
+  "Идентификатор в панели выдачи ключей",
+  "Реферальный код, если вы им пользуетесь",
 ];
 
-const CERTIFICATIONS: Array<{ t: string; sub: string; d: string }> = [
-  { t: "ISO 27001",    sub: "Информационная безопасность", d: "Ежегодный надзорный аудит. Сертификат действует до 2027 года." },
-  { t: "SOC 2 Type II", sub: "Trust Services Criteria",     d: "12-месячный обзор операционной эффективности аудитором из Big-4." },
-  { t: "GDPR",         sub: "Защита данных ЕС",              d: "Полное соответствие для резидентов ЕС. Назначен DPO." },
-  { t: "FIPS 140-3",   sub: "Криптографические модули",      d: "Криптомодули валидированы по стандартам NIST." },
-];
-
-const ENCRYPTION: Array<[string, string]> = [
-  ["Транспорт",                    "TLS 1.3 · Zero-RTT рукопожатие"],
-  ["Симметричное шифрование",      "AES-256-GCM · ChaCha20-Poly1305"],
-  ["Обмен ключами",                "X25519 ECDHE · perfect forward secrecy"],
-  ["Подписи",                      "Ed25519"],
-  ["Деривация ключей",             "HKDF-SHA256"],
-  ["Одобрено",                     "NSA Suite B · FIPS 140-3 · NIST"],
-  ["Стандарты соответствия",       "ISO/IEC 27001 · SOC 2 Type II · GDPR"],
-  ["Аптайм SLA",                   "99,98% гарантированно"],
-  ["Мониторинг",                   "NOC 24/7/365"],
-  ["Контакт безопасности",         "security@atlas.secure"],
-];
-
-const AUDITS = [
-  { d: "Q1 2026", t: "Продление SOC 2 Type II",   desc: "12-месячный обзор операционной эффективности. Ноль материальных замечаний." },
-  /* Название туннельной реализации (Xray) с публичной страницы
-     убрано: на витрине мы не употребляем ни слово «VPN», ни имена
-     туннельных протоколов. Сам факт аудита и подрядчик — в
-     COMPLIANCE-CHECK.md, требуют подтверждения отчётом. */
-  { d: "Q4 2025", t: "Аудит криптографического кода", desc: "Внешняя команда проверила слой шифрования и обработку ключей. Все замечания устранены." },
-  { d: "Q3 2025", t: "Пентест",                    desc: "Внешний пентест клиентских эндпоинтов. Мелкие находки исправлены за 48 часов." },
-  { d: "Q2 2025", t: "Пересертификация ISO 27001", desc: "Трёхлетняя пересертификация аккредитованным органом." },
-  { d: "Q1 2025", t: "Обзор GDPR",                 desc: "Обзор обработки данных и списка субпроцессоров под руководством DPO." },
+/** Чего в базе нет. Список длиннее — и это главный аргумент страницы. */
+const NOT_STORED = [
+  "Посещённые сайты",
+  "DNS-запросы",
+  "История подключений: когда, откуда, как долго",
+  "IP-адреса сеансов",
+  "Имя, фамилия, отчество",
+  "Номер телефона",
+  "Почтовый адрес",
+  "Данные банковской карты — они остаются у платёжного провайдера",
+  "Содержимое трафика — оно закрыто ключом, которого у нас нет",
 ];
 
 export default function SecurityPage() {
   return (
-    <div className="px-page">
-      <div className="px-grid-bg" aria-hidden />
+    <div className="g gs">
       <SiteHeader />
-      <div className="px-header-spacer" aria-hidden />
 
-      {/* Hero */}
-      <section className="px-5 sm:px-8 pt-16 pb-16 sm:pt-24 sm:pb-24 max-w-[1200px] mx-auto w-full">
-        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-5">
-          Безопасность
-        </div>
-        <h1 className="font-mts-wide text-[40px] sm:text-[56px] lg:text-[80px] leading-[1.02] tracking-tight font-bold max-w-[14ch]">
-          Безопасно.<br />Надёжно.<br />Приватно.
-        </h1>
-        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-[color:var(--px-text-3)] mt-8 max-w-[58ch]">
-          Безопасность — не пункт списка, а архитектура. Каждый слой, от обмена ключами до политики хранения данных, построен вокруг одного принципа: чего нет, того нельзя раскрыть.
-        </p>
-      </section>
-
-      {/* Stats */}
-      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          {[
-            ["AES-256", "Шифрование"],
-            ["99,98%",  "Аптайм SLA"],
-            ["24/7",    "NOC мониторинг"],
-            ["0",       "Логов"],
-          ].map(([v, l]) => (
-            <div key={l} className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6">
-              <div className="font-mts-wide text-[28px] sm:text-[40px] font-bold leading-none tracking-tight tabular-nums">{v}</div>
-              <div className="font-mts-wide text-[12px] tracking-[0.10em] uppercase text-[color:var(--px-text-4)] mt-3">{l}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
-        <div className="mb-12 sm:mb-16 max-w-[720px]">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Защита</div>
-          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
-            Практические<br />меры защиты
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {FEATURES.map((f) => (
-            <div key={f.n} className="px-spot bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors">
-              <div className="flex items-center gap-3 mb-6">
-                <span className="font-mts-wide text-[12px] font-semibold text-[color:var(--px-text-4)]">{f.n}</span>
-                <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)]">{f.eyebrow}</span>
-              </div>
-              <h3 className="font-mts-wide text-[22px] sm:text-[26px] font-bold leading-[1.2] tracking-tight mb-3">{f.t}</h3>
-              <p className="font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] text-[color:var(--px-text-3)]">{f.d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Certifications */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
-        <div className="mb-12 sm:mb-16 max-w-[720px]">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Сертификации</div>
-          <h2 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.02] tracking-tight font-bold">
-            Проверено<br />третьими сторонами
-          </h2>
-          <p className="font-mts-wide text-[16px] sm:text-[17px] leading-[1.5] text-[color:var(--px-text-3)] mt-6 max-w-[58ch]">
-            Независимые аудиторы проверили инфраструктуру, политики и код. Публикуем результаты каждой внешней проверки.
+      <main>
+        <section className="gs-shell gs-hero" aria-labelledby="sec-title">
+          <h1 id="sec-title">Что мы знаем о вас</h1>
+          <p className="gs-answer">Адрес почты. И всё.</p>
+          <p className="gs-answer-note">
+            Ниже — оба списка целиком: что лежит в базе и чего в ней нет.
+            Второй длиннее, и это не приём вёрстки.
           </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {CERTIFICATIONS.map((c) => (
-            <div key={c.t} className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8">
-              <div className="w-3 h-3 rounded-full bg-black mb-6" />
-              <h3 className="font-mts-wide text-[20px] sm:text-[22px] font-bold leading-tight tracking-tight">{c.t}</h3>
-              <div className="font-mts-wide text-[11px] tracking-[0.12em] uppercase text-[color:var(--px-text-4)] mt-2 mb-4">{c.sub}</div>
-              <p className="font-mts-wide text-[13px] sm:text-[14px] leading-[1.55] text-[color:var(--px-text-3)]">{c.d}</p>
+        </section>
+
+        {/* Приборная панель: плотность данных вместо воздуха — тренд
+            2027 и наш случай одновременно. Каждое число проверяемое. */}
+        <section className="gs-shell" aria-label="Показатели приватности">
+          <dl className="g-panel">
+            <div className="g-readout" data-kind="measured">
+              <dt>полей о вас в базе</dt>
+              <dd>{STORED.length}</dd>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Encryption stack table */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[900px] mx-auto w-full">
-        <div className="mb-10 sm:mb-14">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Стек шифрования</div>
-          <h2 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.02] tracking-tight font-bold">Глубокая защита</h2>
-          <p className="font-mts-wide text-[16px] leading-[1.5] text-[color:var(--px-text-3)] mt-6 max-w-[58ch]">
-            Мы не просто выбираем современные алгоритмы — мы наслаиваем их. Ключ пересоздаётся каждую сессию: утечка одного ключа не расшифровывает ни прошлый, ни будущий трафик.
-          </p>
-        </div>
-        <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl overflow-hidden">
-          {ENCRYPTION.map(([k, v], i) => (
-            <div
-              key={k}
-              className={`flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 px-5 sm:px-8 py-4 sm:py-5 ${i > 0 ? "border-t border-[color:var(--px-line)]" : ""}`}
-            >
-              <div className="font-mts-wide text-[13px] text-[color:var(--px-text-4)] sm:w-[240px] shrink-0">{k}</div>
-              <div className="font-mts-wide text-[14px] sm:text-[15px] text-[color:var(--px-text)] font-medium">{v}</div>
+            <div className="g-readout" data-kind="measured">
+              <dt>того, чего мы не храним</dt>
+              <dd>{NOT_STORED.length}</dd>
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="g-readout" data-kind="measured">
+              <dt>нужно для входа</dt>
+              <dd>1<small>поле</small></dd>
+            </div>
+            <div className="g-readout" data-kind="measured">
+              <dt>дней без карты</dt>
+              <dd>{TRIAL_DAYS}</dd>
+            </div>
+          </dl>
+        </section>
 
-      {/* Audit timeline */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[900px] mx-auto w-full">
-        <div className="mb-10 sm:mb-14">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Прозрачность</div>
-          <h2 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.02] tracking-tight font-bold">История аудитов</h2>
-          <p className="font-mts-wide text-[16px] leading-[1.5] text-[color:var(--px-text-3)] mt-6 max-w-[58ch]">
-            Публичный реестр каждой внешней проверки безопасности.
-          </p>
-        </div>
-        <ol className="relative border-l border-[color:var(--px-line)] pl-6 sm:pl-8 space-y-8">
-          {AUDITS.map((e) => (
-            <li key={e.d} className="relative">
-              <span className="absolute -left-[29px] sm:-left-[37px] top-2 w-3 h-3 rounded-full bg-black" />
-              <div className="font-mts-wide text-[12px] tracking-[0.12em] uppercase text-[color:var(--px-text-4)] mb-1">{e.d}</div>
-              <div className="font-mts-wide text-[18px] sm:text-[20px] font-bold leading-tight mb-1.5">{e.t}</div>
-              <div className="font-mts-wide text-[14px] leading-[1.55] text-[color:var(--px-text-3)]">{e.desc}</div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* Final CTA */}
-      <section className="bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
-        <div className="max-w-[900px] mx-auto text-center">
-          <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
-            Ваша приватность —<br />без компромиссов
-          </h2>
-          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-accent-ink)] mt-6 max-w-[48ch] mx-auto">
-            Сообщить об уязвимости: security@atlas.secure
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
-            <Link href="/pricing" className="px-btn px-btn-md px-btn-primary">
-              Тарифы
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-            </Link>
-            <Link href="/auth" className="px-btn px-btn-md px-btn-secondary" style={{ background: "rgba(0,0,0,0.08)", color: "#000" }}>
-              Войти
-            </Link>
+        <section className="gs-shell gs-know" aria-labelledby="know">
+          <h2 id="know" className="b-sr">Что храним и чего не храним</h2>
+          <div className="gs-know-grid">
+            <div className="gs-col">
+              <h2>Храним</h2>
+              <ul>
+                {STORED.map((t, i) => (
+                  <li key={t}><b>{String(i + 1).padStart(2, "0")}</b>{t}</li>
+                ))}
+              </ul>
+              <p className="gs-count">{STORED.length} поля. Всё, что нужно, чтобы подписка работала.</p>
+            </div>
+            <div className="gs-col">
+              <h2>Не храним</h2>
+              <ul className="gs-col-none">
+                {NOT_STORED.map((t, i) => (
+                  <li key={t}><b>{String(i + 1).padStart(2, "0")}</b>{t}</li>
+                ))}
+              </ul>
+              <p className="gs-count">
+                {NOT_STORED.length} пунктов. Этих записей нет, поэтому их нельзя
+                ни запросить у нас, ни украсть у нас.
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Схема «до и после» на одном месте: тот же путь, только
+            закрытый. Приём №28 каталога. */}
+        <section className="gs-shell gs-path" aria-labelledby="path">
+          <h2 id="path">Что видит тот, кто смотрит на канал</h2>
+          <svg className="gs-diagram" viewBox="0 0 1000 190" role="img"
+               aria-label="Без ускорителя провайдер видит адрес сайта и содержимое запроса. С Atlas виден только факт соединения с узлом.">
+            <rect className="gs-box" x="20" y="70" width="120" height="50" rx="2" />
+            <text className="gs-cap" x="80" y="100" textAnchor="middle">устройство</text>
+
+            <path className="gs-wire-open" d="M 145 95 H 480" />
+            <circle className="gs-eye" cx="310" cy="95" r="7" />
+            <text className="gs-cap" x="310" y="78" textAnchor="middle">видно: адрес и запрос</text>
+
+            <path className="gs-wire-closed" d="M 145 95 H 480" pathLength={1} />
+            <text className="gs-cap" x="310" y="126" textAnchor="middle">видно: соединение с узлом</text>
+
+            <rect className="gs-box" x="485" y="70" width="120" height="50" rx="2" />
+            <text className="gs-cap" x="545" y="100" textAnchor="middle">узел Atlas</text>
+
+            <path className="gs-wire" d="M 610 95 H 860" />
+            <rect className="gs-box" x="865" y="70" width="115" height="50" rx="2" />
+            <text className="gs-cap" x="922" y="100" textAnchor="middle">сайт</text>
+          </svg>
+        </section>
+
+        <section className="gs-shell gs-spec" aria-labelledby="spec">
+          <h2 id="spec">Технические параметры</h2>
+          <dl className="g-panel">
+            <div className="g-readout">
+              <dt>устройств на подписке</dt>
+              <dd>{DEVICE_LIMIT}</dd>
+            </div>
+            <div className="g-readout">
+              <dt>стран на выбор</dt>
+              <dd>{COUNTRY_COUNT}</dd>
+            </div>
+            <div className="g-readout" data-kind="estimate">
+              <dt>шифрование канала</dt>
+              <dd style={{ fontSize: "1.05rem" }}>AES-256 / ChaCha20</dd>
+            </div>
+            <div className="g-readout" data-kind="estimate">
+              <dt>ключ хранится</dt>
+              <dd style={{ fontSize: "1.05rem" }}>на устройстве</dd>
+            </div>
+          </dl>
+          <p className="g-tolerance" style={{ marginTop: "1rem", maxWidth: "62ch" }}>
+            Два показателя помечены как требующие подтверждения: алгоритмы и
+            место хранения ключа мы обязаны подтвердить конфигурацией, а не
+            памятью. Названий стандартов, аудитов и сертификаций на этой
+            странице нет — они появятся вместе с самими документами.
+          </p>
+          <div className="gh-actions" style={{ marginTop: "1.75rem" }}>
+            <Link href="/privacy" className="gh-btn gh-btn-quiet">Политика приватности</Link>
+            <Link href="/infrastructure" className="gh-btn gh-btn-quiet">Как устроена сеть</Link>
+          </div>
+        </section>
+      </main>
 
       <SiteFooter />
     </div>
