@@ -23,139 +23,338 @@
 }
 
 /* ═══ Сцена 1: первый экран ═════════════════════════════════════════
-   Главный объект — работающий прибор, а не заголовок. */
+   ПЕРЕДЕЛАНО. Первая версия была колонкой текста слева и панелью
+   справа — ровно та композиция, которую бриф запрещает, и она же
+   оставляла мёртвую дыру в середине кадра.
+
+   Теперь объект первого экрана — САМА ТИПОГРАФИКА во всю ширину.
+   Механика снята с живых референсов (research/refs): у Exo Ape
+   заголовок 250px при трекинге −11,5px и интерлиньяже 0,9 занимает
+   83% ширины окна и выходит за край кадра. Строки не выстроены в
+   колонку, лид висит отдельно, а не подписан снизу.
+
+   Наш вариант: три строки разного кегля во всю ширину, третья
+   выходит за правый край, измерение врезано ВНУТРЬ типографики, а не
+   стоит карточкой сбоку. Гратикул — сетка на весь экран, а не полоска
+   у края.
+   ═══════════════════════════════════════════════════════════════════ */
 .gh-hero {
   position: relative;
   min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-block: clamp(88px, 12vh, 132px) clamp(20px, 3vh, 32px);
+  display: grid;
+  align-content: space-between;
+  padding-block: clamp(64px, 7.5vh, 88px) clamp(12px, 1.6vh, 18px);
   overflow: hidden;
+  /* Кегль заголовка держат ОБА размера окна. Если считать его только
+     от ширины, на ноутбуке 1440×900 первый экран вырастал до 1079px
+     при окне 900 — приборная полоса уезжала под сгиб. */
+  --gh-fs: min(15.5vw, 17.2vh);
+  --gh-fs-3: min(8vw, 8.8vh);
 }
 
-/* Гратикул: подписанные параллели вдоль левого края. Сетка на карте
-   предъявлена, а не спрятана, — этим система и отличается. */
+/* Гратикул во весь кадр: сетка предъявлена, как на карте. Линии
+   тонкие и живут — медленно дышат, чтобы кадр не был мёртвым, когда
+   читатель замер. */
 .gh-graticule {
   position: absolute;
-  inset-block: 0;
-  left: 0;
-  width: var(--g-gutter);
-  display: none;
+  inset: 0;
+  z-index: 2;
   pointer-events: none;
+  background-image:
+    repeating-linear-gradient(90deg, var(--g-line) 0 1px, transparent 1px 12.5%),
+    repeating-linear-gradient(0deg, var(--g-line) 0 1px, transparent 1px 20%);
+  /* Умножение вместо прозрачности: линия проходит сквозь букву, а не
+     обрывается об неё. На чернилах умножение ничего не меняет (тёмное
+     на тёмном), на бумаге даёт ту же линию, что и раньше, — контраст
+     текста не падает ни на одном участке. Приём взят у tonik.com
+     (multiply, 18 узлов) и obys.agency (difference, 3 узла);
+     difference на светлом корпусе даёт инверсию и здесь неуместен. */
+  mix-blend-mode: multiply;
+  opacity: 0.8;
 }
-@media (min-width: 1100px) {
-  .gh-graticule { display: grid; align-content: space-around; width: 64px; }
+
+/* ─── Лента прибора ──────────────────────────────────────────────
+   Холст лежит под типографикой и виден сквозь неё тем же умножением.
+   Цвет линии берётся из `color`: канвасу нельзя передать
+   CSS-переменную иначе. */
+.gh-trace-band {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: multiply;
 }
-.gh-parallel {
-  display: flex;
+.gh-trace { display: block; width: 100%; height: 100%; color: var(--g-line-2); }
+/* Показание ленты стоит шестой ячейкой приборной полосы, а не
+   подписью у холста: это такое же число, как остальные пять. */
+#gh-fps { color: var(--g-chart-deep); }
+
+/* Типографика и текст первого экрана стоят НАД холстом и сеткой. */
+.gh-hero > .gh-type,
+.gh-hero > .gh-say,
+.gh-hero > .gh-rail { position: relative; z-index: 3; }
+.gh-parallel { display: none; }
+
+/* ─── Типографический стек ──────────────────────────────────────── */
+/* ─── Типографический стек, выключенный по ширине колонки ────────
+   Каждая строка набрана СВОИМ кеглем так, чтобы встать ровно во всю
+   ширину колонки: получается плотный блок текста, выключенный по
+   обоим краям, как в наборе. Кегль считает CSS, а не скрипт: для
+   каждой строки заранее измерено отношение ширины к кеглю в Golos
+   Text при трекинге −0.055em (см. --gh-k-*), и кегль равен
+   `100cqw / k`. Ноль JS, ноль сдвига макета при загрузке шрифта.
+
+   Второе слагаемое в min() — потолок по высоте окна. Без него на
+   ноутбуке 1440×900 блок вырастал до 1079px и приборная полоса
+   уезжала под сгиб. Доли (29.1 / 32.7 / 25.8 vh) пропорциональны
+   1/k и вместе с интерлиньяжем 0.76 укладывают три строки в 62% высоты
+   кадра — ровно столько, сколько остаётся после шапки, строки смысла,
+   кнопок и приборной полосы.
+   ──────────────────────────────────────────────────────────────── */
+.gh-type {
+  position: relative;
+  padding-inline: var(--g-gutter);
+  container-type: inline-size;
+  display: grid;
+  justify-items: start;
+  /* ширина строки = k × кегль, измерено в браузере на живом шрифте */
+  --gh-k-1: 5.3350;  /* Ускоритель   */
+  --gh-k-2: 4.7042;  /* интернета    */
+  --gh-k-3: 5.9150;  /* без оговорок, начертание 500 */
+}
+.gh-line {
+  display: block;
+  margin: 0;
+  line-height: 0.76;
+  letter-spacing: -0.055em;
+  font-weight: 700;
+  color: var(--g-ink);
+  white-space: nowrap;
+}
+.gh-line-1 { font-size: min(calc(100cqw / var(--gh-k-1)), calc(43.4vh - 130px)); }
+.gh-line-2 { font-size: min(calc(100cqw / var(--gh-k-2)), calc(49.1vh - 147px)); }
+/* Третья строка — та же ширина, но светлее по цвету и по начертанию:
+   выключка держит блок, а смысловой сдвиг делает не отступ, а цвет. */
+.gh-line-3 {
+  font-size: min(calc(100cqw / var(--gh-k-3)), calc(39.0vh - 117px));
+  font-weight: 500;
+  color: var(--g-chart-deep);
+}
+
+
+.gh-say {
+  padding-inline: var(--g-gutter);
+  display: grid;
+  gap: clamp(0.5rem, 1.1vh, 0.8rem);
+  justify-items: start;
+  max-width: 58ch;
+}
+/* Лид первого экрана — ровно одна строка смысла. Раньше он занимал
+   две строки крупного кегля, и приборная полоса не помещалась в кадр
+   вместе с заголовком. */
+.gh-lead { margin: 0; font-size: clamp(1rem, 1.35vw, 1.25rem); line-height: 1.35; color: var(--g-ink-2); max-width: 62ch; }
+.gh-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.gh-fine { font-size: var(--g-t-small); color: var(--g-ink-3); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   СЦЕНА 1а — ЗАБЕГ, КОТОРЫЙ ВЕДЁТ ЧИТАТЕЛЬ
+   Полоса, заполняющаяся сама, заканчивается раньше, чем читатель
+   успевает понять, что сравнивают. Здесь прогресс равен прокрутке:
+   кадр держит `position: sticky`, а ширину заливки и разряды счётчика
+   считает браузер по `view-timeline` секции. Ни строки JS, никакого
+   перехвата колеса.
+   ═══════════════════════════════════════════════════════════════════ */
+.gh-lap {
+  position: relative;
+  min-height: 230vh;
+  border-top: var(--g-rule) solid var(--g-line);
+  view-timeline-name: --lap;
+  view-timeline-axis: block;
+  timeline-scope: --lap;
+}
+.gh-lap-stick {
+  position: sticky;
+  top: 0;
+  min-height: 100svh;
+  padding-inline: var(--g-gutter);
+  display: grid;
+  align-content: center;
+  gap: clamp(1.6rem, 5vh, 3.2rem);
+}
+.gh-lap-title {
+  margin: 0;
+  font-size: clamp(2rem, 7.2vw, 6.4rem);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  font-weight: 700;
+  color: var(--g-ink);
+  max-width: 18ch;
+}
+.gh-lap-grid { display: grid; gap: clamp(1.4rem, 4vh, 2.6rem); }
+.gh-lap-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "name pct" "track pct" "out pct";
+  column-gap: clamp(1rem, 3vw, 2.5rem);
+  row-gap: 0.55rem;
   align-items: center;
-  gap: 8px;
+  padding-block: clamp(0.8rem, 2vh, 1.4rem);
+  border-top: var(--g-rule) solid var(--g-line);
+}
+.gh-lap-name { grid-area: name; font-size: var(--g-t-meta); color: var(--g-ink-3); }
+.gh-lap-out {
+  grid-area: out;
   font-size: var(--g-t-meta);
   color: var(--g-ink-3);
   font-variant-numeric: tabular-nums;
 }
-.gh-parallel::after {
-  content: "";
-  flex: 1;
-  height: var(--g-rule);
+.gh-lap-track {
+  grid-area: track;
+  position: relative;
+  display: block;
+  height: 4px;
   background: var(--g-line);
 }
-
-.gh-hero-body {
-  display: grid;
-  gap: clamp(2rem, 5vw, 4rem);
-  align-items: center;
+.gh-lap-fill { position: absolute; inset: 0 auto 0 0; display: block; width: 0; }
+/* Голова пакета едет по своей дорожке вместе с заливкой. */
+.gh-lap-head {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  opacity: 0;
 }
-@media (min-width: 1000px) {
-  .gh-hero-body { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
-}
+[data-lane="slow"] .gh-lap-head { background: var(--g-ink-3); }
+[data-lane="fast"] .gh-lap-head { background: var(--g-chart); }
+.gh-lane-slow { background: var(--g-ink-3); }
+.gh-lane-fast { background: var(--g-chart); }
 
-.gh-title {
-  margin: 0;
-  font-size: var(--g-t-hero);
-  line-height: 0.93;
+/* ─── Разряды процента ───────────────────────────────────────────
+   Число печатает счётчик из зарегистрированного свойства: браузер
+   умеет анимировать `<integer>`, а `counter()` — выводить его как
+   текст. Это единственный способ получить бегущее число без скрипта.
+   Свойство `content` слепо для диктора, поэтому смысл строки уже
+   передан в `aria-label` всей группы. */
+@property --lap-n {
+  syntax: "<integer>";
+  initial-value: 0;
+  /* Наследование обязательно: счётчик печатается в ::after, а
+     псевдоэлемент со своим `inherits: false` получал бы начальное
+     значение 0 и показывал «0%» при любом положении прокрутки. */
+  inherits: true;
+}
+.gh-lap-pct {
+  grid-area: pct;
+  align-self: center;
+  justify-self: end;
+  font-size: clamp(2.6rem, 8.5vw, 7rem);
+  line-height: 0.85;
   letter-spacing: -0.045em;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   color: var(--g-ink);
-  /* Строка не переносится: ступенчатый ритм заголовка иначе
-     превращается в лесенку с одиноким предлогом. */
-  text-wrap: balance;
 }
-.gh-lead {
-  margin: clamp(1.25rem, 3vh, 2rem) 0 0;
-  max-width: 46ch;
-  font-size: var(--g-t-lead);
-  line-height: 1.45;
-  color: var(--g-ink-2);
-}
-.gh-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: clamp(1.5rem, 3vh, 2.25rem); }
-.gh-fine { margin: 1rem 0 0; font-size: var(--g-t-small); color: var(--g-ink-3); }
+[data-lane="fast"] .gh-lap-pct { color: var(--g-chart-deep); }
+.gh-lap-pct::after { counter-reset: lap var(--lap-n); content: counter(lap) "%"; }
 
-/* ─── Прибор: две дорожки ────────────────────────────────────────── */
-.gh-instrument {
-  padding: clamp(1.25rem, 2.5vw, 2rem);
-  display: grid;
-  gap: 1.5rem;
-}
-.gh-lane { display: grid; gap: 0.5rem; }
-.gh-lane-name { margin: 0; font-size: var(--g-t-small); color: var(--g-ink-3); }
-.gh-lane-track {
-  height: 10px;
-  background: var(--g-paper-2);
-  border: var(--g-rule) solid var(--g-line);
-  border-radius: var(--g-radius);
-  overflow: hidden;
-}
-.gh-lane-fill { display: block; height: 100%; width: 0; }
-/* Забег идёт ОДИН РАЗ при загрузке и остаётся в конечном положении.
-   Бесконечный цикл здесь был бы двумя ошибками сразу: система
-   разрешает один поставленный момент на страницу, а не вечное
-   движение в углу кадра, — и бесконечная анимация не даёт браузеру
-   отдать стабильный кадр, то есть ломает визуальные регрессии в CI.
+/* Без scroll-driven и при отключённом движении полосы и числа просто
+   нарисованы в конечном положении: содержание не зависит от механики. */
+.gh-lap-fill.gh-lane-slow { width: 61%; }
+.gh-lap-fill.gh-lane-fast { width: 100%; }
+[data-lane="slow"] .gh-lap-pct { --lap-n: 61; }
+[data-lane="fast"] .gh-lap-pct { --lap-n: 100; }
 
-   `both` удерживает конечное состояние: полосы остаются такими, какими
-   пришли к финишу, и результат читается сколько угодно долго. */
-.gh-lane-slow { background: var(--g-ink-3); animation: gh-slow 2.6s var(--g-e-out) both; }
-.gh-lane-fast { background: var(--g-chart); animation: gh-fast 2.6s var(--g-e-out) both; }
-@media (prefers-reduced-motion: reduce) {
-  /* Без движения полосы просто стоят на своих значениях: результат
-     сравнения — содержание, а не украшение, и терять его нельзя. */
-  .gh-lane-slow, .gh-lane-fast { animation: none; }
-  .gh-lane-slow { width: 61%; }
-  .gh-lane-fast { width: 100%; }
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .gh-lap-fill,
+    .gh-lap-head,
+    .gh-lap-out,
+    .gh-lap-pct {
+      animation-timeline: --lap;
+      animation-range: contain 0% contain 92%;
+      animation-fill-mode: both;
+      animation-timing-function: linear;
+    }
+    .gh-lap-fill.gh-lane-slow { animation-name: gh-lap-slow; }
+    .gh-lap-fill.gh-lane-fast { animation-name: gh-lap-fast; }
+    [data-lane="slow"] .gh-lap-head { animation-name: gh-lap-head-slow; }
+    [data-lane="fast"] .gh-lap-head { animation-name: gh-lap-head-fast; }
+    [data-lane="slow"] .gh-lap-out { animation-name: gh-lap-verdict-slow; }
+    [data-lane="fast"] .gh-lap-out { animation-name: gh-lap-verdict-fast; }
+    [data-lane="slow"] .gh-lap-pct { animation-name: gh-lap-n-slow; }
+    [data-lane="fast"] .gh-lap-pct { animation-name: gh-lap-n-fast; }
+  }
 }
-.gh-lane-value { display: flex; justify-content: space-between; gap: 1rem; font-size: var(--g-t-small); }
-.gh-lane-value b { font-weight: 600; color: var(--g-ink); }
-.gh-lane-value span { color: var(--g-ink-3); }
 
-@keyframes gh-slow {
-  0%   { width: 0; }
-  70%  { width: 61%; }
+/* Медленная дорожка доходит до 61% и дальше только дёргается: это
+   повтор пакета, а не движение вперёд. */
+@keyframes gh-lap-slow {
+  0% { width: 0; }
+  55% { width: 61%; }
+  62% { width: 60.4%; }
+  70% { width: 61.3%; }
+  78% { width: 60.6%; }
   100% { width: 61%; }
 }
-@keyframes gh-fast {
-  0%   { width: 0; }
-  42%  { width: 100%; }
-  100% { width: 100%; }
+@keyframes gh-lap-fast { 0% { width: 0; } 46% { width: 100%; } 100% { width: 100%; } }
+@keyframes gh-lap-n-slow {
+  0% { --lap-n: 0; }
+  55%, 100% { --lap-n: 61; }
 }
+@keyframes gh-lap-n-fast {
+  0% { --lap-n: 0; }
+  46%, 100% { --lap-n: 100; }
+}
+@keyframes gh-lap-head-slow {
+  0% { left: 0; opacity: 1; }
+  55% { left: 61%; opacity: 1; }
+  70% { left: 61%; opacity: 0.35; }
+  85% { left: 61%; opacity: 1; }
+  100% { left: 61%; opacity: 0.35; }
+}
+@keyframes gh-lap-head-fast {
+  0% { left: 0; opacity: 1; }
+  46% { left: 100%; opacity: 1; }
+  60%, 100% { left: 100%; opacity: 0; }
+}
+@keyframes gh-lap-verdict-slow { 0%, 60% { opacity: 0; } 74%, 100% { opacity: 1; } }
+@keyframes gh-lap-verdict-fast { 0%, 48% { opacity: 0; } 60%, 100% { opacity: 1; } }
+
+.gh-lap-fine { margin: 0; max-width: 62ch; font-size: var(--g-t-small); color: var(--g-ink-3); }
 
 /* ─── Приборная полоса ───────────────────────────────────────────── */
 .gh-rail {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
-  margin-top: clamp(2rem, 5vh, 3rem);
+  margin-top: clamp(0.6rem, 1.6vh, 1.2rem);
   background: var(--g-line);
   border-block: var(--g-rule) solid var(--g-line);
 }
-@media (min-width: 720px) { .gh-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.gh-rail div { background: var(--g-paper); padding: 1rem 0.25rem; display: grid; gap: 0.2rem; }
+@media (min-width: 720px) { .gh-rail { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+.gh-rail div { background: var(--g-paper); padding: clamp(0.35rem, 1vh, 0.6rem) 0.25rem; display: grid; gap: 0.2rem; }
 .gh-rail dt { font-size: var(--g-t-meta); color: var(--g-ink-3); order: 2; }
+/* Пятая ячейка — живое измерение: та же форма, что у остальных
+   показаний (значение крупно, подпись мелко), но число считано
+   сейчас. На узком экране ячейка занимает всю строку — иначе в
+   двухколоночной сетке она оставалась бы сиротой. */
+.gh-rail-live .gh-ping { display: grid; grid-template-columns: auto auto; align-items: baseline; column-gap: 0.3rem; }
+.gh-rail-live .gh-ping-value {
+  order: 1; font-size: clamp(1.15rem, 1.9vw, 1.6rem); font-weight: 600;
+  letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--g-chart-deep);
+}
+.gh-rail-live .gh-ping-unit { order: 2; font-size: var(--g-t-meta); color: var(--g-ink-3); }
+.gh-rail-live .gh-ping-note { order: 3; grid-column: 1 / -1; font-size: var(--g-t-meta); color: var(--g-ink-3); }
+.gh-rail-live { grid-column: 1 / -1; }
+@media (min-width: 720px) { .gh-rail-live { grid-column: auto; } }
+
 .gh-rail dd {
   margin: 0;
   order: 1;
-  font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+  font-size: clamp(1.15rem, 1.9vw, 1.6rem);
   font-weight: 600;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -632,5 +831,78 @@
       from { transform: translate3d(-3%, -2%, 0) scale(1.05); }
       to   { transform: translate3d(3%, 2%, 0) scale(1.12); }
     }
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   IDLE-СЛОЙ: сайт живёт, когда читатель замер.
+
+   Замер шестнадцати сайтов (research/02_AGENCIES.md): у Linear 78
+   анимаций и все 78 бесконечные, у basement.studio 40 из 40, у
+   makemepulse 6, у Lusion 6. У нас было 0 — всё движение висело на
+   прокрутке, и остановившийся кадр замирал полностью. Отсюда и
+   «сайт мёртвый», и замечание верное.
+
+   Здесь возвращена жизнь, но по правилам системы: только transform,
+   opacity и вариативная ось; периоды длинные и несовпадающие, чтобы
+   движение не читалось как мигание; при prefers-reduced-motion всё
+   выключено.
+
+   Для снимков в CI живой слой останавливается флагом `?static=1`
+   (ADR-0010) — тем самым остаётся возможность визуальных регрессий,
+   ради которой idle-слой и был когда-то убран. */
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-static]) .gh-line-1 { animation: gh-breathe-a 11s ease-in-out infinite; }
+  html:not([data-static]) .gh-line-2 { animation: gh-breathe-b 13s ease-in-out infinite; }
+  html:not([data-static]) .gh-line-3 { animation: gh-breathe-c 17s ease-in-out infinite; }
+
+  /* Вес дышит по вариативной оси. Ось меняется у строки целиком, а не
+     у каждого знака: смена начертания вызывает пересчёт раскладки. */
+  @keyframes gh-breathe-a {
+    0%, 100% { font-variation-settings: "wght" 700; }
+    50%      { font-variation-settings: "wght" 780; }
+  }
+  @keyframes gh-breathe-b {
+    0%, 100% { font-variation-settings: "wght" 700; transform: translateX(0); }
+    50%      { font-variation-settings: "wght" 640; transform: translateX(0.6%); }
+  }
+  @keyframes gh-breathe-c {
+    0%, 100% { font-variation-settings: "wght" 500; opacity: 1; }
+    50%      { font-variation-settings: "wght" 560; opacity: 0.86; }
+  }
+
+  /* Сетка медленно дрейфует: кадр дышит целиком, а не в одной точке. */
+  html:not([data-static]) .gh-graticule { animation: gh-drift 34s linear infinite; }
+  @keyframes gh-drift {
+    from { background-position: 0 0, 0 0; }
+    to   { background-position: 12.5% 0, 0 20%; }
+  }
+
+  /* Показания приборной полосы пульсируют по очереди — как индикаторы
+     живого прибора, а не как украшение. */
+  html:not([data-static]) .gh-rail div:nth-child(1) dd { animation: gh-tick 9s ease-in-out infinite; }
+  html:not([data-static]) .gh-rail div:nth-child(2) dd { animation: gh-tick 9s ease-in-out 2.2s infinite; }
+  html:not([data-static]) .gh-rail div:nth-child(3) dd { animation: gh-tick 9s ease-in-out 4.4s infinite; }
+  html:not([data-static]) .gh-rail div:nth-child(4) dd { animation: gh-tick 9s ease-in-out 6.6s infinite; }
+  @keyframes gh-tick {
+    0%, 88%, 100% { opacity: 1; }
+    92%           { opacity: 0.55; }
+  }
+
+  /* Пустая дорожка живёт сама: по ней всё время идёт слабая рябь —
+     канал есть до того, как читатель начал листать. Пишется
+     background-position, а не ширина: со scroll-driven заливкой,
+     которая пишет width, эта анимация не сталкивается. */
+  html:not([data-static]) .gh-lap-track {
+    background-image: linear-gradient(90deg,
+      transparent 0 42%, color-mix(in oklab, var(--g-ink-3) 30%, transparent) 50%, transparent 58% 100%);
+    background-size: 240px 100%;
+    background-repeat: repeat-x;
+    animation: gh-lap-idle 7s linear infinite;
+  }
+  @keyframes gh-lap-idle {
+    from { background-position: -240px 0; }
+    to   { background-position: 0 0; }
   }
 }

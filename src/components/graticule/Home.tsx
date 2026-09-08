@@ -7,6 +7,7 @@ import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { SERVER_ENTRY_USD, formatUsd } from "@/lib/servers";
 import { landPath, project, MAP_W, MAP_H } from "@/lib/world-map";
 import LivePing from "./LivePing";
+import SignalTrace from "./SignalTrace";
 import "@/app/graticule-home.css";
 
 /**
@@ -54,73 +55,98 @@ export default function GraticuleHome({ referralCode }: { referralCode?: string 
       <main id="main">
         {/* ── Сцена 1: прибор ─────────────────────────────────────── */}
         <section className="gh-hero" aria-labelledby="hero-title">
-          <div className="gh-graticule" aria-hidden>
-            {PARALLELS.map((p) => (
-              <span key={p} className="gh-parallel">{p}</span>
-            ))}
+          {/* Гратикул во весь кадр: сетка предъявлена, как на карте.
+              Наложение multiply — сетка проходит СКВОЗЬ буквы, а не
+              лежит под ними: приём снят с tonik.com и obys.agency
+              (research/03_AGENCY_TEARDOWN.md, вывод 3). */}
+          <div className="gh-graticule" aria-hidden />
+
+          {/* Лента прибора: единственный холст на сайте. Рисует не
+              абстрактную рябь, а длительность кадров браузера на
+              устройстве читателя. */}
+          <div className="gh-trace-band"><SignalTrace /></div>
+
+          {/* Объект первого экрана — сама типографика. Три строки во
+              всю ширину, вторая сдвинута, третья выходит за правый
+              край. Механика снята с живых референсов: у Exo Ape
+              заголовок занимает 83% ширины окна при интерлиньяже 0,9
+              и выходит за край кадра (research/refs/exoape--hero.jpg). */}
+          <h1 id="hero-title" className="gh-type">
+            <span className="gh-line gh-line-1">Ускоритель</span>
+            <span className="gh-line gh-line-2">интернета</span>
+            <span className="gh-line gh-line-3">без оговорок</span>
+          </h1>
+
+          <div className="gh-say">
+            <p className="gh-lead">Atlas&nbsp;Secure — передовое решение VPS-ускорителя.</p>
+            <div className="gh-actions">
+              <Link href={enter} className="gh-btn gh-btn-primary">
+                {TRIAL_DAYS} дня бесплатно
+              </Link>
+              <Link href="/vds" className="gh-btn gh-btn-quiet">
+                Выделенные серверы
+              </Link>
+            </div>
+            <p className="gh-fine">Без карты. Дальше от {basicMonth} ₽ в месяц.</p>
           </div>
 
-          <div className="gh-shell gh-hero-body">
-            <div>
-              <h1 id="hero-title" className="gh-title">Ускоритель интернета</h1>
-              <p className="gh-lead">
-                Atlas Secure — передовое решение VPS-ускорителя. Шифрует трафик,
-                меняет страну и открывает то, что перестало открываться.
-              </p>
-              <div className="gh-actions">
-                <Link href={enter} className="gh-btn gh-btn-primary">
-                  {TRIAL_DAYS} дня бесплатно
-                </Link>
-                <Link href="/vds" className="gh-btn gh-btn-quiet">
-                  Выделенные серверы
-                </Link>
-              </div>
-              <p className="gh-fine">
-                Без карты. Дальше от {basicMonth} ₽ в месяц.
-              </p>
-            </div>
-
-            {/* Прибор: две дорожки идут наперегонки сами. Первый экран
-                обязан объяснять себя без действий читателя. */}
-            <div
-              className="g-plane gh-instrument"
-              role="img"
-              aria-label={`Сравнение: без ускорителя загрузка доходит до 61 процента и останавливается, через Atlas завершается за ${CLOSEST.latencyMs} миллисекунд`}
-            >
-              <div className="gh-lane">
-                <p className="gh-lane-name">без ускорителя</p>
-                <span className="gh-lane-track" aria-hidden>
-                  <span className="gh-lane-fill gh-lane-slow" />
-                </span>
-                <p className="gh-lane-value"><b>61%</b><span>не отвечает</span></p>
-              </div>
-              <div className="gh-lane">
-                <p className="gh-lane-name">с Atlas</p>
-                <span className="gh-lane-track" aria-hidden>
-                  <span className="gh-lane-fill gh-lane-fast" />
-                </span>
-                <p className="gh-lane-value">
-                  <b>готово</b>
-                  <span>{CLOSEST.cities[0]}</span>
-                </p>
-              </div>
-
-              {/* Приёмы №62 и №57 каталога: число измеряется на
-                  устройстве читателя и набрано крупнее всего, что
-                  рядом. Единственное на витрине измерение, которое
-                  человек может проверить сам. */}
-              <div className="gh-figure-object">
-                <LivePing fallbackMs={CLOSEST.latencyMs} />
-              </div>
-            </div>
-          </div>
-
+          {/* Живое измерение стоит не карточкой сбоку, а пятым
+              показанием приборной полосы: это такое же число, как
+              остальные, только считанное сейчас и здесь. */}
           <dl className="gh-shell gh-rail">
             <div><dt>стран</dt><dd>{COUNTRY_COUNT}</dd></div>
             <div><dt>устройств</dt><dd>{DEVICE_LIMIT}</dd></div>
             <div><dt>канал</dt><dd>{PLAN_SPEED.plus} Гбит/с</dd></div>
             <div><dt>логи</dt><dd>нет</dd></div>
+            <div className="gh-rail-live"><LivePing fallbackMs={CLOSEST.latencyMs} /></div>
+            <div className="gh-rail-live">
+              <dt>кадров/с, ваш экран</dt>
+              <dd id="gh-fps">60</dd>
+            </div>
           </dl>
+        </section>
+
+        {/* ── Сцена 1а: забег ─────────────────────────────────────── */}
+        {/* Сравнение вынесено из первого экрана в собственную сцену и
+            отдано прокрутке. Полоса, которая заполняется сама за 2,6 с,
+            заканчивается раньше, чем читатель успел понять, что
+            сравнивают; полоса, которую он тянет сам, читается. Заливку
+            считает браузер по `animation-timeline: view()` — ни строки
+            JS. */}
+        <section className="gh-lap" aria-labelledby="lap-title">
+          <div className="gh-lap-stick">
+            <h2 id="lap-title" className="gh-lap-title">Одна и&nbsp;та&nbsp;же страница</h2>
+            <div className="gh-lap-grid"
+                 role="img"
+                 aria-label="Без ускорителя страница доходит до 61 процента и останавливается. Через Atlas загрузка завершается.">
+              <div className="gh-lap-row" data-lane="slow">
+                <span className="gh-lap-name">без ускорителя</span>
+                <span className="gh-lap-track" aria-hidden>
+                  <span className="gh-lap-fill gh-lane-slow" />
+                  <span className="gh-lap-head" />
+                </span>
+                {/* Разряды считает браузер: зарегистрированное свойство
+                    --lap-n анимируется по той же шкале прокрутки, а
+                    счётчик печатает его в ::after. Без JS. */}
+                <span className="gh-lap-pct" aria-hidden />
+                <span className="gh-lap-out">соединение сброшено</span>
+              </div>
+              <div className="gh-lap-row" data-lane="fast">
+                <span className="gh-lap-name">через Atlas</span>
+                <span className="gh-lap-track" aria-hidden>
+                  <span className="gh-lap-fill gh-lane-fast" />
+                  <span className="gh-lap-head" />
+                </span>
+                <span className="gh-lap-pct" aria-hidden />
+                <span className="gh-lap-out">готово · {CLOSEST.cities[0]}</span>
+              </div>
+            </div>
+            <p className="gh-lap-fine">
+              Atlas шифрует трафик и меняет страну выхода — и страница
+              открывается оттуда, откуда открывается. Полосы идут ровно
+              настолько, насколько вы пролистали.
+            </p>
+          </div>
         </section>
 
         {/* ── Сцена 2: манифест ───────────────────────────────────── */}

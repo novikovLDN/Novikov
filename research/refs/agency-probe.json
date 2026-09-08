@@ -1,0 +1,1386 @@
+[
+  {
+    "name": "lusion",
+    "url": "https://lusion.co/",
+    "top": {
+      "animated": 6,
+      "infinite": 6,
+      "uniqueAnims": 2,
+      "topAnims": [
+        [
+          "arrow-animation",
+          4
+        ],
+        [
+          "text-animation",
+          2
+        ]
+      ],
+      "canvases": 3,
+      "webgl": 1,
+      "blend": [
+        "exclusion"
+      ],
+      "blendCount": 1,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 0,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 144,
+        "text": "Bold Ideas,",
+        "family": "Aeonik",
+        "ls": "-2.88px",
+        "lh": "144px",
+        "weight": "400",
+        "w": 891
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(240, 241, 250)",
+      "scripts": 2
+    },
+    "mid": {
+      "animated": 6,
+      "infinite": 6,
+      "uniqueAnims": 2,
+      "topAnims": [
+        [
+          "arrow-animation",
+          4
+        ],
+        [
+          "text-animation",
+          2
+        ]
+      ],
+      "canvases": 3,
+      "webgl": 1,
+      "blend": [
+        "exclusion"
+      ],
+      "blendCount": 1,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 0,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 144,
+        "text": "Bold",
+        "family": "Aeonik",
+        "ls": "-2.88px",
+        "lh": "144px",
+        "weight": "400",
+        "w": 276
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(240, 241, 250)",
+      "scripts": 2
+    }
+  },
+  {
+    "name": "activetheory",
+    "url": "https://activetheory.net/",
+    "top": {
+      "animated": 1,
+      "infinite": 0,
+      "uniqueAnims": 1,
+      "topAnims": [
+        [
+          "fadeInOpacity",
+          1
+        ]
+      ],
+      "canvases": 0,
+      "webgl": 0,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 0,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 18,
+        "text": "Your browser is not supported",
+        "family": "nbarchitekt",
+        "ls": "normal",
+        "lh": "normal",
+        "weight": "700",
+        "w": 1440
+      },
+      "vw": 1440,
+      "bg": "rgb(0, 0, 0)",
+      "fg": "rgb(255, 255, 255)",
+      "scripts": 1
+    },
+    "mid": {
+      "animated": 1,
+      "infinite": 0,
+      "uniqueAnims": 1,
+      "topAnims": [
+        [
+          "fadeInOpacity",
+          1
+        ]
+      ],
+      "canvases": 0,
+      "webgl": 0,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 0,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 18,
+        "text": "Your browser is not supported",
+        "family": "nbarchitekt",
+        "ls": "normal",
+        "lh": "normal",
+        "weight": "700",
+        "w": 1440
+      },
+      "vw": 1440,
+      "bg": "rgb(0, 0, 0)",
+      "fg": "rgb(255, 255, 255)",
+      "scripts": 1
+    }
+  },
+  {
+    "name": "resn",
+    "url": "https://resn.co.nz/",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 2,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 2,
+      "clip": 0,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 16,
+        "text": "Drop",
+        "family": "Fort-Book",
+        "ls": "normal",
+        "lh": "16px",
+        "weight": "400",
+        "w": 0
+      },
+      "vw": 1440,
+      "bg": "rgb(0, 0, 0)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 14
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 6,
+      "webgl": 2,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 2,
+      "clip": 0,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 58.5,
+        "text": "Keep",
+        "family": "Fort-Extralight",
+        "ls": "-1.17px",
+        "lh": "58.5px",
+        "weight": "400",
+        "w": 1440
+      },
+      "vw": 1440,
+      "bg": "rgb(0, 0, 0)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 14
+    }
+  },
+  {
+    "name": "obys",
+    "url": "https://obys.agency/",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 1,
+      "webgl": 1,
+      "blend": [
+        "difference"
+      ],
+      "blendCount": 3,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 40,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 79.9999,
+        "text": "Makhno",
+        "family": "Obys",
+        "ls": "-2.4px",
+        "lh": "79.9999px",
+        "weight": "400",
+        "w": 270
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 2
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 1,
+      "webgl": 1,
+      "blend": [
+        "difference"
+      ],
+      "blendCount": 3,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 40,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 79.9999,
+        "text": "Makhno",
+        "family": "Obys",
+        "ls": "-2.4px",
+        "lh": "79.9999px",
+        "weight": "400",
+        "w": 270
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 2
+    }
+  },
+  {
+    "name": "locomotive",
+    "url": "https://locomotive.ca/en",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 2,
+      "webgl": 2,
+      "blend": [
+        "difference",
+        ""
+      ],
+      "blendCount": 4,
+      "sticky": 0,
+      "persp": 2,
+      "clip": 3,
+      "filt": 2,
+      "mask": 2,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 1,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 115.2,
+        "text": "Montréal, Quebec",
+        "family": "LocomotiveNew",
+        "ls": "normal",
+        "lh": "115.2px",
+        "weight": "400",
+        "w": 0
+      },
+      "vw": 1440,
+      "bg": "rgba(0, 0, 0, 0)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 6
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 2,
+      "webgl": 2,
+      "blend": [
+        "difference",
+        ""
+      ],
+      "blendCount": 3,
+      "sticky": 0,
+      "persp": 2,
+      "clip": 3,
+      "filt": 2,
+      "mask": 2,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 1,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 115.2,
+        "text": "Montréal, Quebec",
+        "family": "LocomotiveNew",
+        "ls": "normal",
+        "lh": "115.2px",
+        "weight": "400",
+        "w": 0
+      },
+      "vw": 1440,
+      "bg": "rgba(0, 0, 0, 0)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 6
+    }
+  },
+  {
+    "name": "basement",
+    "url": "https://basement.studio/",
+    "top": {
+      "animated": 1,
+      "infinite": 1,
+      "uniqueAnims": 1,
+      "topAnims": [
+        [
+          "pulse",
+          1
+        ]
+      ],
+      "canvases": 3,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 4,
+      "persp": 0,
+      "clip": 0,
+      "filt": 1,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 87,
+        "text": "A digital studio & branding powerhouse m",
+        "family": "Geist",
+        "ls": "-3.48px",
+        "lh": "78px",
+        "weight": "600",
+        "w": 1290
+      },
+      "vw": 1440,
+      "bg": "rgb(0, 0, 0)",
+      "fg": "rgb(255, 255, 255)",
+      "scripts": 51
+    },
+    "mid": {
+      "animated": 1,
+      "infinite": 1,
+      "uniqueAnims": 1,
+      "topAnims": [
+        [
+          "pulse",
+          1
+        ]
+      ],
+      "canvases": 2,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 4,
+      "persp": 0,
+      "clip": 0,
+      "filt": 1,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 87,
+        "text": "A digital studio & branding powerhouse m",
+        "family": "Geist",
+        "ls": "-3.48px",
+        "lh": "78px",
+        "weight": "600",
+        "w": 1290
+      },
+      "vw": 1440,
+      "bg": "rgb(0, 0, 0)",
+      "fg": "rgb(255, 255, 255)",
+      "scripts": 51
+    }
+  },
+  {
+    "name": "exoape",
+    "url": "https://www.exoape.com/",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 0,
+      "webgl": 0,
+      "blend": [
+        ""
+      ],
+      "blendCount": 8,
+      "sticky": 0,
+      "persp": 8,
+      "clip": 8,
+      "filt": 8,
+      "mask": 8,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 8,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 250,
+        "text": "Digital",
+        "family": "Lausanne-300",
+        "ls": "-11.5px",
+        "lh": "183px",
+        "weight": "400",
+        "w": 1200
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(13, 14, 19)",
+      "scripts": 17
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 0,
+      "webgl": 0,
+      "blend": [
+        ""
+      ],
+      "blendCount": 8,
+      "sticky": 0,
+      "persp": 8,
+      "clip": 8,
+      "filt": 8,
+      "mask": 8,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 8,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 250,
+        "text": "Digital",
+        "family": "Lausanne-300",
+        "ls": "-11.5px",
+        "lh": "183px",
+        "weight": "400",
+        "w": 1200
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(13, 14, 19)",
+      "scripts": 20
+    }
+  },
+  {
+    "name": "unseen",
+    "url": "https://unseen.co/",
+    "top": {
+      "animated": 2,
+      "infinite": 2,
+      "uniqueAnims": 1,
+      "topAnims": [
+        [
+          "loader",
+          2
+        ]
+      ],
+      "canvases": 1,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 7,
+      "clip": 4,
+      "filt": 0,
+      "mask": 13,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 90,
+        "text": "I",
+        "family": "\"Neue Montreal\"",
+        "ls": "-1.44px",
+        "lh": "90px",
+        "weight": "400",
+        "w": 0
+      },
+      "vw": 1440,
+      "bg": "rgba(0, 0, 0, 0)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 11
+    },
+    "mid": {
+      "animated": 2,
+      "infinite": 2,
+      "uniqueAnims": 1,
+      "topAnims": [
+        [
+          "loader",
+          2
+        ]
+      ],
+      "canvases": 1,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 7,
+      "clip": 4,
+      "filt": 0,
+      "mask": 13,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 90,
+        "text": "I",
+        "family": "\"Neue Montreal\"",
+        "ls": "-1.44px",
+        "lh": "90px",
+        "weight": "400",
+        "w": 0
+      },
+      "vw": 1440,
+      "bg": "rgba(0, 0, 0, 0)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 11
+    }
+  },
+  {
+    "name": "hellomonday",
+    "url": "https://www.hellomonday.com/",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 2,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 0,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 2,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 80,
+        "text": "Experiences",
+        "family": "ClarendonBTWXX-Light",
+        "ls": "normal",
+        "lh": "64px",
+        "weight": "300",
+        "w": 1299
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 2
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 2,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 0,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 2,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 80,
+        "text": "Branding",
+        "family": "ClarendonBTWXX-Light",
+        "ls": "normal",
+        "lh": "64px",
+        "weight": "300",
+        "w": 1299
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 2
+    }
+  },
+  {
+    "name": "dogstudio",
+    "url": "https://dogstudio.co/",
+    "top": {
+      "animated": 1,
+      "infinite": 0,
+      "uniqueAnims": 1,
+      "topAnims": [
+        [
+          "plyr-popup",
+          1
+        ]
+      ],
+      "canvases": 1,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 72,
+      "clip": 0,
+      "filt": 10,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 120,
+        "text": "W",
+        "family": "\"GT Sectra Display\"",
+        "ls": "-23px",
+        "lh": "107px",
+        "weight": "700",
+        "w": 145
+      },
+      "vw": 1440,
+      "bg": "rgb(19, 20, 25)",
+      "fg": "rgb(255, 255, 255)",
+      "scripts": 11
+    },
+    "mid": {
+      "animated": 1,
+      "infinite": 0,
+      "uniqueAnims": 1,
+      "topAnims": [
+        [
+          "plyr-popup",
+          1
+        ]
+      ],
+      "canvases": 1,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 72,
+      "clip": 0,
+      "filt": 10,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 120,
+        "text": "W",
+        "family": "\"GT Sectra Display\"",
+        "ls": "-23px",
+        "lh": "107px",
+        "weight": "700",
+        "w": 102
+      },
+      "vw": 1440,
+      "bg": "rgb(19, 20, 25)",
+      "fg": "rgb(255, 255, 255)",
+      "scripts": 11
+    }
+  },
+  {
+    "name": "antinomy",
+    "url": "https://antinomy.studio/",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 2,
+      "webgl": 2,
+      "blend": [
+        ""
+      ],
+      "blendCount": 2,
+      "sticky": 8,
+      "persp": 2,
+      "clip": 33,
+      "filt": 28,
+      "mask": 2,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 11,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 24,
+        "text": "Antinomy is an independent creative stud",
+        "family": "ABCDiatype",
+        "ls": "-0.48px",
+        "lh": "25.2px",
+        "weight": "400",
+        "w": 1
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 31
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 2,
+      "webgl": 2,
+      "blend": [
+        ""
+      ],
+      "blendCount": 2,
+      "sticky": 8,
+      "persp": 2,
+      "clip": 33,
+      "filt": 28,
+      "mask": 2,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 11,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 24,
+        "text": "Antinomy is an independent creative stud",
+        "family": "ABCDiatype",
+        "ls": "-0.48px",
+        "lh": "25.2px",
+        "weight": "400",
+        "w": 1
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 31
+    }
+  },
+  {
+    "name": "cuberto",
+    "url": "https://cuberto.com/",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 0,
+      "webgl": 0,
+      "blend": [
+        "exclusion",
+        "",
+        "lighten"
+      ],
+      "blendCount": 11,
+      "sticky": 0,
+      "persp": 4,
+      "clip": 6,
+      "filt": 9,
+      "mask": 4,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 12,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 81,
+        "text": "Digital",
+        "family": "\"Suisse Intl\"",
+        "ls": "-0.81px",
+        "lh": "81px",
+        "weight": "500",
+        "w": 269
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 5
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 0,
+      "webgl": 0,
+      "blend": [
+        "exclusion",
+        "",
+        "lighten"
+      ],
+      "blendCount": 11,
+      "sticky": 0,
+      "persp": 4,
+      "clip": 6,
+      "filt": 9,
+      "mask": 4,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 12,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 81,
+        "text": "Digital",
+        "family": "\"Suisse Intl\"",
+        "ls": "-0.81px",
+        "lh": "81px",
+        "weight": "500",
+        "w": 269
+      },
+      "vw": 1440,
+      "bg": "rgb(255, 255, 255)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 5
+    }
+  },
+  {
+    "name": "immersive",
+    "url": "https://immersive-g.com/",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 8,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 2,
+      "filt": 0,
+      "mask": 2,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 44,
+        "text": "A global leader in groundbreaking digita",
+        "family": "PSTimes",
+        "ls": "normal",
+        "lh": "48.4px",
+        "weight": "400",
+        "w": 696
+      },
+      "vw": 1440,
+      "bg": "rgb(232, 232, 232)",
+      "fg": "rgb(3, 3, 3)",
+      "scripts": 2
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 8,
+      "webgl": 1,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 2,
+      "filt": 0,
+      "mask": 2,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 44,
+        "text": "A global leader in groundbreaking digita",
+        "family": "PSTimes",
+        "ls": "normal",
+        "lh": "48.4px",
+        "weight": "400",
+        "w": 696
+      },
+      "vw": 1440,
+      "bg": "rgb(232, 232, 232)",
+      "fg": "rgb(3, 3, 3)",
+      "scripts": 2
+    }
+  },
+  {
+    "name": "makereign",
+    "url": "https://makereign.com/",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 1,
+      "webgl": 1,
+      "blend": [
+        "difference"
+      ],
+      "blendCount": 6,
+      "sticky": 57,
+      "persp": 3,
+      "clip": 2,
+      "filt": 0,
+      "mask": 11,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 7,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 116.667,
+        "text": "W",
+        "family": "aeonik",
+        "ls": "-2.1px",
+        "lh": "107.333px",
+        "weight": "500",
+        "w": 112
+      },
+      "vw": 1440,
+      "bg": "rgb(17, 17, 17)",
+      "fg": "rgb(17, 17, 17)",
+      "scripts": 36
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 1,
+      "webgl": 1,
+      "blend": [
+        "difference"
+      ],
+      "blendCount": 7,
+      "sticky": 57,
+      "persp": 3,
+      "clip": 2,
+      "filt": 0,
+      "mask": 11,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 7,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 116.667,
+        "text": "W",
+        "family": "aeonik",
+        "ls": "-2.1px",
+        "lh": "107.333px",
+        "weight": "500",
+        "w": 112
+      },
+      "vw": 1440,
+      "bg": "rgb(17, 17, 17)",
+      "fg": "rgb(17, 17, 17)",
+      "scripts": 36
+    }
+  },
+  {
+    "name": "buzzworthy",
+    "url": "https://buzzworthy.studio/",
+    "error": "Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://buzzworthy.studio/\nCall log:\n\u001b[2m  - navigating to \"https://buzz"
+  },
+  {
+    "name": "tonik",
+    "url": "https://tonik.com/",
+    "top": {
+      "animated": 1,
+      "infinite": 0,
+      "uniqueAnims": 1,
+      "topAnims": [
+        [
+          "plyr-fade-in",
+          1
+        ]
+      ],
+      "canvases": 1,
+      "webgl": 1,
+      "blend": [
+        "",
+        "multiply"
+      ],
+      "blendCount": 18,
+      "sticky": 1,
+      "persp": 20,
+      "clip": 22,
+      "filt": 15,
+      "mask": 15,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 20,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 100,
+        "text": "Get in touch.",
+        "family": "\"Neue Montreal\"",
+        "ls": "-2.4px",
+        "lh": "100px",
+        "weight": "400",
+        "w": 502
+      },
+      "vw": 1440,
+      "bg": "rgb(33, 33, 33)",
+      "fg": "rgb(239, 239, 239)",
+      "scripts": 27
+    },
+    "mid": {
+      "animated": 1,
+      "infinite": 0,
+      "uniqueAnims": 1,
+      "topAnims": [
+        [
+          "plyr-fade-in",
+          1
+        ]
+      ],
+      "canvases": 1,
+      "webgl": 1,
+      "blend": [
+        "",
+        "multiply"
+      ],
+      "blendCount": 18,
+      "sticky": 1,
+      "persp": 20,
+      "clip": 22,
+      "filt": 15,
+      "mask": 15,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 20,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 100,
+        "text": "Get in touch.",
+        "family": "\"Neue Montreal\"",
+        "ls": "-2.4px",
+        "lh": "100px",
+        "weight": "400",
+        "w": 502
+      },
+      "vw": 1440,
+      "bg": "rgb(33, 33, 33)",
+      "fg": "rgb(239, 239, 239)",
+      "scripts": 29
+    }
+  },
+  {
+    "name": "halolab",
+    "url": "https://www.halo-lab.com/",
+    "top": {
+      "animated": 6,
+      "infinite": 3,
+      "uniqueAnims": 4,
+      "topAnims": [
+        [
+          "spin",
+          2
+        ],
+        [
+          "plyr-fade-in",
+          2
+        ],
+        [
+          "scroll-wheel",
+          1
+        ],
+        [
+          "fadeIn",
+          1
+        ]
+      ],
+      "canvases": 3,
+      "webgl": 0,
+      "blend": [
+        ""
+      ],
+      "blendCount": 2,
+      "sticky": 1,
+      "persp": 20,
+      "clip": 83,
+      "filt": 25,
+      "mask": 10,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 2,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 95.04,
+        "text": "100+ verified",
+        "family": "\"Instrument Serif\"",
+        "ls": "-1.3144px",
+        "lh": "85.536px",
+        "weight": "500",
+        "w": 1299
+      },
+      "vw": 1440,
+      "bg": "rgb(2, 2, 30)",
+      "fg": "rgb(255, 255, 255)",
+      "scripts": 59
+    },
+    "mid": {
+      "animated": 6,
+      "infinite": 3,
+      "uniqueAnims": 4,
+      "topAnims": [
+        [
+          "spin",
+          2
+        ],
+        [
+          "plyr-fade-in",
+          2
+        ],
+        [
+          "scroll-wheel",
+          1
+        ],
+        [
+          "fadeIn",
+          1
+        ]
+      ],
+      "canvases": 3,
+      "webgl": 0,
+      "blend": [
+        ""
+      ],
+      "blendCount": 2,
+      "sticky": 1,
+      "persp": 20,
+      "clip": 83,
+      "filt": 25,
+      "mask": 10,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 2,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 95.04,
+        "text": "100+ verified",
+        "family": "\"Instrument Serif\"",
+        "ls": "-1.3144px",
+        "lh": "85.536px",
+        "weight": "500",
+        "w": 1299
+      },
+      "vw": 1440,
+      "bg": "rgb(2, 2, 30)",
+      "fg": "rgb(255, 255, 255)",
+      "scripts": 59
+    }
+  },
+  {
+    "name": "wearenotch",
+    "url": "https://wearenotch.com/",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 0,
+      "webgl": 0,
+      "blend": [
+        ""
+      ],
+      "blendCount": 5,
+      "sticky": 0,
+      "persp": 7,
+      "clip": 5,
+      "filt": 5,
+      "mask": 5,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 7,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 109.993,
+        "text": "170+",
+        "family": "\"Rethink Sans\"",
+        "ls": "-3.29979px",
+        "lh": "109.993px",
+        "weight": "500",
+        "w": 347
+      },
+      "vw": 1440,
+      "bg": "rgba(0, 0, 0, 0)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 31
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 0,
+      "webgl": 0,
+      "blend": [
+        ""
+      ],
+      "blendCount": 5,
+      "sticky": 0,
+      "persp": 7,
+      "clip": 5,
+      "filt": 5,
+      "mask": 5,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 7,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 109.993,
+        "text": "170+",
+        "family": "\"Rethink Sans\"",
+        "ls": "-3.29979px",
+        "lh": "109.993px",
+        "weight": "500",
+        "w": 347
+      },
+      "vw": 1440,
+      "bg": "rgba(0, 0, 0, 0)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 31
+    }
+  },
+  {
+    "name": "studiolumen",
+    "url": "https://studiolumen.com/",
+    "top": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 0,
+      "webgl": 0,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 0,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 16,
+        "text": "Studio Lumen  Lighting Design and Consul",
+        "family": "Times",
+        "ls": "normal",
+        "lh": "normal",
+        "weight": "400",
+        "w": 0
+      },
+      "vw": 1440,
+      "bg": "rgb(0, 0, 0)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 0
+    },
+    "mid": {
+      "animated": 0,
+      "infinite": 0,
+      "uniqueAnims": 0,
+      "topAnims": [],
+      "canvases": 0,
+      "webgl": 0,
+      "blend": [],
+      "blendCount": 0,
+      "sticky": 0,
+      "persp": 0,
+      "clip": 0,
+      "filt": 0,
+      "mask": 0,
+      "timeline": 0,
+      "cursorNone": false,
+      "videos": 0,
+      "svgFilters": 0,
+      "biggest": {
+        "size": 16,
+        "text": "Studio Lumen  Lighting Design and Consul",
+        "family": "Times",
+        "ls": "normal",
+        "lh": "normal",
+        "weight": "400",
+        "w": 0
+      },
+      "vw": 1440,
+      "bg": "rgb(0, 0, 0)",
+      "fg": "rgb(0, 0, 0)",
+      "scripts": 0
+    }
+  },
+  {
+    "name": "rallyinteractive",
+    "url": "https://rallyinteractive.com/",
+    "error": "Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://rallyinteractive.com/\nCall log:\n\u001b[2m  - navigating to \"https://r"
+  }
+]
