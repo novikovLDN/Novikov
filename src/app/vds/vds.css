@@ -4,59 +4,12 @@
    Сцена: docs/03_DESIGN_PLAN.md, раздел «/vds».
    Токены: src/app/graticule.css.
 
-   ПОЧЕМУ ЗДЕСЬ ЕСТЬ ПЕРЕОПРЕДЕЛЕНИЕ ЧУЖИХ ТОКЕНОВ. Шапка и футер на
-   сайте одни на все страницы (заводить свои запрещено — это второй
-   источник правды о структуре сайта), и написаны они на токенах
-   чернильной системы. Внутри `.g` эти токены указывают на бумагу и
-   морские чернила: ни один компонент не переписывается, а рисует уже
-   светлый корпус. Механизм тот же, которым brand.css перекрашивал
-   страницы PIXEL, и он рабочий — ломались тогда не токены, а жёстко
-   заданные в разметке `text-black/…` и `bg-white/…`. Их здесь нет.
+   Здесь только раскладка этой страницы. Мост к чернильной системе
+   (шапка, футер, кнопки) переехал в graticule.css, когда на светлый
+   корпус встала вторая страница: держать его в файле одной страницы
+   значило бы завести второй источник правды о том, как перекрашена
+   общая оболочка.
    ═══════════════════════════════════════════════════════════════════ */
-
-.g {
-  /* корпус */
-  --ink:        var(--g-paper);
-  --ink-2:      var(--g-vellum);
-  --ink-3:      var(--g-line);
-  --on-ink:     var(--g-ink);
-  --on-ink-2:   var(--g-ink-2);
-  --on-ink-3:   var(--g-ink-3);
-  --paper:      var(--g-paper);
-  --on-paper:   var(--g-ink);
-  --on-paper-2: var(--g-ink-2);
-  --on-paper-3: var(--g-ink-3);
-  --bg:         var(--g-paper);
-  --fg:         var(--g-ink);
-  --fg-2:       var(--g-ink-2);
-  --fg-3:       var(--g-ink-3);
-  --line:       var(--g-line);
-  --rule:       var(--g-rule);
-
-  /* акцент: заливка и текст — разные значения, см. graticule.css */
-  --acid:       var(--g-chart);
-  --acid-deep:  var(--g-chart-deep);
-
-  /* одна гарнитура на всё; моноширинной в системе нет */
-  --display:    var(--g-family);
-  --text:       var(--g-family);
-  --mono:       var(--g-family);
-}
-
-/* Служебная метка теряет моноширинность, но сохраняет разрядку:
-   капслок-надзаголовков в новой системе нет, а названия колонок
-   футера — не надзаголовки, а имена групп. */
-.g .b-label { letter-spacing: 0.14em; font-weight: 600; }
-
-/* Кнопка второстепенного действия: на бумаге граница обязана быть
-   видимой. Чернильное значение (белый с альфой 0.3) на светлом
-   исчезало. */
-.g .b-btn-ghost { border-color: var(--g-line-2); }
-.g .b-btn-ghost:hover { border-color: var(--g-chart-deep); color: var(--g-chart-deep); }
-.g .b-btn-acid { background: var(--g-chart); color: var(--g-on-chart); }
-.g .b-btn-acid:hover { background: var(--g-chart-deep); }
-.g .b-btn:focus-visible { outline-color: var(--g-chart-deep); }
-.g .b-mark-cell { background: var(--g-chart); }
 
 .g-page { min-height: 100dvh; display: flex; flex-direction: column; }
 .g-page > main { flex: 1; }
