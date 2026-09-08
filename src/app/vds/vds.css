@@ -1,0 +1,200 @@
+/* ═══════════════════════════════════════════════════════════════════
+   /vds — первая страница на светлой системе «Гратикул».
+
+   Сцена: docs/03_DESIGN_PLAN.md, раздел «/vds».
+   Токены: src/app/graticule.css.
+
+   ПОЧЕМУ ЗДЕСЬ ЕСТЬ ПЕРЕОПРЕДЕЛЕНИЕ ЧУЖИХ ТОКЕНОВ. Шапка и футер на
+   сайте одни на все страницы (заводить свои запрещено — это второй
+   источник правды о структуре сайта), и написаны они на токенах
+   чернильной системы. Внутри `.g` эти токены указывают на бумагу и
+   морские чернила: ни один компонент не переписывается, а рисует уже
+   светлый корпус. Механизм тот же, которым brand.css перекрашивал
+   страницы PIXEL, и он рабочий — ломались тогда не токены, а жёстко
+   заданные в разметке `text-black/…` и `bg-white/…`. Их здесь нет.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.g {
+  /* корпус */
+  --ink:        var(--g-paper);
+  --ink-2:      var(--g-vellum);
+  --ink-3:      var(--g-line);
+  --on-ink:     var(--g-ink);
+  --on-ink-2:   var(--g-ink-2);
+  --on-ink-3:   var(--g-ink-3);
+  --paper:      var(--g-paper);
+  --on-paper:   var(--g-ink);
+  --on-paper-2: var(--g-ink-2);
+  --on-paper-3: var(--g-ink-3);
+  --bg:         var(--g-paper);
+  --fg:         var(--g-ink);
+  --fg-2:       var(--g-ink-2);
+  --fg-3:       var(--g-ink-3);
+  --line:       var(--g-line);
+  --rule:       var(--g-rule);
+
+  /* акцент: заливка и текст — разные значения, см. graticule.css */
+  --acid:       var(--g-chart);
+  --acid-deep:  var(--g-chart-deep);
+
+  /* одна гарнитура на всё; моноширинной в системе нет */
+  --display:    var(--g-family);
+  --text:       var(--g-family);
+  --mono:       var(--g-family);
+}
+
+/* Служебная метка теряет моноширинность, но сохраняет разрядку:
+   капслок-надзаголовков в новой системе нет, а названия колонок
+   футера — не надзаголовки, а имена групп. */
+.g .b-label { letter-spacing: 0.14em; font-weight: 600; }
+
+/* Кнопка второстепенного действия: на бумаге граница обязана быть
+   видимой. Чернильное значение (белый с альфой 0.3) на светлом
+   исчезало. */
+.g .b-btn-ghost { border-color: var(--g-line-2); }
+.g .b-btn-ghost:hover { border-color: var(--g-chart-deep); color: var(--g-chart-deep); }
+.g .b-btn-acid { background: var(--g-chart); color: var(--g-on-chart); }
+.g .b-btn-acid:hover { background: var(--g-chart-deep); }
+.g .b-btn:focus-visible { outline-color: var(--g-chart-deep); }
+.g .b-mark-cell { background: var(--g-chart); }
+
+.g-page { min-height: 100dvh; display: flex; flex-direction: column; }
+.g-page > main { flex: 1; }
+.g-header-space { height: 72px; }
+
+/* ═══ Первый экран страницы ═════════════════════════════════════════
+   Заголовок и одна строка смысла. Ни надзаголовка, ни «→» в кнопке. */
+.g-hero { padding-block: clamp(3rem, 8vh, 6rem) clamp(2rem, 5vh, 3.5rem); }
+.g-hero h1 {
+  margin: 0;
+  max-width: 18ch;
+  font-size: var(--g-t-scene);
+  line-height: var(--g-lh-tight);
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  color: var(--g-ink);
+}
+.g-lead {
+  margin: 1.5rem 0 0;
+  max-width: 56ch;
+  font-size: var(--g-t-lead);
+  line-height: 1.45;
+  color: var(--g-ink-2);
+}
+.g-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2.25rem; }
+
+/* ═══ Ось полосы ════════════════════════════════════════════════════
+   Главный объект страницы. Линейка растёт по каналу, и это видно с
+   первого взгляда: ступень порта нарисована, а не описана. */
+.g-axis { padding-block: clamp(2rem, 5vh, 3.5rem) clamp(3rem, 8vh, 5rem); }
+.g-axis-head { max-width: 60ch; margin-bottom: clamp(2rem, 5vh, 3rem); }
+.g-axis-head h2 {
+  margin: 0;
+  font-size: var(--g-t-block);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--g-ink);
+}
+.g-axis-head p { margin: 0.75rem 0 0; color: var(--g-ink-2); }
+
+.g-tiers { display: grid; gap: 1px; background: var(--g-line); border: var(--g-rule) solid var(--g-line); }
+@media (min-width: 900px) { .g-tiers { grid-template-columns: repeat(4, 1fr); } }
+
+.g-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  background: var(--g-vellum);
+}
+/* Ступень, к которой ведёт вся страница, — одна выделенная плоскость.
+   Один громкий элемент на экран. */
+.g-tier-lead { background: var(--g-paper-2); box-shadow: inset 3px 0 0 var(--g-chart); }
+
+.g-tier-name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--g-ink);
+}
+.g-tier-role { margin: 0; font-size: var(--g-t-small); color: var(--g-ink-2); line-height: 1.45; }
+
+/* Полоса порта: шкала от нуля до верхней точки линейки. Разницу между
+   1 и 25 Гбит/с глазу видно, числам нужно верить. */
+.g-port { display: grid; gap: 0.4rem; }
+.g-port-track { height: 6px; background: var(--g-paper-2); border: var(--g-rule) solid var(--g-line); }
+.g-tier-lead .g-port-track { background: var(--g-paper); }
+.g-port-fill { display: block; height: 100%; background: var(--g-chart); }
+/* Учитываемый трафик — тот же порт, но с оговоркой. Полоса не короче,
+   она тише: длину подделывать нельзя, а разницу показать нужно. */
+.g-port-fill-metered { background: var(--g-chart-line); }
+.g-port-value { font-size: var(--g-t-small); color: var(--g-ink); }
+.g-port-note { font-size: var(--g-t-meta); color: var(--g-ink-3); }
+
+.g-price { display: flex; align-items: baseline; gap: 0.4rem; margin-top: auto; }
+.g-price-num { font-size: clamp(1.75rem, 3.4vw, 2.4rem); color: var(--g-ink); }
+.g-price-per { font-size: var(--g-t-meta); color: var(--g-ink-3); }
+
+.g-spec { margin: 0; display: grid; gap: 0.35rem; font-size: var(--g-t-small); }
+.g-spec div { display: flex; justify-content: space-between; gap: 1rem; }
+.g-spec dt { color: var(--g-ink-3); }
+.g-spec dd { margin: 0; color: var(--g-ink-2); text-align: right; }
+
+.g-confirm {
+  margin: 0;
+  padding: 0.5rem 0 0;
+  border-top: var(--g-rule) solid var(--g-line);
+  font-size: var(--g-t-meta);
+  color: var(--g-ink-3);
+}
+
+/* ═══ Что гарантируем, а что нет ════════════════════════════════════
+   Позиция бренда, выведенная в интерфейс. */
+.g-guarantee { padding-block: clamp(2.5rem, 6vh, 4rem); }
+.g-guarantee-card { padding: clamp(1.5rem, 3vw, 2.5rem); }
+.g-guarantee h2 {
+  margin: 0 0 1.5rem;
+  font-size: var(--g-t-block);
+  letter-spacing: -0.02em;
+  color: var(--g-ink);
+}
+.g-guarantee-cols { display: grid; gap: 2rem; }
+@media (min-width: 800px) { .g-guarantee-cols { grid-template-columns: repeat(3, 1fr); } }
+.g-guarantee-cols h3 {
+  margin: 0 0 0.75rem;
+  font-size: var(--g-t-small);
+  font-weight: 600;
+  color: var(--g-ink);
+}
+.g-guarantee-cols ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.6rem; }
+.g-guarantee-cols li {
+  font-size: var(--g-t-small);
+  line-height: 1.45;
+  color: var(--g-ink-2);
+  padding-left: 1.1rem;
+  position: relative;
+}
+.g-guarantee-cols li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 8px;
+  height: var(--g-rule);
+  background: var(--g-line-2);
+}
+.g-col-yes li::before { background: var(--g-sounding); }
+.g-col-no li::before { background: var(--g-ink-3); }
+.g-col-ask li::before { background: var(--g-chart); }
+
+/* ═══ Финал ═════════════════════════════════════════════════════════ */
+.g-outro { padding-block: clamp(3rem, 8vh, 5rem); border-top: var(--g-rule) solid var(--g-line); }
+.g-outro h2 {
+  margin: 0;
+  max-width: 20ch;
+  font-size: var(--g-t-block);
+  letter-spacing: -0.02em;
+  color: var(--g-ink);
+}
+.g-outro p { margin: 1rem 0 0; max-width: 52ch; color: var(--g-ink-2); }
