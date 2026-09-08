@@ -81,10 +81,10 @@
      Grotesk — для русского сайта они отпадают целиком.
      Текст — Onest: вариативный гибрид геометрического и
      гуманистического гротеска. */
-  --display: var(--font-display), "Arial Narrow", sans-serif;
-  --text:    var(--font-text), "Helvetica Neue", sans-serif;
+  --display:  var(--font-brand), system-ui, sans-serif;
+  --text:     var(--font-brand), system-ui, sans-serif;
   /* Машинный слой: служебные метки, показания, коды, ASCII. */
-  --mono:    var(--font-mono-brand), ui-monospace, monospace;
+  --mono:     var(--font-brand), system-ui, sans-serif;
 
   /* Дисплейная шкала. Верх шкалы намеренно за пределами разумного:
      заголовок — объект в кадре, а не подпись над контентом. */

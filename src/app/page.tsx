@@ -1,6 +1,11 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import HomeView from "@/components/brand/Home";
+// Главная перерисована на системе «Гратикул» (фаза 5).
+// Прежняя чернильная сборка на `.b-*` осталась в
+// components/brand/Home.tsx до перевода остальных экранов: её
+// сцены — источник приёмов, помеченных «сохранить» в
+// docs/ANIMATION_INVENTORY.md.
+import HomeView from "@/components/graticule/Home";
 
 interface PageProps {
   searchParams: Promise<{ step?: string; ref?: string }>;
