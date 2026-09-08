@@ -19,6 +19,24 @@ import { typo } from "@/lib/typo";
  *
  * Скорость задаётся высотой сцены, а не таймером: полтора экрана на
  * шаг. При одном экране шаг проскакивает раньше, чем строка дочитана.
+ *
+ * ЧТО ПОКАЗЫВАЕТ, ЧТО ПРОКРУТКА ИДЁТ. Кадр здесь стоит на месте, и
+ * без обратной связи это читается как зависшая страница: человек
+ * крутит, а картинка та же. Раньше единственным признаком движения
+ * была смена цвета активного шага — событие дискретное, три раза за
+ * всю сцену.
+ *
+ * Теперь прогресс отдаётся в CSS двумя переменными и рисуется
+ * правилами: `--how-p` — доля пройденной сцены (полоса под
+ * заголовком), `--how-sp` — доля внутри текущего шага (тонкая линия
+ * под активной строкой, она наполняется непрерывно). Активный шаг при
+ * этом крупнее соседних: масштаб — `transform`, поэтому список не
+ * перевёрстывается и кадр не дёргается.
+ *
+ * Переменные пишутся прямо в стиль узла из колбэка ScrollTrigger, а
+ * не через состояние React: перерисовывать дерево на каждый кадр
+ * прокрутки ради двух чисел — самый дорогой способ их доставить.
+ * setActive остаётся, но срабатывает трижды за сцену, на смене шага.
  */
 /** Машинный взгляд на тот же шаг. Числа — из кода, а не из головы. */
 const TERM: TerminalLine[][] = [
@@ -74,6 +92,11 @@ export default function HowScene() {
       const node = root.current;
       if (!node || reduced) return;
 
+      // Класс ставит сам скрипт: масштаб и полосы прогресса имеют
+      // смысл только когда есть кому их двигать. Без скрипта и при
+      // пониженной анимации сцена остаётся обычным списком.
+      node.classList.add("b-how-scrub");
+
       const st = gsap.timeline({
         scrollTrigger: {
           trigger: node,
@@ -82,13 +105,23 @@ export default function HowScene() {
           pin: ".b-how-stick",
           scrub: 1.1,
           onUpdate: (self) => {
-            const i = Math.min(STEPS.length - 1, Math.floor(self.progress * STEPS.length));
+            const p = self.progress;
+            const raw = p * STEPS.length;
+            const i = Math.min(STEPS.length - 1, Math.floor(raw));
+            node.style.setProperty("--how-p", String(p));
+            node.style.setProperty("--how-sp", String(Math.min(1, raw - i)));
             setActive(i);
           },
         },
       });
 
-      return () => { st.scrollTrigger?.kill(); st.kill(); };
+      return () => {
+        st.scrollTrigger?.kill();
+        st.kill();
+        node.classList.remove("b-how-scrub");
+        node.style.removeProperty("--how-p");
+        node.style.removeProperty("--how-sp");
+      };
     },
     { scope: root, dependencies: [reduced] },
   );
@@ -116,6 +149,13 @@ export default function HowScene() {
                 заменяет, он показывает то же самое со стороны
                 системы. */}
             <Terminal lines={TERM[active]} step={active} />
+            {/* Полоса прочтения сцены. Это не декор: пока кадр стоит,
+                она единственная отвечает на вопрос «я вообще куда-то
+                двигаюсь». Из дерева доступности убрана — то же самое
+                уже сказано словами: aria-current на активном шаге. */}
+            <div className="b-how-rail" aria-hidden>
+              <span className="b-how-rail-fill" />
+            </div>
           </header>
 
           <ol className="b-how-list">
@@ -134,6 +174,9 @@ export default function HowScene() {
                   <span className="b-num b-how-m-value">{s.m}</span>
                   <span className="b-label">{s.mLabel}</span>
                 </span>
+                {/* Наполняется всё время, пока читатель проходит свой
+                    шаг: непрерывное движение там, где кадр стоит. */}
+                <span className="b-how-tick" aria-hidden />
               </li>
             ))}
           </ol>

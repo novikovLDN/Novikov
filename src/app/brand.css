@@ -776,6 +776,89 @@ html, body { background: var(--ink); }
 }
 .b-how-m-value { font-size: clamp(1.25rem, 2.4vw, 1.875rem); font-weight: 700; letter-spacing: -0.03em; }
 
+/* ─── Признаки того, что прокрутка идёт ─────────────────────────────
+   Кадр сцены стоит на месте, поэтому движение обязано быть где-то
+   ещё: иначе экран читается как зависший. Прежде единственным
+   признаком была смена цвета активного шага — событие дискретное,
+   три раза за всю сцену.
+
+   Всё, что ниже, живёт под классом .b-how-scrub, а его ставит сам
+   ScrollTrigger. Без скрипта и при пониженной анимации сцена
+   остаётся обычным списком в нормальном кегле: прятать или
+   уменьшать содержимое разрешено только после того, как механизм
+   показа доказал работоспособность.
+
+   Масштабируется СОДЕРЖИМОЕ строки, а не строка целиком. Строка
+   несёт border-bottom во всю ширину колонки: сжатая на 6% строка
+   давала линию короче соседних, и список выглядел сломанным.
+
+   Пишется только transform — ни один шаг не меняет высоту, кадр не
+   перевёрстывается. */
+.b-how-item { position: relative; }
+
+.b-how-scrub .b-how-n,
+.b-how-scrub .b-how-t,
+.b-how-scrub .b-how-m-value {
+  display: inline-block;
+  transform-origin: left center;
+  transform: scale(0.94);
+  transition: transform var(--d-slow) var(--e-out);
+}
+/* Значение показателя лежит в колонке-флексе, а та по умолчанию
+   растягивает потомков на всю ширину. Растянутая коробка при
+   увеличении вылезала за узкий экран правым краем — текст оставался
+   на месте, но документ получал лишние семнадцать пикселей справа.
+   align-self сжимает коробку по содержимому. На широком экране
+   колонка и так прижата вправо, поэтому там растёт влево. */
+.b-how-scrub .b-how-m-value { align-self: flex-start; transform-origin: left center; }
+@media (min-width: 720px) {
+  .b-how-scrub .b-how-m-value { align-self: flex-end; transform-origin: right center; }
+}
+.b-how-scrub .b-how-item-on .b-how-t { transform: scale(1.1); }
+.b-how-scrub .b-how-item-on .b-how-n { transform: scale(1.45); }
+.b-how-scrub .b-how-item-on .b-how-m-value { transform: scale(1.12); }
+
+/* Линия шага: наполняется непрерывно, пока читатель проходит свой
+   шаг. Стоит ровно на границе строки, чтобы не занимать высоту. */
+.b-how-tick {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(-1 * var(--rule));
+  height: var(--rule);
+  background: var(--acid-deep);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.b-how-scrub .b-how-tick { display: block; }
+.b-how-scrub .b-how-item-on .b-how-tick { transform: scaleX(var(--how-sp, 0)); }
+
+/* Полоса прочтения всей сцены — под заголовком, там же, где терминал:
+   один взгляд отвечает, сколько сцены осталось. */
+.b-how-rail {
+  display: none;
+  position: relative;
+  height: var(--rule);
+  background: var(--line);
+  margin-top: 0.25rem;
+}
+.b-how-scrub .b-how-rail { display: block; }
+.b-how-rail-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 100%;
+  background: var(--acid-deep);
+  transform: scaleX(var(--how-p, 0));
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .b-how-scrub .b-how-n,
+  .b-how-scrub .b-how-t,
+  .b-how-scrub .b-how-m-value { transition: none; }
+}
+
 /* ═══ Атлас: лента стран ══════════════════════════════════════════ */
 .b-atlas {
   background: var(--bg);
