@@ -1,0 +1,7772 @@
+[
+ {
+  "name": "merci-michel",
+  "url": "https://www.merci-michel.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 58,
+  "top": {
+   "nodes": 149,
+   "inView": 55,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl",
+    "experimental-webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 4,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 11,
+    "text": "2026",
+    "family": "Mnm",
+    "weight": "400",
+    "w": 33
+   },
+   "fonts": [
+    "Mnm"
+   ],
+   "bg": "rgba(0, 0, 0, 0) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": true,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Merci-Michel",
+   "textLen": 130
+  },
+  "mid": {
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl",
+    "experimental-webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1737,
+  "jsFiles": 3,
+  "jsSig": {
+   "three": 2,
+   "customGLSL": 2,
+   "gsap": 1
+  },
+  "scriptHosts": [
+   "www.merci-michel.com",
+   "u.served.page"
+  ]
+ },
+ {
+  "name": "noomo",
+  "url": "https://noomoagency.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 31,
+  "top": {
+   "nodes": 895,
+   "inView": 90,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 88,
+   "svgs": 0,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 2,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 1,
+   "mask": 9,
+   "persp": 0,
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 40,
+    "text": "home",
+    "family": "NeueMachina",
+    "weight": "400",
+    "w": 1440
+   },
+   "fonts": [
+    "NeueRoman",
+    "NeueMachina"
+   ],
+   "bg": "rgb(201, 210, 231)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "156",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": false
+   },
+   "title": "Digital Storytelling & 3D Website Design Agency | Noomo",
+   "textLen": 6931
+  },
+  "mid": {
+   "anims": 3,
+   "infinite": 3,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 2,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 1,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2940,
+  "jsFiles": 37,
+  "jsSig": {
+   "ScrollTrigger": 13,
+   "gsap": 5,
+   "customGLSL": 2,
+   "three": 1
+  },
+  "scriptHosts": [
+   "noomoagency.com",
+   "",
+   "www.googletagmanager.com",
+   "s3-us-west-2.amazonaws.com"
+  ]
+ },
+ {
+  "name": "chipsa",
+  "url": "https://chipsa.design/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 100,
+  "top": {
+   "nodes": 694,
+   "inView": 130,
+   "canvases": 5,
+   "canvasSizes": [
+    "1440x900",
+    "130x130",
+    "1440x900",
+    "112x112",
+    "112x112"
+   ],
+   "ctx": [
+    "2d",
+    "webgl",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 8,
+   "imgs": 27,
+   "svgs": 11,
+   "blend": [
+    "difference"
+   ],
+   "blendCount": 9,
+   "clip": 0,
+   "sticky": 11,
+   "filt": 4,
+   "backdrop": 3,
+   "mask": 0,
+   "persp": 3,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 45,
+    "text": "We evoke",
+    "family": "PPRightGroteskText",
+    "weight": "800",
+    "w": 173
+   },
+   "fonts": [
+    "PPNeueMontreal",
+    "PPRightGroteskText"
+   ],
+   "bg": "rgb(255, 255, 255)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "163",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Chipsa",
+   "textLen": 2385
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 5,
+   "clip": 0,
+   "sticky": 11,
+   "blendCount": 9,
+   "videos": 8,
+   "ctx": [
+    "2d",
+    "webgl",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3715,
+  "jsFiles": 47,
+  "jsSig": {
+   "customGLSL": 5,
+   "r3f": 3,
+   "three": 2,
+   "lenis": 1,
+   "motion": 2
+  },
+  "scriptHosts": [
+   "mc.yandex.ru",
+   "cdn-vk.chipsa.ru",
+   "vk.com",
+   ""
+  ]
+ },
+ {
+  "name": "offbrand",
+  "url": "https://www.itsoffbrand.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 112,
+  "top": {
+   "nodes": 3180,
+   "inView": 297,
+   "canvases": 1,
+   "canvasSizes": [
+    "48x48"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 14,
+   "imgs": 66,
+   "svgs": 34,
+   "blend": [
+    "difference",
+    "exclusion",
+    "darken",
+    "lighten"
+   ],
+   "blendCount": 38,
+   "clip": 4,
+   "sticky": 4,
+   "filt": 52,
+   "backdrop": 0,
+   "mask": 1,
+   "persp": 2,
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 102.857,
+    "text": "A different",
+    "family": "Ataero Retina OB Edition",
+    "weight": "400",
+    "w": 1
+   },
+   "fonts": [
+    "Ataero Retina OB Edition"
+   ],
+   "bg": "rgb(229, 228, 224)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "156",
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": true,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "OFF+BRAND. | Global Creative & Technology Studio",
+   "textLen": 1767
+  },
+  "mid": {
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 5,
+   "sticky": 4,
+   "blendCount": 38,
+   "videos": 14,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1983,
+  "jsFiles": 7,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "three": 1,
+   "lenis": 1,
+   "taxi": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "cdn.prod.website-files.com",
+   "d3e54v103j8qbb.cloudfront.net",
+   "cdn.intellimize.co",
+   "www.itsoffbrand.com",
+   "www.googletagmanager.com",
+   "assets.itsoffbrand.io",
+   "challenges.cloudflare.com"
+  ]
+ },
+ {
+  "name": "zhenyary",
+  "url": "https://zhenyary.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 49,
+  "top": {
+   "nodes": 319,
+   "inView": 75,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 17,
+   "svgs": 20,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 100.8,
+    "text": "Zhenya",
+    "family": "Schnyder L",
+    "weight": "600",
+    "w": 461
+   },
+   "fonts": [
+    "GT Walsheim",
+    "Schnyder L"
+   ],
+   "bg": "rgb(219, 213, 201)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": false
+   },
+   "title": "Zhenya Rynzhuk",
+   "textLen": 1016
+  },
+  "mid": {
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1229,
+  "jsFiles": 14,
+  "jsSig": {},
+  "scriptHosts": [
+   "zhenyary.com",
+   "www.google-analytics.com",
+   "www.googletagmanager.com"
+  ]
+ },
+ {
+  "name": "synchronized",
+  "url": "https://synchronized.studio/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 66,
+  "top": {
+   "nodes": 1010,
+   "inView": 228,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "2d",
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 24,
+   "svgs": 10,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 4,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 6,
+   "infinite": 6,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 230.4,
+    "text": "Synchronized",
+    "family": "Font-A",
+    "weight": "400",
+    "w": 1264
+   },
+   "fonts": [
+    "Font-C",
+    "Font-A",
+    "Font-B"
+   ],
+   "bg": "rgb(21, 21, 21)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": true,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": false
+   },
+   "title": "Synchronized | Digital Creative Studio",
+   "textLen": 2569
+  },
+  "mid": {
+   "anims": 6,
+   "infinite": 6,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 4,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "2d",
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2216,
+  "jsFiles": 10,
+  "jsSig": {
+   "gsap": 2,
+   "SplitText": 1,
+   "pixi": 4,
+   "ScrollTrigger": 1,
+   "three": 3,
+   "customGLSL": 2
+  },
+  "scriptHosts": [
+   "synchronized.studio",
+   "www.googletagmanager.com",
+   "www.google-analytics.com"
+  ]
+ },
+ {
+  "name": "psychoactive",
+  "url": "https://www.psychoactive.co.nz/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 51,
+  "top": {
+   "nodes": 2192,
+   "inView": 249,
+   "canvases": 3,
+   "canvasSizes": [
+    "1440x900",
+    "504x227",
+    "1440x900"
+   ],
+   "ctx": [
+    "2d",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 5,
+   "imgs": 26,
+   "svgs": 66,
+   "blend": [
+    "exclusion",
+    "difference"
+   ],
+   "blendCount": 15,
+   "clip": 12,
+   "sticky": 0,
+   "filt": 9,
+   "backdrop": 0,
+   "mask": 3,
+   "persp": 0,
+   "anims": 1,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 181.44,
+    "text": "scale",
+    "family": "Roobert",
+    "weight": "400",
+    "w": 365
+   },
+   "fonts": [
+    "RoobertMono",
+    "Roobert"
+   ],
+   "bg": "rgb(16, 16, 18)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "185",
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": true
+   },
+   "title": "Psychoactive Studios — AI-era Design & Development Agency",
+   "textLen": 3112
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 6,
+   "clip": 12,
+   "sticky": 0,
+   "blendCount": 15,
+   "videos": 5,
+   "ctx": [
+    "2d",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 4322,
+  "jsFiles": 66,
+  "jsSig": {
+   "gsap": 3,
+   "ScrollTrigger": 3,
+   "SplitText": 1,
+   "lenis": 1,
+   "customGLSL": 5,
+   "three": 1,
+   "TSL": 1
+  },
+  "scriptHosts": [
+   "www.psychoactive.co.nz"
+  ]
+ },
+ {
+  "name": "uncommon",
+  "url": "https://www.uncommon.studio/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 56,
+  "top": {
+   "nodes": 120,
+   "inView": 45,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 10,
+   "svgs": 2,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 4,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 50,
+    "text": "Live Feed",
+    "family": "Maisonneue book",
+    "weight": "400",
+    "w": 204
+   },
+   "fonts": [
+    "Maisonneue book"
+   ],
+   "bg": "rgb(255, 255, 255)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": true,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Uncommon Creative Studio",
+   "textLen": 261
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 1,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3160,
+  "jsFiles": 14,
+  "jsSig": {},
+  "scriptHosts": [
+   "cdn.prod.website-files.com",
+   "d3e54v103j8qbb.cloudfront.net",
+   "cdn.jsdelivr.net",
+   "js.stripe.com",
+   "m.stripe.network"
+  ]
+ },
+ {
+  "name": "malvah",
+  "url": "https://malvah.co/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 33,
+  "top": {
+   "nodes": 564,
+   "inView": 136,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 8,
+   "imgs": 45,
+   "svgs": 14,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 2,
+   "sticky": 6,
+   "filt": 0,
+   "backdrop": 1,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 52,
+    "text": "Malvah.",
+    "family": "NeueHaasGroteskText Pro",
+    "weight": "400",
+    "w": 183
+   },
+   "fonts": [
+    "NeueHaasGroteskText Pro",
+    "ui-sans-serif"
+   ],
+   "bg": "rgba(0, 0, 0, 0) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "173",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": true
+   },
+   "title": "Malvah Studio",
+   "textLen": 1919
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 2,
+   "sticky": 6,
+   "blendCount": 0,
+   "videos": 8,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1517,
+  "jsFiles": 11,
+  "jsSig": {
+   "ScrollTrigger": 3,
+   "gsap": 1,
+   "SplitText": 1,
+   "three": 1,
+   "lenis": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "www.malvah.co"
+  ]
+ },
+ {
+  "name": "activetheory",
+  "url": "https://activetheory.net/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 1,
+   "inView": 1,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 0,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 18,
+    "text": "Your browser is not supported",
+    "family": "nbarchitekt",
+    "weight": "700",
+    "w": 1440
+   },
+   "fonts": [
+    "nbarchitekt"
+   ],
+   "bg": "rgb(0, 0, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Not Supported",
+   "textLen": 29
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2895,
+  "jsFiles": 11,
+  "jsSig": {
+   "theatre": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "activetheory.net",
+   "www.googletagmanager.com"
+  ]
+ },
+ {
+  "name": "makemepulse",
+  "url": "https://makemepulse.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 61,
+  "top": {
+   "nodes": 1254,
+   "inView": 181,
+   "canvases": 3,
+   "canvasSizes": [
+    "166x200",
+    "166x200",
+    "166x200"
+   ],
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 44,
+   "svgs": 19,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 17,
+   "sticky": 0,
+   "filt": 4,
+   "backdrop": 0,
+   "mask": 11,
+   "persp": 0,
+   "anims": 7,
+   "infinite": 6,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 105,
+    "text": "global creative studio",
+    "family": "Beatrice Display",
+    "weight": "300",
+    "w": 1
+   },
+   "fonts": [
+    "Biotif",
+    "Beatrice Display"
+   ],
+   "bg": "rgb(255, 255, 255)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": false
+   },
+   "title": "makemepulse — Global Creative Studio",
+   "textLen": 2442
+  },
+  "mid": {
+   "anims": 8,
+   "infinite": 6,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 3,
+   "clip": 17,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3064,
+  "jsFiles": 34,
+  "jsSig": {
+   "locomotiveScroll": 1,
+   "gsap": 1
+  },
+  "scriptHosts": [
+   "www.makemepulse.com",
+   "www.googletagmanager.com",
+   "www.youtube.com",
+   "consent.cookiebot.com"
+  ]
+ },
+ {
+  "name": "messenger",
+  "url": "https://messenger.abeto.co/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 11,
+  "top": {
+   "nodes": 23,
+   "inView": 20,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": true,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 0,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 0
+   },
+   "fonts": [],
+   "bg": "rgb(255, 255, 255)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "180",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Messenger",
+   "textLen": 0
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": true,
+    "adapter": false
+   }
+  },
+  "jsKB": 2175,
+  "jsFiles": 9,
+  "jsSig": {
+   "three": 3,
+   "threeWebGPU": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "messenger.abeto.co",
+   ""
+  ]
+ },
+ {
+  "name": "bruno-simon",
+  "url": "https://bruno-simon.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 116,
+  "top": {
+   "nodes": 932,
+   "inView": 13,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "2d",
+    "webgpu"
+   ],
+   "gpu": {
+    "accessed": true,
+    "adapter": true
+   },
+   "videos": 0,
+   "imgs": 44,
+   "svgs": 7,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 0
+   },
+   "fonts": [],
+   "bg": "rgba(0, 0, 0, 0) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "183",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Bruno's",
+   "textLen": 5
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "2d",
+    "webgpu"
+   ],
+   "gpu": {
+    "accessed": true,
+    "adapter": true
+   }
+  },
+  "jsKB": 5925,
+  "jsFiles": 11,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "three": 1,
+   "threeWebGPU": 1,
+   "TSL": 1,
+   "rapier": 2,
+   "customGLSL": 1,
+   "wgsl": 1
+  },
+  "scriptHosts": [
+   "bruno-simon.com",
+   "www.googletagmanager.com",
+   ""
+  ]
+ },
+ {
+  "name": "landonorris",
+  "url": "https://landonorris.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 22,
+  "top": {
+   "nodes": 1734,
+   "inView": 107,
+   "canvases": 21,
+   "canvasSizes": [
+    "60x60",
+    "37x37",
+    "0x0",
+    "0x0",
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 133,
+   "svgs": 85,
+   "blend": [
+    "saturation",
+    "plus-lighter",
+    "difference"
+   ],
+   "blendCount": 11,
+   "clip": 208,
+   "sticky": 4,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 17,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 38,
+    "text": "Lando Norris",
+    "family": "Mona Sans Variable",
+    "weight": "700",
+    "w": 1
+   },
+   "fonts": [
+    "Mona Sans Variable"
+   ],
+   "bg": "rgb(40, 44, 32)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "174",
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": true,
+    "UnicornStudio": false,
+    "rive": true,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "McLaren Formula 1 Driver — Lando Norris",
+   "textLen": 3326
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 21,
+   "clip": 208,
+   "sticky": 4,
+   "blendCount": 11,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2145,
+  "jsFiles": 10,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "SplitText": 1,
+   "three": 1,
+   "threeWebGPU": 1,
+   "lenis": 1,
+   "taxi": 1,
+   "rive": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "landonorris.com",
+   "cdn.prod.website-files.com",
+   "d3e54v103j8qbb.cloudfront.net",
+   "www.googletagmanager.com",
+   "lando.itsoffbrand.io",
+   ""
+  ]
+ },
+ {
+  "name": "oryzo",
+  "url": "https://oryzo.ai/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 6,
+  "top": {
+   "nodes": 2914,
+   "inView": 831,
+   "canvases": 6,
+   "canvasSizes": [
+    "1440x900",
+    "300x150",
+    "1440x900",
+    "495x495",
+    "322x322"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 18,
+   "svgs": 43,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 2,
+   "filt": 2,
+   "backdrop": 0,
+   "mask": 1,
+   "persp": 0,
+   "anims": 3,
+   "infinite": 3,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 24,
+    "text": "Designed",
+    "family": "halyard-display-variable",
+    "weight": "500",
+    "w": 239
+   },
+   "fonts": [
+    "halyard-display-variable",
+    "Arial",
+    "Literata"
+   ],
+   "bg": "rgb(16, 9, 4) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "178 - modified by Lusion",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": true,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "ORYZO AI",
+   "textLen": 6585
+  },
+  "mid": {
+   "anims": 3,
+   "infinite": 3,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 6,
+   "clip": 0,
+   "sticky": 2,
+   "blendCount": 0,
+   "videos": 2,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2330,
+  "jsFiles": 4,
+  "jsSig": {
+   "gsap": 1,
+   "SplitText": 1,
+   "three": 2,
+   "rive": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "oryzo.ai",
+   "static.cloudflareinsights.com",
+   "f.vimeocdn.com"
+  ]
+ },
+ {
+  "name": "lamalama",
+  "url": "https://lamalama.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 16,
+  "top": {
+   "nodes": 3004,
+   "inView": 399,
+   "canvases": 3,
+   "canvasSizes": [
+    "36x36",
+    "1440x900",
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 25,
+   "imgs": 129,
+   "svgs": 94,
+   "blend": [
+    "exclusion"
+   ],
+   "blendCount": 4,
+   "clip": 79,
+   "sticky": 3,
+   "filt": 56,
+   "backdrop": 17,
+   "mask": 3,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 72,
+    "text": "creative",
+    "family": "SuisseBPIntl",
+    "weight": "700",
+    "w": 327
+   },
+   "fonts": [
+    "SuisseBPIntl",
+    "Sometype"
+   ],
+   "bg": "rgb(26, 28, 28)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": true,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Lama Lama | Amsterdam based creative digital agency",
+   "textLen": 5236
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 3,
+   "clip": 79,
+   "sticky": 3,
+   "blendCount": 4,
+   "videos": 25,
+   "ctx": [
+    "webgl2",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2426,
+  "jsFiles": 50,
+  "jsSig": {
+   "ScrollTrigger": 8,
+   "lenis": 1,
+   "swup": 1,
+   "customGLSL": 2,
+   "gsap": 2
+  },
+  "scriptHosts": [
+   "lamalama.com",
+   "cdn.usefathom.com",
+   "www.googletagmanager.com",
+   "app.cal.com",
+   "d5yoctgpv4cpx.cloudfront.net"
+  ]
+ },
+ {
+  "name": "floema",
+  "url": "https://floema.com/en",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 188,
+  "top": {
+   "nodes": 1287,
+   "inView": 204,
+   "canvases": 3,
+   "canvasSizes": [
+    "1440x900",
+    "1440x1049",
+    "1440x450"
+   ],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 63,
+   "svgs": 52,
+   "blend": [
+    "difference"
+   ],
+   "blendCount": 1,
+   "clip": 24,
+   "sticky": 2,
+   "filt": 0,
+   "backdrop": 1,
+   "mask": 0,
+   "persp": 2,
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 57.2,
+    "text": "Spaces",
+    "family": "Zimula",
+    "weight": "400",
+    "w": 184
+   },
+   "fonts": [
+    "sans-serif",
+    "Zimula"
+   ],
+   "bg": "rgb(242, 239, 234)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "181",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": true
+   },
+   "title": "Floema® — Spaces for people, made for life.",
+   "textLen": 2845
+  },
+  "mid": {
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 3,
+   "clip": 24,
+   "sticky": 2,
+   "blendCount": 1,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 7704,
+  "jsFiles": 44,
+  "jsSig": {
+   "SplitText": 1,
+   "gsap": 3,
+   "ScrollTrigger": 4,
+   "lenis": 1,
+   "rive": 1,
+   "customGLSL": 5,
+   "three": 4,
+   "threeWebGPU": 4,
+   "TSL": 4,
+   "wgsl": 4
+  },
+  "scriptHosts": [
+   "floema.com",
+   "www.googletagmanager.com",
+   "plausible.io",
+   "cloud.umami.is",
+   "consent.cookiebot.com",
+   "connect.facebook.net",
+   "capi-automation.s3.us-east-2.amazonaws.com"
+  ]
+ },
+ {
+  "name": "sondaven",
+  "url": "https://sondaven.com/en",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 1204,
+  "top": {
+   "nodes": 4397,
+   "inView": 466,
+   "canvases": 16,
+   "canvasSizes": [
+    "1440x900",
+    "1440x1800",
+    "1440x1800",
+    "1440x1020",
+    "1440x2166"
+   ],
+   "ctx": [
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 3,
+   "imgs": 70,
+   "svgs": 169,
+   "blend": [
+    "soft-light",
+    "lighten"
+   ],
+   "blendCount": 2,
+   "clip": 0,
+   "sticky": 17,
+   "filt": 1,
+   "backdrop": 0,
+   "mask": 4,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 20,
+    "text": "investment project",
+    "family": "KTF Metro Blueline",
+    "weight": "400",
+    "w": 688
+   },
+   "fonts": [
+    "KTF Metro Blueline"
+   ],
+   "bg": "rgb(168, 148, 116)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": true,
+    "ScrollTrigger": true,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": true,
+    "PIXI": false,
+    "Webflow": true,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": true,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Son Daven — Design Resort Hotel in Yaremche",
+   "textLen": 9961
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 16,
+   "clip": 0,
+   "sticky": 17,
+   "blendCount": 2,
+   "videos": 3,
+   "ctx": [
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 8380,
+  "jsFiles": 31,
+  "jsSig": {
+   "gsap": 6,
+   "ScrollTrigger": 3,
+   "SplitText": 2,
+   "lenis": 1,
+   "barba": 2,
+   "three": 3,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "cdn.prod.website-files.com",
+   "unpkg.com",
+   "cdn.jsdelivr.net",
+   "d3e54v103j8qbb.cloudfront.net",
+   "f.vimeocdn.com",
+   "assets.slater.app",
+   "www.googletagmanager.com",
+   "connect.facebook.net"
+  ]
+ },
+ {
+  "name": "mindmarket",
+  "url": "https://mindmarket.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 115,
+  "top": {
+   "nodes": 1058,
+   "inView": 93,
+   "canvases": 14,
+   "canvasSizes": [
+    "40x40",
+    "737x527",
+    "464x569",
+    "486x501",
+    "432x497"
+   ],
+   "ctx": [
+    "webgl2",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 84,
+   "svgs": 43,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 14,
+   "sticky": 7,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 3,
+   "infinite": 3,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 139.68,
+    "text": "Real human insights",
+    "family": "Inter",
+    "weight": "500",
+    "w": 968
+   },
+   "fonts": [
+    "Inter"
+   ],
+   "bg": "rgb(255, 255, 255)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": true,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Real human insights | MindMarket",
+   "textLen": 4245
+  },
+  "mid": {
+   "anims": 3,
+   "infinite": 3,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 14,
+   "clip": 14,
+   "sticky": 7,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 923,
+  "jsFiles": 35,
+  "jsSig": {
+   "swup": 1,
+   "gsap": 3,
+   "lenis": 1,
+   "ScrollTrigger": 1,
+   "rive": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "mindmarket.com",
+   "www.googletagmanager.com"
+  ]
+ },
+ {
+  "name": "era-residence",
+  "url": "https://era-residence.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 118,
+  "top": {
+   "nodes": 1849,
+   "inView": 266,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 8,
+   "imgs": 41,
+   "svgs": 85,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 6,
+   "sticky": 5,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 1,
+   "persp": 0,
+   "anims": 3,
+   "infinite": 3,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 172.8,
+    "text": "Cookies",
+    "family": "sloop-script-three",
+    "weight": "400",
+    "w": 389
+   },
+   "fonts": [
+    "Maison Neue Extended",
+    "ambroise-francois-std",
+    "sloop-script-three"
+   ],
+   "bg": "rgb(243, 243, 236) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": true,
+    "ScrollTrigger": true,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": true,
+    "PIXI": false,
+    "Webflow": true,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "ERA Residence — Contemporary Mediterranean Residences in Estepona",
+   "textLen": 4008
+  },
+  "mid": {
+   "anims": 3,
+   "infinite": 3,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 22,
+   "sticky": 5,
+   "blendCount": 0,
+   "videos": 8,
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2547,
+  "jsFiles": 16,
+  "jsSig": {
+   "gsap": 5,
+   "ScrollTrigger": 3,
+   "barba": 2,
+   "SplitText": 2,
+   "lenis": 1
+  },
+  "scriptHosts": [
+   "cdn.prod.website-files.com",
+   "d3e54v103j8qbb.cloudfront.net",
+   "cdn.jsdelivr.net",
+   "unpkg.com",
+   "use.typekit.net",
+   "assets.slater.app",
+   "www.googletagmanager.com",
+   "connect.facebook.net"
+  ]
+ },
+ {
+  "name": "igloo",
+  "url": "https://www.igloo.inc/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 10,
+  "top": {
+   "nodes": 4,
+   "inView": 2,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 0,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 0
+   },
+   "fonts": [],
+   "bg": "rgb(160, 165, 177)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "165",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Igloo Inc.",
+   "textLen": 0
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1800,
+  "jsFiles": 8,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "three": 2,
+   "threeWebGPU": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "www.igloo.inc",
+   ""
+  ]
+ },
+ {
+  "name": "osmo",
+  "url": "https://www.osmo.supply/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 61,
+  "top": {
+   "nodes": 3406,
+   "inView": 474,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 36,
+   "imgs": 96,
+   "svgs": 120,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 23,
+   "sticky": 3,
+   "filt": 0,
+   "backdrop": 2,
+   "mask": 2,
+   "persp": 2,
+   "anims": 10,
+   "infinite": 8,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 112,
+    "text": "Dev",
+    "family": "Haffer XH",
+    "weight": "400",
+    "w": 183
+   },
+   "fonts": [
+    "Haffer VF",
+    "Haffer Mono",
+    "Haffer XH"
+   ],
+   "bg": "rgb(244, 244, 244)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": true,
+    "ScrollTrigger": true,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": true,
+    "PIXI": false,
+    "Webflow": true,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Osmo - Dev Toolkit Built to Flex",
+   "textLen": 7786
+  },
+  "mid": {
+   "anims": 8,
+   "infinite": 8,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 23,
+   "sticky": 3,
+   "blendCount": 0,
+   "videos": 36,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3892,
+  "jsFiles": 25,
+  "jsSig": {
+   "barba": 3,
+   "gsap": 8,
+   "ScrollTrigger": 4,
+   "SplitText": 2,
+   "lenis": 1
+  },
+  "scriptHosts": [
+   "cdn.jsdelivr.net",
+   "cdn.outseta.com",
+   "cdn.prod.website-files.com",
+   "plausible.io",
+   "slater.app",
+   "d3e54v103j8qbb.cloudfront.net"
+  ]
+ },
+ {
+  "name": "aether1",
+  "url": "https://aether1.ai/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 40,
+  "top": {
+   "nodes": 374,
+   "inView": 189,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 2,
+   "svgs": 37,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 1,
+   "sticky": 0,
+   "filt": 20,
+   "backdrop": 1,
+   "mask": 10,
+   "persp": 1,
+   "anims": 6,
+   "infinite": 6,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 54,
+    "text": "Sound Without Boundaries",
+    "family": "Manrope",
+    "weight": "500",
+    "w": 380
+   },
+   "fonts": [
+    "Manrope",
+    "Azeretmono"
+   ],
+   "bg": "rgb(5, 13, 21)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "175",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": true,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Aether 1 Earbuds",
+   "textLen": 533
+  },
+  "mid": {
+   "anims": 6,
+   "infinite": 6,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 1,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 1,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 8293,
+  "jsFiles": 9,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "SplitText": 1,
+   "three": 1,
+   "threeWebGPU": 1,
+   "lenis": 1,
+   "taxi": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "cdn.prod.website-files.com",
+   "d3e54v103j8qbb.cloudfront.net",
+   "aether-two-kappa.vercel.app",
+   "www.googletagmanager.com",
+   ""
+  ]
+ },
+ {
+  "name": "phantom",
+  "url": "https://phantom.land/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 12,
+  "top": {
+   "nodes": 1657,
+   "inView": 185,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 1,
+   "svgs": 6,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 6,
+   "mask": 1,
+   "persp": 0,
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 56,
+    "text": "All projects",
+    "family": "Helvetica Now",
+    "weight": "700",
+    "w": 464
+   },
+   "fonts": [
+    "ballinger-mono",
+    "Helvetica Now"
+   ],
+   "bg": "rgb(0, 0, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "175",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Phantom Studios — Technology Creative Agency — London and Auckland",
+   "textLen": 51737
+  },
+  "mid": {
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2644,
+  "jsFiles": 44,
+  "jsSig": {
+   "lenis": 1,
+   "gsap": 3,
+   "customGLSL": 5,
+   "ScrollTrigger": 1,
+   "motion": 1,
+   "three": 3,
+   "r3f": 1
+  },
+  "scriptHosts": [
+   "www.phantom.land",
+   "www.googletagmanager.com",
+   "static.cdn.prismic.io"
+  ]
+ },
+ {
+  "name": "stabondar",
+  "url": "https://stabondar.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 18,
+  "top": {
+   "nodes": 2526,
+   "inView": 148,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 10,
+   "svgs": 27,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 3,
+   "filt": 1,
+   "backdrop": 0,
+   "mask": 1,
+   "persp": 1,
+   "anims": 34,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 0
+   },
+   "fonts": [],
+   "bg": "rgb(17, 17, 17)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "172",
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": true,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Stas Bondar — Front-End Developer",
+   "textLen": 75
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 0,
+   "sticky": 3,
+   "blendCount": 0,
+   "videos": 1,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1567,
+  "jsFiles": 38,
+  "jsSig": {
+   "ScrollTrigger": 16,
+   "SplitText": 10,
+   "barba": 1,
+   "gsap": 6,
+   "lenis": 1,
+   "three": 1,
+   "threeWebGPU": 1,
+   "customGLSL": 2,
+   "matter": 1
+  },
+  "scriptHosts": [
+   "www.stabondar.com"
+  ]
+ },
+ {
+  "name": "matvoyce",
+  "url": "https://matvoyce.tv/",
+  "ok": true,
+  "status": 307,
+  "rafPerSecRest": 165,
+  "top": {
+   "nodes": 885,
+   "inView": 258,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 73,
+   "svgs": 0,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 2,
+   "sticky": 1,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 1,
+   "persp": 0,
+   "anims": 6,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 13.5,
+    "text": "Follow me",
+    "family": "F37Judge-Extended",
+    "weight": "500",
+    "w": 94
+   },
+   "fonts": [
+    "F37Judge-Extended"
+   ],
+   "bg": "rgb(255, 254, 248)",
+   "cursorNoneBody": true,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "167",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Mat Voyce",
+   "textLen": 1097
+  },
+  "mid": {
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 2,
+   "sticky": 1,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3317,
+  "jsFiles": 34,
+  "jsSig": {
+   "gsap": 5,
+   "ScrollTrigger": 7,
+   "three": 2,
+   "customGLSL": 3,
+   "r3f": 1,
+   "lenis": 1
+  },
+  "scriptHosts": [
+   "www.googletagmanager.com",
+   "matvoyce.tv",
+   ""
+  ]
+ },
+ {
+  "name": "cashapp-design",
+  "url": "https://design.cash.app/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 90,
+  "top": {
+   "nodes": 2544,
+   "inView": 709,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 31,
+   "imgs": 89,
+   "svgs": 28,
+   "blend": [
+    "difference"
+   ],
+   "blendCount": 4,
+   "clip": 43,
+   "sticky": 0,
+   "filt": 1,
+   "backdrop": 0,
+   "mask": 2,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 122.4,
+    "text": "Foundations",
+    "family": "CashSans",
+    "weight": "400",
+    "w": 678
+   },
+   "fonts": [
+    "CashSans"
+   ],
+   "bg": "rgb(0, 0, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Cash App Brand Guidelines",
+   "textLen": 1005
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 43,
+   "sticky": 0,
+   "blendCount": 4,
+   "videos": 31,
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 490,
+  "jsFiles": 19,
+  "jsSig": {
+   "gsap": 3,
+   "ScrollTrigger": 1,
+   "swup": 1
+  },
+  "scriptHosts": [
+   "design.cash.app"
+  ]
+ },
+ {
+  "name": "telescope",
+  "url": "https://telescope.fyi/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 124,
+  "top": {
+   "nodes": 1134,
+   "inView": 115,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 111,
+   "svgs": 34,
+   "blend": [
+    "multiply"
+   ],
+   "blendCount": 1,
+   "clip": 11,
+   "sticky": 5,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 28,
+   "persp": 3,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 57,
+    "text": "Real",
+    "family": "Beausite",
+    "weight": "400",
+    "w": 112
+   },
+   "fonts": [
+    "Beausite",
+    "DM Mono"
+   ],
+   "bg": "rgb(244, 243, 240) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": true
+   },
+   "title": "Telescope",
+   "textLen": 1216
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 11,
+   "sticky": 5,
+   "blendCount": 1,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1464,
+  "jsFiles": 12,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "lenis": 1
+  },
+  "scriptHosts": [
+   "telescope.fyi"
+  ]
+ },
+ {
+  "name": "pantheon",
+  "url": "https://pantheonmedia.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 55,
+  "top": {
+   "nodes": 488,
+   "inView": 130,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 18,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 3,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 36,
+    "text": "Pantheon Media Group",
+    "family": "PPMori",
+    "weight": "400",
+    "w": 1
+   },
+   "fonts": [
+    "PPMori",
+    "DMMono"
+   ],
+   "bg": "rgb(0, 0, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "185",
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Pantheon Media Group",
+   "textLen": 169
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 3,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2530,
+  "jsFiles": 32,
+  "jsSig": {
+   "gsap": 3,
+   "ScrollTrigger": 2,
+   "SplitText": 2,
+   "lenis": 1,
+   "customGLSL": 4,
+   "three": 3,
+   "TSL": 1,
+   "r3f": 1
+  },
+  "scriptHosts": [
+   "www.pantheonmedia.com"
+  ]
+ },
+ {
+  "name": "dash",
+  "url": "https://www.dashcreative.co/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 68,
+  "top": {
+   "nodes": 234,
+   "inView": 194,
+   "canvases": 1,
+   "canvasSizes": [
+    "920x920"
+   ],
+   "ctx": [
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 8,
+   "imgs": 22,
+   "svgs": 0,
+   "blend": [
+    "difference"
+   ],
+   "blendCount": 1,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 7,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 60,
+    "text": "Magnetic",
+    "family": "Ppeiko-light-italic",
+    "weight": "300",
+    "w": 225
+   },
+   "fonts": [
+    "Messinasans-light",
+    "Messinasans-semi-bold",
+    "Ppeiko-light-italic"
+   ],
+   "bg": "rgb(0, 0, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": true,
+    "ScrollTrigger": true,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": true,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Dash Creative | Multi-award-winning Shopify Plus Partner",
+   "textLen": 783
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 1,
+   "videos": 8,
+   "ctx": [
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1023,
+  "jsFiles": 25,
+  "jsSig": {
+   "gsap": 11,
+   "SplitText": 2,
+   "ScrollTrigger": 6,
+   "lenis": 1
+  },
+  "scriptHosts": [
+   "cdn.prod.website-files.com",
+   "www.googletagmanager.com",
+   "d3e54v103j8qbb.cloudfront.net",
+   "cdn.jsdelivr.net"
+  ]
+ },
+ {
+  "name": "pxpush",
+  "url": "https://pxpush.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 7,
+  "top": {
+   "nodes": 4776,
+   "inView": 201,
+   "canvases": 3,
+   "canvasSizes": [
+    "1008x288",
+    "1440x900",
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 50,
+   "svgs": 7,
+   "blend": [
+    "difference"
+   ],
+   "blendCount": 3,
+   "clip": 10,
+   "sticky": 5,
+   "filt": 6,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 72,
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 172.8,
+    "text": "On–Demand Design Department",
+    "family": "SemiSqueezed",
+    "weight": "400",
+    "w": 1955
+   },
+   "fonts": [
+    "Mono",
+    "SemiSqueezed"
+   ],
+   "bg": "rgb(26, 26, 26)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "180",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": true
+   },
+   "title": "PX PUSH — Design subscription service",
+   "textLen": 6145
+  },
+  "mid": {
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 3,
+   "clip": 9,
+   "sticky": 5,
+   "blendCount": 3,
+   "videos": 1,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1078,
+  "jsFiles": 12,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "lenis": 1,
+   "customGLSL": 2,
+   "three": 1
+  },
+  "scriptHosts": [
+   "pxpush.com",
+   "static.cloudflareinsights.com"
+  ]
+ },
+ {
+  "name": "shopify-editions",
+  "url": "https://www.shopify.com/editions/winter2026",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 18,
+  "top": {
+   "nodes": 4117,
+   "inView": 206,
+   "canvases": 2,
+   "canvasSizes": [
+    "1440x900",
+    "1140x648"
+   ],
+   "ctx": [
+    "webgl",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 12,
+   "imgs": 345,
+   "svgs": 126,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 17,
+   "sticky": 4,
+   "filt": 0,
+   "backdrop": 5,
+   "mask": 11,
+   "persp": 0,
+   "anims": 77,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 32,
+    "text": "The Renaissance Edition",
+    "family": "NeueMontreal",
+    "weight": "700",
+    "w": 1
+   },
+   "fonts": [
+    "Inter",
+    "NeueMontreal",
+    "Inter-Variable"
+   ],
+   "bg": "rgb(0, 0, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "181",
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Shopify Editions | Winter '26",
+   "textLen": 1808
+  },
+  "mid": {
+   "anims": 26,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 3,
+   "clip": 17,
+   "sticky": 4,
+   "blendCount": 0,
+   "videos": 13,
+   "ctx": [
+    "webgl",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2727,
+  "jsFiles": 33,
+  "jsSig": {
+   "lenis": 1,
+   "rive": 1,
+   "customGLSL": 3,
+   "three": 1,
+   "r3f": 1,
+   "threeWebGPU": 1,
+   "theatre": 2
+  },
+  "scriptHosts": [
+   "cdn.shopify.com",
+   ""
+  ]
+ },
+ {
+  "name": "mischief",
+  "url": "https://mischiefusa.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 44,
+  "top": {
+   "nodes": 466,
+   "inView": 31,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 65,
+   "svgs": 11,
+   "blend": [
+    "difference",
+    "color",
+    "screen"
+   ],
+   "blendCount": 12,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 8,
+   "infinite": 8,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 36,
+    "text": "AT NO FIXED ADDRESS",
+    "family": "DMSans",
+    "weight": "800",
+    "w": 919
+   },
+   "fonts": [
+    "DMSans",
+    "Syne"
+   ],
+   "bg": "rgb(17, 17, 17)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "mischief.",
+   "textLen": 2064
+  },
+  "mid": {
+   "anims": 8,
+   "infinite": 8,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 12,
+   "videos": 1,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1645,
+  "jsFiles": 10,
+  "jsSig": {
+   "gsap": 3,
+   "ScrollTrigger": 3,
+   "SplitText": 1
+  },
+  "scriptHosts": [
+   "mischiefusa.com",
+   "www.googletagmanager.com",
+   "www.google-analytics.com",
+   "static.hotjar.com",
+   "script.hotjar.com"
+  ]
+ },
+ {
+  "name": "wk",
+  "url": "https://www.wk.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 1042,
+   "inView": 498,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 8,
+   "imgs": 0,
+   "svgs": 14,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 2,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 1,
+   "anims": 2,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 57.6,
+    "text": "Nike: Never Slept, Always Dreamed.",
+    "family": "Univers LT Std",
+    "weight": "300",
+    "w": 926
+   },
+   "fonts": [
+    "Univers LT Std"
+   ],
+   "bg": "rgb(233, 236, 239)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "An independent creative network | Wieden+Kennedy",
+   "textLen": 3256
+  },
+  "mid": {
+   "anims": 11,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 8,
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2470,
+  "jsFiles": 15,
+  "jsSig": {
+   "swup": 1
+  },
+  "scriptHosts": [
+   "www.wk.com",
+   "www.googletagmanager.com"
+  ]
+ },
+ {
+  "name": "mother",
+  "url": "https://www.motherlondon.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 5,
+  "top": {
+   "nodes": 489,
+   "inView": 354,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 22,
+   "svgs": 11,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 2,
+   "sticky": 0,
+   "filt": 1,
+   "backdrop": 36,
+   "mask": 0,
+   "persp": 0,
+   "anims": 5,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 40,
+    "text": "How Mother are you?",
+    "family": "Basis",
+    "weight": "700",
+    "w": 290
+   },
+   "fonts": [
+    "Basis"
+   ],
+   "bg": "rgb(255, 255, 255)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Mother London",
+   "textLen": 1714
+  },
+  "mid": {
+   "anims": 3,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 2,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 9860,
+  "jsFiles": 51,
+  "jsSig": {},
+  "scriptHosts": [
+   "www.motherlondon.com",
+   "www.googletagmanager.com"
+  ]
+ },
+ {
+  "name": "koto",
+  "url": "https://koto.studio/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 42,
+  "top": {
+   "nodes": 2167,
+   "inView": 403,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 15,
+   "imgs": 76,
+   "svgs": 61,
+   "blend": [
+    "exclusion"
+   ],
+   "blendCount": 3,
+   "clip": 1,
+   "sticky": 1,
+   "filt": 0,
+   "backdrop": 36,
+   "mask": 1,
+   "persp": 0,
+   "anims": 13,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 48,
+    "text": "We’re Koto",
+    "family": "gtKotoheimCondensed",
+    "weight": "300",
+    "w": 179
+   },
+   "fonts": [
+    "gtKotoheim",
+    "gtKotoheimMono",
+    "gtKotoheimCondensed"
+   ],
+   "bg": "rgb(6, 6, 6) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Koto, an international creative agency building impactful brands",
+   "textLen": 5096
+  },
+  "mid": {
+   "anims": 13,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 1,
+   "blendCount": 3,
+   "videos": 15,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3882,
+  "jsFiles": 32,
+  "jsSig": {
+   "gsap": 4,
+   "ScrollTrigger": 2,
+   "rive": 1,
+   "SplitText": 1,
+   "customGLSL": 1,
+   "three": 1
+  },
+  "scriptHosts": [
+   "koto.com",
+   "www.googletagmanager.com",
+   "consent.cookiebot.com",
+   "f.vimeocdn.com"
+  ]
+ },
+ {
+  "name": "collins",
+  "url": "https://www.wearecollins.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 60,
+  "top": {
+   "nodes": 396,
+   "inView": 103,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 14,
+   "svgs": 33,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 33,
+   "sticky": 0,
+   "filt": 2,
+   "backdrop": 8,
+   "mask": 0,
+   "persp": 19,
+   "anims": 1,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 72,
+    "text": "Rewrite your worth.",
+    "family": "Portrait Text",
+    "weight": "400",
+    "w": 1244
+   },
+   "fonts": [
+    "Graphik",
+    "Portrait Text"
+   ],
+   "bg": "rgb(248, 248, 247) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": false
+   },
+   "title": "COLLINS",
+   "textLen": 802
+  },
+  "mid": {
+   "anims": 2,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 24,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1887,
+  "jsFiles": 32,
+  "jsSig": {
+   "motion": 1
+  },
+  "scriptHosts": [
+   "wearecollins.com",
+   "www.clarity.ms",
+   "scripts.clarity.ms"
+  ]
+ },
+ {
+  "name": "huge",
+  "url": "https://www.hugeinc.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 125,
+  "top": {
+   "nodes": 762,
+   "inView": 62,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 47,
+   "svgs": 22,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 1,
+   "sticky": 7,
+   "filt": 0,
+   "backdrop": 8,
+   "mask": 9,
+   "persp": 0,
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 284.8,
+    "text": "Hello.",
+    "family": "matter",
+    "weight": "600",
+    "w": 901
+   },
+   "fonts": [
+    "matter"
+   ],
+   "bg": "rgb(255, 255, 255)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Huge.",
+   "textLen": 1339
+  },
+  "mid": {
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 7,
+   "blendCount": 0,
+   "videos": 1,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3185,
+  "jsFiles": 38,
+  "jsSig": {
+   "ScrollTrigger": 12,
+   "SplitText": 7,
+   "gsap": 3,
+   "lenis": 1,
+   "rapier": 1
+  },
+  "scriptHosts": [
+   "cdn.cookielaw.org",
+   "www.hugeinc.com",
+   "j.6sc.co",
+   "www.googletagmanager.com",
+   "munchkin.marketo.net",
+   "snap.licdn.com",
+   "cdnjs.cloudflare.com"
+  ]
+ },
+ {
+  "name": "droga5",
+  "url": "https://droga5.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 128,
+  "top": {
+   "nodes": 186,
+   "inView": 51,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 2,
+   "svgs": 3,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 16,
+    "text": "Skip to main content",
+    "family": "DroteskNo5-Medium",
+    "weight": "400",
+    "w": 205
+   },
+   "fonts": [
+    "sans-serif",
+    "DroteskNo5-Medium"
+   ],
+   "bg": "rgb(255, 255, 255)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": true,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Home | Droga5",
+   "textLen": 1250
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2212,
+  "jsFiles": 8,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "three": 1
+  },
+  "scriptHosts": [
+   "droga5.com",
+   "www.googletagmanager.com",
+   "f.vimeocdn.com"
+  ]
+ },
+ {
+  "name": "dixonbaxi",
+  "url": "https://dixonbaxi.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 939,
+   "inView": 913,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 125,
+   "svgs": 4,
+   "blend": [
+    "difference"
+   ],
+   "blendCount": 3,
+   "clip": 1,
+   "sticky": 0,
+   "filt": 2,
+   "backdrop": 0,
+   "mask": 1,
+   "persp": 0,
+   "anims": 2,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 80,
+    "text": "Ask us anything.",
+    "family": "Aeonik Fono",
+    "weight": "400",
+    "w": 1
+   },
+   "fonts": [
+    "Aeonik Fono"
+   ],
+   "bg": "rgb(246, 246, 246)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "DixonBaxi",
+   "textLen": 2364
+  },
+  "mid": {
+   "anims": 2,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 0,
+   "blendCount": 3,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2618,
+  "jsFiles": 20,
+  "jsSig": {
+   "motion": 5,
+   "lenis": 1
+  },
+  "scriptHosts": [
+   "www.dixonbaxi.com",
+   "plausible.io"
+  ]
+ },
+ {
+  "name": "cerebrium",
+  "url": "https://www.cerebrium.ai/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 51,
+  "top": {
+   "nodes": 3822,
+   "inView": 99,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 49,
+   "svgs": 91,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 67,
+   "sticky": 2,
+   "filt": 27,
+   "backdrop": 12,
+   "mask": 18,
+   "persp": 0,
+   "anims": 5,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 86.0864,
+    "text": "Real-time",
+    "family": "ABC Favorit Trial",
+    "weight": "300",
+    "w": 351
+   },
+   "fonts": [
+    "Suisse Intl",
+    "Suisse Intl Mono",
+    "ABC Favorit Trial"
+   ],
+   "bg": "rgb(16, 20, 33) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "183",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": true,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Serverless GPU Infrastructure for Real-Time AI | Cerebrium",
+   "textLen": 5858
+  },
+  "mid": {
+   "anims": 8,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 67,
+   "sticky": 2,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3147,
+  "jsFiles": 60,
+  "jsSig": {
+   "swup": 3,
+   "lenis": 1,
+   "gsap": 2,
+   "ScrollTrigger": 1,
+   "three": 1,
+   "customGLSL": 1,
+   "SplitText": 1
+  },
+  "scriptHosts": [
+   "cerebrium.ai",
+   "www.googletagmanager.com",
+   ""
+  ]
+ },
+ {
+  "name": "oxide",
+  "url": "https://oxide.computer/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 92,
+  "top": {
+   "nodes": 1930,
+   "inView": 150,
+   "canvases": 1,
+   "canvasSizes": [
+    "700x636"
+   ],
+   "ctx": [
+    "webgl",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 36,
+   "svgs": 81,
+   "blend": [
+    "overlay"
+   ],
+   "blendCount": 1,
+   "clip": 0,
+   "sticky": 1,
+   "filt": 4,
+   "backdrop": 1,
+   "mask": 1,
+   "persp": 0,
+   "anims": 7,
+   "infinite": 6,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 65,
+    "text": "On-prem that feels like the public cloud",
+    "family": "SuisseIntl",
+    "weight": "400",
+    "w": 720
+   },
+   "fonts": [
+    "GT America Mono",
+    "SuisseIntl"
+   ],
+   "bg": "oklch(0.162 0.01 260)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "182",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Oxide Computer Company",
+   "textLen": 9676
+  },
+  "mid": {
+   "anims": 6,
+   "infinite": 6,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 0,
+   "sticky": 1,
+   "blendCount": 1,
+   "videos": 0,
+   "ctx": [
+    "webgl",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2058,
+  "jsFiles": 53,
+  "jsSig": {
+   "motion": 1,
+   "three": 1,
+   "r3f": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "oxide.computer",
+   "cdn.drda.io"
+  ]
+ },
+ {
+  "name": "planetscale",
+  "url": "https://planetscale.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 704,
+   "inView": 114,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 1,
+   "svgs": 145,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 16,
+    "text": "Neki, sharded Postgres, is now available",
+    "family": "ui-monospace",
+    "weight": "500",
+    "w": 395
+   },
+   "fonts": [
+    "ui-monospace"
+   ],
+   "bg": "rgb(250, 250, 250) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "PlanetScale - the world’s fastest and most scalable cloud hosting for Vitess and",
+   "textLen": 10682
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 857,
+  "jsFiles": 19,
+  "jsSig": {
+   "rapier": 1
+  },
+  "scriptHosts": [
+   "planetscale.com"
+  ]
+ },
+ {
+  "name": "railway",
+  "url": "https://railway.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 120,
+  "top": {
+   "nodes": 9459,
+   "inView": 476,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 65,
+   "svgs": 60,
+   "blend": [
+    "overlay",
+    "darken"
+   ],
+   "blendCount": 8,
+   "clip": 237,
+   "sticky": 4,
+   "filt": 36,
+   "backdrop": 0,
+   "mask": 44,
+   "persp": 0,
+   "anims": 12,
+   "infinite": 6,
+   "scrollTl": 0,
+   "viewTl": 5,
+   "biggest": {
+    "size": 54,
+    "text": "Ship software peacefully",
+    "family": "IBM Plex Serif",
+    "weight": "500",
+    "w": 588
+   },
+   "fonts": [
+    "JetBrains Mono",
+    "Inter",
+    "Helvetica"
+   ],
+   "bg": "rgb(19, 17, 28)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Railway | The all-in-one intelligent cloud provider",
+   "textLen": 20614
+  },
+  "mid": {
+   "anims": 11,
+   "infinite": 6,
+   "scrollTl": 0,
+   "viewTl": 5,
+   "canvases": 0,
+   "clip": 237,
+   "sticky": 4,
+   "blendCount": 8,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 10102,
+  "jsFiles": 215,
+  "jsSig": {
+   "motion": 2,
+   "theatre": 1
+  },
+  "scriptHosts": [
+   "railway.com",
+   "cdn.usefathom.com",
+   "www.googletagmanager.com",
+   "luminaire.railway.com",
+   "cmp.osano.com",
+   "",
+   "googleads.g.doubleclick.net"
+  ]
+ },
+ {
+  "name": "gretel",
+  "url": "https://gretel.net/",
+  "ok": false,
+  "error": "page.goto: net::ERR_TIMED_OUT at https://gretel.net/\nCall log:\n\u001b[2m  - navigating to \"https://gretel.net/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+  "jsKB": 0,
+  "jsFiles": 0,
+  "jsSig": {},
+  "scriptHosts": []
+ },
+ {
+  "name": "warp",
+  "url": "https://www.warp.dev/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 121,
+  "top": {
+   "nodes": 994,
+   "inView": 57,
+   "canvases": 3,
+   "canvasSizes": [
+    "1440x924",
+    "1002x300",
+    "529x170"
+   ],
+   "ctx": [
+    "2d",
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 33,
+   "svgs": 9,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 3,
+   "sticky": 1,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 9,
+   "persp": 0,
+   "anims": 2,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 56,
+    "text": "Open infrastructure for cloud software f",
+    "family": "matterMono",
+    "weight": "500",
+    "w": 720
+   },
+   "fonts": [
+    "matterMono"
+   ],
+   "bg": "oklch(0.992495 0.00178735 220) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Warp — The Open Platform for Automating Development",
+   "textLen": 7404
+  },
+  "mid": {
+   "anims": 2,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 3,
+   "clip": 3,
+   "sticky": 1,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "2d",
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 6302,
+  "jsFiles": 51,
+  "jsSig": {
+   "motion": 1
+  },
+  "scriptHosts": [
+   "www.warp.dev",
+   "www.googletagmanager.com",
+   "cdn.dreamdata.cloud",
+   "cdn.drda.io",
+   "js.hs-scripts.com",
+   "snap.licdn.com",
+   "cdn.rudderlabs.com",
+   "tag.tvads.ai",
+   "dx.mountain.com",
+   "www.redditstatic.com",
+   "assets.apollo.io",
+   "cdn.sy-d.io",
+   "connect.facebook.net",
+   "pixel.byspotify.com",
+   "js.hsadspixel.net"
+  ]
+ },
+ {
+  "name": "resend",
+  "url": "https://resend.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 140,
+  "top": {
+   "nodes": 2370,
+   "inView": 59,
+   "canvases": 1,
+   "canvasSizes": [
+    "648x550"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d",
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": true,
+    "adapter": true
+   },
+   "videos": 5,
+   "imgs": 73,
+   "svgs": 102,
+   "blend": [
+    "hard-light",
+    "darken"
+   ],
+   "blendCount": 4,
+   "clip": 15,
+   "sticky": 1,
+   "filt": 6,
+   "backdrop": 4,
+   "mask": 9,
+   "persp": 1,
+   "anims": 9,
+   "infinite": 7,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 96,
+    "text": "Email fordevelopers",
+    "family": "domaine",
+    "weight": "400",
+    "w": 480
+   },
+   "fonts": [
+    "inter",
+    "domaine"
+   ],
+   "bg": "rgb(0, 0, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "149",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Resend · Email for developers",
+   "textLen": 14796
+  },
+  "mid": {
+   "anims": 9,
+   "infinite": 7,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 15,
+   "sticky": 1,
+   "blendCount": 4,
+   "videos": 5,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d",
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": true,
+    "adapter": true
+   }
+  },
+  "jsKB": 9494,
+  "jsFiles": 78,
+  "jsSig": {
+   "motion": 2,
+   "three": 1,
+   "TSL": 1,
+   "spline": 1,
+   "rapier": 1,
+   "customGLSL": 2
+  },
+  "scriptHosts": [
+   "resend.com",
+   "fp.resend.com"
+  ]
+ },
+ {
+  "name": "flyio",
+  "url": "https://fly.io/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 440,
+   "inView": 66,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 31,
+   "svgs": 5,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 1,
+   "filt": 10,
+   "backdrop": 1,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 120,
+    "text": "Computersfor agents",
+    "family": "Mackinac",
+    "weight": "500",
+    "w": 1292
+   },
+   "fonts": [
+    "Fricolage Grotesque",
+    "Mackinac"
+   ],
+   "bg": "rgba(0, 0, 0, 0) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Fly · Computers for agents",
+   "textLen": 5626
+  },
+  "mid": {
+   "anims": 1,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 1,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 5025,
+  "jsFiles": 11,
+  "jsSig": {
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "fly.io",
+   "analytics.fly.io",
+   "www.googletagmanager.com",
+   "js.stripe.com",
+   "m.stripe.network"
+  ]
+ },
+ {
+  "name": "modal",
+  "url": "https://modal.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 9,
+  "top": {
+   "nodes": 1968,
+   "inView": 597,
+   "canvases": 2,
+   "canvasSizes": [
+    "1440x900",
+    "576x576"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 8,
+   "imgs": 5,
+   "svgs": 106,
+   "blend": [
+    "multiply"
+   ],
+   "blendCount": 8,
+   "clip": 30,
+   "sticky": 1,
+   "filt": 12,
+   "backdrop": 5,
+   "mask": 23,
+   "persp": 0,
+   "anims": 10,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 64,
+    "text": "AI infrastructure that developers love",
+    "family": "Goga",
+    "weight": "500",
+    "w": 603
+   },
+   "fonts": [
+    "Goga",
+    "Inter Variable"
+   ],
+   "bg": "rgb(0, 0, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "180",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": true,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Modal: High-performance AI infrastructure",
+   "textLen": 5758
+  },
+  "mid": {
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 2,
+   "clip": 30,
+   "sticky": 1,
+   "blendCount": 8,
+   "videos": 8,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2607,
+  "jsFiles": 149,
+  "jsSig": {
+   "rapier": 1,
+   "three": 1,
+   "customGLSL": 1,
+   "gsap": 1,
+   "ScrollTrigger": 1
+  },
+  "scriptHosts": [
+   "modal.com"
+  ]
+ },
+ {
+  "name": "mullvad",
+  "url": "https://mullvad.net/en",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 380,
+   "inView": 63,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 2,
+   "svgs": 27,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 1,
+   "sticky": 0,
+   "filt": 2,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 3,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 80,
+    "text": "Privacy is for the people",
+    "family": "Source Sans Pro",
+    "weight": "600",
+    "w": 485
+   },
+   "fonts": [
+    "Open Sans",
+    "Martian Mono Variable",
+    "Source Sans Pro"
+   ],
+   "bg": "rgb(25, 46, 69)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": true,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Mullvad VPN - Privacy is for the people",
+   "textLen": 3110
+  },
+  "mid": {
+   "anims": 3,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 1,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 679,
+  "jsFiles": 49,
+  "jsSig": {},
+  "scriptHosts": [
+   "mullvad.net"
+  ]
+ },
+ {
+  "name": "tailscale",
+  "url": "https://tailscale.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 2506,
+   "inView": 300,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "2d",
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 55,
+   "svgs": 151,
+   "blend": [
+    "overlay"
+   ],
+   "blendCount": 1,
+   "clip": 24,
+   "sticky": 1,
+   "filt": 54,
+   "backdrop": 0,
+   "mask": 53,
+   "persp": 0,
+   "anims": 2,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 64,
+    "text": "The best secure connectivity platform fo",
+    "family": "inter",
+    "weight": "500",
+    "w": 1312
+   },
+   "fonts": [
+    "inter",
+    "Arial",
+    "mdio"
+   ],
+   "bg": "rgb(249, 247, 246)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Tailscale | Secure Connectivity for AI, IoT & Multi-Cloud",
+   "textLen": 9578
+  },
+  "mid": {
+   "anims": 2,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 24,
+   "sticky": 1,
+   "blendCount": 1,
+   "videos": 0,
+   "ctx": [
+    "2d",
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 6735,
+  "jsFiles": 49,
+  "jsSig": {
+   "motion": 1
+  },
+  "scriptHosts": [
+   "wwwv2.tailscale.com",
+   "global.ketchcdn.com",
+   "cdn.rudderlabs.com",
+   "snap.licdn.com",
+   "www.redditstatic.com",
+   "www.googletagmanager.com",
+   "static.hotjar.com",
+   "cdn.ketchjs.com",
+   "www.clarity.ms",
+   "bat.bing.com",
+   "script.hotjar.com",
+   "cdn.keyplay.io",
+   "scripts.clarity.ms"
+  ]
+ },
+ {
+  "name": "betterstack",
+  "url": "https://betterstack.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 2,
+  "top": {
+   "nodes": 1708,
+   "inView": 108,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "2d",
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 127,
+   "svgs": 136,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 1,
+   "backdrop": 22,
+   "mask": 5,
+   "persp": 0,
+   "anims": 8,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 53,
+    "text": "The AI SRE\n\nobservability stack",
+    "family": "Helvetica Now Display",
+    "weight": "500",
+    "w": 441
+   },
+   "fonts": [
+    "Helvetica Now Text",
+    "Helvetica Now Display"
+   ],
+   "bg": "rgb(11, 12, 20)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Better Stack - 30x cheaper than Datadog, Exceptional support",
+   "textLen": 10778
+  },
+  "mid": {
+   "anims": 2,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "2d",
+    "webgl"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 4694,
+  "jsFiles": 99,
+  "jsSig": {
+   "rapier": 2
+  },
+  "scriptHosts": [
+   "betterstack.com",
+   "",
+   "www.googletagmanager.com",
+   "cdnjs.betterstack.com",
+   "betterstack.net",
+   "browser.sentry-cdn.com",
+   "chat-assets.frontapp.com"
+  ]
+ },
+ {
+  "name": "restate",
+  "url": "https://restate.dev/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 144,
+  "top": {
+   "nodes": 2072,
+   "inView": 71,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x300"
+   ],
+   "ctx": [
+    "webgl",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 59,
+   "svgs": 142,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 12,
+   "backdrop": 3,
+   "mask": 0,
+   "persp": 0,
+   "anims": 16,
+   "infinite": 16,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 64,
+    "text": "Build innately resilient backends and ag",
+    "family": "stackSansHeadline",
+    "weight": "400",
+    "w": 844
+   },
+   "fonts": [
+    "Inter",
+    "stackSansHeadline",
+    "stackSansNotch"
+   ],
+   "bg": "oklch(0.9764 0.0013 286.38)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Restate - Build innately resilient distributed apps",
+   "textLen": 10652
+  },
+  "mid": {
+   "anims": 16,
+   "infinite": 16,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 1,
+   "ctx": [
+    "webgl",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3234,
+  "jsFiles": 28,
+  "jsSig": {
+   "motion": 1,
+   "three": 1,
+   "matter": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "restate.dev",
+   "www.googletagmanager.com",
+   "cdn.matomo.cloud"
+  ]
+ },
+ {
+  "name": "ghostty",
+  "url": "https://ghostty.org/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 52,
+  "top": {
+   "nodes": 148,
+   "inView": 133,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 0,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 16,
+    "text": "Ghostty is a fast, feature-rich, and cro",
+    "family": "pretendardStdVariable",
+    "weight": "400",
+    "w": 1204
+   },
+   "fonts": [
+    "JetBrains Mono",
+    "pretendardStdVariable"
+   ],
+   "bg": "rgb(15, 15, 17)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Ghostty",
+   "textLen": 5938
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 497,
+  "jsFiles": 11,
+  "jsSig": {},
+  "scriptHosts": [
+   "ghostty.org"
+  ]
+ },
+ {
+  "name": "zed",
+  "url": "https://zed.dev/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 65,
+  "top": {
+   "nodes": 5730,
+   "inView": 590,
+   "canvases": 5,
+   "canvasSizes": [
+    "1120x770",
+    "1120x450",
+    "652x382",
+    "652x389",
+    "142x142"
+   ],
+   "ctx": [
+    "2d",
+    "webgl2"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 632,
+   "svgs": 272,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 4,
+   "sticky": 1,
+   "filt": 605,
+   "backdrop": 0,
+   "mask": 10,
+   "persp": 0,
+   "anims": 7,
+   "infinite": 5,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 48,
+    "text": "Your last next editor",
+    "family": "plexSerif",
+    "weight": "340",
+    "w": 390
+   },
+   "fonts": [
+    "writer",
+    "zedMono",
+    "plexSerif"
+   ],
+   "bg": "oklab(0.846996 0.000175841 0.0101865 / 0.2)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Zed — Your last next editor",
+   "textLen": 15792
+  },
+  "mid": {
+   "anims": 9,
+   "infinite": 5,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 5,
+   "clip": 4,
+   "sticky": 1,
+   "blendCount": 0,
+   "videos": 4,
+   "ctx": [
+    "2d",
+    "webgl2"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 4020,
+  "jsFiles": 46,
+  "jsSig": {
+   "motion": 5,
+   "customGLSL": 2,
+   "rapier": 1
+  },
+  "scriptHosts": [
+   "zed.dev",
+   "www.googletagmanager.com"
+  ]
+ },
+ {
+  "name": "tigerbeetle",
+  "url": "https://tigerbeetle.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 120,
+  "top": {
+   "nodes": 2444,
+   "inView": 314,
+   "canvases": 3,
+   "canvasSizes": [
+    "1440x760",
+    "1053x485",
+    "674x280"
+   ],
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 104,
+   "svgs": 37,
+   "blend": [
+    "hard-light"
+   ],
+   "blendCount": 3,
+   "clip": 0,
+   "sticky": 3,
+   "filt": 46,
+   "backdrop": 1,
+   "mask": 17,
+   "persp": 1,
+   "anims": 101,
+   "infinite": 5,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 117.37,
+    "text": "Financial",
+    "family": "Big Shoulders Display ExtraBold",
+    "weight": "800",
+    "w": 416
+   },
+   "fonts": [
+    "Work Sans Medium",
+    "Work Sans Regular",
+    "Big Shoulders Display ExtraBold"
+   ],
+   "bg": "rgb(0, 0, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": true,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "TigerBeetle",
+   "textLen": 17053
+  },
+  "mid": {
+   "anims": 13,
+   "infinite": 5,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 3,
+   "clip": 0,
+   "sticky": 3,
+   "blendCount": 3,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1842,
+  "jsFiles": 34,
+  "jsSig": {
+   "motion": 1,
+   "lenis": 1
+  },
+  "scriptHosts": [
+   "plausible.io",
+   "framerusercontent.com",
+   "events.framer.com",
+   "framer.com",
+   "app.framerstatic.com"
+  ]
+ },
+ {
+  "name": "tinycomputer",
+  "url": "https://tinycomputer.co/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 2456,
+   "inView": 158,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 20,
+   "imgs": 516,
+   "svgs": 0,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 11,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 77,
+   "infinite": 6,
+   "scrollTl": 70,
+   "viewTl": 0,
+   "biggest": {
+    "size": 98,
+    "text": "Useful things,well made.",
+    "family": "family",
+    "weight": "400",
+    "w": 720
+   },
+   "fonts": [
+    "symbols",
+    "family"
+   ],
+   "bg": "rgb(254, 253, 251)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Tiny Computer Co. — A small, independent software studio",
+   "textLen": 1296
+  },
+  "mid": {
+   "anims": 117,
+   "infinite": 5,
+   "scrollTl": 112,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 11,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 20,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 571,
+  "jsFiles": 14,
+  "jsSig": {},
+  "scriptHosts": [
+   "tinycomputer.co",
+   "cdn.visitors.now"
+  ]
+ },
+ {
+  "name": "cartier-ww",
+  "url": "https://www.cartier.com/watchesandwonders",
+  "ok": true,
+  "status": 403,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 3,
+   "inView": 3,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 0,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 32,
+    "text": "Access Denied",
+    "family": "Times",
+    "weight": "700",
+    "w": 1424
+   },
+   "fonts": [
+    "Times"
+   ],
+   "bg": "rgba(0, 0, 0, 0) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Access Denied",
+   "textLen": 210
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 0,
+  "jsFiles": 0,
+  "jsSig": {},
+  "scriptHosts": []
+ },
+ {
+  "name": "hubtown",
+  "url": "https://hubtown.co.in/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 765,
+   "inView": 242,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 20,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 9,
+   "sticky": 6,
+   "filt": 0,
+   "backdrop": 5,
+   "mask": 0,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 9,
+    "text": "About Us",
+    "family": "Commit Mono",
+    "weight": "400",
+    "w": 1
+   },
+   "fonts": [
+    "Commit Mono"
+   ],
+   "bg": "rgb(2, 10, 24)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "179",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": false
+   },
+   "title": "Hubtown Limited | Leading Real Estate Developer in India",
+   "textLen": 155
+  },
+  "mid": {
+   "anims": 22,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 9,
+   "sticky": 6,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 4222,
+  "jsFiles": 24,
+  "jsSig": {
+   "ScrollTrigger": 2,
+   "gsap": 1,
+   "SplitText": 1,
+   "three": 1,
+   "threeWebGPU": 1,
+   "lenis": 1,
+   "theatre": 2,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "hubtown.co.in",
+   "www.googletagmanager.com",
+   "",
+   "edge.marker.io"
+  ]
+ },
+ {
+  "name": "heretic",
+  "url": "https://heretic.wtf/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 53,
+  "top": {
+   "nodes": 1808,
+   "inView": 72,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 7,
+   "imgs": 149,
+   "svgs": 7,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 1,
+   "mask": 1,
+   "persp": 1,
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 16,
+    "text": "hi@heretic.wtf",
+    "family": "HelveticaNeue Regular",
+    "weight": "400",
+    "w": 94
+   },
+   "fonts": [
+    "Helvetica Neue Bold",
+    "HelveticaNeue Regular"
+   ],
+   "bg": "rgb(151, 149, 138)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": true,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Heretic",
+   "textLen": 7050
+  },
+  "mid": {
+   "anims": 61,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 7,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1326,
+  "jsFiles": 16,
+  "jsSig": {
+   "motion": 1,
+   "lenis": 2
+  },
+  "scriptHosts": [
+   "events.framer.com",
+   "framerusercontent.com",
+   "framer.com",
+   "app.framerstatic.com"
+  ]
+ },
+ {
+  "name": "ivress",
+  "url": "https://brand.ivress.co.jp/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 54,
+  "top": {
+   "nodes": 677,
+   "inView": 232,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgpu"
+   ],
+   "gpu": {
+    "accessed": true,
+    "adapter": true
+   },
+   "videos": 0,
+   "imgs": 11,
+   "svgs": 3,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 1,
+   "sticky": 0,
+   "filt": 389,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 155,
+   "infinite": 125,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 14,
+    "text": "コーポレートサイト",
+    "family": "Roboto",
+    "weight": "300",
+    "w": 174
+   },
+   "fonts": [
+    "Roboto",
+    "Josefin Sans",
+    "A-OTF Ryumin Pr6N"
+   ],
+   "bg": "rgb(0, 2, 3)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "182",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": true,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "SPIN A TALE ー 紡ぐ物語 ー｜株式会社イヴレス ブランドサイト",
+   "textLen": 733
+  },
+  "mid": {
+   "anims": 125,
+   "infinite": 125,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 1,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "webgpu"
+   ],
+   "gpu": {
+    "accessed": true,
+    "adapter": true
+   }
+  },
+  "jsKB": 3532,
+  "jsFiles": 12,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "three": 1,
+   "threeWebGPU": 1,
+   "TSL": 2,
+   "lenis": 1,
+   "customGLSL": 1,
+   "wgsl": 1
+  },
+  "scriptHosts": [
+   "brand.ivress.co.jp",
+   "www.googletagmanager.com",
+   "use.typekit.net",
+   ""
+  ]
+ },
+ {
+  "name": "extraordinary-lab",
+  "url": "https://www.gq.com/sponsored/story/the-extraordinary-lab",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 56,
+  "top": {
+   "nodes": 1816,
+   "inView": 48,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "2d",
+    "webgl",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 54,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 1,
+   "persp": 0,
+   "anims": 1,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 22,
+    "text": "We Care About Your Privacy",
+    "family": "Helvetica Neue",
+    "weight": "700",
+    "w": 295
+   },
+   "fonts": [
+    "helvetica",
+    "Helvetica Neue",
+    "EB Garamond"
+   ],
+   "bg": "rgb(255, 255, 255)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "172",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": false
+   },
+   "title": "The Extraordinary Lab",
+   "textLen": 1273
+  },
+  "mid": {
+   "anims": 1,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "2d",
+    "webgl",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 14091,
+  "jsFiles": 45,
+  "jsSig": {
+   "gsap": 2,
+   "ScrollTrigger": 1,
+   "three": 1,
+   "threeWebGPU": 1,
+   "lenis": 1,
+   "theatre": 1,
+   "customGLSL": 2,
+   "SplitText": 1
+  },
+  "scriptHosts": [
+   "www.gq.com",
+   "cdn.gladly.com",
+   "privacy.condenastdigital.com",
+   "ads-static.conde.digital",
+   "securepubads.g.doubleclick.net",
+   "martech.condenastdigital.com",
+   "interactive.gq.com",
+   "s.yimg.com",
+   "cdnjs.cloudflare.com",
+   "www.googletagmanager.com",
+   "globalservices.conde.digital",
+   ""
+  ]
+ },
+ {
+  "name": "rabenrifaie",
+  "url": "https://rabenrifaie.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 56,
+  "top": {
+   "nodes": 542,
+   "inView": 365,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 4,
+   "imgs": 16,
+   "svgs": 52,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 0,
+   "sticky": 0,
+   "filt": 3,
+   "backdrop": 9,
+   "mask": 2,
+   "persp": 0,
+   "anims": 15,
+   "infinite": 9,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 24,
+    "text": "A creative design studio for",
+    "family": "PP Eiko Italic Light",
+    "weight": "300",
+    "w": 360
+   },
+   "fonts": [
+    "PP Neue Montreal",
+    "PP Neue Montreal Book",
+    "PP Eiko Italic Light"
+   ],
+   "bg": "rgb(0, 0, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": true,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "RabenRifaie",
+   "textLen": 1955
+  },
+  "mid": {
+   "anims": 12,
+   "infinite": 9,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 4,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3072,
+  "jsFiles": 21,
+  "jsSig": {
+   "motion": 1,
+   "lenis": 1
+  },
+  "scriptHosts": [
+   "events.framer.com",
+   "framerusercontent.com",
+   "framer.com",
+   "app.framerstatic.com",
+   "cdn.jsdelivr.net",
+   ""
+  ]
+ },
+ {
+  "name": "bureaudimanche",
+  "url": "https://bureaudimanche.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 43,
+  "top": {
+   "nodes": 1499,
+   "inView": 287,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 43,
+   "svgs": 73,
+   "blend": [
+    "exclusion"
+   ],
+   "blendCount": 2,
+   "clip": 0,
+   "sticky": 1,
+   "filt": 59,
+   "backdrop": 15,
+   "mask": 28,
+   "persp": 0,
+   "anims": 2,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 72,
+    "text": "Votre",
+    "family": "Switzer",
+    "weight": "500",
+    "w": 168
+   },
+   "fonts": [
+    "Switzer"
+   ],
+   "bg": "rgb(43, 43, 43)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": true,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Identité visuelle & stratégie de marque - Bureau Dimanche",
+   "textLen": 7469
+  },
+  "mid": {
+   "anims": 5,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 1,
+   "blendCount": 2,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 1667,
+  "jsFiles": 49,
+  "jsSig": {
+   "motion": 1,
+   "lenis": 2
+  },
+  "scriptHosts": [
+   "events.framer.com",
+   "framerusercontent.com",
+   "framer.com",
+   "app.framerstatic.com"
+  ]
+ },
+ {
+  "name": "another",
+  "url": "https://another.gr/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 150,
+  "top": {
+   "nodes": 1754,
+   "inView": 243,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 20,
+   "svgs": 49,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 24,
+   "sticky": 3,
+   "filt": 7,
+   "backdrop": 5,
+   "mask": 3,
+   "persp": 0,
+   "anims": 21,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 202.849,
+    "text": "another",
+    "family": "Afacad",
+    "weight": "700",
+    "w": 592
+   },
+   "fonts": [
+    "Google Sans",
+    "Inter",
+    "Afacad"
+   ],
+   "bg": "rgb(255, 69, 0)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": true,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Another Digital Agency | Digital Agency in Greece",
+   "textLen": 7122
+  },
+  "mid": {
+   "anims": 18,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 24,
+   "sticky": 3,
+   "blendCount": 0,
+   "videos": 1,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2993,
+  "jsFiles": 39,
+  "jsSig": {
+   "lenis": 2,
+   "motion": 1,
+   "customGLSL": 1
+  },
+  "scriptHosts": [
+   "www.googletagmanager.com",
+   "events.framer.com",
+   "bzrcdn.openai.com",
+   "framerusercontent.com",
+   "framer.com",
+   "app.framerstatic.com"
+  ]
+ },
+ {
+  "name": "bykin",
+  "url": "https://by-kin.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 181,
+  "top": {
+   "nodes": 323,
+   "inView": 217,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 12,
+   "svgs": 6,
+   "blend": [
+    "difference"
+   ],
+   "blendCount": 1,
+   "clip": 1,
+   "sticky": 0,
+   "filt": 0,
+   "backdrop": 0,
+   "mask": 0,
+   "persp": 0,
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 27,
+    "text": "‘kin",
+    "family": "Apercu Pro",
+    "weight": "500",
+    "w": 45
+   },
+   "fonts": [
+    "Apercu Pro",
+    "Apercu Mono Pro"
+   ],
+   "bg": "rgb(244, 242, 237)",
+   "cursorNoneBody": false,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Home | 'kin Commercial Interior Design & Branding Studio",
+   "textLen": 229
+  },
+  "mid": {
+   "anims": 4,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 0,
+   "blendCount": 1,
+   "videos": 0,
+   "ctx": [],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 941,
+  "jsFiles": 21,
+  "jsSig": {
+   "gsap": 2,
+   "ScrollTrigger": 5,
+   "lenis": 1
+  },
+  "scriptHosts": [
+   "by-kin.com"
+  ]
+ },
+ {
+  "name": "uncommon-au",
+  "url": "https://uncommonstudio.com.au/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 288,
+  "top": {
+   "nodes": 931,
+   "inView": 108,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 1,
+   "imgs": 31,
+   "svgs": 19,
+   "blend": [
+    "difference"
+   ],
+   "blendCount": 9,
+   "clip": 8,
+   "sticky": 4,
+   "filt": 3,
+   "backdrop": 2,
+   "mask": 3,
+   "persp": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 67.5,
+    "text": "Love",
+    "family": "__neuemontreal_9c9897",
+    "weight": "400",
+    "w": 134
+   },
+   "fonts": [
+    "__neuemontreal_9c9897"
+   ],
+   "bg": "rgba(0, 0, 0, 0) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "158",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": true
+   },
+   "title": "Home - Uncommon",
+   "textLen": 2446
+  },
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 20,
+   "sticky": 4,
+   "blendCount": 9,
+   "videos": 1,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d",
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3183,
+  "jsFiles": 29,
+  "jsSig": {
+   "gsap": 4,
+   "ScrollTrigger": 7,
+   "three": 2,
+   "customGLSL": 2,
+   "r3f": 1,
+   "lenis": 3
+  },
+  "scriptHosts": [
+   "www.googletagmanager.com",
+   "uncommondesign.group",
+   "connect.facebook.net"
+  ]
+ },
+ {
+  "name": "chillbase",
+  "url": "https://chillbase.net/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 57,
+  "top": {
+   "nodes": 773,
+   "inView": 94,
+   "canvases": 13,
+   "canvasSizes": [
+    "1440x900",
+    "430x499",
+    "430x499",
+    "430x499",
+    "430x499"
+   ],
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 2,
+   "imgs": 57,
+   "svgs": 39,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 7,
+   "sticky": 2,
+   "filt": 12,
+   "backdrop": 6,
+   "mask": 0,
+   "persp": 7,
+   "anims": 2,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 31.5,
+    "text": "Redefining ultimate gaming experience",
+    "family": "GoodHeadlinePro",
+    "weight": "700",
+    "w": 1
+   },
+   "fonts": [
+    "GoodHeadlinePro"
+   ],
+   "bg": "rgb(0, 0, 0) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "Main — Chillbase",
+   "textLen": 1642
+  },
+  "mid": {
+   "anims": 2,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 13,
+   "clip": 7,
+   "sticky": 2,
+   "blendCount": 0,
+   "videos": 2,
+   "ctx": [
+    "2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 3320,
+  "jsFiles": 39,
+  "jsSig": {
+   "motion": 3
+  },
+  "scriptHosts": [
+   "chillbase.net",
+   "www.google.com",
+   "www.googletagmanager.com",
+   "www.gstatic.com",
+   ""
+  ]
+ },
+ {
+  "name": "timeless",
+  "url": "https://timeless.club/en",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 9,
+  "top": {
+   "nodes": 8340,
+   "inView": 86,
+   "canvases": 44,
+   "canvasSizes": [
+    "1440x900",
+    "78x78",
+    "78x78",
+    "189x189",
+    "86x78"
+   ],
+   "ctx": [
+    "2d",
+    "webgl",
+    "webgl2",
+    "offscreen:2d",
+    "offscreen:webgl",
+    "offscreen:webgl2",
+    "bitmaprenderer"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 7,
+   "imgs": 105,
+   "svgs": 515,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 2,
+   "sticky": 7,
+   "filt": 9,
+   "backdrop": 0,
+   "mask": 20,
+   "persp": 3,
+   "anims": 57,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 40,
+   "biggest": {
+    "size": 102.5,
+    "text": "Timeless",
+    "family": "TT-Ricordi-Allegria",
+    "weight": "400",
+    "w": 1
+   },
+   "fonts": [
+    "TT Drugs",
+    "TT-Ricordi-Allegria"
+   ],
+   "bg": "rgb(11, 11, 11) (html)",
+   "cursorNoneBody": false,
+   "customCursorEl": true,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "182",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": false,
+    "lenisClass": false
+   },
+   "title": "TIMELESS Luxury Lounges | сеть лаунж-баров",
+   "textLen": 270
+  },
+  "mid": {
+   "anims": 52,
+   "infinite": 4,
+   "scrollTl": 0,
+   "viewTl": 40,
+   "canvases": 45,
+   "clip": 2,
+   "sticky": 7,
+   "blendCount": 0,
+   "videos": 7,
+   "ctx": [
+    "2d",
+    "webgl",
+    "webgl2",
+    "offscreen:2d",
+    "offscreen:webgl",
+    "offscreen:webgl2",
+    "bitmaprenderer"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 7255,
+  "jsFiles": 49,
+  "jsSig": {
+   "three": 3,
+   "customGLSL": 5,
+   "threeWebGPU": 1,
+   "r3f": 1,
+   "motion": 2
+  },
+  "scriptHosts": [
+   "edge1.cdn.timeless.club",
+   "timeless.club",
+   "mc.yandex.ru",
+   "mod.calltouch.ru",
+   "abt.s3.yandex.net",
+   "",
+   "www.googletagmanager.com",
+   "top-fwz1.mail.ru",
+   "connect.facebook.net",
+   "sc-static.net",
+   "analytics.tiktok.com",
+   "ab-ct.ru",
+   "privacy-cs.mail.ru",
+   "tr.snapchat.com"
+  ]
+ },
+ {
+  "name": "noomo-labs",
+  "url": "https://labs.noomoagency.com/",
+  "ok": true,
+  "status": 200,
+  "rafPerSecRest": 18,
+  "top": {
+   "nodes": 476,
+   "inView": 201,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "2d",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   },
+   "videos": 0,
+   "imgs": 16,
+   "svgs": 0,
+   "blend": [],
+   "blendCount": 0,
+   "clip": 7,
+   "sticky": 0,
+   "filt": 1,
+   "backdrop": 4,
+   "mask": 0,
+   "persp": 0,
+   "anims": 2,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "biggest": {
+    "size": 130,
+    "text": "Immerse",
+    "family": "DrukMedium",
+    "weight": "500",
+    "w": 298
+   },
+   "fonts": [
+    "DrukMedium",
+    "IBM Plex Mono"
+   ],
+   "bg": "rgba(0, 0, 0, 0) (html)",
+   "cursorNoneBody": true,
+   "customCursorEl": false,
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "164",
+    "Lenis": false,
+    "barba": false,
+    "PIXI": false,
+    "Webflow": false,
+    "UnicornStudio": false,
+    "rive": false,
+    "Matter": false,
+    "Splide": false,
+    "Swiper": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "wordpress": false,
+    "vue": true,
+    "lenisClass": false
+   },
+   "title": "Noomo Labs",
+   "textLen": 856
+  },
+  "mid": {
+   "anims": 2,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 7,
+   "sticky": 0,
+   "blendCount": 0,
+   "videos": 0,
+   "ctx": [
+    "2d",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "gpu": {
+    "accessed": false,
+    "adapter": false
+   }
+  },
+  "jsKB": 2837,
+  "jsFiles": 13,
+  "jsSig": {
+   "gsap": 3,
+   "ScrollTrigger": 2,
+   "three": 1,
+   "customGLSL": 3
+  },
+  "scriptHosts": [
+   "labs.noomoagency.com",
+   "www.googletagmanager.com"
+  ]
+ }
+]
