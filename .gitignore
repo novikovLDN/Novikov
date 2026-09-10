@@ -43,3 +43,8 @@ qa-*.png
 
 # playwright mcp artifacts
 .playwright-mcp/
+
+# agent skills (installed via npx skills / not project code)
+/.agents/
+/.claude/skills/
+skills-lock.json
