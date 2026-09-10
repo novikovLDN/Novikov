@@ -1,0 +1,3541 @@
+[
+ {
+  "name": "brunello-ai",
+  "url": "https://shop.brunellocucinelli.com/en-gb/ai",
+  "ok": true,
+  "status": 403,
+  "finalUrl": "https://shop.brunellocucinelli.com/en-gb/ai",
+  "cookieClicked": null,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 3,
+   "inView": 3,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 0,
+   "mediaCover": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 32,
+    "text": "Access Denied",
+    "family": "Times",
+    "weight": "700",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "normal",
+    "lh": "normal",
+    "color": "#000000",
+    "w": 1424
+   },
+   "fonts": [
+    "Times"
+   ],
+   "loadedFonts": [],
+   "bodyBg": "transparent",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Access Denied",
+   "lang": "",
+   "textLen": 214
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 0,
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "fonts": [
+    "Times"
+   ]
+  },
+  "jsKB": 0,
+  "jsFiles": 0,
+  "jsSig": {}
+ },
+ {
+  "name": "cecilie-bahnsen",
+  "url": "https://ceciliebahnsen.com",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://ceciliebahnsen.com/",
+  "cookieClicked": "Accept all",
+  "rafPerSecRest": 4,
+  "top": {
+   "nodes": 1925,
+   "inView": 60,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "2d"
+   ],
+   "videos": 0,
+   "imgs": 23,
+   "svgs": 36,
+   "mediaCover": 89,
+   "clip": 5,
+   "sticky": 14,
+   "blendCount": 0,
+   "anims": 1,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 20,
+    "text": "Fall Winter 2026 New Arrivals",
+    "family": "\"Neue Haas Unica\", Helvetica, Arial, sans-serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "0.4px",
+    "lh": "30px",
+    "color": "#FFFFFF",
+    "w": 267
+   },
+   "fonts": [
+    "Neue Haas Unica"
+   ],
+   "loadedFonts": [
+    "Neue Haas Unica"
+   ],
+   "bodyBg": "transparent",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": true,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Cecilie Bahnsen | Luxury Couture & Ready-to-Wear Dresses",
+   "lang": "en",
+   "textLen": 2346
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 1,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 5,
+   "sticky": 14,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "mediaCover": 37,
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "fonts": [
+    "Neue Haas Unica"
+   ]
+  },
+  "jsKB": 8399,
+  "jsFiles": 117,
+  "jsSig": {
+   "swiper": 1
+  }
+ },
+ {
+  "name": "miumiu-house",
+  "url": "https://immersivebags.miumiu.com/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://immersivebags.miumiu.com/en/",
+  "cookieClicked": null,
+  "rafPerSecRest": 28,
+  "top": {
+   "nodes": 124,
+   "inView": 40,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "webgl",
+    "offscreen:2d"
+   ],
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 4,
+   "mediaCover": 0,
+   "clip": 2,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 54,
+    "text": "House",
+    "family": "WorkSans, sans-serif",
+    "weight": "700",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "4px",
+    "lh": "54px",
+    "color": "#FFFFFF",
+    "w": 207
+   },
+   "fonts": [
+    "WorkSans"
+   ],
+   "loadedFonts": [
+    "WorkSans"
+   ],
+   "bodyBg": "#FFFFFF",
+   "htmlBg": "#FFFFFF",
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "body"
+   },
+   "bodyColor": "#FFFFFF",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Miu Miu - 2026 Bag Campaign",
+   "lang": "en",
+   "textLen": 158
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 1,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 2,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "webgl",
+    "offscreen:2d"
+   ],
+   "mediaCover": 0,
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "body"
+   },
+   "fonts": [
+    "WorkSans"
+   ]
+  },
+  "jsKB": 1352,
+  "jsFiles": 12,
+  "jsSig": {
+   "three": 1,
+   "customGLSL": 2,
+   "viewTransition": 1,
+   "threeWebGPU": 1
+  }
+ },
+ {
+  "name": "maxmara-tuscan",
+  "url": "https://weekend-mm-2026-pasticcino-bag-master.monogrid.io/en/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://weekend-mm-2026-pasticcino-bag-master.monogrid.io/en/",
+  "cookieClicked": null,
+  "rafPerSecRest": 110,
+  "top": {
+   "nodes": 104,
+   "inView": 61,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "2d",
+    "webgl2"
+   ],
+   "videos": 1,
+   "imgs": 1,
+   "svgs": 5,
+   "mediaCover": 3,
+   "clip": 2,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 92,
+    "text": "TUSCAN",
+    "family": "NimbusSansExtd, sans-serif",
+    "weight": "700",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "-0.828px",
+    "lh": "85.56px",
+    "color": "#DFDDCB",
+    "w": 560
+   },
+   "fonts": [
+    "NimbusSans",
+    "NimbusSansExtd",
+    "Nimbus Sans L"
+   ],
+   "loadedFonts": [
+    "Nimbus",
+    "NimbusSansExtd"
+   ],
+   "bodyBg": "transparent",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "bodyColor": "#FFFFFF",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "183",
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Intro | Pasticcino Bag World Tour 2026",
+   "lang": "en",
+   "textLen": 128
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 2,
+   "sticky": 0,
+   "videos": 1,
+   "ctx": [
+    "2d",
+    "webgl2"
+   ],
+   "mediaCover": 3,
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "fonts": [
+    "NimbusSans",
+    "NimbusSansExtd",
+    "Nimbus Sans L"
+   ]
+  },
+  "jsKB": 5009,
+  "jsFiles": 43,
+  "jsSig": {
+   "gsap": 3,
+   "ScrollTrigger": 2,
+   "SplitText": 1,
+   "viewTransition": 1,
+   "three": 1,
+   "threeWebGPU": 1,
+   "customGLSL": 1
+  }
+ },
+ {
+  "name": "cartier-ww26",
+  "url": "https://www.cartier.com/en-fr/watchesandwonders",
+  "ok": true,
+  "status": 403,
+  "finalUrl": "https://www.cartier.com/en-fr/watchesandwonders",
+  "cookieClicked": null,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 3,
+   "inView": 3,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 0,
+   "svgs": 0,
+   "mediaCover": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 32,
+    "text": "Access Denied",
+    "family": "Times",
+    "weight": "700",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "normal",
+    "lh": "normal",
+    "color": "#000000",
+    "w": 1424
+   },
+   "fonts": [
+    "Times"
+   ],
+   "loadedFonts": [],
+   "bodyBg": "transparent",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Access Denied",
+   "lang": "",
+   "textLen": 220
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 0,
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "fonts": [
+    "Times"
+   ]
+  },
+  "jsKB": 0,
+  "jsFiles": 0,
+  "jsSig": {}
+ },
+ {
+  "name": "white-desert",
+  "url": "https://white-desert.com/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://white-desert.com/",
+  "cookieClicked": "Accept",
+  "rafPerSecRest": 124,
+  "top": {
+   "nodes": 977,
+   "inView": 95,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "2d",
+    "webgl"
+   ],
+   "videos": 1,
+   "imgs": 29,
+   "svgs": 53,
+   "mediaCover": 100,
+   "clip": 5,
+   "sticky": 3,
+   "blendCount": 4,
+   "anims": 5,
+   "infinite": 3,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": true,
+   "biggest": {
+    "size": 256,
+    "text": "Antarctica",
+    "family": "Oswald, \"Arial Narrow\", Arial, sans-serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "normal",
+    "lh": "256px",
+    "color": "#FFFFFF",
+    "w": 1165
+   },
+   "fonts": [
+    "Cardinal Classic Long",
+    "Inter Tight",
+    "Oswald"
+   ],
+   "loadedFonts": [
+    "Inter Tight",
+    "Cardinal Classic Long",
+    "Oswald"
+   ],
+   "bodyBg": "#FFFFFF",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "body"
+   },
+   "bodyColor": "#1F2A44",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "Luxury Adventures in Antarctica | White Desert",
+   "lang": "en",
+   "textLen": 6349
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 5,
+   "infinite": 3,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 5,
+   "sticky": 3,
+   "videos": 1,
+   "ctx": [
+    "2d",
+    "webgl"
+   ],
+   "mediaCover": 100,
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "section"
+   },
+   "fonts": [
+    "Inter Tight",
+    "Cardinal Classic Long",
+    "Oswald"
+   ]
+  },
+  "jsKB": 3979,
+  "jsFiles": 37,
+  "jsSig": {
+   "gsap": 5,
+   "ScrollTrigger": 5,
+   "lenis": 1,
+   "viewTransition": 1,
+   "motion": 2
+  }
+ },
+ {
+  "name": "coutumes",
+  "url": "https://www.coutumes.com",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://coutumes.com/",
+  "cookieClicked": "Accept",
+  "rafPerSecRest": 1,
+  "top": {
+   "nodes": 1137,
+   "inView": 229,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "2d"
+   ],
+   "videos": 0,
+   "imgs": 17,
+   "svgs": 24,
+   "mediaCover": 100,
+   "clip": 1,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": true,
+   "biggest": {
+    "size": 172.8,
+    "text": "SEPTEMBEREDITION",
+    "family": "\"Plaak 3\", \"Plaak 3 Fallback\", ui-sans-serif, system-ui, sans-serif, \"Apple Colo",
+    "weight": "400",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "-3.6288px",
+    "lh": "138.24px",
+    "color": "#F9AF26",
+    "w": 573
+   },
+   "fonts": [
+    "Exposure Regular",
+    "Plaak 6",
+    "Plaak 3"
+   ],
+   "loadedFonts": [
+    "Exposure Regular",
+    "Exposure Var",
+    "Plaak 3",
+    "Plaak 6"
+   ],
+   "bodyBg": "transparent",
+   "htmlBg": "#FFFFFF",
+   "centreBg": {
+    "color": "#ECE9E2",
+    "tag": "span"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": true,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Coutumes • Label de bijoux masculins",
+   "lang": "en",
+   "textLen": 2262
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "mediaCover": 65,
+   "centreBg": {
+    "color": "#F9AF26",
+    "tag": "c-footer"
+   },
+   "fonts": [
+    "Exposure Regular",
+    "Plaak 6"
+   ]
+  },
+  "jsKB": 2346,
+  "jsFiles": 89,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 2,
+   "SplitText": 1,
+   "swiper": 1
+  }
+ },
+ {
+  "name": "kube",
+  "url": "https://www.kubehotel-saint-tropez.com/fr",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.kubehotel-saint-tropez.com/fr",
+  "cookieClicked": "Allow all",
+  "rafPerSecRest": 172,
+  "top": {
+   "nodes": 1960,
+   "inView": 110,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 46,
+   "svgs": 21,
+   "mediaCover": 0,
+   "clip": 2,
+   "sticky": 1,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": true,
+   "biggest": {
+    "size": 43,
+    "text": "Le Golfe pour seul horizon",
+    "family": "Saphion, \"Times New Roman\", sans-serif",
+    "weight": "300",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "normal",
+    "lh": "normal",
+    "color": "#FFFFFF",
+    "w": 863
+   },
+   "fonts": [
+    "Inter Variable",
+    "Saphion"
+   ],
+   "loadedFonts": [
+    "Saphion",
+    "Inter Variable"
+   ],
+   "bodyBg": "#FDF9F4",
+   "htmlBg": "#FDF9F4",
+   "centreBg": {
+    "color": "color(srgb 0 0 0 / 0.5)",
+    "tag": "div"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": true,
+    "ScrollTrigger": true,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": false,
+    "Webflow": true,
+    "Shopify": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "Hôtel 5 Étoiles à Saint-Tropez, Spa & Rooftop - KUBE",
+   "lang": "fr",
+   "textLen": 2994
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 2,
+   "sticky": 1,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 78,
+   "centreBg": {
+    "color": "color(srgb 0 0 0 / 0.5)",
+    "tag": "div"
+   },
+   "fonts": [
+    "Inter Variable",
+    "Saphion"
+   ]
+  },
+  "jsKB": 11596,
+  "jsFiles": 65,
+  "jsSig": {
+   "swiper": 1,
+   "gsap": 2,
+   "ScrollTrigger": 2,
+   "lenis": 1,
+   "three": 1
+  }
+ },
+ {
+  "name": "vander-hotel",
+  "url": "https://www.vanderhotel.com",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.vanderhotel.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 244,
+  "top": {
+   "nodes": 864,
+   "inView": 82,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 37,
+   "svgs": 30,
+   "mediaCover": 6,
+   "clip": 2,
+   "sticky": 1,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 86.4,
+    "text": "where comfort",
+    "family": "\"Sohne Buch\", Arial, sans-serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "normal",
+    "lh": "86.4px",
+    "color": "#353230",
+    "w": 732
+   },
+   "fonts": [
+    "Sohne Buch"
+   ],
+   "loadedFonts": [
+    "Sohne Buch"
+   ],
+   "bodyBg": "#F4F2F1",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#F4F2F1",
+    "tag": "body"
+   },
+   "bodyColor": "#353230",
+   "globals": {
+    "gsap": true,
+    "ScrollTrigger": true,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": true,
+    "Shopify": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Hotel & Restaurant Ljubljana | Vander Urbani Resort",
+   "lang": "en",
+   "textLen": 2449
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 2,
+   "sticky": 1,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 54,
+   "centreBg": {
+    "color": "#F4F2F1",
+    "tag": "div"
+   },
+   "fonts": [
+    "Sohne Buch"
+   ]
+  },
+  "jsKB": 2778,
+  "jsFiles": 47,
+  "jsSig": {
+   "gsap": 2,
+   "ScrollTrigger": 2
+  }
+ },
+ {
+  "name": "hedwig",
+  "url": "https://hedwigtravel.com/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://hedwigtravel.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 360,
+   "inView": 57,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "2d"
+   ],
+   "videos": 0,
+   "imgs": 18,
+   "svgs": 2,
+   "mediaCover": 90,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 32,
+    "text": "We craft journeys that feel authentic to you and y",
+    "family": "xgnl",
+    "weight": "500",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "normal",
+    "lh": "36px",
+    "color": "#000000",
+    "w": 928
+   },
+   "fonts": [
+    "xgnl"
+   ],
+   "loadedFonts": [
+    "custom_144981",
+    "xgnl"
+   ],
+   "bodyBg": "#FFFFFF",
+   "htmlBg": "#FFFFFF",
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "article"
+   },
+   "bodyColor": "#282828",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": true,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "HEDWIG",
+   "lang": "",
+   "textLen": 2324
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "mediaCover": 38,
+   "centreBg": {
+    "color": "#C8D158",
+    "tag": "div"
+   },
+   "fonts": [
+    "custom_144981",
+    "xgnl"
+   ]
+  },
+  "jsKB": 10963,
+  "jsFiles": 335,
+  "jsSig": {
+   "motion": 1,
+   "viewTransition": 1
+  }
+ },
+ {
+  "name": "kononenko",
+  "url": "https://kononenkogroup.com",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://kononenkogroup.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 124,
+  "top": {
+   "nodes": 975,
+   "inView": 44,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "videos": 0,
+   "imgs": 27,
+   "svgs": 16,
+   "mediaCover": 100,
+   "clip": 0,
+   "sticky": 1,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 60,
+    "text": "Kononenko",
+    "family": "n, sans-serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "-1.8px",
+    "lh": "48px",
+    "color": "#FFFFFF",
+    "w": 280
+   },
+   "fonts": [
+    "n",
+    "h"
+   ],
+   "loadedFonts": [
+    "n",
+    "h"
+   ],
+   "bodyBg": "#FFFFFF",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "body"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "184",
+    "Lenis": true,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "Kononenko Architectural Bureau",
+   "lang": "en",
+   "textLen": 5133
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 0,
+   "sticky": 1,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "mediaCover": 14,
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "body"
+   },
+   "fonts": [
+    "n",
+    "h"
+   ]
+  },
+  "jsKB": 1798,
+  "jsFiles": 20,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "three": 1,
+   "lenis": 1,
+   "customGLSL": 1,
+   "viewTransition": 1,
+   "threeWebGPU": 1
+  }
+ },
+ {
+  "name": "eladio-dieste",
+  "url": "https://www.eladiodieste.com/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.eladiodieste.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 124,
+  "top": {
+   "nodes": 573,
+   "inView": 55,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "2d"
+   ],
+   "videos": 0,
+   "imgs": 37,
+   "svgs": 4,
+   "mediaCover": 0,
+   "clip": 124,
+   "sticky": 1,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 17.5524,
+    "text": "Inicio",
+    "family": "font, \"font Fallback\"",
+    "weight": "500",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "-0.0175524px",
+    "lh": "26.3287px",
+    "color": "#EADFD2",
+    "w": 44
+   },
+   "fonts": [
+    "font"
+   ],
+   "loadedFonts": [
+    "font"
+   ],
+   "bodyBg": "#000000",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#000000",
+    "tag": "div"
+   },
+   "bodyColor": "#A55F2D",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "Eladio Dieste",
+   "lang": "es",
+   "textLen": 3455
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 17,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 127,
+   "sticky": 1,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "mediaCover": 54,
+   "centreBg": {
+    "color": "#000000",
+    "tag": "div"
+   },
+   "fonts": [
+    "font"
+   ]
+  },
+  "jsKB": 848,
+  "jsFiles": 17,
+  "jsSig": {
+   "viewTransition": 1,
+   "gsap": 7,
+   "ScrollTrigger": 7,
+   "SplitText": 2,
+   "lenis": 2
+  }
+ },
+ {
+  "name": "franklin-azzi",
+  "url": "https://franklinazzi.fr/en",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.franklinazzi.fr/en",
+  "cookieClicked": null,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 749,
+   "inView": 74,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 1,
+   "imgs": 66,
+   "svgs": 2,
+   "mediaCover": 25,
+   "clip": 1,
+   "sticky": 1,
+   "blendCount": 0,
+   "anims": 67,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 76,
+    "text": "Office",
+    "family": "__Helvetica_7fca5c, __Helvetica_Fallback_7fca5c, sans-serif",
+    "weight": "700",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "3.04px",
+    "lh": "76px",
+    "color": "#262626",
+    "w": 228
+   },
+   "fonts": [
+    "__Helvetica_7fca5c"
+   ],
+   "loadedFonts": [
+    "__Helvetica_7fca5c",
+    "__Helvetica_Fallback_7fca5c"
+   ],
+   "bodyBg": "#FAF7F4",
+   "htmlBg": "#FAF7F4",
+   "centreBg": {
+    "color": "#D9D9D9",
+    "tag": "div"
+   },
+   "bodyColor": "#262626",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Franklin Azzi",
+   "lang": "en",
+   "textLen": 195
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 67,
+   "infinite": 1,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 1,
+   "videos": 1,
+   "ctx": [],
+   "mediaCover": 77,
+   "centreBg": {
+    "color": "#D9D9D9",
+    "tag": "div"
+   },
+   "fonts": []
+  },
+  "jsKB": 745,
+  "jsFiles": 20,
+  "jsSig": {}
+ },
+ {
+  "name": "mosby-files",
+  "url": "https://www.mosbyfiles.com/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.mosbyfiles.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 124,
+  "top": {
+   "nodes": 263,
+   "inView": 225,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 9,
+   "svgs": 21,
+   "mediaCover": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 26,
+    "text": "Frank Lloyd Wright",
+    "family": "Signifier, serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "normal",
+    "lh": "32.5px",
+    "color": "#FFFFFF",
+    "w": 219
+   },
+   "fonts": [
+    "IBM Plex Mono",
+    "Signifier"
+   ],
+   "loadedFonts": [
+    "IBM Plex Mono",
+    "Signifier",
+    "Founders Grotesk"
+   ],
+   "bodyBg": "#191919",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#581E70",
+    "tag": "div"
+   },
+   "bodyColor": "#FDFAF7",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "Mosby’s Files—American Modernist Architecture",
+   "lang": "en_US",
+   "textLen": 1865
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 4,
+   "centreBg": {
+    "color": "#D71E1E",
+    "tag": "div"
+   },
+   "fonts": [
+    "IBM Plex Mono",
+    "Signifier"
+   ]
+  },
+  "jsKB": 3000,
+  "jsFiles": 10,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "SplitText": 1,
+   "lenis": 1,
+   "viewTransition": 1
+  }
+ },
+ {
+  "name": "reed-hilderbrand",
+  "url": "https://reedhilderbrand.com",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.reedhilderbrand.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 78,
+  "top": {
+   "nodes": 181,
+   "inView": 145,
+   "canvases": 1,
+   "canvasSizes": [
+    "1475x922"
+   ],
+   "ctx": [
+    "2d"
+   ],
+   "videos": 5,
+   "imgs": 11,
+   "svgs": 3,
+   "mediaCover": 100,
+   "clip": 2,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": true,
+   "biggest": {
+    "size": 18,
+    "text": "Scenic Hudson’s Long Dock Park",
+    "family": "Lyon, \"Times New Roman\", Times, serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "-0.18px",
+    "lh": "20.7px",
+    "color": "#FFFFFF",
+    "w": 254
+   },
+   "fonts": [
+    "Lyon",
+    "Basel"
+   ],
+   "loadedFonts": [
+    "Lyon",
+    "Basel"
+   ],
+   "bodyBg": "transparent",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "div"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": true,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Reed Hilderbrand",
+   "lang": "en",
+   "textLen": 674
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 1,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 2,
+   "sticky": 0,
+   "videos": 5,
+   "ctx": [
+    "2d"
+   ],
+   "mediaCover": 100,
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "div"
+   },
+   "fonts": [
+    "Lyon",
+    "Basel"
+   ]
+  },
+  "jsKB": 217,
+  "jsFiles": 30,
+  "jsSig": {
+   "viewTransition": 1,
+   "gsap": 1,
+   "ScrollTrigger": 1
+  }
+ },
+ {
+  "name": "getty-tracing-art",
+  "url": "https://www.getty.edu/tracingart/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.getty.edu/tracingart/",
+  "cookieClicked": null,
+  "rafPerSecRest": 60,
+  "top": {
+   "nodes": 610,
+   "inView": 73,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "videos": 0,
+   "imgs": 16,
+   "svgs": 16,
+   "mediaCover": 2,
+   "clip": 2,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 54,
+    "text": "Here's how the Getty Provenance Index is transform",
+    "family": "Bardford, Roboto, \"Helvetica Neue\", sans-serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "-1.08px",
+    "lh": "64.8px",
+    "color": "#000000",
+    "w": 810
+   },
+   "fonts": [
+    "Graphik",
+    "Bardford"
+   ],
+   "loadedFonts": [
+    "Bardford"
+   ],
+   "bodyBg": "transparent",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": true,
+    "THREE": false,
+    "__THREE__": "167",
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "Tracing Art",
+   "lang": "en",
+   "textLen": 345
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 2,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "mediaCover": 21,
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "fonts": [
+    "Graphik",
+    "Bardford"
+   ]
+  },
+  "jsKB": 1410,
+  "jsFiles": 23,
+  "jsSig": {
+   "gsap": 2,
+   "ScrollTrigger": 1,
+   "lenis": 1,
+   "three": 1,
+   "threeWebGPU": 1,
+   "customGLSL": 3,
+   "SplitText": 1
+  }
+ },
+ {
+  "name": "mennour",
+  "url": "https://mennour.com",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://mennour.com/",
+  "cookieClicked": "Accept",
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 1016,
+   "inView": 80,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 70,
+   "svgs": 52,
+   "mediaCover": 58,
+   "clip": 0,
+   "sticky": 4,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 36.608,
+    "text": "David Hominal",
+    "family": "MennourText",
+    "weight": "700",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "normal",
+    "lh": "48.048px",
+    "color": "#000000",
+    "w": 274
+   },
+   "fonts": [
+    "MierB",
+    "MennourText"
+   ],
+   "loadedFonts": [
+    "MennourText",
+    "MierB"
+   ],
+   "bodyBg": "transparent",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Mennour",
+   "lang": "en-US",
+   "textLen": 2455
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 4,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 29,
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "fonts": [
+    "MierB",
+    "MennourText"
+   ]
+  },
+  "jsKB": 3209,
+  "jsFiles": 82,
+  "jsSig": {
+   "viewTransition": 1,
+   "swiper": 8
+  }
+ },
+ {
+  "name": "joyce-tower",
+  "url": "https://joycetower.ie",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://joycetower.ie/",
+  "cookieClicked": null,
+  "rafPerSecRest": 92,
+  "top": {
+   "nodes": 596,
+   "inView": 107,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 36,
+   "svgs": 7,
+   "mediaCover": 100,
+   "clip": 3,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": true,
+   "biggest": {
+    "size": 125,
+    "text": "Ours",
+    "family": "apris",
+    "weight": "300",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "normal",
+    "lh": "100px",
+    "color": "#FFFFFF",
+    "w": 255
+   },
+   "fonts": [
+    "poppins",
+    "monospace",
+    "apris"
+   ],
+   "loadedFonts": [
+    "poppins",
+    "apris"
+   ],
+   "bodyBg": "#000000",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#000000",
+    "tag": "body"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "James Joyce Tower",
+   "lang": "en",
+   "textLen": 2240
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 2,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 3,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 29,
+   "centreBg": {
+    "color": "#000000",
+    "tag": "body"
+   },
+   "fonts": [
+    "poppins",
+    "apris",
+    "monospace"
+   ]
+  },
+  "jsKB": 2569,
+  "jsFiles": 3,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "SplitText": 1,
+   "swup": 1,
+   "customGLSL": 1,
+   "viewTransition": 1
+  }
+ },
+ {
+  "name": "archivio-uno",
+  "url": "https://archivio-uno.com/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://archivio-uno.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 4154,
+   "inView": 1069,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 736,
+   "svgs": 0,
+   "mediaCover": 100,
+   "clip": 1,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 16,
+    "text": "ar",
+    "family": "\"Baikal VAR\", \"Helvetica Bold\", sans-serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "normal",
+    "lh": "16px",
+    "color": "#000000",
+    "w": 15
+   },
+   "fonts": [
+    "Baikal VAR"
+   ],
+   "loadedFonts": [
+    "Baikal VAR",
+    "Helvetica Bold"
+   ],
+   "bodyBg": "transparent",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": true,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "archivio-uno",
+   "lang": "en",
+   "textLen": 10540
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 48,
+   "centreBg": {
+    "color": "none",
+    "tag": "-"
+   },
+   "fonts": [
+    "Baikal VAR"
+   ]
+  },
+  "jsKB": 297,
+  "jsFiles": 23,
+  "jsSig": {}
+ },
+ {
+  "name": "whole-earth",
+  "url": "https://wholeearth.info/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://wholeearth.info/",
+  "cookieClicked": null,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 1313,
+   "inView": 60,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 153,
+   "svgs": 0,
+   "mediaCover": 19,
+   "clip": 1,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 23.6,
+    "text": "Whole Earth Index",
+    "family": "\"Whole Earth Modern\", \"Century Schoolbook Monospace\", Courier, monospace",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "0.236px",
+    "lh": "29.5px",
+    "color": "#FFFFFF",
+    "w": 215
+   },
+   "fonts": [
+    "Whole Earth Modern",
+    "Whole Earth Mono"
+   ],
+   "loadedFonts": [
+    "Whole Earth Modern",
+    "Whole Earth Mono",
+    "MLMRomanUnsl10"
+   ],
+   "bodyBg": "transparent",
+   "htmlBg": "#000000",
+   "centreBg": {
+    "color": "#000000",
+    "tag": "html"
+   },
+   "bodyColor": "#FFFFFF",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Whole Earth Index",
+   "lang": "en",
+   "textLen": 5332
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 0,
+   "centreBg": {
+    "color": "#000000",
+    "tag": "html"
+   },
+   "fonts": [
+    "Whole Earth Modern"
+   ]
+  },
+  "jsKB": 929,
+  "jsFiles": 11,
+  "jsSig": {}
+ },
+ {
+  "name": "centre-photo-geneve",
+  "url": "https://centrephotogeneve.ch",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.centrephotogeneve.ch/",
+  "cookieClicked": null,
+  "rafPerSecRest": 64,
+  "top": {
+   "nodes": 182,
+   "inView": 52,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 5,
+   "svgs": 0,
+   "mediaCover": 100,
+   "clip": 0,
+   "sticky": 11,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 96.48,
+    "text": "Annual Collection",
+    "family": "stand-font",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "-1.9296px",
+    "lh": "77.184px",
+    "color": "#FFA500",
+    "w": 758
+   },
+   "fonts": [
+    "stand-font"
+   ],
+   "loadedFonts": [
+    "stand-font"
+   ],
+   "bodyBg": "#000000",
+   "htmlBg": "#000000",
+   "centreBg": {
+    "color": "#000000",
+    "tag": "body"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Centre de la photographie Genève",
+   "lang": "",
+   "textLen": 1723
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 11,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 100,
+   "centreBg": {
+    "color": "#000000",
+    "tag": "body"
+   },
+   "fonts": [
+    "stand-font"
+   ]
+  },
+  "jsKB": 570,
+  "jsFiles": 13,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "SplitText": 1,
+   "viewTransition": 1
+  }
+ },
+ {
+  "name": "beats-in-space",
+  "url": "https://www.beatsinspace.net/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.beatsinspace.net/",
+  "cookieClicked": null,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 590,
+   "inView": 233,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 25,
+   "svgs": 13,
+   "mediaCover": 25,
+   "clip": 1,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 20,
+   "infinite": 20,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 22,
+    "text": "Tim Sweeney",
+    "family": "marmo, \"marmo Fallback\", ui-sans-serif, system-ui, sans-serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "normal",
+    "lh": "26.4px",
+    "color": "#000000",
+    "w": 146
+   },
+   "fonts": [
+    "marmo"
+   ],
+   "loadedFonts": [
+    "marmo",
+    "marmo Fallback"
+   ],
+   "bodyBg": "#F8F2FF",
+   "htmlBg": "#F8F2FF",
+   "centreBg": {
+    "color": "#F8F2FF",
+    "tag": "body"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": true,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Beats in Space",
+   "lang": "en",
+   "textLen": 1675
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 20,
+   "infinite": 20,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 25,
+   "centreBg": {
+    "color": "#F8F2FF",
+    "tag": "body"
+   },
+   "fonts": [
+    "marmo"
+   ]
+  },
+  "jsKB": 6335,
+  "jsFiles": 44,
+  "jsSig": {
+   "viewTransition": 1,
+   "motion": 13
+  }
+ },
+ {
+  "name": "walkable-atlas",
+  "url": "https://ishikawa.co/en/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://ishikawa.co/en/",
+  "cookieClicked": "Allow",
+  "rafPerSecRest": 60,
+  "top": {
+   "nodes": 766,
+   "inView": 86,
+   "canvases": 6,
+   "canvasSizes": [
+    "1440x900",
+    "1632x1092",
+    "1632x1092",
+    "1440x900"
+   ],
+   "ctx": [
+    "2d"
+   ],
+   "videos": 0,
+   "imgs": 30,
+   "svgs": 3,
+   "mediaCover": 8,
+   "clip": 2,
+   "sticky": 0,
+   "blendCount": 6,
+   "anims": 28,
+   "infinite": 25,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 13,
+    "text": "View the atlas",
+    "family": "\"Helvetica Neue\", Arial, \"Hiragino Kaku Gothic ProN\", \"Hiragino Sans\", \"Noto San",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "0.155px",
+    "lh": "13px",
+    "color": "#1F1F1F",
+    "w": 83
+   },
+   "fonts": [
+    "Ishikawa Klee",
+    "Avenir Next",
+    "SF Mono",
+    "Helvetica Neue"
+   ],
+   "loadedFonts": [
+    "Ishikawa Klee"
+   ],
+   "bodyBg": "#FFFFFF",
+   "htmlBg": "#FFFFFF",
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "main"
+   },
+   "bodyColor": "#1F1F1F",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "ishikawa.co — Walkable Atlas by Hidekazu Ishikawa",
+   "lang": "en",
+   "textLen": 1581
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 28,
+   "infinite": 25,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 6,
+   "clip": 2,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "mediaCover": 8,
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "main"
+   },
+   "fonts": [
+    "Ishikawa Klee",
+    "Avenir Next",
+    "SF Mono",
+    "Helvetica Neue"
+   ]
+  },
+  "jsKB": 1145,
+  "jsFiles": 9,
+  "jsSig": {}
+ },
+ {
+  "name": "kalkbrenner",
+  "url": "https://www.paulkalkbrenner.net/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.paulkalkbrenner.net/",
+  "cookieClicked": null,
+  "rafPerSecRest": 124,
+  "top": {
+   "nodes": 1887,
+   "inView": 142,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 83,
+   "svgs": 3,
+   "mediaCover": 1,
+   "clip": 33,
+   "sticky": 0,
+   "blendCount": 16,
+   "anims": 3,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 150,
+    "text": "Paul",
+    "family": "\"ABC Diatype Plus Variable\", Arial, sans-serif",
+    "weight": "700",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "-7.5px",
+    "lh": "120px",
+    "color": "#000000",
+    "w": 264
+   },
+   "fonts": [
+    "ABC Diatype Plus Variable"
+   ],
+   "loadedFonts": [
+    "ABC Diatype Plus Variable"
+   ],
+   "bodyBg": "#000000",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "main"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": true,
+    "ScrollTrigger": true,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": true,
+    "Webflow": true,
+    "Shopify": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "Paul Kalkbrenner – Official Website",
+   "lang": "en",
+   "textLen": 2208
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 2,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 33,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 80,
+   "centreBg": {
+    "color": "#A7FF9C",
+    "tag": "section"
+   },
+   "fonts": [
+    "ABC Diatype Plus Variable"
+   ]
+  },
+  "jsKB": 27057,
+  "jsFiles": 83,
+  "jsSig": {
+   "gsap": 9,
+   "ScrollTrigger": 4,
+   "SplitText": 2,
+   "lenis": 1,
+   "barba": 2
+  }
+ },
+ {
+  "name": "aardvark",
+  "url": "https://aardvarkbookclub.com",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.aardvarkbookclub.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 244,
+  "top": {
+   "nodes": 1785,
+   "inView": 172,
+   "canvases": 2,
+   "canvasSizes": [
+    "1584x1155",
+    "1440x900"
+   ],
+   "ctx": [
+    "2d"
+   ],
+   "videos": 0,
+   "imgs": 89,
+   "svgs": 90,
+   "mediaCover": 1,
+   "clip": 16,
+   "sticky": 2,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 120,
+    "text": "Unbox",
+    "family": "Champ, Arial, sans-serif",
+    "weight": "700",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "-1.2px",
+    "lh": "96px",
+    "color": "#000000",
+    "w": 393
+   },
+   "fonts": [
+    "Degular",
+    "Champ"
+   ],
+   "loadedFonts": [
+    "Hello Organichand Webfont",
+    "Degular",
+    "Champ"
+   ],
+   "bodyBg": "#FFFFFF",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#FFD24A",
+    "tag": "section"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": true,
+    "ScrollTrigger": true,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": true,
+    "barba": true,
+    "Webflow": true,
+    "Shopify": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "Aardvark Book Club - Unbox stories worth talking about",
+   "lang": "en",
+   "textLen": 4640
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 2,
+   "clip": 16,
+   "sticky": 2,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "mediaCover": 21,
+   "centreBg": {
+    "color": "#FFD24A",
+    "tag": "div"
+   },
+   "fonts": [
+    "Degular",
+    "Champ",
+    "Hello Organichand Webfont"
+   ]
+  },
+  "jsKB": 504,
+  "jsFiles": 15,
+  "jsSig": {
+   "barba": 3,
+   "gsap": 7,
+   "ScrollTrigger": 3,
+   "SplitText": 2,
+   "lenis": 1
+  }
+ },
+ {
+  "name": "paysages",
+  "url": "https://paysages.studio/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://paysages.studio/",
+  "cookieClicked": null,
+  "rafPerSecRest": 180,
+  "top": {
+   "nodes": 1498,
+   "inView": 76,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "2d"
+   ],
+   "videos": 0,
+   "imgs": 95,
+   "svgs": 3,
+   "mediaCover": 0,
+   "clip": 1,
+   "sticky": 17,
+   "blendCount": 0,
+   "anims": 2,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": true,
+   "biggest": {
+    "size": 24,
+    "text": "Nous concevons des ambiances multimédias pour les ",
+    "family": "\"Rational TW Text Light\", sans-serif",
+    "weight": "350",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "-0.48px",
+    "lh": "26.4px",
+    "color": "#3B4639",
+    "w": 400
+   },
+   "fonts": [
+    "Rational TW Text Light",
+    "Tarnac Unlicensed Trial Regular"
+   ],
+   "loadedFonts": [
+    "Rational TW Text Light",
+    "Tarnac Light",
+    "Tarnac Unlicensed Trial Regular",
+    "Tarnac Light Placeholder",
+    "Tarnac Unlicensed Trial Regular Placeholder"
+   ],
+   "bodyBg": "#E7E9D2",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#E7E9D2",
+    "tag": "div"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": true,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "Paysages Studio — Environnements Sonores Immersifs",
+   "lang": "fr-CA",
+   "textLen": 14562
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 16,
+   "infinite": 2,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 1,
+   "sticky": 17,
+   "videos": 0,
+   "ctx": [
+    "2d"
+   ],
+   "mediaCover": 46,
+   "centreBg": {
+    "color": "#E7E9D2",
+    "tag": "div"
+   },
+   "fonts": [
+    "Rational TW Text Light",
+    "Tarnac Light"
+   ]
+  },
+  "jsKB": 1675,
+  "jsFiles": 19,
+  "jsSig": {
+   "viewTransition": 1,
+   "motion": 2,
+   "lenis": 2
+  }
+ },
+ {
+  "name": "stephen-kent-johnson",
+  "url": "https://stephenkentjohnson.com",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://stephenkentjohnson.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 0,
+  "top": {
+   "nodes": 1683,
+   "inView": 256,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 279,
+   "svgs": 0,
+   "mediaCover": 99,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 143,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 14,
+    "text": "Stephen",
+    "family": "DIN-2014_Narrow-Extra-Bold, helvetica, sans-serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "1.89px",
+    "lh": "24px",
+    "color": "#000000",
+    "w": 63
+   },
+   "fonts": [
+    "DIN-2014_Narrow-Extra-Bold"
+   ],
+   "loadedFonts": [
+    "DIN-2014_Bold",
+    "DIN-2014_Narrow-Extra-Bold"
+   ],
+   "bodyBg": "#E4E4E4",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#E4E4E4",
+    "tag": "body"
+   },
+   "bodyColor": "#808080",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": true,
+    "lenisClass": false
+   },
+   "title": "Stephen Kent Johnson",
+   "lang": "en-US",
+   "textLen": 37
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 143,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 100,
+   "centreBg": {
+    "color": "#E4E4E4",
+    "tag": "body"
+   },
+   "fonts": [
+    "DIN-2014_Narrow-Extra-Bold"
+   ]
+  },
+  "jsKB": 117,
+  "jsFiles": 3,
+  "jsSig": {}
+ },
+ {
+  "name": "siena-film",
+  "url": "https://siena.film",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://siena.film/",
+  "cookieClicked": null,
+  "rafPerSecRest": 124,
+  "top": {
+   "nodes": 2003,
+   "inView": 21,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "webgl2"
+   ],
+   "videos": 3,
+   "imgs": 76,
+   "svgs": 132,
+   "mediaCover": 100,
+   "clip": 15,
+   "sticky": 0,
+   "blendCount": 1,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 12,
+    "text": "ENTER",
+    "family": "\"Neue Brucke\", Arial, sans-serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "1.8px",
+    "lh": "10.8px",
+    "color": "#FAF7EF",
+    "w": 43
+   },
+   "fonts": [
+    "Neue Brucke"
+   ],
+   "loadedFonts": [
+    "Neue Brucke",
+    "P22 Parrish Roman",
+    "NB International"
+   ],
+   "bodyBg": "#000000",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#000000",
+    "tag": "div"
+   },
+   "bodyColor": "#FAF7EF",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": true,
+    "Shopify": false,
+    "jQuery": true
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": true,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "Siena Film Foundation",
+   "lang": "en",
+   "textLen": 263
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 15,
+   "sticky": 0,
+   "videos": 3,
+   "ctx": [
+    "webgl2"
+   ],
+   "mediaCover": 100,
+   "centreBg": {
+    "color": "#000000",
+    "tag": "div"
+   },
+   "fonts": [
+    "Neue Brucke"
+   ]
+  },
+  "jsKB": 1059,
+  "jsFiles": 5,
+  "jsSig": {
+   "gsap": 1,
+   "ScrollTrigger": 1,
+   "SplitText": 1,
+   "lenis": 1,
+   "taxi": 1,
+   "customGLSL": 1
+  }
+ },
+ {
+  "name": "big-sur",
+  "url": "https://bigsurceramics.com",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://bigsurceramics.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 120,
+  "top": {
+   "nodes": 186,
+   "inView": 49,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [
+    "offscreen:2d"
+   ],
+   "videos": 1,
+   "imgs": 0,
+   "svgs": 0,
+   "mediaCover": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": true,
+   "biggest": {
+    "size": 18.468,
+    "text": "objects",
+    "family": "\"Monument Grotesk Variable\"",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "-0.36936px",
+    "lh": "27.702px",
+    "color": "#000000",
+    "w": 58
+   },
+   "fonts": [
+    "Gravity Variable",
+    "Monument Grotesk Variable"
+   ],
+   "loadedFonts": [
+    "Gravity Variable",
+    "Diatype Variable",
+    "Monument Grotesk Variable"
+   ],
+   "bodyBg": "#FFFFFF",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "div"
+   },
+   "bodyColor": "#000000",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "BigSur",
+   "lang": "",
+   "textLen": 236
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 4,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "videos": 1,
+   "ctx": [
+    "offscreen:2d"
+   ],
+   "mediaCover": 0,
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "div"
+   },
+   "fonts": [
+    "Diatype Variable",
+    "Gravity Variable",
+    "Monument Grotesk Variable"
+   ]
+  },
+  "jsKB": 1625,
+  "jsFiles": 2,
+  "jsSig": {}
+ },
+ {
+  "name": "kronborg",
+  "url": "https://kronborg.dk",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://kronborg.dk/",
+  "cookieClicked": null,
+  "rafPerSecRest": 119,
+  "top": {
+   "nodes": 1163,
+   "inView": 196,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 0,
+   "imgs": 24,
+   "svgs": 2,
+   "mediaCover": 100,
+   "clip": 10,
+   "sticky": 6,
+   "blendCount": 0,
+   "anims": 3,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 88,
+    "text": "Hamlet Highlights",
+    "family": "\"Suisse Works\"",
+    "weight": "400",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "-2.64px",
+    "lh": "83.6px",
+    "color": "#FFFFFF",
+    "w": 660
+   },
+   "fonts": [
+    "Suisse Intl",
+    "Suisse Works"
+   ],
+   "loadedFonts": [
+    "Suisse Intl",
+    "Suisse Works"
+   ],
+   "bodyBg": "#FFFFFF",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "body"
+   },
+   "bodyColor": "#0B11A0",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Velkommen til Kronborg Slot",
+   "lang": "da",
+   "textLen": 6744
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 3,
+   "infinite": 3,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 8,
+   "sticky": 6,
+   "videos": 0,
+   "ctx": [],
+   "mediaCover": 9,
+   "centreBg": {
+    "color": "#FFFFFF",
+    "tag": "body"
+   },
+   "fonts": [
+    "Suisse Intl",
+    "Suisse Works"
+   ]
+  },
+  "jsKB": 5167,
+  "jsFiles": 66,
+  "jsSig": {
+   "viewTransition": 1,
+   "motion": 1
+  }
+ },
+ {
+  "name": "tandjung-sari",
+  "url": "https://www.tandjungsarihotel.com/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://www.tandjungsarihotel.com/",
+  "cookieClicked": null,
+  "rafPerSecRest": 116,
+  "top": {
+   "nodes": 1084,
+   "inView": 156,
+   "canvases": 0,
+   "canvasSizes": [],
+   "ctx": [],
+   "videos": 1,
+   "imgs": 22,
+   "svgs": 13,
+   "mediaCover": 100,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 28.12,
+    "text": "tandjung",
+    "family": "Optima",
+    "weight": "400",
+    "style": "normal",
+    "transform": "none",
+    "tracking": "normal",
+    "lh": "34.08px",
+    "color": "#7A1D31",
+    "w": 106
+   },
+   "fonts": [
+    "Helvetica",
+    "Optima"
+   ],
+   "loadedFonts": [
+    "Adobe Caslon Pro",
+    "Helvetica",
+    "Optima"
+   ],
+   "bodyBg": "#F1ECDE",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#F1ECDE",
+    "tag": "div"
+   },
+   "bodyColor": "#544F45",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": null,
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": true,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": false
+   },
+   "title": "Tandjung Sari Hotel",
+   "lang": "en",
+   "textLen": 5797
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 0,
+   "clip": 0,
+   "sticky": 0,
+   "videos": 1,
+   "ctx": [],
+   "mediaCover": 100,
+   "centreBg": {
+    "color": "#F1ECDE",
+    "tag": "div"
+   },
+   "fonts": [
+    "Helvetica",
+    "Optima"
+   ]
+  },
+  "jsKB": 1722,
+  "jsFiles": 24,
+  "jsSig": {
+   "gsap": 2,
+   "SplitText": 1,
+   "ScrollTrigger": 1,
+   "lenis": 1,
+   "ogl": 1,
+   "viewTransition": 1
+  }
+ },
+ {
+  "name": "the-watch",
+  "url": "https://thewatch.60fps.fr/",
+  "ok": true,
+  "status": 200,
+  "finalUrl": "https://thewatch.60fps.fr/",
+  "cookieClicked": null,
+  "rafPerSecRest": 26,
+  "top": {
+   "nodes": 827,
+   "inView": 77,
+   "canvases": 1,
+   "canvasSizes": [
+    "1440x900"
+   ],
+   "ctx": [
+    "2d",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "videos": 0,
+   "imgs": 15,
+   "svgs": 64,
+   "mediaCover": 0,
+   "clip": 0,
+   "sticky": 0,
+   "blendCount": 0,
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "vtCss": false,
+   "biggest": {
+    "size": 60,
+    "text": "Model 146gr",
+    "family": "Nekst, sans-serif",
+    "weight": "400",
+    "style": "normal",
+    "transform": "uppercase",
+    "tracking": "normal",
+    "lh": "48px",
+    "color": "#000000",
+    "w": 223
+   },
+   "fonts": [
+    "Inter",
+    "Nekst"
+   ],
+   "loadedFonts": [
+    "Nekst",
+    "Inter"
+   ],
+   "bodyBg": "transparent",
+   "htmlBg": "transparent",
+   "centreBg": {
+    "color": "#EBEBEB",
+    "tag": "div"
+   },
+   "bodyColor": "#FFFFFF",
+   "globals": {
+    "gsap": false,
+    "ScrollTrigger": false,
+    "THREE": false,
+    "__THREE__": "162",
+    "Lenis": false,
+    "barba": false,
+    "Webflow": false,
+    "Shopify": false,
+    "jQuery": false
+   },
+   "fw": {
+    "next": false,
+    "nuxt": false,
+    "astro": false,
+    "sveltekit": false,
+    "webflow": false,
+    "framer": false,
+    "readymag": false,
+    "wordpress": false,
+    "lenisClass": true
+   },
+   "title": "FS 60P - The timeless automatic watch by 60fps",
+   "lang": "en",
+   "textLen": 1346
+  },
+  "shot": "normal",
+  "mid": {
+   "anims": 0,
+   "infinite": 0,
+   "scrollTl": 0,
+   "viewTl": 0,
+   "canvases": 1,
+   "clip": 0,
+   "sticky": 0,
+   "videos": 0,
+   "ctx": [
+    "2d",
+    "webgl2",
+    "offscreen:2d"
+   ],
+   "mediaCover": 0,
+   "centreBg": {
+    "color": "#EBEBEB",
+    "tag": "div"
+   },
+   "fonts": [
+    "Inter"
+   ]
+  },
+  "jsKB": 989,
+  "jsFiles": 5,
+  "jsSig": {
+   "gsap": 2,
+   "ScrollTrigger": 2,
+   "three": 1,
+   "customGLSL": 3,
+   "lenis": 1
+  }
+ }
+]
