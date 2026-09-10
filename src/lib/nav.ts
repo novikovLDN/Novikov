@@ -81,3 +81,35 @@ export const FOOTER_COLUMNS: NavColumn[] = [
 
 /** Год основания. Требует подтверждения — COMPLIANCE-CHECK.md. */
 export const FOUNDED = 2016;
+
+/**
+ * Листы атласа (docs/rebrand-2027/SCREEN_SCORE.md §0.1).
+ *
+ * Номер листа — постоянное свойство раздела, а не порядковый номер на
+ * странице: «лист 11» — всегда выделенные серверы, где бы ссылка ни
+ * стояла. Главная занимает листы 01–08 (её сцены), отдельные разделы —
+ * с 10. Правовые страницы в атлас не входят: это не листы, а условия.
+ */
+export interface Sheet {
+  no: string;
+  title: string;
+  href: string;
+}
+
+export const SITE_SHEETS: Sheet[] = [
+  { no: "01", title: "Обложка", href: "/" },
+  { no: "10", title: "Тарифы", href: "/pricing" },
+  { no: "11", title: "Выделенные серверы", href: "/vds" },
+  { no: "12", title: "Устройства", href: "/devices" },
+  { no: "13", title: "Для бизнеса", href: "/business" },
+  { no: "14", title: "Поддержка", href: "/support" },
+  { no: "15", title: "Контакты", href: "/contact" },
+  { no: "16", title: "Безопасность", href: "/security" },
+  { no: "17", title: "Инфраструктура", href: "/infrastructure" },
+  { no: "18", title: "О нас", href: "/about" },
+];
+
+export const LEGAL_LINKS: NavLink[] = [
+  { label: "Условия", href: "/terms" },
+  { label: "Приватность", href: "/privacy" },
+];

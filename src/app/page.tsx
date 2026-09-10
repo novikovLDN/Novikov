@@ -1,11 +1,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-// Главная перерисована на системе «Гратикул» (фаза 5).
-// Прежняя чернильная сборка на `.b-*` осталась в
-// components/brand/Home.tsx до перевода остальных экранов: её
-// сцены — источник приёмов, помеченных «сохранить» в
-// docs/ANIMATION_INVENTORY.md.
-import HomeView from "@/components/graticule/Home";
+// Главная — «Атлас-издание» (ребрендинг 2027,
+// docs/rebrand-2027/SCREEN_SCORE.md). Прежняя главная «Гратикул»
+// осталась в components/graticule/Home.tsx: её шапка и футер ещё
+// обслуживают непереведённые страницы.
+import HomeView from "@/components/atlas/AtlasHome";
 
 interface PageProps {
   searchParams: Promise<{ step?: string; ref?: string }>;

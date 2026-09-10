@@ -1,0 +1,1035 @@
+/* ═══════════════════════════════════════════════════════════════════
+   АТЛАС-ИЗДАНИЕ — корпус ребрендинга 2027.
+
+   Идея, палитра, шрифты: docs/rebrand-2027/CONCEPTS.md (разделы
+   «Утверждено 10.09.2026» и «Поправки владельца»).
+   Партитура движения: docs/rebrand-2027/SCREEN_SCORE.md.
+
+   Вводится рядом с «Гратикулом» и включается постранично классом
+   `.a`: пока класса на странице нет, файл ничего не меняет.
+
+   Устройство файла:
+     1. Токены
+     2. Корпус и мост к старым слоям
+     3. Поле, шапка, выходные данные
+     4. Листы главной
+     5. Лист ∅ (404)
+     6. ДВИЖЕНИЕ — весь моушн корпуса, и только здесь:
+        6.1 разовые события   6.2 прокрутка   6.3 холостой слой
+        6.4 отклик на руку    6.5 упрощение
+   Выше раздела 6 анимация не объявляется.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ═══ 1. Токены ══════════════════════════════════════════════════════
+   Цвет — на корне: значение, объявленное ниже тела по дереву, правило
+   на теле не видит (урок «Гратикула», CLAUDE.md). Гарнитуры — в `.a`,
+   потому что переменные next/font объявлены на обёртке страницы.
+
+   Палитра «Лоция» — морская карта: бумага и вода белые, мели — тона
+   синего, суша — серый рельеф. Контраст — CONCEPTS.md. */
+:root {
+  --a-paper:       #FFFFFF;
+  --a-g50:         #F4F6F9;
+  --a-g100:        #E9ECF1;
+  --a-g200:        #D5DAE2;   /* линии, штрих суши на свету        */
+  --a-g300:        #B3BAC6;   /* штрих суши, ровный — только графика */
+  --a-g400:        #8B93A1;   /* штрих в тени — только графика      */
+
+  --a-ink:         #0B1322;   /* 18,58:1 */
+  --a-ink-2:       #3A4252;   /* 10,09:1 */
+  --a-ink-3:       #5F6878;   /*  5,62:1 */
+
+  --a-cobalt:      #1432B8;   /*  9,64:1 — голос бренда             */
+  --a-cobalt-deep: #0C2A8F;   /* 12,05:1 — наведение, нажатие       */
+  --a-shoal:       #DCE5FB;   /* мель: ink 14,72:1, кобальт 7,64:1   */
+  --a-shoal-lume:  #BFD0FF;   /* мель на плите: 6,28:1 на кобальте   */
+
+  /* Ступени времени ответа: ближе к серверу — глубже тон. */
+  --a-band-1:      #C3D2F7;
+  --a-band-2:      #D3DEF9;
+  --a-band-3:      #E0E8FB;
+  --a-band-4:      #EAF0FC;
+  --a-band-5:      #F3F6FD;
+
+  --a-gutter:      clamp(16px, 2.4vw, 32px);
+  --a-shell:       1560px;
+  --a-head-h:      64px;
+
+  /* Движение. Пружин и отскоков нет; событие дольше 900 мс запрещено. */
+  --m-pen:    linear;
+  --m-settle: cubic-bezier(0.2, 0, 0, 1);
+  --m-turn:   cubic-bezier(0.65, 0, 0.35, 1);
+  --m-tide:   cubic-bezier(0.37, 0, 0.63, 1);
+  --d-1: 240ms;
+  --d-2: 480ms;
+  --d-3: 900ms;
+}
+
+/* ═══ 2. Корпус ═════════════════════════════════════════════════════ */
+.a {
+  --a-serif: var(--font-atlas-serif), "Times New Roman", serif;
+  --a-wide:  var(--font-atlas-wide), Arial, sans-serif;
+  --a-sans:  var(--font-brand), ui-sans-serif, system-ui, sans-serif;
+
+  background: var(--a-paper);
+  color: var(--a-ink);
+  font-family: var(--a-sans);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+html:has(.a), body:has(.a) { background: var(--a-paper); }
+
+/* Мост для наложений корневого layout (согласие на cookie, баннер
+   установки): они живут рядом со страницей и читают чернильные токены.
+   Селектор — только `body:has(.a)`, без `.a` рядом: иначе оптимизатор
+   CSS склеивает блоки и теряет второй селектор (урок «Гратикула»). */
+body:has(.a) {
+  --ink:        var(--a-paper);
+  --ink-2:      var(--a-g50);
+  --ink-3:      var(--a-g200);
+  --on-ink:     var(--a-ink);
+  --on-ink-2:   var(--a-ink-2);
+  --on-ink-3:   var(--a-ink-3);
+  --paper:      var(--a-paper);
+  --on-paper:   var(--a-ink);
+  --on-paper-2: var(--a-ink-2);
+  --on-paper-3: var(--a-ink-3);
+  --bg:         var(--a-paper);
+  --fg:         var(--a-ink);
+  --fg-2:       var(--a-ink-2);
+  --fg-3:       var(--a-ink-3);
+  --line:       var(--a-g200);
+  --acid:       var(--a-cobalt);
+  --acid-deep:  var(--a-cobalt-deep);
+}
+
+.a em { font-family: var(--a-serif); font-style: italic; font-weight: 400; }
+.a-wide {
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  font-style: normal;
+}
+.a-num {
+  font-family: var(--a-serif);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  font-style: normal;
+}
+.a :focus-visible { outline: 2px solid var(--a-cobalt); outline-offset: 3px; }
+.a-plate :focus-visible { outline-color: #FFFFFF; }
+
+.a-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+/* ═══ 3. Поле, шапка, выходные данные ═══════════════════════════════ */
+.a-field {
+  width: 100%;
+  max-width: var(--a-shell);
+  margin-inline: auto;
+  padding-inline: var(--a-gutter);
+}
+
+/* Шапка: пункты стоят на волосяной линии, как подписи на рамке. */
+.a-head {
+  position: sticky;
+  top: 0;
+  z-index: 70;
+  background: var(--a-paper);
+}
+.a-head-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-height: var(--a-head-h);
+  border-bottom: 1px solid var(--a-g200);
+}
+.a-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 44px;
+  color: var(--a-ink);
+  text-decoration: none;
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  flex: none;
+}
+.a-nav { display: none; gap: 1.4rem; margin-left: 1rem; }
+@media (min-width: 1100px) { .a-nav { display: flex; } }
+.a-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  color: var(--a-ink-2);
+  text-decoration: none;
+  background: linear-gradient(var(--a-cobalt), var(--a-cobalt)) no-repeat left calc(50% + 0.8em) / 0 1px;
+}
+.a-head-sheet {
+  margin: 0 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1rem;
+  color: var(--a-ink-2);
+  min-width: 0;
+}
+.a-head-sheet .a-wide { color: var(--a-ink-3); }
+@media (max-width: 520px) { .a-head-sheet em { display: none; } }
+.a-head-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 1.1rem;
+  background: var(--a-cobalt);
+  color: #FFFFFF;
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  flex: none;
+}
+.a-index { flex: none; }
+@media (min-width: 1100px) { .a-index { display: none; } }
+.a-index summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 0.25rem;
+  cursor: pointer;
+  list-style: none;
+  color: var(--a-ink);
+}
+.a-index summary::-webkit-details-marker { display: none; }
+.a-index-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--a-paper);
+  border-bottom: 1px solid var(--a-g200);
+  padding: 1rem var(--a-gutter) 1.5rem;
+  z-index: 71;
+}
+/* Закрытый <details> в Chromium всё равно раскладывает содержимое
+   (слот ::details-content), и пункты числятся за краем окна. Прячем
+   явно, чтобы замер переполнения не ловил невидимое. */
+.a-index:not([open]) .a-index-panel { display: none; }
+.a-index-panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.a-index-panel a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding-block: 0.6rem;
+  border-bottom: 1px solid var(--a-g100);
+  color: var(--a-ink);
+  text-decoration: none;
+  font-size: 1.35rem;
+}
+.a-index-panel .a-wide { color: var(--a-ink-3); min-width: 2ch; }
+.a-index-legal { display: flex; gap: 1.5rem; margin: 1rem 0 0; }
+.a-index-legal a { border: 0; font-size: 0.9375rem; min-height: 44px; color: var(--a-ink-2); }
+
+/* Выходные данные */
+.a-foot {
+  background: var(--a-g50);
+  border-top: 1px solid var(--a-g200);
+  padding-block: clamp(3rem, 8vh, 5rem) 2rem;
+}
+.a-foot-label { color: var(--a-ink-3); margin: 0 0 1rem; }
+.a-foot-index ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+.a-foot-index a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  min-height: 48px;
+  padding-block: 0.55rem;
+  border-bottom: 1px solid var(--a-g200);
+  color: var(--a-ink);
+  text-decoration: none;
+  font-size: 1.3rem;
+  background: linear-gradient(var(--a-cobalt), var(--a-cobalt)) no-repeat left bottom / 0 1px;
+}
+.a-foot-index .a-wide { color: var(--a-ink-3); min-width: 2ch; }
+.a-colophon {
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+  display: grid;
+  gap: 0.35rem 2rem;
+  color: var(--a-ink-3);
+  font-size: 0.75rem;
+}
+@media (min-width: 900px) { .a-colophon { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.a-colophon p { margin: 0; }
+.a-colophon-legal { display: flex; gap: 1.5rem; }
+.a-colophon a {
+  color: var(--a-ink-2);
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* ═══ 4. Листы главной ═════════════════════════════════════════════ */
+.a-main { position: relative; }
+
+/* Маршрут на поле листа: линия в левом поле, кобальт прочерчивается. */
+.a-route {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: max(7px, calc((100% - var(--a-shell)) / 2 + var(--a-gutter) * 0.42));
+  width: 1px;
+  background: var(--a-g200);
+  pointer-events: none;
+  z-index: 1;
+}
+.a-route-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--a-cobalt);
+  transform-origin: top;
+}
+
+.a-sheet { position: relative; padding-block: clamp(4.5rem, 12vh, 9rem); }
+/* Номер листа у линии маршрута — остановка на пути. */
+.a-sheet[data-sheet]::before {
+  content: attr(data-sheet);
+  position: absolute;
+  top: clamp(4.5rem, 12vh, 9rem);
+  left: max(0px, calc((100% - var(--a-shell)) / 2 + var(--a-gutter) * 0.42 - 7px));
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  font-family: var(--a-wide);
+  font-size: 0;
+  background: var(--a-paper);
+  border: 1px solid var(--a-cobalt);
+  border-radius: 50%;
+  z-index: 2;
+}
+.a-plate[data-sheet]::before { background: var(--a-cobalt); border-color: #FFFFFF; }
+
+.a-h2 {
+  margin: 0 0 clamp(1.5rem, 4vh, 2.75rem);
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: clamp(2.1rem, 5vw, 4.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  max-width: 18ch;
+}
+.a-no {
+  display: block;
+  margin-bottom: 1rem;
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: var(--a-ink-3);
+}
+.a-p { margin: 0 0 1.25rem; max-width: 58ch; font-size: 1.125rem; color: var(--a-ink-2); }
+
+.a-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
+.a-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 0.9rem 1.4rem;
+  border: 1px solid transparent;
+  font: inherit;
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+}
+.a-btn-primary { background: var(--a-cobalt); color: #FFFFFF; }
+.a-btn-quiet { background: transparent; color: var(--a-ink); border-color: var(--a-g200); }
+.a-btn-invert { background: #FFFFFF; color: var(--a-cobalt); }
+.a-btn-line { background: transparent; color: #FFFFFF; border-color: rgba(255, 255, 255, 0.55); }
+
+/* ─── Лист 01 · Обложка ───────────────────────────────────────────── */
+.a-cover {
+  min-height: calc(100svh - var(--a-head-h));
+  padding-block: clamp(1.25rem, 4vh, 3rem) clamp(2rem, 6vh, 4rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.a-cover::before { top: clamp(1.25rem, 4vh, 3rem) !important; }
+/* Две строки выключены по ширине колонки: кегль = 100cqw / k, где k —
+   отношение ширины строки к кеглю, измеренное в браузере на живом
+   шрифте. Второе слагаемое — потолок по высоте окна: кадр обязан
+   помещаться в экран целиком. Меняя текст или начертание — перемерить k. */
+/* Пара «широкий гротеск + курсив антиквы»: первая строка MTS Wide Bold,
+   вторая — Literata курсивом, кобальтом. Один смысл, два материала. */
+.a-display {
+  container-type: inline-size;
+  margin: 0;
+  font-family: var(--a-wide);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: var(--a-ink);
+}
+/* Общая ширина строк: колонка или потолок по высоте окна (25svh для
+   первой строки × её k). Кегль каждой строки = ширина / её k — поэтому
+   при потолке блок сужается, но остаётся выключенным: обе строки одной
+   ширины. k замерены в Chromium на Literata 300 opsz 72, 10.09.2026. */
+/* k замерены в Chromium 10.09.2026: MTS Wide Bold 700 со строчными —
+   6,452; Literata 300 курсив, opsz 72, трекинг −0,035em — 4,238.
+   Потолок 116svh: при окне 900 две строки вместе с подписью
+   помещаются в первый экран (замер: 914 при 150svh, 912 при 120svh). */
+.a-display { --fit-w: min(100cqw, 116svh); }
+.a-fit { display: block; white-space: nowrap; font-size: calc(var(--fit-w) / var(--k)); }
+.a-fit-1 { --k: 6.452; }
+/* Выносной элемент курсивной «у» уходит ниже строки на ~0,22 кегля:
+   запас под ним, иначе хвост ложится на подпись под заголовком. */
+.a-fit-2 {
+  --k: 4.238;
+  font-family: var(--a-serif);
+  font-weight: 300;
+  font-variation-settings: "opsz" 72;
+  font-style: italic;
+  letter-spacing: -0.035em;
+  line-height: 0.86;
+  color: var(--a-cobalt);
+  padding-bottom: 0.2em;
+}
+
+.a-cover-grid {
+  display: grid;
+  gap: 2rem;
+  margin-top: clamp(1.5rem, 4vh, 3rem);
+}
+@media (min-width: 900px) {
+  .a-cover-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: end; }
+}
+.a-lead {
+  margin: 0 0 1.5rem;
+  max-width: 34ch;
+  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
+  line-height: 1.45;
+  color: var(--a-ink);
+}
+.a-frag {
+  display: inline-block;
+  width: 3.1em;
+  height: 1.05em;
+  vertical-align: -0.2em;
+  margin-inline: 0.1em;
+  border: 1px solid var(--a-g200);
+  background: var(--a-paper);
+  overflow: hidden;
+}
+.a-frag-band[data-level="1"] { fill: var(--a-band-1); }
+.a-frag-band[data-level="2"] { fill: var(--a-band-2); }
+.a-frag-band[data-level="3"] { fill: var(--a-band-3); }
+.a-frag-band[data-level="4"] { fill: var(--a-band-4); }
+.a-frag-band[data-level="5"] { fill: var(--a-band-5); }
+.a-frag-land { fill: none; stroke: var(--a-g400); stroke-width: 1; }
+.a-frag-dot { fill: var(--a-cobalt); }
+.a-frag-bands { transform-box: fill-box; transform-origin: center; }
+.a-fine { margin: 0.9rem 0 0; font-size: 0.875rem; color: var(--a-ink-3); }
+
+.a-caption {
+  margin: 0 0 1.25rem;
+  max-width: 40ch;
+  font-family: var(--a-serif);
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--a-ink-2);
+}
+.a-caption .a-reading { font-style: normal; }
+.a-near { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--a-g200); }
+.a-near li {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr) 4.5rem;
+  align-items: center;
+  gap: 1rem;
+  min-height: 44px;
+  border-bottom: 1px solid var(--a-g100);
+}
+.a-near em { font-size: 1.1rem; }
+.a-near li > span:last-child { text-align: right; color: var(--a-ink-2); }
+.a-near-bar { height: 3px; background: var(--a-g100); }
+.a-near-bar i { display: block; height: 100%; width: var(--w); background: var(--a-cobalt); }
+
+/* Живое показание: точка перед числом — живое или ещё нет. */
+.a-reading { white-space: nowrap; }
+.a-reading::before {
+  content: "";
+  display: inline-block;
+  width: 0.42em;
+  height: 0.42em;
+  margin-right: 0.35em;
+  vertical-align: 0.1em;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.3;
+}
+.a-reading[data-live="true"]::before { background: var(--a-cobalt); opacity: 1; }
+.a-plate .a-reading[data-live="true"]::before { background: var(--a-shoal-lume); }
+.a-ago { color: var(--a-ink-3); font-family: var(--a-sans); font-size: 0.8125rem; }
+
+/* ─── Лист 02 · Одна и та же страница ─────────────────────────────── */
+@property --a-p { syntax: "<number>"; inherits: true; initial-value: 1; }
+@property --a-n { syntax: "<integer>"; inherits: true; initial-value: 100; }
+
+.a-lanes { display: grid; gap: 1.75rem; margin-block: 2rem 2.5rem; }
+.a-lane {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr) 5rem;
+  align-items: center;
+  gap: 0.4rem 1.25rem;
+}
+.a-lane[data-lane="slow"] { --a-p: 0.61; --a-n: 61; }
+.a-lane[data-lane="fast"] { --a-p: 1; --a-n: 100; }
+.a-lane-name { color: var(--a-ink-2); }
+.a-lane-track { position: relative; height: 16px; background: var(--a-g50); }
+.a-lane-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(var(--a-p));
+}
+[data-lane="slow"] .a-lane-fill { background: var(--a-g400); }
+[data-lane="fast"] .a-lane-fill { background: var(--a-cobalt); }
+.a-lane-pct {
+  text-align: right;
+  font-family: var(--a-serif);
+  font-weight: 300;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+.a-lane-pct::after { counter-reset: n var(--a-n); content: counter(n) "\202F%"; }
+.a-lane-out { grid-column: 2 / -1; color: var(--a-ink-3); font-size: 1.05rem; }
+@media (max-width: 720px) {
+  .a-lane { grid-template-columns: minmax(0, 1fr) auto; }
+  .a-lane-track { grid-column: 1 / -1; grid-row: 2; }
+  .a-lane-out { grid-column: 1 / -1; }
+}
+/* Распад медленной дорожки: плитки 8×8 смазаны вбок ступенями. */
+.a-mosh {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(61% - 5.25rem);
+  width: 5.25rem;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+}
+.a-mosh i { background: var(--a-g400); transform: translateX(var(--s)); }
+.a-mosh i:nth-child(3n) { background: var(--a-g300); }
+.a-lane-glint {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 16%;
+  background: linear-gradient(90deg, transparent, var(--a-shoal-lume), transparent);
+  transform: translateX(-100%);
+  opacity: 0.9;
+}
+.a-lane-track { overflow: hidden; }
+[data-lane="slow"] .a-lane-track { overflow: visible; }
+
+/* ─── Плиты (листы 03 и 08) ───────────────────────────────────────── */
+.a-plate { background: var(--a-cobalt); color: #FFFFFF; overflow: hidden; }
+.a-plate .a-no { color: var(--a-shoal-lume); }
+.a-plate .a-p { color: #FFFFFF; }
+.a-isobaths {
+  position: absolute;
+  inset: -8% -4%;
+  width: 108%;
+  height: 116%;
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 1;
+  pointer-events: none;
+}
+.a-plate .a-field { position: relative; z-index: 2; }
+
+.a-beat {
+  margin: 0 0 0.35em;
+  max-width: 20ch;
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: clamp(1.8rem, 4.2vw, 3.9rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.a-beat-neg {
+  color: var(--a-shoal-lume);
+  font-family: var(--a-serif);
+  font-weight: 300;
+  font-variation-settings: "opsz" 72;
+  font-style: italic;
+  font-size: clamp(2.2rem, 5.2vw, 4.8rem);
+  letter-spacing: -0.02em;
+}
+.a-bounds { margin-top: clamp(2.5rem, 7vh, 5rem); max-width: 52rem; }
+.a-bounds-head { margin: 0 0 1rem; color: var(--a-shoal-lume); }
+.a-bounds ul { list-style: none; margin: 0; padding: 0; }
+.a-bounds li {
+  padding-block: 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+}
+.a-bounds b { font-weight: 300; font-size: 1.35em; }
+
+/* ─── Лист 04 · Карта ─────────────────────────────────────────────── */
+.a-chart-fig { margin: 2rem 0 0; }
+.a-chart { position: relative; width: 100%; }
+.a-chart-bands, .a-chart > svg { position: absolute; inset: 0; }
+.a-chart-bands svg, .a-chart > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.a-band[data-level="1"] { fill: var(--a-band-1); }
+.a-band[data-level="2"] { fill: var(--a-band-2); }
+.a-band[data-level="3"] { fill: var(--a-band-3); }
+.a-band[data-level="4"] { fill: var(--a-band-4); }
+.a-band[data-level="5"] { fill: var(--a-band-5); }
+.a-land path { fill: none; stroke-width: 1; stroke-linecap: round; }
+.a-land-t0 { stroke: var(--a-g200); }
+.a-land-t1 { stroke: var(--a-g300); }
+.a-land-t2 { stroke: var(--a-g400); }
+.a-over-route { stroke: var(--a-cobalt); stroke-width: 1.5; stroke-dasharray: 4 3; fill: none; }
+.a-over-label { font-family: var(--a-wide); font-size: 5px; fill: var(--a-ink-3); letter-spacing: 0.02em; }
+
+.a-city { position: absolute; transform: translate(-50%, -50%); z-index: 3; }
+.a-city summary {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  list-style: none;
+}
+.a-city summary::-webkit-details-marker { display: none; }
+.a-city summary span { width: 7px; height: 7px; background: var(--a-ink); }
+.a-city[data-closest] summary span { background: var(--a-cobalt); }
+.a-city summary::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  font-family: var(--a-serif);
+  font-style: italic;
+  font-size: 0.875rem;
+  color: var(--a-ink);
+  background: var(--a-paper);
+  padding: 0 0.3rem;
+  opacity: 0;
+  pointer-events: none;
+}
+.a-city[data-closest] summary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--a-cobalt);
+  border-radius: 50%;
+  opacity: 0;
+}
+.a-city-card {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 16rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--a-paper);
+  border: 1px solid var(--a-g200);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  z-index: 4;
+}
+.a-city[open] { z-index: 5; }
+.a-reader {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: none;
+  z-index: 2;
+}
+.a-reader i {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--a-cobalt);
+  background: var(--a-paper);
+  border-radius: 50%;
+  margin-left: 2px;
+}
+.a-reader .a-wide {
+  position: absolute;
+  left: 16px;
+  top: -1.4em;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  color: var(--a-cobalt);
+}
+@media (max-width: 720px) {
+  .a-city, .a-reader .a-wide { display: none; }
+}
+
+.a-chart-cap {
+  display: grid;
+  gap: 0.75rem 2.5rem;
+  margin-top: 1.25rem;
+  font-size: 0.9375rem;
+  color: var(--a-ink-2);
+}
+@media (min-width: 900px) { .a-chart-cap { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr); } }
+.a-chart-cap p { margin: 0; max-width: 46ch; }
+.a-scale { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.a-scale li { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; white-space: nowrap; }
+.a-scale i { width: 1.6rem; height: 0.6rem; border: 1px solid var(--a-g200); }
+
+/* Таблицы: данные карты и указатель */
+.a-table-wrap { overflow-x: auto; margin-top: 2.5rem; background: var(--a-g50); }
+.a-table { width: 100%; border-collapse: collapse; font-size: 0.975rem; }
+.a-table th {
+  text-align: left;
+  padding: 0.75rem 0.75rem;
+  border-bottom: 1px solid var(--a-g200);
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--a-ink-3);
+  white-space: nowrap;
+}
+.a-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--a-g100); vertical-align: baseline; }
+.a-table .a-td-num { text-align: right; white-space: nowrap; }
+.a-table .a-num { font-size: 1.15em; }
+.a-index-table tr[data-kind="measured"] td { color: var(--a-cobalt); }
+@media (max-width: 720px) {
+  .a-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .a-table, .a-table tbody, .a-table tr, .a-table td { display: block; }
+  .a-table tr { padding: 0.75rem; border-bottom: 1px solid var(--a-g200); }
+  .a-table td { border: 0; padding: 0.1rem 0; }
+  .a-table .a-td-num { text-align: left; }
+}
+
+/* ─── Лист 05 · Легенда ──────────────────────────────────────────── */
+.a-legend-group { margin-top: 2.5rem; border-top: 1px solid var(--a-g200); padding-top: 1rem; }
+.a-legend-head { margin: 0 0 0.5rem; color: var(--a-ink-3); }
+.a-legend-row {
+  display: grid;
+  grid-template-columns: 8rem 9rem 9rem minmax(0, 1fr);
+  align-items: center;
+  gap: 1rem 1.5rem;
+  min-height: 72px;
+  padding: 0.9rem 0.75rem;
+  border-bottom: 1px solid var(--a-g100);
+  color: inherit;
+  text-decoration: none;
+}
+.a-sym { position: relative; height: var(--w); background: var(--a-g100); overflow: hidden; }
+.a-sym-flow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: -30px;
+  background: repeating-linear-gradient(90deg, var(--a-cobalt) 0 18px, transparent 18px 30px);
+}
+.a-legend-name em { font-size: 1.9rem; font-weight: 300; }
+.a-legend-val { font-size: 1.1rem; }
+.a-legend-val b { font-size: 1.5em; font-weight: 300; }
+.a-legend-price { color: var(--a-ink-2); font-size: 0.975rem; }
+.a-legend-note { margin: 1rem 0 0; color: var(--a-ink-2); }
+@media (max-width: 820px) {
+  .a-legend-row { grid-template-columns: 6rem minmax(0, 1fr); }
+  .a-legend-price { grid-column: 1 / -1; }
+}
+.a-servers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1em 0.55em;
+  padding: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+  font-family: var(--a-serif);
+  font-weight: 300;
+  font-variation-settings: "opsz" 72;
+  font-size: clamp(2.2rem, 6.2vw, 5.6rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+.a-legend .a-actions { margin-top: 2.5rem; }
+
+/* ─── Лист 06 · Три шага ─────────────────────────────────────────── */
+.a-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2.5rem; }
+@media (min-width: 900px) { .a-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; } }
+.a-step { position: relative; padding-top: 3.6rem; }
+.a-step-n {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--a-ink);
+  border-radius: 50%;
+  font-family: var(--a-serif);
+  font-size: 1.15rem;
+  background: var(--a-paper);
+}
+.a-step-link {
+  position: absolute;
+  top: 1.3rem;
+  left: 3.1rem;
+  right: -1.5rem;
+  height: 1px;
+  overflow: hidden;
+}
+.a-step-link i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -12px;
+  right: 0;
+  background: repeating-linear-gradient(90deg, var(--a-g400) 0 6px, transparent 6px 12px);
+}
+@media (max-width: 899px) { .a-step-link { display: none; } }
+.a-step h3 {
+  margin: 0 0 0.5rem;
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+.a-step p { margin: 0; color: var(--a-ink-2); max-width: 32ch; }
+.a-on {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--a-wide);
+  font-size: 0.75rem;
+  color: var(--a-cobalt);
+}
+.a-on::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--a-cobalt); }
+
+/* ─── Лист 08 · Финал ────────────────────────────────────────────── */
+.a-final .a-h2 { color: #FFFFFF; }
+.a-here { margin: 2.5rem 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: #FFFFFF; }
+.a-here .a-wide { color: var(--a-shoal-lume); }
+.a-here-dot {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #FFFFFF;
+}
+.a-here-dot::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 1px solid #FFFFFF;
+  border-radius: 50%;
+  opacity: 0;
+}
+
+/* ═══ 5. Лист ∅ ════════════════════════════════════════════════════ */
+.a-void-in { display: grid; gap: 2rem; align-items: center; min-height: 60svh; }
+@media (min-width: 900px) { .a-void-in { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.a-void-map { width: 100%; height: auto; }
+.a-void-ring[data-level="1"] { fill: var(--a-band-1); }
+.a-void-ring[data-level="2"] { fill: var(--a-band-2); }
+.a-void-ring[data-level="3"] { fill: var(--a-band-3); }
+.a-void-ring[data-level="4"] { fill: var(--a-band-4); }
+.a-void-ring[data-level="5"] { fill: var(--a-band-5); }
+.a-void-spot { fill: var(--a-paper); stroke: var(--a-g300); stroke-width: 1; stroke-dasharray: 3 4; }
+
+/* ═══ 6. ДВИЖЕНИЕ ══════════════════════════════════════════════════
+   Базовое состояние выше — конечный кадр. Без скрипта и без поддержки
+   шкал прокрутки страница отрисована целиком. Всё, что прячет
+   содержимое до срабатывания, объявлено под `.a-js`.
+   Пишутся только transform, opacity и зарегистрированные переменные. */
+
+/* ─── 6.1 Разовые события ───────────────────────────────────────────
+   Подписи ложатся, когда лист впервые входит в кадр (`data-seen`
+   ставит MotionController). Второй прогон: цвет приходит последним и
+   садится со сдвигом приводки — потому что цвет это замер. */
+.a-js .a-sheet .a-settle {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--d-2) var(--m-settle), transform var(--d-2) var(--m-settle);
+  transition-delay: calc(var(--i, 0) * 40ms);
+}
+.a-js .a-sheet[data-seen] .a-settle { opacity: 1; transform: none; }
+
+.a-js .a-sheet .a-print {
+  opacity: 0;
+  transform: translate(3px, -3px);
+  transition: opacity var(--d-2) var(--m-settle) var(--d-1), transform var(--d-2) var(--m-settle) var(--d-1);
+}
+.a-js .a-sheet[data-seen] .a-print { opacity: 1; transform: none; }
+
+/* Лист 00 — развёртка по сгибам. */
+.a-unfold { position: fixed; inset: 0; z-index: 95; pointer-events: none; display: none; }
+.a-unfold[data-play] { display: block; }
+.a-unfold i { position: absolute; background: var(--a-g400); }
+.a-fold-v { left: 50%; top: 0; bottom: 0; width: 1px; transform: scaleY(0); }
+.a-fold-h { top: 50%; left: 0; right: 0; height: 1px; transform: scaleX(0); }
+.a-fold-note { position: absolute; right: var(--a-gutter); bottom: 1rem; color: var(--a-ink-3); opacity: 0; }
+.a-unfold[data-play] .a-fold-v { animation: a-unfold-v 600ms var(--m-pen) 80ms forwards, a-fade 240ms var(--m-settle) 680ms forwards; }
+.a-unfold[data-play] .a-fold-h { animation: a-unfold-h 600ms var(--m-pen) 80ms forwards, a-fade 240ms var(--m-settle) 680ms forwards; }
+.a-unfold[data-play] .a-fold-note { animation: a-note 920ms var(--m-pen) forwards; }
+@keyframes a-unfold-v { to { transform: scaleY(1); } }
+@keyframes a-unfold-h { to { transform: scaleX(1); } }
+@keyframes a-fade { to { opacity: 0; } }
+@keyframes a-note { 0%, 90% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ─── 6.2 Прокрутка ─────────────────────────────────────────────────
+   Две шкалы на главной вместо сорока девяти: маршрут и дорожки листа
+   02 (research/05_MOTION.md: 491 при медиане 330). В Firefox шкалы
+   за флагом — там остаётся базовый конечный кадр. */
+@supports (animation-timeline: view()) {
+  .a-route-fill {
+    animation: a-grow linear both;
+    animation-timeline: scroll(root block);
+  }
+  .a-lanes { view-timeline-name: --a-lanes; }
+  .a-lane {
+    animation: a-lane linear both;
+    animation-timeline: --a-lanes;
+    animation-range: entry 35% cover 58%;
+  }
+  .a-mosh {
+    animation: a-mosh-in linear both;
+    animation-timeline: --a-lanes;
+    animation-range: cover 52% cover 60%;
+  }
+}
+@keyframes a-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes a-lane { from { --a-p: 0; --a-n: 0; } }
+@keyframes a-mosh-in { from { opacity: 0; } }
+
+/* ─── 6.3 Холостой слой ─────────────────────────────────────────────
+   Живое по решению владельца, но у каждого блока — слой со смыслом:
+   прилив мелей, поток по знаку со скоростью тарифа, вода под плитой,
+   живое показание. Вне кадра слой стоит на паузе. */
+.a-band, .a-frag-band, .a-void-ring {
+  animation: a-tide 8s var(--m-tide) infinite alternate;
+  animation-delay: calc(var(--l, 1) * -1.6s);
+}
+.a-band { will-change: opacity; }
+@keyframes a-tide { to { opacity: 0.45; } }
+
+.a-isobaths { animation: a-drift 12s var(--m-tide) infinite alternate; }
+@keyframes a-drift { from { transform: translateX(-14px); } to { transform: translateX(14px); } }
+
+.a-lane-glint { animation: a-glint 4s var(--m-pen) infinite; }
+@keyframes a-glint {
+  0% { transform: translateX(-100%); }
+  30%, 100% { transform: translateX(640%); }
+}
+.a-mosh i { animation: a-jitter 2.4s steps(2, end) infinite; }
+.a-mosh i:nth-child(2n) { animation-delay: -1.2s; }
+@keyframes a-jitter { 50% { transform: translateX(calc(var(--s) + 1px)); } }
+
+.a-sym-flow { animation: a-flow var(--flow, 2.4s) linear infinite; }
+@keyframes a-flow { to { transform: translateX(-30px); } }
+
+.a-step-link i { animation: a-flow-step 6s linear infinite; }
+@keyframes a-flow-step { to { transform: translateX(12px); } }
+
+.a-reading[data-live="true"]::before,
+.a-on::before { animation: a-blink 1.6s var(--m-tide) infinite alternate; }
+@keyframes a-blink { to { opacity: 0.25; } }
+
+.a-city[data-closest] summary::before,
+.a-here-dot::after { animation: a-ring 3s var(--m-settle) infinite; }
+@keyframes a-ring {
+  0% { transform: scale(0.4); opacity: 1; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* Пауза вне кадра: один наблюдатель на документ (MotionController). */
+.a-js .a-sheet:not([data-inview]) .a-idle,
+.a-js .a-sheet:not([data-inview]) .a-idle::before,
+.a-js .a-sheet:not([data-inview]) .a-idle::after,
+.a-js .a-sheet:not([data-inview]) .a-idle i,
+.a-js .a-sheet:not([data-inview]) .a-city summary::before,
+.a-js .a-sheet:not([data-inview]) .a-here-dot::after {
+  animation-play-state: paused;
+}
+
+/* ─── 6.4 Отклик на руку ────────────────────────────────────────────
+   Наведение переворачивает материал в кобальтовую плиту, а не
+   подкрашивает его. Подчёркивание прочерчивается пером. */
+.a-btn, .a-head-cta, .a-legend-row, .a-servers, .a-table tbody tr td, .a-step-n {
+  transition: background-color var(--d-1) var(--m-turn), color var(--d-1) var(--m-turn),
+              border-color var(--d-1) var(--m-turn);
+}
+.a-nav a, .a-foot-index a { transition: background-size var(--d-1) var(--m-pen), color var(--d-1) var(--m-turn); }
+
+@media (hover: hover) {
+  .a-btn-primary:hover, .a-head-cta:hover { background: var(--a-cobalt-deep); }
+  .a-btn-quiet:hover { border-color: var(--a-ink); }
+  .a-btn-invert:hover { background: var(--a-shoal); }
+  .a-btn-line:hover { border-color: #FFFFFF; }
+  .a-nav a:hover { color: var(--a-ink); background-size: 100% 1px; }
+  .a-foot-index a:hover { background-size: 100% 1px; }
+  .a-legend-row:hover, .a-servers:hover { background: var(--a-cobalt); color: #FFFFFF; }
+  .a-legend-row:hover .a-legend-price { color: #FFFFFF; }
+  .a-legend-row:hover .a-sym { background: rgba(255, 255, 255, 0.2); }
+  .a-legend-row:hover .a-sym-flow { background-image: repeating-linear-gradient(90deg, #FFFFFF 0 18px, transparent 18px 30px); }
+  .a-table tbody tr:hover td { background: var(--a-cobalt); color: #FFFFFF; }
+  .a-step:hover .a-step-n { background: var(--a-cobalt); border-color: var(--a-cobalt); color: #FFFFFF; }
+  .a-city summary:hover::after { opacity: 1; }
+  .a-city summary:hover span { background: var(--a-cobalt); }
+  /* «Вязкость = время ответа»: ступени фрагмента откликаются на руку с
+     задержкой, равной отклику сайта у читателя (--a-rtt, Reading). */
+  .a-frag-bands { transition: transform var(--d-2) var(--m-settle) var(--a-rtt, 120ms); }
+  .a-lead:hover .a-frag-bands { transform: scale(1.14); }
+}
+
+/* ─── 6.5 Упрощение и стабильный кадр ───────────────────────────────
+   Reduced-motion упрощает слой, а не ломает его: конечный кадр, без
+   холостого и без событий. `?static=1` — то же для скриншотов. */
+@media (prefers-reduced-motion: reduce) {
+  .a *, .a *::before, .a *::after { animation: none !important; transition: none !important; }
+  .a-js .a-sheet .a-settle, .a-js .a-sheet .a-print { opacity: 1; transform: none; }
+  .a-unfold { display: none !important; }
+}
+html[data-static] .a *,
+html[data-static] .a *::before,
+html[data-static] .a *::after { animation: none !important; transition: none !important; }
+html[data-static] .a-unfold { display: none !important; }
