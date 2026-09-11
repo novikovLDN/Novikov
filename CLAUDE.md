@@ -353,10 +353,19 @@ data — одна точка на проект, `src/components/pixel/SiteJsonLd
 **Выделенные серверы** — единственный источник `src/lib/servers.ts`.
 **Структура сайта** — единственный источник `src/lib/nav.ts`.
 
-**Что осталось на старом чернильном корпусе** и ждёт перевода:
-`/about`, `/business`, `/devices`, `/support`, `/auth`, юридические
-страницы и кабинет. На них `body` тёмный (`#0B0B0C`) — это не решение,
-а незаконченный перевод.
+**Корпус «Атлас-издание» (ребрендинг 2027, 11.09.2026)** — все
+витринные страницы: главная, `/pricing`, `/vds`, `/devices`,
+`/business`, `/support`, `/contact`, `/security`, `/infrastructure`,
+`/about`, `/terms`, `/privacy`, 404. Решения владельца —
+`docs/rebrand-2027/CONCEPTS.md`, перевод страницы —
+`docs/rebrand-2027/ATLAS_PAGE_GUIDE.md`. Где раздел Design System
+выше расходится с ними (MTS Wide вместо Sofia Sans, кобальт вместо
+ультрамарина, живое движение), главнее документы ребрендинга.
+
+**Что осталось на старом корпусе** и ждёт перевода — рабочие экраны:
+`/auth`, `/subscribe`, `/add-device`, кабинет `/dashboard`, админка.
+Нижние карточки (cookie, установка, быстрый вход) уже общие для всего
+сайта — `src/app/overlays.css`, очередь `src/lib/overlay-queue.ts`.
 
 
 ### UI Screens
