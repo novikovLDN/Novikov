@@ -3,7 +3,7 @@
 import { useState, type CSSProperties } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import Icon from "@/components/pixel/Icon";
-import Corner from "./Corner";
+import Corner from "@/components/atlas/Corner";
 
 /**
  * Кабинет · ключ подключения. Логика — из прежней SubscriptionCard один

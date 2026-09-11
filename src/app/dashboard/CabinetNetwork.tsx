@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { onlineAt } from "@/lib/online-counter";
 import { COUNTRY_COUNT, LOCATIONS, citiesLabel, plural } from "@/lib/locations";
-import Corner from "./Corner";
+import Corner from "@/components/atlas/Corner";
 
 /**
  * Кабинет · сеть сейчас. Логика — из прежней ServerStatusCard: число

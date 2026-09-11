@@ -14,7 +14,7 @@ import CabinetKey from "./CabinetKey";
 import CabinetFriends from "./CabinetFriends";
 import CabinetNetwork from "./CabinetNetwork";
 import CabinetSettings from "./CabinetSettings";
-import Corner from "./Corner";
+import Corner from "@/components/atlas/Corner";
 import "@/app/work-atlas.css";
 
 /**

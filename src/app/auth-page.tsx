@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useActionState, type CSSProperties, type R
 import { useRouter } from "next/navigation";
 import { startAuthentication } from "@simplewebauthn/browser";
 import Icon, { type IconName } from "@/components/pixel/Icon";
-import Corner from "@/app/dashboard/Corner";
+import Corner from "@/components/atlas/Corner";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { DEVICE_LIMIT } from "@/lib/plans";
 import { COUNTRY_COUNT, plural } from "@/lib/locations";
