@@ -28,7 +28,7 @@ export default async function Auth({ searchParams }: PageProps) {
   const initialStep = params.step === "code" && pendingEmail ? "code" : "email";
 
   return (
-    <AtlasShell sheetNo="21" sheetTitle="Вход" headCta={null}>
+    <AtlasShell sheetNo="21" sheetTitle="Вход" headCta={null} footer="compact">
       <AuthPage
         initialStep={initialStep}
         initialEmail={pendingEmail}

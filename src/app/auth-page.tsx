@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { startAuthentication } from "@simplewebauthn/browser";
 import Icon, { type IconName } from "@/components/pixel/Icon";
 import Corner from "@/components/atlas/Corner";
+import OrbGL from "@/components/atlas/OrbGL";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { DEVICE_LIMIT } from "@/lib/plans";
 import { COUNTRY_COUNT, plural } from "@/lib/locations";
@@ -28,7 +29,9 @@ import "./auth/auth-atlas.css";
  * code-0…code-5. Одно поле даёт iOS/Android подставить код из письма
  * и держит тап-зону во всю ширину даже на 320px.
  *
- * Движение — auth/auth-atlas.css, раздел «Движение».
+ * Полоса шагов, «Шаг N из M», въезд шага и пункты плиты — общий слой
+ * мастеров (work-atlas.css: .ak-stepper, .ak-kicker-step, .ak-enter,
+ * .ak-perks). Своё движение — auth/auth-atlas.css, раздел «Движение».
  */
 
 type AuthStep =
@@ -249,11 +252,11 @@ function CodeField({
 
 function Perk({ icon, title, text, n }: { icon: IconName; title: string; text: string; n: number }) {
   return (
-    <li className="au-perk" style={k(n)}>
-      <span className="au-perk-ico" style={k(n)}><Icon name={icon} size={20} /></span>
-      <span>
-        <b className="au-perk-title">{title}</b>
-        <span className="au-perk-text">{text}</span>
+    <li className="ak-perk" style={k(n)}>
+      <span className="ak-perk-ico" style={k(n)}><Icon name={icon} size={20} /></span>
+      <span className="ak-perk-copy">
+        <b className="ak-perk-title">{title}</b>
+        <span className="ak-perk-text">{text}</span>
       </span>
     </li>
   );
@@ -658,25 +661,22 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
         <div className="ak-board au-board">
           {/* Полоса шагов: где вы и сколько осталось. */}
           <div className="ak-bar au-bar" data-sheet="21">
-            <span className="ak-avatar au-mark" aria-hidden>
+            <span className="ak-avatar ak-mark" aria-hidden>
               <Icon name="lock" size={18} />
             </span>
-            <ol className="au-steps" aria-label={flow === "reset" ? "Восстановление пароля" : "Вход"}>
+            <ol className="ak-stepper" aria-label={flow === "reset" ? "Восстановление пароля" : "Вход"}>
               {steps.map((label, n) => {
                 const state = n < pos ? "done" : n === pos ? "now" : "next";
                 return (
-                  <li
-                    key={label}
-                    className="au-pill"
-                    data-state={state}
-                    aria-current={state === "now" ? "step" : undefined}
-                  >
-                    <span className="au-pill-n">
-                      {state === "done" ? <Icon name="check" size={14} /> : n + 1}
-                    </span>
-                    <span className="au-pill-label">
-                      {label}
-                      {state === "done" && <span className="b-sr"> — готово</span>}
+                  <li key={label}>
+                    <span className="ak-step" data-state={state} aria-current={state === "now" ? "step" : undefined}>
+                      <span className="ak-step-n">
+                        {state === "done" ? <Icon name="check" size={14} /> : n + 1}
+                      </span>
+                      <span className="ak-step-label">
+                        {label}
+                        {state === "done" && <span className="b-sr"> — готово</span>}
+                      </span>
                     </span>
                   </li>
                 );
@@ -688,7 +688,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
           <div className="au-grid">
             {/* ── Форма текущего шага ──────────────────────────────── */}
             <section className="ak-card au-form-card" data-sheet="21" style={at(0)} aria-labelledby="au-h">
-              <div key={step} className="au-step">
+              <div key={step} className="ak-enter">
                 <div className="ak-card-head au-head">
                   {step === "code" && <BackButton onClick={() => setStep("email")} />}
                   {step === "login" && <BackButton onClick={() => setStep("email")} />}
@@ -697,7 +697,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                   {step === "reset-password" && <BackButton onClick={() => setStep("reset-code")} />}
                   <p className="ak-eyebrow">
                     {flow === "reset" && step !== "reset-success" ? "Новый пароль" : flow === "login" ? "Вход по паролю" : "Вход или регистрация"}
-                    {stepLabel && <> · <span className="a-num au-nowrap">{stepLabel}</span></>}
+                    {stepLabel && <> · <span className="a-num ak-kicker-step">{stepLabel}</span></>}
                   </p>
                   {showRef && <span className="ak-status au-ref"><i />По приглашению</span>}
                 </div>
@@ -1078,13 +1078,14 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
             </section>
 
             {/* ── Что даёт вход ────────────────────────────────────── */}
-            <section className="ak-card ak-dark au-perks-card" data-sheet="21" style={at(1)} aria-labelledby="au-perks-h">
+            <section className="ak-card ak-dark ak-has-orb au-perks-card" data-sheet="21" style={at(1)} aria-labelledby="au-perks-h">
               <Corner href="/pricing" label="Тарифы и цены" />
+              <OrbGL className="ak-orb" theme="dark" state="active" />
               <div className="ak-card-head">
                 <h2 id="au-perks-h" className="ak-eyebrow">Что даёт вход</h2>
               </div>
-              <p className="au-dark-title">Интернет без просадок — сразу после входа</p>
-              <ul className="au-perks">
+              <p className="ak-dark-title">Интернет без просадок — сразу после входа</p>
+              <ul className="ak-perks">
                 <Perk
                   n={0}
                   icon="clock"

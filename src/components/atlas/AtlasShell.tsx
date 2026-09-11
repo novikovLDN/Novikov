@@ -26,6 +26,7 @@ export default function AtlasShell({
   sheetTitle,
   unfold = false,
   headCta,
+  footer = "full",
   children,
 }: {
   sheetNo: string;
@@ -33,6 +34,8 @@ export default function AtlasShell({
   unfold?: boolean;
   /** Действие справа в шапке; `null` — без него (кабинет). */
   headCta?: { href: string; label: string } | null;
+  /** Подвал: полный (витрина) или одна строка реквизитов (рабочие экраны). */
+  footer?: "full" | "compact";
   children: React.ReactNode;
 }) {
   return (
@@ -41,7 +44,7 @@ export default function AtlasShell({
       <AtlasHeader sheetNo={sheetNo} sheetTitle={sheetTitle} cta={headCta} />
       {unfold ? <Unfold /> : null}
       {children}
-      <AtlasFooter />
+      <AtlasFooter variant={footer} />
       <MotionController />
     </div>
   );

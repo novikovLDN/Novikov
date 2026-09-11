@@ -7,7 +7,9 @@ import Icon, { type IconName } from "@/components/pixel/Icon";
 import NotificationsModal from "@/components/NotificationsModal";
 import WelcomeToast from "@/components/WelcomeToast";
 import PasskeyPrompt from "@/components/PasskeyPrompt";
-import { TRIAL_DAYS } from "@/lib/brand-facts";
+import IosInstallSheet from "@/components/IosInstallSheet";
+import { TRIAL_DAYS, TELEGRAM_BONUS_DAYS } from "@/lib/brand-facts";
+import { DEVICE_LIMIT } from "@/lib/plans";
 import { plural } from "@/lib/locations";
 import type { SubscriptionData } from "@/types";
 import CabinetKey from "./CabinetKey";
@@ -15,6 +17,7 @@ import CabinetFriends from "./CabinetFriends";
 import CabinetNetwork from "./CabinetNetwork";
 import CabinetSettings from "./CabinetSettings";
 import Corner from "@/components/atlas/Corner";
+import OrbGL from "@/components/atlas/OrbGL";
 import "@/app/work-atlas.css";
 
 /**
@@ -28,6 +31,12 @@ import "@/app/work-atlas.css";
  * Логика прежнего кабинета перенесена без изменений: загрузка подписки
  * (без сессии — на вход), проверка подписки, выход с подтверждением,
  * привязка и отвязка Telegram, уведомления, приглашения, push, passkey.
+ *
+ * «Первые шаги» — только на пробном периоде: полоса шагов и пункты из
+ * общего слоя мастеров (.ak-stepper, .ak-perks), что и на входе. Шаги
+ * считаются по уже пришедшим полям: Telegram — telegramLinked, друг —
+ * referrals > 0. Подключено ли устройство, API не сообщает — этот шаг
+ * всегда открыт и ведёт на /devices.
  *
  * Движение — src/app/work-atlas.css, раздел «Движение»: панели поднимаются
  * при первом входе в кадр (MotionController ставит data-seen на
@@ -229,6 +238,67 @@ export default function DashboardView() {
   // Без активной подписки ключа нет — и раздела «Ключ» тоже.
   const sections = isExpired ? SECTIONS.filter((s) => s.id !== "ak-key") : SECTIONS;
 
+  // Первые шаги — только на пробном: платный уже прошёл этот путь, а те
+  // же кнопки у него есть в панелях Telegram и «Друзья».
+  const showFirst = isTrial && !isExpired;
+  const tgBonus = `${TELEGRAM_BONUS_DAYS} ${plural(TELEGRAM_BONUS_DAYS, ["день", "дня", "дней"])}`;
+  const firstSteps: { id: string; short: string; title: string; text: string; icon: IconName; done: boolean; act: (primary: boolean) => React.ReactNode }[] = [
+    {
+      id: "device",
+      short: "Устройство",
+      title: "Подключите устройство",
+      text: `Телефон, компьютер или телевизор — до ${DEVICE_LIMIT} на одной подписке.`,
+      icon: "devices",
+      done: false,
+      act: (primary) => (
+        <Link href="/devices" className={`a-btn ${primary ? "a-btn-primary" : "ak-btn-soft"}`}>
+          Подключить
+          <Icon name="arrow-right" size={16} />
+        </Link>
+      ),
+    },
+    {
+      id: "tg",
+      short: "Telegram",
+      title: data.telegramLinked ? "Telegram привязан" : "Привяжите Telegram",
+      text: data.telegramLinked ? "Подписка синхронизирована с ботом." : `+${tgBonus} к подписке за привязку бота.`,
+      icon: "send",
+      done: data.telegramLinked,
+      act: (primary) =>
+        data.telegramLinked ? (
+          <span className="ak-status"><i />Готово</span>
+        ) : (
+          <a
+            href={`https://t.me/atlas_suppbot?start=${data.telegramLinkToken || ""}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`a-btn ${primary ? "a-btn-primary" : "ak-btn-soft"}`}
+          >
+            Привязать
+            <span className="b-sr"> Telegram (откроется бот)</span>
+          </a>
+        ),
+    },
+    {
+      id: "friend",
+      short: "Друг",
+      title: "Пригласите друга",
+      text:
+        data.referrals > 0
+          ? `Приглашено: ${data.referrals}. Кешбэк ${data.cashbackPercent}% с их оплат.`
+          : `Кешбэк ${data.cashbackPercent}% с каждой оплаты друга.`,
+      icon: "users",
+      done: data.referrals > 0,
+      act: (primary) => (
+        <a href="#referral-section" className={`a-btn ${primary ? "a-btn-primary" : "ak-btn-soft"}`}>
+          {data.referrals > 0 ? "К приглашениям" : "Пригласить"}
+        </a>
+      ),
+    },
+  ];
+  const firstNow = firstSteps.findIndex((s) => !s.done);
+  const firstDone = firstSteps.filter((s) => s.done).length;
+
   return (
     <>
       <main id="main" className="a-main ak">
@@ -277,8 +347,10 @@ export default function DashboardView() {
           </nav>
           <div className="ak-grid" data-nokey={isExpired ? "" : undefined}>
             {/* ── 1 · Подписка ─────────────────────────────────────── */}
-            <section id="ak-sub" className="ak-card ak-sub ak-dark" data-sheet="20" style={at(1)} aria-labelledby="ak-sub-h">
+            <section id="ak-sub" className="ak-card ak-sub ak-dark ak-has-orb" data-sheet="20" style={at(1)} aria-labelledby="ak-sub-h">
               <Corner href="/pricing" label="Тарифы и цены" />
+              {/* Ядро: работает — active, пробный или скоро кончится — idle, истекла — off. */}
+              <OrbGL className="ak-orb" theme="dark" state={isExpired ? "off" : isTrial || isExpiring ? "idle" : "active"} />
               <div className="ak-card-head">
                 <h2 id="ak-sub-h" className="ak-eyebrow">
                   Подписка{planLabel !== "Подписка" && <> · <span className="ak-plan">{planLabel}</span></>}
@@ -337,6 +409,7 @@ export default function DashboardView() {
 
             {/* ── 2 · Баланс и проверка ────────────────────────────── */}
             <section className="ak-card ak-bal" data-sheet="20" style={at(2)} aria-labelledby="ak-bal-h">
+              <Corner href="https://t.me/atlas_suppbot" label="Пополнить баланс в Telegram-боте" external />
               <div className="ak-card-head">
                 <h2 id="ak-bal-h" className="ak-eyebrow">Баланс</h2>
               </div>
@@ -380,6 +453,54 @@ export default function DashboardView() {
                 </button>
               </div>
             </section>
+
+            {/* ── Первые шаги (пробный период) ─────────────────────── */}
+            {showFirst && (
+              <section id="ak-first" className="ak-card ak-first" data-sheet="20" style={at(3)} aria-labelledby="ak-first-h">
+                <Corner href="/add-device" label="Подключить устройство по шагам" />
+                <div className="ak-card-head">
+                  <h2 id="ak-first-h" className="ak-eyebrow">
+                    Первые шаги · <span className="a-num ak-kicker-step">Сделано {firstDone} из {firstSteps.length}</span>
+                  </h2>
+                </div>
+                <p className="ak-text ak-first-lead">Три шага, чтобы пробный период работал на полную.</p>
+                {/* Полоса — обзор для глаза; тот же путь с действиями —
+                    пунктами ниже, поэтому чтецу экрана полоса не нужна. */}
+                <ol className="ak-stepper" aria-hidden>
+                  {firstSteps.map((s, n) => {
+                    const state = s.done ? "done" : n === firstNow ? "now" : "next";
+                    return (
+                      <li key={s.id}>
+                        <span className="ak-step" data-state={state}>
+                          <span className="ak-step-n">{s.done ? <Icon name="check" size={14} /> : n + 1}</span>
+                          <span className="ak-step-label">{s.short}</span>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ol>
+                <ul className="ak-perks">
+                  {firstSteps.map((s, n) => {
+                    const state = s.done ? "done" : n === firstNow ? "now" : undefined;
+                    return (
+                      <li key={s.id} className="ak-perk" data-state={state} style={{ "--k": n } as CSSProperties}>
+                        <span className="ak-perk-ico" style={{ "--k": n } as CSSProperties}>
+                          <Icon name={s.done ? "check" : s.icon} size={20} />
+                        </span>
+                        <span className="ak-perk-copy">
+                          <b className="ak-perk-title">
+                            {s.title}
+                            {s.done && <span className="b-sr"> — готово</span>}
+                          </b>
+                          <span className="ak-perk-text">{s.text}</span>
+                        </span>
+                        <span className="ak-perk-act">{s.act(state === "now")}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
 
             {/* ── 3 · Ключ ─────────────────────────────────────────── */}
             {!isExpired && (
@@ -535,6 +656,9 @@ export default function DashboardView() {
         <WelcomeToast telegramLinkToken={data.telegramLinkToken} subscriptionEnd={data.subscriptionEnd} />
       )}
       <PasskeyPrompt />
+      {/* iPhone/iPad в Safari: через 2,5 с — «Atlas на экран „Домой“»,
+          ведёт на /install-ios. Встаёт в общую очередь нижних карточек. */}
+      <IosInstallSheet />
       <NotificationsModal open={showNotifications} onClose={() => setShowNotifications(false)} onUnreadCountChange={setUnreadCount} />
     </>
   );

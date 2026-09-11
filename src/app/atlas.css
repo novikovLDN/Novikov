@@ -225,87 +225,204 @@ body:has(.a) {
 .a-index summary {
   display: inline-flex;
   align-items: center;
+  gap: 0.55rem;
   min-height: 44px;
+  min-width: 44px;
   padding-inline: 0.25rem;
   cursor: pointer;
   list-style: none;
   color: var(--a-ink);
 }
 .a-index summary::-webkit-details-marker { display: none; }
-.a-index-panel {
+/* Значок: две линии, в открытом меню сходятся в крест. Подпись
+   меняется с «меню» на «закрыть» — видно, как закрыть панель. */
+.a-index-ico { position: relative; width: 18px; height: 12px; flex: none; }
+.a-index-ico::before, .a-index-ico::after {
+  content: "";
   position: absolute;
-  top: 100%;
   left: 0;
   right: 0;
-  background: var(--a-paper);
-  border-bottom: 1px solid var(--a-g200);
-  padding: 1rem var(--a-gutter) 1.5rem;
+  height: 1.5px;
+  background: currentColor;
+}
+.a-index-ico::before { top: 2px; }
+.a-index-ico::after { bottom: 2px; }
+.a-index[open] .a-index-ico::before { transform: translateY(3.25px) rotate(45deg); }
+.a-index[open] .a-index-ico::after { transform: translateY(-3.25px) rotate(-45deg); }
+.a-index-shut, .a-index[open] .a-index-open { display: none; }
+.a-index[open] .a-index-shut { display: inline; }
+/* 320–370: знак, «Войти» и «меню» со значком не помещались — подпись
+   обрезалась у края (кадр 320, 11.09.2026). Остаётся значок в зоне
+   44 px; подпись уходит чтецу экрана. С 375 подпись помещается. */
+@media (max-width: 370px) {
+  .a-head-inner { gap: 0.75rem; }
+  .a-index-open, .a-index-shut {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .a-index summary { justify-content: center; }
+}
+/* Панель — на весь экран под шапкой и прокручивается сама. Прежняя
+   висела под шапкой по высоте содержимого: на 320×640 нижние пункты
+   уходили за край окна и были недостижимы, а страница под панелью
+   продолжала листаться (разбор 11.09.2026). */
+.a-index-panel {
+  position: fixed;
+  top: var(--a-head-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 71;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--a-paper);
+  padding: 0.5rem var(--a-gutter) calc(1.5rem + env(safe-area-inset-bottom));
 }
 /* Закрытый <details> в Chromium всё равно раскладывает содержимое
    (слот ::details-content), и пункты числятся за краем окна. Прячем
    явно, чтобы замер переполнения не ловил невидимое. */
 .a-index:not([open]) .a-index-panel { display: none; }
+@media (max-width: 1099px) {
+  html:has(.a-index[open]) { overflow: hidden; }
+}
 .a-index-panel ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
-.a-index-panel a {
+.a-index-panel li a {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.75rem;
-  min-height: 48px;
-  padding-block: 0.6rem;
+  min-height: 52px;
+  padding-block: 0.45rem;
   border-bottom: 1px solid var(--a-g100);
   color: var(--a-ink);
   text-decoration: none;
-  font-size: 1.35rem;
+  font-size: clamp(1.1rem, 5vw, 1.45rem);
+  line-height: 1.2;
 }
+.a-index-panel li a[aria-current="page"] { color: var(--a-cobalt); }
 .a-index-panel .a-wide { color: var(--a-ink-3); min-width: 2ch; }
-.a-index-legal { display: flex; gap: 1.5rem; margin: 1rem 0 0; }
-.a-index-legal a { border: 0; font-size: 0.9375rem; min-height: 44px; color: var(--a-ink-2); }
-
-/* Выходные данные */
-.a-foot {
-  background: var(--a-g50);
-  border-top: 1px solid var(--a-g200);
-  padding-block: clamp(3rem, 8vh, 5rem) 2rem;
-}
-.a-foot-label { color: var(--a-ink-3); margin: 0 0 1rem; }
-.a-foot-index ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0 2rem;
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-}
-.a-foot-index a {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  min-height: 48px;
-  padding-block: 0.55rem;
-  border-bottom: 1px solid var(--a-g200);
-  color: var(--a-ink);
-  text-decoration: none;
-  font-size: 1.3rem;
-  background: linear-gradient(var(--a-cobalt), var(--a-cobalt)) no-repeat left bottom / 0 1px;
-}
-.a-foot-index .a-wide { color: var(--a-ink-3); min-width: 2ch; }
-.a-colophon {
-  margin-top: clamp(2.5rem, 6vh, 4rem);
-  display: grid;
-  gap: 0.35rem 2rem;
-  color: var(--a-ink-3);
-  font-size: 0.75rem;
-}
-@media (min-width: 900px) { .a-colophon { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.a-colophon p { margin: 0; }
-.a-colophon-legal { display: flex; gap: 1.5rem; }
-.a-colophon a {
-  color: var(--a-ink-2);
+.a-index-foot { margin-top: auto; padding-top: 1.5rem; display: grid; gap: 0.5rem; }
+.a-index-foot .a-btn { width: 100%; }
+.a-index-legal { display: flex; gap: 1.5rem; margin: 0; }
+.a-index-legal a {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
+  font-size: 0.9375rem;
+  color: var(--a-ink-2);
 }
+
+/* Подвал (разбор 11.09.2026: «после финала — слишком пусто»).
+   Полный: тёмная плита — бренд, фраза пользы и главное действие,
+   четыре колонки ссылок из nav.ts, контурное имя во всю ширину, строка
+   реквизитов. Компактный (рабочие экраны) — одна строка реквизитов.
+   Появление — раздел 6.6. */
+.a-foot {
+  position: relative;
+  overflow: clip;
+  background: var(--a-ink);
+  color: #FFFFFF;
+  padding-block: clamp(3.5rem, 9vh, 6rem) 0.75rem;
+}
+/* Кнопки подвала держат свой цвет: `color: inherit` на белой
+   a-btn-invert давал белый текст на белом. */
+.a-foot a:not(.a-btn) { color: inherit; text-decoration: none; }
+.a-foot :focus-visible { outline-color: #FFFFFF; }
+.a-foot-top { display: grid; gap: 3rem; }
+@media (min-width: 1000px) {
+  .a-foot-top { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 4rem; }
+}
+.a-foot .a-mark { color: #FFFFFF; font-size: 1rem; }
+.a-foot-pitch {
+  margin: 1.25rem 0 1.75rem;
+  max-width: 26ch;
+  font-size: clamp(1.25rem, 2.1vw, 1.75rem);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.a-foot-pitch span { color: var(--a-shoal-lume); }
+/* Кольцо у кнопки — жест финальной плиты, в подвале оно лишнее. */
+.a-foot .a-btn-invert::after { content: none; }
+.a-foot-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem 1.5rem;
+  align-content: start;
+}
+@media (min-width: 700px) { .a-foot-cols { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.a-foot-h {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.58);
+}
+.a-foot-cols ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.a-foot-cols a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.86);
+  background: linear-gradient(currentColor, currentColor) no-repeat left calc(50% + 0.8em) / 0 1px;
+}
+/* Имя во всю ширину: кегль = ширина / k, k замерен в Chromium на
+   MTS Wide Bold 700, трекинг −0,04em (11.09.2026). */
+.a-foot-word { container-type: inline-size; margin-top: clamp(3rem, 9vh, 6rem); }
+.a-foot-word p {
+  --k: 6.62;
+  margin: 0;
+  font-family: var(--a-wide);
+  font-weight: 700;
+  font-size: calc(100cqw / var(--k));
+  line-height: 0.82;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.12);
+}
+@supports (-webkit-text-stroke: 1px #000) {
+  .a-foot-word p { color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.32); }
+}
+.a-foot-base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 1.5rem;
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.62);
+}
+.a-foot-base p { margin: 0; }
+.a-foot-legal { display: flex; gap: 1.5rem; }
+.a-foot-legal a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: rgba(255, 255, 255, 0.84);
+}
+/* Компактный — рабочие экраны: одна строка, без разделов. */
+.a-foot-compact {
+  background: transparent;
+  color: var(--a-ink-3);
+  padding-block: 0.25rem;
+  border-top: 1px solid var(--a-g200);
+}
+/* Строка — сама и поле (.a-field): боковой отступ поля не трогаем. */
+.a-foot-compact .a-foot-base {
+  margin: 0;
+  padding-block: 0;
+  border: 0;
+  font-size: 0.75rem;
+  color: var(--a-ink-3);
+}
+.a-foot-compact .a-foot-legal a { color: var(--a-ink-2); }
 
 /* ═══ 4. Листы главной ═════════════════════════════════════════════ */
 .a-main { position: relative; }
@@ -447,6 +564,36 @@ body:has(.a) {
 .a-frag-land { fill: none; stroke: var(--a-g400); stroke-width: 1; }
 .a-frag-dot { fill: var(--a-cobalt); }
 .a-frag-bands { transform-box: fill-box; transform-origin: center; }
+/* Переключатель в строке лида: «включаете Atlas» — жестом. Базовое
+   состояние — включён (кобальтовая дорожка, ручка справа); щелчок при
+   загрузке — раздел 6.6. Размеры в em: растёт вместе с кеглем лида. */
+.a-switch {
+  position: relative;
+  display: inline-block;
+  width: 2.1em;
+  height: 1.2em;
+  vertical-align: -0.2em;
+  margin-inline: 0.1em;
+  border-radius: 999px;
+  background: var(--a-g200);
+}
+.a-switch::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--a-cobalt);
+}
+.a-switch i {
+  position: absolute;
+  top: 0.15em;
+  left: 0.15em;
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 50%;
+  background: #FFFFFF;
+  transform: translateX(0.9em);
+}
 .a-fine { margin: 0.9rem 0 0; font-size: 0.875rem; color: var(--a-ink-3); }
 
 .a-caption {
@@ -504,82 +651,6 @@ body:has(.a) {
 .a-plate .a-reading[data-live="true"]::before { background: var(--a-shoal-lume); }
 .a-ago { color: var(--a-ink-3); font-family: var(--a-sans); font-size: 0.8125rem; }
 
-/* ─── Лист 02 · Одна и та же страница ─────────────────────────────── */
-@property --a-p { syntax: "<number>"; inherits: true; initial-value: 1; }
-@property --a-n { syntax: "<integer>"; inherits: true; initial-value: 100; }
-
-.a-lanes { display: grid; gap: 1.75rem; margin-block: 2rem 2.5rem; }
-.a-lane {
-  display: grid;
-  grid-template-columns: 8rem minmax(0, 1fr);
-  align-items: center;
-  gap: 0.4rem 1.25rem;
-}
-.a-lane[data-lane="slow"] { --a-p: 0.61; --a-n: 61; }
-.a-lane[data-lane="fast"] { --a-p: 1; --a-n: 100; }
-.a-lane-name { color: var(--a-ink-2); }
-.a-lane-track { position: relative; height: 16px; background: var(--a-g50); }
-.a-lane-fill {
-  position: absolute;
-  inset: 0;
-  transform-origin: left;
-  transform: scaleX(var(--a-p));
-}
-[data-lane="slow"] .a-lane-fill { background: var(--a-g400); }
-[data-lane="fast"] .a-lane-fill { background: var(--a-cobalt); }
-.a-lane-pct {
-  text-align: right;
-  font-family: var(--a-serif);
-  font-weight: 300;
-  font-variant-numeric: tabular-nums lining-nums;
-  font-size: 1.75rem;
-  line-height: 1;
-}
-.a-lane-pct::after { counter-reset: n var(--a-n); content: counter(n) "\202F%"; }
-.a-lane-out { grid-column: 2 / -1; color: var(--a-ink-3); font-size: 1.05rem; }
-@media (max-width: 720px) {
-  .a-lane { grid-template-columns: minmax(0, 1fr); }
-  .a-lane-track { grid-column: 1 / -1; grid-row: 2; }
-  .a-lane-out { grid-column: 1 / -1; }
-}
-/* Распад медленной дорожки: плитки 8×8 смазаны вбок ступенями. */
-.a-mosh {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc(61% - 5.25rem);
-  width: 5.25rem;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-}
-.a-mosh i { background: var(--a-g400); transform: translateX(var(--s)); }
-.a-mosh i:nth-child(3n) { background: var(--a-g300); }
-.a-lane-glint {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 16%;
-  background: linear-gradient(90deg, transparent, var(--a-shoal-lume), transparent);
-  transform: translateX(-100%);
-  opacity: 0.9;
-}
-.a-lane-track { overflow: hidden; }
-[data-lane="slow"] .a-lane-track { overflow: visible; }
-
-/* Дорожки на кобальтовой плите (раздел 02): белое на кобальте,
-   медленная — полупрозрачная, быстрая — чистый белый. */
-.a-plate .a-lanes { margin-block: clamp(2rem, 6vh, 3.5rem); }
-.a-plate .a-lane-name, .a-plate .a-lane-out { color: var(--a-shoal-lume); }
-.a-plate .a-lane-track { background: rgba(255, 255, 255, 0.14); }
-.a-plate [data-lane="slow"] .a-lane-fill, .a-plate .a-mosh i { background: rgba(255, 255, 255, 0.42); }
-.a-plate .a-mosh i:nth-child(3n) { background: rgba(255, 255, 255, 0.26); }
-.a-plate [data-lane="fast"] .a-lane-fill { background: #FFFFFF; }
-.a-plate .a-lane-glint { background: linear-gradient(90deg, transparent, rgba(20, 50, 184, 0.3), transparent); }
-.a-plate .a-lane-pct { color: #FFFFFF; }
-.a-why .a-p { max-width: 44ch; }
-
 /* ─── Плиты (разделы 02 и 06) ─────────────────────────────────────── */
 /* clip, а не hidden: hidden делает плиту контейнером прокрутки, и
    закреплённая сцена раздела 02 перестаёт держаться. */
@@ -597,34 +668,6 @@ body:has(.a) {
   pointer-events: none;
 }
 .a-plate .a-field { position: relative; z-index: 2; }
-
-.a-beat {
-  margin: 0 0 0.35em;
-  max-width: 20ch;
-  font-family: var(--a-wide);
-  font-weight: 500;
-  font-size: clamp(1.8rem, 4.2vw, 3.9rem);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-}
-.a-beat-neg {
-  color: var(--a-shoal-lume);
-  font-family: var(--a-serif);
-  font-weight: 300;
-  font-variation-settings: "opsz" 72;
-  font-style: italic;
-  font-size: clamp(2.2rem, 5.2vw, 4.8rem);
-  letter-spacing: -0.02em;
-}
-.a-bounds { margin-top: clamp(2.5rem, 7vh, 5rem); max-width: 52rem; }
-.a-bounds-head { margin: 0 0 1rem; color: var(--a-shoal-lume); }
-.a-bounds ul { list-style: none; margin: 0; padding: 0; }
-.a-bounds li {
-  padding-block: 0.9rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.25);
-  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
-}
-.a-bounds b { font-weight: 300; font-size: 1.35em; }
 
 /* ─── Лист 04 · Карта ─────────────────────────────────────────────── */
 .a-chart-fig { margin: 2rem 0 0; }
@@ -1075,24 +1118,6 @@ body:has(.a) {
   .a-pin .a-pin-art { top: 34%; }
 }
 
-/* 02 — закреплённая сцена: секция в 2,4 окна, кадр держит sticky,
-   прогресс считает шкала секции. Прокрутку никто не перехватывает. */
-.a-why { height: 240svh; padding-block: 0; view-timeline-name: --a-why; }
-.a-why-stick {
-  position: sticky;
-  top: var(--a-head-h);
-  min-height: calc(100svh - var(--a-head-h));
-  display: flex;
-  align-items: center;
-  overflow: clip;
-  padding-block: clamp(2rem, 6vh, 4rem);
-}
-.a-why-stick .a-field { width: 100%; }
-@supports not (animation-timeline: view()) {
-  .a-why { height: auto; }
-  .a-why-stick { position: static; }
-}
-
 /* 03 — карта приближается внутри рамки, не выходя за неё. */
 .a-chart-fig { overflow: clip; }
 .a-packet { fill: var(--a-cobalt); }
@@ -1169,28 +1194,6 @@ body:has(.a) {
 @keyframes a-fade { to { opacity: 0; } }
 @keyframes a-note { 0%, 90% { opacity: 1; } 100% { opacity: 0; } }
 
-/* ─── 6.2 Прокрутка ─────────────────────────────────────────────────
-   Одна шкала на главной вместо сорока девяти: дорожки «без Atlas /
-   с Atlas» (research/05_MOTION.md: 491 при медиане 330). Маршрут в
-   поле убран по ревью: читался как индикатор прокрутки. В Firefox
-   шкалы за флагом — там остаётся базовый конечный кадр. */
-@supports (animation-timeline: view()) {
-  .a-lanes { view-timeline-name: --a-lanes; }
-  .a-lane {
-    animation: a-lane linear both;
-    animation-timeline: --a-lanes;
-    animation-range: entry 35% cover 58%;
-  }
-  .a-mosh {
-    animation: a-mosh-in linear both;
-    animation-timeline: --a-lanes;
-    animation-range: cover 52% cover 60%;
-  }
-}
-@keyframes a-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-@keyframes a-lane { from { --a-p: 0; --a-n: 0; } }
-@keyframes a-mosh-in { from { opacity: 0; } }
-
 /* ─── 6.3 Холостой слой ─────────────────────────────────────────────
    Живое по решению владельца, но у каждого блока — слой со смыслом:
    прилив мелей, поток по знаку со скоростью тарифа, вода под плитой,
@@ -1204,15 +1207,6 @@ body:has(.a) {
 
 .a-isobaths { animation: a-drift 12s var(--m-tide) infinite alternate; }
 @keyframes a-drift { from { transform: translateX(-14px); } to { transform: translateX(14px); } }
-
-.a-lane-glint { animation: a-glint 4s var(--m-pen) infinite; }
-@keyframes a-glint {
-  0% { transform: translateX(-100%); }
-  30%, 100% { transform: translateX(640%); }
-}
-.a-mosh i { animation: a-jitter 2.4s steps(2, end) infinite; }
-.a-mosh i:nth-child(2n) { animation-delay: -1.2s; }
-@keyframes a-jitter { 50% { transform: translateX(calc(var(--s) + 1px)); } }
 
 .a-sym-flow { animation: a-flow var(--flow, 2.4s) linear infinite; }
 @keyframes a-flow { to { transform: translateX(-30px); } }
@@ -1367,26 +1361,6 @@ body:has(.a) {
   }
   @keyframes a-globe-in { from { transform: translateY(12%) scale(0.84); } }
 
-  /* 02 — закреплённая сцена: слова, дорожки, распад, вывод — всё по
-     шкале секции. Имя фазы снаружи calc(), проценты внутри. */
-  .a-why .a-word {
-    animation: a-word linear both;
-    animation-timeline: --a-why;
-    animation-range: contain calc(var(--i) * 3.5%) contain calc(var(--i) * 3.5% + 9%);
-  }
-  .a-why .a-lane { animation-timeline: --a-why; animation-range: contain 30% contain 66%; }
-  .a-why .a-mosh { animation-timeline: --a-why; animation-range: contain 58% contain 66%; }
-  .a-why-end {
-    animation: a-word linear both;
-    animation-timeline: --a-why;
-    animation-range: contain 70% contain 82%;
-  }
-  .a-why .a-iso-g {
-    animation: a-iso-deep linear both;
-    animation-timeline: --a-why;
-    animation-range: contain 0% contain 100%;
-  }
-
   /* 03 — карта входит приближенной к Европе и отдаляется до мира. */
   .a-chart {
     transform-origin: 60% 32%;
@@ -1456,7 +1430,6 @@ body:has(.a) {
 @keyframes a-exit-r { to { transform: translateX(3%); opacity: 0.3; } }
 @keyframes a-dive { to { transform: scale(1.45); } }
 @keyframes a-word { from { opacity: 0.18; transform: translateY(0.22em); } }
-@keyframes a-iso-deep { from { transform: translateY(50px); } to { transform: translateY(-70px); } }
 @keyframes a-zoom { from { transform: scale(1.85); } }
 /* Короткий ход: при 30–102 px цифры наезжали на заголовки шагов. */
 @keyframes a-rise { from { transform: translateY(calc(14px + var(--d, 0) * 12px)); opacity: 0; } }
@@ -1464,6 +1437,45 @@ body:has(.a) {
 
 /* 6.7 (слой 3D-картинок за текстом) снят 11.09.2026: владелец попросил
    живые объекты вместо неподвижных картинок — home-v5.css. */
+
+/* 01 — переключатель в строке лида щёлкает, когда буквы заголовка
+   поднялись: дорожка заливается кобальтом, ручка уходит вправо. */
+.a-js .a-switch::before { animation: a-switch-fill 420ms var(--m-settle) 1.15s both; }
+.a-js .a-switch i { animation: a-switch-knob 420ms var(--m-settle) 1.15s both; }
+@keyframes a-switch-fill { from { opacity: 0; } }
+@keyframes a-switch-knob { from { transform: none; } }
+
+/* Меню на телефоне: пункты ложатся лесенкой, значок сходится в крест. */
+.a-index-ico::before, .a-index-ico::after { transition: transform var(--d-1) var(--m-turn); }
+.a-index[open] .a-index-panel li,
+.a-index[open] .a-index-foot {
+  animation: a-index-in var(--d-2) var(--m-settle) both;
+  animation-delay: calc(var(--i, 0) * 26ms);
+}
+@keyframes a-index-in { from { opacity: 0; transform: translateY(10px); } }
+
+/* Подвал: колонки поднимаются лесенкой, контурное имя выезжает снизу —
+   по входу в кадр. Диапазоны только entry: подвал стоит в конце
+   страницы, и дальше «cover 40 %» прокрутка может не дойти. */
+.a-foot-cols a { transition: background-size var(--d-1) var(--m-pen), color var(--d-1) var(--m-turn); }
+@media (hover: hover) {
+  .a-foot-cols a:hover { color: #FFFFFF; background-size: 100% 1px; }
+  .a-foot-legal a:hover { color: #FFFFFF; }
+}
+@supports (animation-timeline: view()) {
+  .a-foot-brand, .a-foot-cols > div {
+    animation: a-foot-in linear both;
+    animation-timeline: view();
+    animation-range: entry calc(5% + var(--i, 0) * 10%) entry calc(65% + var(--i, 0) * 8%);
+  }
+  .a-foot-word p {
+    animation: a-foot-word linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 100%;
+  }
+}
+@keyframes a-foot-in { from { opacity: 0; transform: translateY(28px); } }
+@keyframes a-foot-word { from { opacity: 0; transform: translateY(45%); } }
 
 /* ─── 6.8 Зум с остановкой — раздел 03 ─────────────────────────────
    Шкала — собственная прокрутка раздела (view-timeline), диапазон
@@ -1513,12 +1525,7 @@ html[data-static] .a-pin-stage { position: relative; top: auto; height: auto; mi
   .a-js .a-sheet .a-settle, .a-js .a-sheet .a-print, .a-js .a-sheet .a-slide,
   .a-js .a-map .a-city summary span { opacity: 1; transform: none; }
   .a-unfold { display: none !important; }
-  /* Закреплённая сцена без движения — просто плита, без лишней высоты. */
-  .a-why { height: auto; }
-  .a-why-stick { position: static; }
 }
-html[data-static] .a-why { height: auto; }
-html[data-static] .a-why-stick { position: static; }
 html[data-static] .a *,
 html[data-static] .a *::before,
 html[data-static] .a *::after { animation: none !important; transition: none !important; }

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function AdminPage() {
   return (
-    <AtlasShell sheetNo="24" sheetTitle="Админка" headCta={{ href: "/dashboard", label: "Кабинет" }}>
+    <AtlasShell sheetNo="24" sheetTitle="Админка" headCta={{ href: "/dashboard", label: "Кабинет" }} footer="compact">
       <AdminView />
     </AtlasShell>
   );

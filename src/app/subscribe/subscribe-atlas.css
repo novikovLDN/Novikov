@@ -60,75 +60,18 @@
 .asb-flow { display: grid; gap: 8px; min-width: 0; }
 @media (min-width: 1024px) {
   .asb-grid { grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: 10px; }
-  .asb-sum { position: sticky; top: calc(var(--a-head-h) + 16px); }
+  /* Под липкой полосой шагов (.ak-bar), а не под ней. */
+  .asb-sum { position: sticky; top: calc(var(--a-head-h) + 80px); }
 }
 
 .asb-lead { margin: 0 0 1.25rem; max-width: 60ch; }
 .asb-cq { container-type: inline-size; }
 
 /* ─── Шаги ──────────────────────────────────────────────────────── */
-/* Своя полоса, а не .ak-bar: кабинет прячет её на телефоне. */
-.asb-bar { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 0 0 10px; }
-.asb-steps {
-  list-style: none;
-  margin: 0;
-  padding: 3px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2px;
-  border-radius: 999px;
-  background: var(--a-paper);
-}
-.asb-step { min-width: 0; }
-.asb-step-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  min-height: 44px;
-  padding: 0 0.6rem;
-  border: 0;
-  border-radius: 999px;
-  background: none;
-  font: inherit;
-  font-family: var(--a-wide);
-  font-size: 0.8125rem;
-  color: var(--a-ink-3);
-  white-space: nowrap;
-}
-button.asb-step-btn { color: var(--a-ink-2); cursor: pointer; }
-button.asb-step-btn:focus-visible { outline: 2px solid var(--a-cobalt); outline-offset: 2px; }
-.asb-step-n {
-  position: relative;
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--a-g100);
-  font-size: 0.6875rem;
-  line-height: 1;
-  color: var(--a-ink-2);
-}
-.asb-step[data-state="now"] .asb-step-btn { background: var(--a-ink); color: #FFFFFF; }
-.asb-step[data-state="now"] .asb-step-n { background: rgba(255, 255, 255, 0.16); color: #FFFFFF; }
-.asb-step[data-state="done"] .asb-step-n { background: var(--a-cobalt); color: #FFFFFF; }
-.asb-step-label { overflow: hidden; text-overflow: ellipsis; }
-@media (max-width: 380px) {
-  .asb-step-btn { gap: 0.35rem; padding: 0 0.3rem; font-size: 0.75rem; }
-  .asb-step-n { width: 20px; height: 20px; }
-}
-.asb-rail { position: relative; display: block; height: 3px; margin: 0 18px 2px; border-radius: 3px; background: var(--a-g200); overflow: hidden; }
-.asb-rail-fill {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: var(--a-cobalt);
-  transform-origin: left;
-  transform: scaleX(calc(var(--s, 1) / 3));
-}
+/* Полоса шагов — общая полоса мастеров (.ak-bar + .ak-stepper,
+   work-atlas.css): та же, что на входе и новом устройстве. Кабинет
+   прячет .ak-bar на телефоне только при нижних вкладках — здесь их нет. */
+.asb .asb-bar { flex-wrap: nowrap; }
 
 /* ─── Карточки выбора (radiogroup) ──────────────────────────────── */
 .asb-choices { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
@@ -294,6 +237,11 @@ button.asb-step-btn:focus-visible { outline: 2px solid var(--a-cobalt); outline-
 .asb-total .asb-tick { display: inline-block; }
 .asb-sum .ak-value-live::after { background: linear-gradient(90deg, transparent, var(--a-shoal-lume), transparent) 0 0 / 40% 100% no-repeat; }
 .asb-sum-cta .a-btn { flex: 1 1 100%; }
+/* Ядро — справа от итога (строка итога держит его и встаёт над ним). */
+.asb-total-row { position: relative; }
+.asb-total-row > .asb-total { position: relative; z-index: 1; padding-right: 96px; }
+.ak .asb-sum .ak-orb { --orb-s: 112px; right: -10px; top: calc(50% + 0.5rem); }
+@media (max-width: 719px) { .asb-total-row > .asb-total { padding-right: 0; } }
 .asb .a-btn.asb-go { min-height: 52px; font-size: 0.875rem; }
 @media (max-width: 1023px) { .asb-sum-cta { display: none; } }
 
@@ -370,9 +318,10 @@ button.asb-step-btn:focus-visible { outline: 2px solid var(--a-cobalt); outline-
    Блоки:
      верх      — вход (ak-top); стрелка «Назад» отъезжает под рукой;
                  холостое: замок «безопасной оплаты» покачивается
-     шаги      — пилюли ложатся по очереди, полоса прогресса дотягивается
-                 до шага; пройденный шаг под рукой переворачивается в
-                 чернильный; холостое: кольцо у текущего номера
+     шаги      — общий слой мастеров (work-atlas.css): пилюля
+                 перекрашивается, пройденный шаг под рукой
+                 переворачивается в чернильный; холостое: кольцо у
+                 текущего номера
      тариф     — карточки поднимаются после панели; наведение поднимает
                  карточку, выбор набивает точку переключателя; холостое:
                  поток по знаку канала, быстрее у быстрого тарифа
@@ -396,17 +345,6 @@ button.asb-step-btn:focus-visible { outline: 2px solid var(--a-cobalt); outline-
   animation-delay: calc(140ms + var(--i, 0) * 80ms);
 }
 
-/* Шаги: пилюли ложатся, полоса дотягивается. */
-.a-js .asb-bar:not([data-seen]) .asb-step { opacity: 0; }
-.a-js .asb-bar[data-seen] .asb-step { animation: asb-rise var(--d-2) var(--m-settle) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
-.asb-rail-fill { transition: transform var(--d-3) var(--m-settle); }
-.a-js .asb-bar:not([data-seen]) .asb-rail-fill { transform: scaleX(0); }
-.asb-step-btn, .asb-step-n { transition: background-color var(--d-1) var(--m-turn), color var(--d-1) var(--m-turn); }
-.asb-step[data-state="now"] .asb-step-n::after {
-  content: ""; position: absolute; inset: -3px; border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.7); animation: ak-ping 2.4s var(--m-tide) infinite;
-}
-
 /* Переключатель и карточки: отклик на руку и на выбор. */
 .asb-choice { transition: transform var(--d-1) var(--m-settle), border-color var(--d-1) var(--m-turn), opacity var(--d-1) var(--m-turn); }
 .asb-radio, .asb-radio::after { transition: transform var(--d-1) var(--m-settle), border-color var(--d-1) var(--m-turn); }
@@ -418,7 +356,6 @@ button.asb-step-btn:focus-visible { outline: 2px solid var(--a-cobalt); outline-
   .asb-choice:hover .asb-choice-cta svg, .asb-go:hover svg { transform: translateX(4px); }
   .asb-back:hover { color: var(--a-ink); background: var(--a-g100); }
   .asb-back:hover .asb-back-ico { transform: scaleX(-1) translateX(4px); }
-  button.asb-step-btn:hover { background: var(--a-ink); color: #FFFFFF; }
 }
 .asb-choice:active:not(:disabled) { transform: scale(0.985); }
 /* Выбор набивает точку с отскоком. */
@@ -463,7 +400,6 @@ button.asb-step-btn:focus-visible { outline: 2px solid var(--a-cobalt); outline-
 @media (prefers-reduced-motion: reduce) {
   .asb *, .asb *::before, .asb *::after { animation: none !important; transition: none !important; }
   .a-js .asb-panel .asb-choice, .a-js .asb-panel .asb-method, .a-js .asb-panel .asb-next li,
-  .a-js .asb-bar .asb-step, .a-js .asb-result .asb-mark { opacity: 1; transform: none; }
-  .a-js .asb-bar .asb-rail-fill { transform: scaleX(calc(var(--s, 1) / 3)); }
+  .a-js .asb-result .asb-mark { opacity: 1; transform: none; }
 }
 html[data-static] .asb *, html[data-static] .asb *::before, html[data-static] .asb *::after { animation: none !important; transition: none !important; }

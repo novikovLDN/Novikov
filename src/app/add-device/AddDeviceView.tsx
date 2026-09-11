@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import Icon, { type IconName } from "@/components/pixel/Icon";
+import Corner from "@/components/atlas/Corner";
+import OrbGL from "@/components/atlas/OrbGL";
 import { DEVICE_LIMIT } from "@/lib/plans";
 import { plural } from "@/lib/ru-words";
 import "@/app/work-atlas.css";
@@ -22,7 +24,8 @@ import "./add-device-atlas.css";
  * кабинет. Запрос один: /api/user/subscription, ошибка — молча.
  *
  * Что добавлено для удобства (без новых запросов и переходов):
- *   · пилюли шагов — пройденные нажимаются и возвращают на свой шаг;
+ *   · полоса шагов — общая полоса мастеров (.ak-stepper, work-atlas.css),
+ *     как на входе и в оплате; пройденные шаги нажимаются и возвращают;
  *   · подсказка платформы по userAgent — только подсказка с кнопкой
  *     «Да», молча ничего не выбирается;
  *   · на телефоне первым идёт действие (установить, скопировать), QR —
@@ -196,6 +199,13 @@ const PLATFORMS: { id: Platform; name: string; detail: string; icon: IconName }[
 
 const DEVICE_WORD = plural(DEVICE_LIMIT, ["устройстве", "устройствах", "устройствах"]);
 
+/** Путь подключения на плите «Ваш ключ» (шаги 1–2). */
+const ROUTE: { icon: IconName; title: string; text: string }[] = [
+  { icon: "devices", title: "Выберите устройство", text: "Телефон, компьютер или телевизор." },
+  { icon: "bolt",    title: "Выберите приложение", text: "Покажем, как добавить в него ключ." },
+  { icon: "qr",      title: "Добавьте ключ по QR-коду", text: "Настройки подхватятся автоматически." },
+];
+
 /** Подсказка по userAgent. Только подсказка: выбирает человек. */
 function detectPlatform(): Platform | null {
   const ua = navigator.userAgent;
@@ -332,7 +342,10 @@ export default function AddDeviceView() {
 
   /** Правая плита шагов 1–2: что будет дальше и готов ли ключ. */
   const routeCard = (
-    <section className="ak-card ak-dark aad-route" data-sheet="23" style={at(2)} aria-labelledby="aad-route-h">
+    <section className="ak-card ak-dark ak-has-orb aad-route" data-sheet="23" style={at(2)} aria-labelledby="aad-route-h">
+      <Corner href="/devices" label="Все устройства и инструкции" />
+      {/* Ядро: ключ есть — active, проверяем — idle, ключа нет — off. */}
+      <OrbGL className="ak-orb" theme="dark" state={vpnKey ? "active" : keyLoaded ? "off" : "idle"} />
       <div className="ak-card-head">
         <h2 id="aad-route-h" className="ak-eyebrow">Ваш ключ</h2>
         <span className="ak-status" data-tone={keyStatus.tone}><i />{keyStatus.text}</span>
@@ -341,13 +354,28 @@ export default function AddDeviceView() {
         <span className="a-num">{DEVICE_LIMIT}</span>
         <small>{DEVICE_WORD} на одной подписке</small>
       </p>
-      <ol className="aad-route-list">
-        {["Выберите устройство", "Выберите приложение", "Добавьте ключ по QR-коду"].map((t, i) => (
-          <li key={t} data-state={i + 1 < stepNo ? "done" : i + 1 === stepNo ? "now" : undefined} style={k(i)}>
-            <span className="aad-route-n a-num" aria-hidden>{i + 1 < stepNo ? <Icon name="check" size={14} /> : i + 1}</span>
-            {t}
-          </li>
-        ))}
+      {/* Путь — пунктами плиты (общий .ak-perks, как «Что даёт вход»):
+          пройденный — галочка в плитке, текущий — светлая рамка. */}
+      <ol className="ak-perks">
+        {ROUTE.map((r, i) => {
+          const state = i + 1 < stepNo ? "done" : i + 1 === stepNo ? "now" : undefined;
+          // Пройденный шаг «Устройство» показывает выбранное.
+          const text = i === 0 && state === "done" && platformMeta ? platformMeta.name : r.text;
+          return (
+            <li key={r.title} className="ak-perk" data-state={state} style={k(i)} aria-current={state === "now" ? "step" : undefined}>
+              <span className="ak-perk-ico" style={k(i)}>
+                <Icon name={state === "done" ? "check" : r.icon} size={20} />
+              </span>
+              <span className="ak-perk-copy">
+                <b className="ak-perk-title">
+                  {r.title}
+                  {state === "done" && <span className="b-sr"> — готово</span>}
+                </b>
+                <span className="ak-perk-text">{text}</span>
+              </span>
+            </li>
+          );
+        })}
       </ol>
       {keyLoaded && !vpnKey ? (
         <p className="ak-fine">Без ключа QR-кода не будет. Проверьте подписку в кабинете.</p>
@@ -368,7 +396,9 @@ export default function AddDeviceView() {
         {/* ── Верх: шаг, заголовок, назад ─────────────────────────── */}
         <section className="ak-top aad-top" data-sheet="23" style={at(0)} aria-label="Новое устройство">
           <div className="aad-top-copy">
-            <p className="ak-kicker a-wide">Новое устройство · шаг {stepNo} из 3</p>
+            <p className="ak-kicker a-wide">
+              Новое устройство · <span key={stepNo} className="a-num ak-kicker-step">Шаг {stepNo} из 3</span>
+            </p>
             <h1 key={step + (currentApp?.id ?? "")} ref={headRef} tabIndex={-1} className="ak-h1 aad-h1">
               {title}
             </h1>
@@ -384,31 +414,35 @@ export default function AddDeviceView() {
         <div className="ak-board">
           {/* ── Пилюли шагов ──────────────────────────────────────── */}
           <nav className="ak-bar aad-bar" data-sheet="23" aria-label="Шаги подключения">
-            <ol ref={pillsRef} className="ak-pills aad-pills">
+            <span className="ak-avatar ak-mark" aria-hidden>
+              <Icon name="devices" size={18} />
+            </span>
+            <ol ref={pillsRef} className="ak-stepper">
               {pills.map((p) => (
-                <li key={p.n} className="aad-pill-li">
+                <li key={p.n}>
                   {p.go ? (
-                    <button type="button" className="ak-pill aad-pill" data-state={p.state} onClick={p.go}>
-                      <span className="aad-pill-n" aria-hidden><Icon name="check" size={12} /></span>
-                      {p.label}
+                    <button type="button" className="ak-step" data-state={p.state} onClick={p.go}>
+                      <span className="ak-step-n" aria-hidden><Icon name="check" size={14} /></span>
+                      <span className="ak-step-label">{p.label}</span>
                       <span className="b-sr"> — вернуться к шагу {p.n}</span>
                     </button>
                   ) : (
-                    <span
-                      className="ak-pill aad-pill"
-                      data-state={p.state}
-                      aria-current={p.state === "now" ? "step" : undefined}
-                    >
-                      <span className="aad-pill-n" aria-hidden>
-                        {p.state === "done" ? <Icon name="check" size={12} /> : p.n}
+                    <span className="ak-step" data-state={p.state} aria-current={p.state === "now" ? "step" : undefined}>
+                      <span className="ak-step-n">
+                        {p.state === "done" ? <Icon name="check" size={14} /> : p.n}
                       </span>
-                      {p.label}
+                      <span className="ak-step-label">
+                        {p.label}
+                        {p.state === "done" && <span className="b-sr"> — готово</span>}
+                      </span>
                     </span>
                   )}
                 </li>
               ))}
             </ol>
-            <span className="ak-bar-plan a-num">Шаг {stepNo} из 3</span>
+            <span className="ak-bar-plan">
+              <span key={stepNo} className="a-num ak-kicker-step">Шаг {stepNo} из 3</span>
+            </span>
           </nav>
 
           {/* ── 1 · Устройство ───────────────────────────────────── */}

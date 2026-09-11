@@ -380,6 +380,23 @@ data — одна точка на проект, `src/components/pixel/SiteJsonLd
   подменять `navigator.gpu` на `undefined` (рендер уйдёт на WebGL 2) и
   ждать ~6–8 с до готовности сцены.
 
+**Рабочие экраны, второй проход (11.09.2026):**
+- Подвал: `AtlasShell footer="compact"` — одна строка реквизитов на
+  кабинете, входе, оплате, новом устройстве, админке и `/install-ios`;
+  полный подвал (`AtlasFooter`, тёмная плита) — только на витрине.
+- Общие приёмы экрана входа вынесены в `work-atlas.css`: `.ak-stepper`
+  (шаги), `.ak-perks` (пункты тёмной плиты), `.ak-kicker-step`, `.ak-enter`;
+  в кабинете для пробного — панель «Первые шаги».
+- 3D «ядро связи» — `OrbGL.tsx` + `gl/orb.ts` (theme dark/light, state
+  active/idle/off, стили появления и CSS-заглушка — `orb-atlas.css`),
+  по одному на страницу в тёмных плитах кабинета, оплаты, нового
+  устройства и входа (на телефоне скрыто).
+- Установка на iPhone: в кабинете нижний лист `IosInstallSheet.tsx`
+  (только iOS Safari не в режиме приложения, через 2,5 с, очередь
+  «install» — сразу после cookie, пауза 3 дня) → страница `/install-ios`
+  с рендерами iPhone 17 Pro Max из Blender (`public/media/ios/`, сцена
+  «AtlasIphone»; экраны для текстур — HTML-макеты iOS 26 Safari).
+
 **Кабинет `/dashboard`** переведён 11.09.2026: серверная обёртка
 `page.tsx` + `DashboardView.tsx`, панели `Cabinet*.tsx`, стили
 `src/app/work-atlas.css` (префикс `ak-`, общий для всех рабочих экранов). Белые панели на сером поле,

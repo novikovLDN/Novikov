@@ -47,7 +47,7 @@
 .ak-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(0.75rem, 1.4vw, 1.1rem); }
 @media (min-width: 720px) {
   .ak-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ak-sub, .ak-key, .ak-friends, .ak-net { grid-column: 1 / -1; }
+  .ak-sub, .ak-key, .ak-friends, .ak-net, .ak-first { grid-column: 1 / -1; }
 }
 @media (min-width: 1100px) {
   .ak-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); }
@@ -340,6 +340,102 @@
 .ak-dialog-card .ak-actions { padding-top: 1.5rem; }
 .ak-dialog-card .a-btn { flex: 1; }
 
+/* ─── Шторка уведомлений (NotificationsModal) ───────────────────────
+   Рендерится вне <main class="ak"> — правила без префикса .ak.
+   Телефон: шторка снизу у большого пальца; шире — панель под
+   колокольчиком. Та же рама, что доска: серая, внутри белая плитка. */
+.ak-sheet-veil { position: fixed; inset: 0; z-index: 90; background: rgba(11, 19, 34, 0.4); opacity: 0; pointer-events: none; }
+.ak-sheet-veil[data-open] { opacity: 1; pointer-events: auto; }
+.ak-sheet {
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: min(85vh, 85dvh);
+  padding: 0.5rem 0.5rem calc(0.5rem + env(safe-area-inset-bottom, 0px));
+  border: 1px solid var(--a-g200);
+  border-bottom: 0;
+  border-radius: 26px 26px 0 0;
+  background: var(--a-g100);
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+.ak-sheet[data-open] { transform: none; opacity: 1; pointer-events: auto; }
+/* Язычок — знак шторки на телефоне (рисунок, не ручка). */
+.ak-sheet::before { content: ""; align-self: center; flex: none; width: 40px; height: 4px; margin: 0.1rem 0 0.4rem; border-radius: 2px; background: var(--a-g300); }
+@media (min-width: 720px) {
+  .ak-sheet-veil { background: transparent; }
+  .ak-sheet {
+    left: auto;
+    right: 20px;
+    bottom: auto;
+    top: calc(var(--a-head-h, 64px) + 8px);
+    width: 400px;
+    max-height: min(70vh, 640px);
+    padding: 8px;
+    border-bottom: 1px solid var(--a-g200);
+    border-radius: 26px;
+    transform: translateY(-8px) scale(0.97);
+    transform-origin: top right;
+  }
+  .ak-sheet::before { display: none; }
+}
+.ak-sheet-head { display: flex; align-items: center; gap: 0.6rem; padding: 0 0 0.5rem 0.75rem; }
+.ak-sheet-head .ak-h3 { margin: 0; }
+.ak-sheet-count {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--a-paper);
+  font-family: var(--a-wide);
+  font-size: 0.75rem;
+  color: var(--a-ink-2);
+}
+.ak-sheet-tools { display: flex; gap: 0.4rem; margin-left: auto; }
+.ak-sheet .a-btn { min-height: 44px; padding: 0.6rem 1rem; font-size: 0.8125rem; }
+.ak-sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; border-radius: 20px; background: var(--a-paper); }
+.ak-notes { list-style: none; margin: 0; padding: 6px; display: grid; gap: 6px; }
+.ak-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  padding: 0.8rem 0.35rem 0.8rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: var(--a-g50);
+}
+.ak-note[data-unread] { background: var(--a-shoal); border-color: var(--a-cobalt); }
+.ak-note-copy { flex: 1; min-width: 0; }
+.ak-note-title { margin: 0; font-family: var(--a-wide); font-weight: 700; font-size: 0.9375rem; line-height: 1.35; color: var(--a-ink); overflow-wrap: anywhere; }
+.ak-note-text { margin: 0.25rem 0 0; font-size: 0.875rem; line-height: 1.5; color: var(--a-ink-2); overflow-wrap: anywhere; }
+.ak-note-time { margin: 0.35rem 0 0; font-size: 0.75rem; color: var(--a-ink-3); }
+.ak-note-x {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-top: -0.55rem;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--a-ink-3);
+  cursor: pointer;
+}
+.ak-note-x:focus-visible, .ak-sheet .a-btn:focus-visible { outline: 2px solid var(--a-cobalt); outline-offset: 2px; }
+.ak-sheet-empty { display: grid; justify-items: center; gap: 0.35rem; padding: 2rem 1rem; text-align: center; }
+.ak-sheet-empty .ak-h3, .ak-sheet-empty .ak-fine { margin: 0; }
+.ak-sheet-empty-ico { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 0.35rem; border-radius: 14px; background: var(--a-g50); color: var(--a-ink-3); }
+.ak-sheet-spin { width: 22px; height: 22px; border: 2px solid var(--a-g200); border-top-color: var(--a-cobalt); border-radius: 50%; }
+.ak-sheet-foot { margin: 0.5rem 0.75rem 0.1rem; }
+
 /* ─── Загрузка ──────────────────────────────────────────────────── */
 /* ─── Доска ─────────────────────────────────────────────────────────
    Референс владельца (11.09.2026, «очень нравится такой UX/UI»): все
@@ -457,6 +553,157 @@
 .ak .ak-dark .a-btn:focus-visible { outline-color: #FFFFFF; }
 .ak .ak-dark .ak-corner { background: var(--a-paper); color: var(--a-ink); }
 
+/* ─── Мастер: полоса шагов, «Шаг N из M», пункты ────────────────────
+   Приёмы экрана входа, вынесенные в общий слой (владелец, 11.09.2026:
+   «это очень круто, нужно такое применять чаще»). Одни и те же на
+   входе, оплате, новом устройстве и в «Первых шагах» кабинета.
+
+   .ak-stepper       полоса шагов: <ol> из <li>, внутри .ak-step
+                     (span, у пройденного — button: тот же «Назад»).
+                     data-state="done|now|next"; aria-current="step" —
+                     у текущего. Пройденный — галочка, текущий —
+                     чернильная пилюля и кольцо (движение ниже). Узко
+                     (<560) подпись остаётся только у текущего шага.
+   .ak-mark          кобальтовый знак мастера слева от полосы (с .ak-avatar).
+   .ak-kicker-step   «Шаг N из M» внутри подписи — не рвётся.
+   .ak-enter         новый шаг въезжает снизу (узел пересоздаётся по key).
+   .ak-dark-title    заголовок тёмной плиты.
+   .ak-perks         пункты: иконка в плитке + заголовок + текст
+                     (+ .ak-perk-act — действие справа). На белой
+                     панели — серые плитки, на тёмной — светлые.
+                     data-state="done|now" — пройденный / текущий. */
+.ak-mark { background: var(--a-cobalt); }
+.ak-stepper {
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 3px;
+  list-style: none;
+  border-radius: 999px;
+  background: var(--a-paper);
+}
+.ak-stepper > li { display: flex; min-width: 0; }
+.ak-card .ak-stepper { width: fit-content; background: var(--a-g50); }
+.ak-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1rem 0 0.4rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-family: var(--a-wide);
+  font-size: 0.8125rem;
+  color: var(--a-ink-3);
+  white-space: nowrap;
+  text-decoration: none;
+}
+button.ak-step { justify-content: center; min-width: 44px; cursor: pointer; }
+.ak-step-n {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--a-g50);
+  color: var(--a-ink-2);
+  font-size: 0.75rem;
+}
+.ak-card .ak-step-n { background: var(--a-paper); }
+.ak-step[data-state="done"] { color: var(--a-cobalt); }
+.ak-step[data-state="done"] .ak-step-n { background: var(--a-shoal); color: var(--a-cobalt); }
+.ak-step[data-state="now"] { background: var(--a-ink); color: #FFFFFF; }
+.ak-step[data-state="now"] .ak-step-n { background: rgba(255, 255, 255, 0.14); color: #FFFFFF; }
+.ak-step:focus-visible { outline: 2px solid var(--a-cobalt); outline-offset: 2px; }
+@media (max-width: 559px) {
+  .ak-step:not([data-state="now"]) { padding: 0 0.3rem; }
+  .ak-step:not([data-state="now"]) .ak-step-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+.ak-kicker-step { display: inline-block; white-space: nowrap; }
+
+.ak-dark-title {
+  margin: 0;
+  max-width: 18ch;
+  font-family: var(--a-wide);
+  font-weight: 700;
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  color: #FFFFFF;
+}
+.ak-perks { display: grid; gap: 8px; margin: 1.5rem 0 0; padding: 0; list-style: none; }
+.ak-perk {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--a-g100);
+  border-radius: 16px;
+  background: var(--a-g50);
+}
+.ak-perk-ico {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--a-paper);
+  color: var(--a-cobalt);
+}
+.ak-perk-copy { flex: 1; min-width: 0; }
+.ak-perk-title { display: block; font-family: var(--a-wide); font-weight: 700; font-size: 1rem; line-height: 1.3; color: var(--a-ink); }
+.ak-perk-text { display: block; margin-top: 0.2rem; font-size: 0.8125rem; line-height: 1.5; color: var(--a-ink-2); }
+.ak-perk-act { flex: none; align-self: center; }
+.ak-perk[data-state="done"] .ak-perk-ico { background: var(--a-cobalt); color: #FFFFFF; }
+.ak-perk[data-state="now"] { border-color: var(--a-cobalt); background: var(--a-paper); }
+.ak-perk[data-state="now"] .ak-perk-ico { background: var(--a-shoal); }
+@media (max-width: 559px) {
+  .ak-perk { flex-wrap: wrap; }
+  .ak-perk-act { flex: 1 1 100%; }
+  .ak-perk-act .a-btn { width: 100%; }
+}
+.ak .ak-dark .ak-perk { border-color: rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.05); }
+.ak .ak-dark .ak-perk-ico { background: rgba(255, 255, 255, 0.1); color: var(--a-shoal-lume); }
+.ak .ak-dark .ak-perk-title { color: #FFFFFF; }
+.ak .ak-dark .ak-perk-text { color: rgba(255, 255, 255, 0.72); }
+.ak .ak-dark .ak-perk[data-state="done"] .ak-perk-ico { background: var(--a-shoal-lume); color: var(--a-ink); }
+.ak .ak-dark .ak-perk[data-state="now"] { border-color: rgba(255, 255, 255, 0.55); background: rgba(255, 255, 255, 0.1); }
+
+/* «Ядро связи» (OrbGL) — декоративный фон тёмной плиты: одно на
+   страницу, под текстом, не ловит указатель. Содержимое плиты встаёт
+   над ним; кружок в углу и скрытые подписи остаются как были.
+   Телефон — без ядра: плита узкая, и объект встал бы под текст. */
+.ak .ak-orb {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  right: 0;
+  width: var(--orb-s, 240px);
+  height: var(--orb-s, 240px);
+  transform: translateY(-50%);
+}
+.ak-has-orb > :not(.ak-orb):not(.ak-corner):not(.b-sr) { position: relative; z-index: 1; }
+@media (max-width: 719px) { .ak .ak-orb { display: none; } }
+.ak .ak-sub .ak-orb { --orb-s: clamp(200px, 21vw, 290px); right: 0.5rem; }
+
+/* Кабинет · «Первые шаги» (пробный период): во всю ширину, пункты
+   в ряд на широком экране — действие внизу пункта. */
+.ak-first-lead { margin: 0 0 1rem; }
+@media (min-width: 900px) {
+  .ak-first .ak-perks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ak-first .ak-perk { flex-direction: column; }
+  .ak-first .ak-perk-copy { flex: 1 1 auto; }
+  .ak-first .ak-perk-act { align-self: flex-start; }
+}
+
 /* ─── Удобство на любом экране ──────────────────────────────────────
    Владелец, 11.09.2026: «дашборд — для удобства пользователя на любом
    экране». Телефон: вкладки разделов внизу у большого пальца, самое
@@ -488,7 +735,7 @@ html:has(.ak) { scroll-behavior: smooth; }
 
 /* Планшет: баланс и переходы — пара в одной строке, ключ под ними. */
 @media (min-width: 720px) and (max-width: 1099px) {
-  .ak-sub { order: 1; } .ak-bal { order: 2; } .ak-quick { order: 3; } .ak-key { order: 4; }
+  .ak-sub, .ak-first { order: 1; } .ak-bal { order: 2; } .ak-quick { order: 3; } .ak-key { order: 4; }
   .ak-friends { order: 5; } .ak-net { order: 6; } .ak-tg { order: 7; } .ak-set { order: 8; }
 }
 
@@ -505,7 +752,7 @@ html:has(.ak) { scroll-behavior: smooth; }
   .ak-corner { top: -4px; right: -4px; box-shadow: 0 0 0 4px var(--a-g100); }
 
   /* Самое нужное — первым. */
-  .ak-sub { order: 1; } .ak-key { order: 2; } .ak-quick { order: 3; } .ak-bal { order: 4; }
+  .ak-sub, .ak-first { order: 1; } .ak-key { order: 2; } .ak-quick { order: 3; } .ak-bal { order: 4; }
   .ak-friends { order: 5; } .ak-tg { order: 6; } .ak-set { order: 7; } .ak-net { order: 8; }
 
   /* Шапка кабинета в одну строку: действия — значками. */
@@ -682,3 +929,66 @@ html[data-static] .ak *, html[data-static] .ak *::before, html[data-static] .ak 
 .a-js .ak-tabbar { animation: ak-tab-in var(--d-3) var(--m-settle) 300ms both; }
 .ak-tab[aria-current="true"] svg { animation: ak-float 2.4s var(--m-tide) infinite; }
 @keyframes ak-tab-in { from { transform: translateY(140%); } }
+
+/* Мастер (общий слой, приёмы входа).
+   Блок           появление              отклик                   холостое
+   полоса шагов   пилюля перекрашивается пройденный-кнопка →      кольцо у текущего
+                                         чернильная пилюля
+   шаг мастера    въезжает снизу         —                         —
+   «Шаг N из M»   въезжает при смене     —                         —
+   пункты         по очереди после       пункт сдвигается          иконки плавают
+                  входа панели в кадр
+   Кольцо полосы на паузе, пока полоса вне кадра; внутри панели — общим
+   правилом .ak-card:not([data-inview]) *. Упрощение движения и
+   html[data-static] гасят всё правилами .ak * выше. */
+.ak-step, .ak-step-n { transition: background-color var(--d-2) var(--m-settle), color var(--d-2) var(--m-settle), padding var(--d-2) var(--m-settle); }
+.ak-step[data-state="now"] .ak-step-n::after {
+  content: ""; position: absolute; inset: -3px; border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  animation: ak-ring 2.4s var(--m-tide) infinite;
+}
+.ak-bar[data-sheet]:not([data-inview]) .ak-step-n::after { animation-play-state: paused; }
+@media (hover: hover) {
+  button.ak-step:hover { background: var(--a-ink); color: #FFFFFF; }
+  button.ak-step:hover .ak-step-n { background: rgba(255, 255, 255, 0.14); color: #FFFFFF; }
+}
+.a-js .ak-enter, .a-js .ak-kicker-step { animation: ak-in var(--d-2) var(--m-settle) both; }
+
+.ak-perk {
+  transition: opacity var(--d-2) var(--m-settle), transform var(--d-2) var(--m-settle),
+              background-color var(--d-1) var(--m-turn), border-color var(--d-1) var(--m-turn);
+  transition-delay: calc(220ms + var(--k, 0) * 90ms);
+}
+.a-js .ak-card:not([data-seen]) .ak-perk { opacity: 0; transform: translateY(12px); }
+@media (hover: hover) {
+  .ak-perk:hover { transform: translateX(4px); background: var(--a-paper); border-color: var(--a-g200); transition-delay: 0s; }
+  .ak .ak-dark .ak-perk:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.1); }
+  .ak .ak-dark .ak-perk[data-state="now"]:hover { border-color: rgba(255, 255, 255, 0.55); }
+}
+.ak-perk-ico svg { animation: ak-bob 4.4s var(--m-tide) infinite; animation-delay: calc(var(--k, 0) * 700ms); }
+
+@keyframes ak-in { from { opacity: 0; transform: translateY(12px); } }
+@keyframes ak-ring { 0% { transform: scale(0.85); opacity: 0.9; } 100% { transform: scale(1.35); opacity: 0; } }
+@keyframes ak-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .a-js .ak-card .ak-perk { opacity: 1; transform: none; }
+}
+
+/* Шторка уведомлений: снизу на телефоне, из-под колокольчика шире;
+   записи ложатся по очереди; крестик под рукой — кобальт. Шторка вне
+   .ak — упрощение движения для неё объявлено отдельно. */
+.ak-sheet-veil { transition: opacity var(--d-2) var(--m-settle); }
+.ak-sheet { transition: transform var(--d-3) var(--m-settle), opacity var(--d-2) var(--m-settle); }
+.ak-note { animation: ak-in var(--d-2) var(--m-settle) both; animation-delay: calc(var(--k, 0) * 50ms); }
+.ak-note-x, .ak-sheet .a-btn { transition: background-color var(--d-1) var(--m-turn), color var(--d-1) var(--m-turn), border-color var(--d-1) var(--m-turn); }
+.ak-sheet-spin { animation: ak-turn 0.8s linear infinite; }
+@media (hover: hover) {
+  .ak-note-x:hover { background: var(--a-paper); color: var(--a-cobalt); }
+  .ak-sheet .ak-btn-soft:hover { border-color: var(--a-cobalt); color: var(--a-cobalt); }
+}
+@keyframes ak-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ak-sheet, .ak-sheet *, .ak-sheet-veil { animation: none !important; transition: none !important; }
+}
+html[data-static] .ak-sheet, html[data-static] .ak-sheet *, html[data-static] .ak-sheet-veil { animation: none !important; transition: none !important; }

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function AddDevicePage() {
   return (
-    <AtlasShell sheetNo="23" sheetTitle="Новое устройство" headCta={{ href: "/dashboard", label: "Кабинет" }}>
+    <AtlasShell sheetNo="23" sheetTitle="Новое устройство" headCta={{ href: "/dashboard", label: "Кабинет" }} footer="compact">
       <AddDeviceView />
     </AtlasShell>
   );

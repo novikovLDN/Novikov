@@ -24,7 +24,9 @@ export const CONSENT_EVENT = "atlas:cookie-consent";
 /* `welcome` — остаток пробного периода в кабинете (11.09.2026): раньше
    стоял вне очереди и выходил одновременно с быстрым входом. */
 export type OverlayId = "cookie" | "welcome" | "passkey" | "install";
-const PRIORITY: Record<OverlayId, number> = { cookie: 0, welcome: 1, passkey: 2, install: 3 };
+/* Установка на iPhone — сразу после cookie (владелец, 11.09.2026: «зашёл
+   на дашборд — через пару секунд предлагаем установить»). */
+const PRIORITY: Record<OverlayId, number> = { cookie: 0, install: 1, welcome: 2, passkey: 3 };
 /** Пауза между карточками: следующая не выпрыгивает в тот же кадр. */
 const GAP_MS = 900;
 

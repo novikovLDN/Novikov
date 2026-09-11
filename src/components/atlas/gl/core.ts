@@ -77,6 +77,12 @@ export function addLights(scene: THREE.Scene, key = 1.5): void {
 export function countTriangles(scene: THREE.Object3D): number {
   let n = 0;
   scene.traverse((o) => {
+    // Инстансный спрайт: по два треугольника на экземпляр.
+    const sp = o as THREE.Sprite & { count?: number };
+    if (sp.isSprite) {
+      n += 2 * (sp.count ?? 1);
+      return;
+    }
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
     const g = m.geometry;

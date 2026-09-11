@@ -27,28 +27,10 @@
   .aad .ak-kicker { white-space: normal; }
 }
 
-/* ─── Пилюли шагов ──────────────────────────────────────────────── */
-.aad-pills { list-style: none; margin: 0; }
-.aad-pill-li { display: flex; flex: none; }
-.aad-pill { gap: 0.5rem; border: 0; background: transparent; font: inherit; font-family: var(--a-wide); font-size: 0.8125rem; cursor: default; }
-button.aad-pill { cursor: pointer; }
-.aad-pill-n {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--a-g100);
-  color: var(--a-ink-2);
-  font-size: 0.6875rem;
-  font-weight: 700;
-}
-.aad-pill[data-state="now"] { background: var(--a-ink); color: #FFFFFF; }
-.aad-pill[data-state="now"] .aad-pill-n { position: relative; background: #FFFFFF; color: var(--a-ink); }
-.aad-pill[data-state="done"] { color: var(--a-ink); }
-.aad-pill[data-state="done"] .aad-pill-n { background: var(--a-shoal); color: var(--a-cobalt); }
-.aad-pill[data-state="next"] { color: var(--a-ink-3); }
+/* ─── Полоса шагов ──────────────────────────────────────────────── */
+/* Общая полоса мастеров (.ak-stepper, work-atlas.css). В одну строку
+   со знаком и на телефоне: узко подпись остаётся только у текущего. */
+.aad .aad-bar { flex-wrap: nowrap; }
 
 /* ─── Сетка шага ────────────────────────────────────────────────── */
 @media (min-width: 720px) {
@@ -158,7 +140,7 @@ button.aad-pill { cursor: pointer; }
 .aad-tile[data-hint] { border-color: var(--a-cobalt); background: var(--a-paper); }
 .aad-tile[data-hint] .aad-tile-ico { position: relative; background: var(--a-shoal); color: var(--a-cobalt); }
 .aad-tile[data-hint] .aad-tile-detail { color: var(--a-cobalt); }
-.aad-tile:focus-visible, .aad-app:focus-visible, .aad-pill:focus-visible, .aad-full summary:focus-visible {
+.aad-tile:focus-visible, .aad-app:focus-visible, .aad-full summary:focus-visible {
   outline: 2px solid var(--a-cobalt);
   outline-offset: 2px;
 }
@@ -186,31 +168,11 @@ button.aad-pill { cursor: pointer; }
 
 /* ─── Плита «Ваш ключ» (шаги 1–2) ───────────────────────────────── */
 .aad-route-value .a-num { font-size: clamp(2.25rem, 4.6vw, 3rem); }
-.aad-route-list { list-style: none; margin: 1.25rem 0 0; padding: 0; display: grid; gap: 0.25rem; }
-.aad-route-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-height: 40px;
-  font-family: var(--a-wide);
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.68);
-}
-.aad-route-list li[data-state="now"] { color: #FFFFFF; }
-.aad-route-list li[data-state="done"] { color: rgba(255, 255, 255, 0.86); }
-.aad-route-n {
-  position: relative;
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  font-size: 0.8125rem;
-}
-.aad-route-list li[data-state="now"] .aad-route-n { border-color: #FFFFFF; background: #FFFFFF; color: var(--a-ink); }
-.aad-route-list li[data-state="done"] .aad-route-n { border-color: var(--a-shoal-lume); background: var(--a-shoal-lume); color: var(--a-ink); }
+/* Путь — общие пункты плиты (.ak-perks). */
+/* Ядро — справа от числа устройств, под кружком угла. */
+.ak .aad-route .ak-orb { --orb-s: 170px; top: 40px; right: -6px; transform: none; }
+/* Подпись к числу — в две строки слева, чтобы ядро справа не легло под текст. */
+@media (min-width: 720px) { .aad-route-value small { max-width: 15ch; line-height: 1.3; } }
 
 /* ─── 3 · Действие (тёмная плита) ───────────────────────────────── */
 .aad-act-row { display: flex; align-items: center; gap: 0.9rem; }
@@ -312,7 +274,7 @@ button.aad-pill { cursor: pointer; }
 /* Вход. Заголовок шага поднимается заново при каждой смене шага
    (у h1 key = шаг), плитки, строки и шаги — лесенкой за панелью. */
 .a-js .aad-h1 { animation: aad-rise var(--d-2) var(--m-settle) both; }
-.aad-tiles > li > *, .aad-apps > li > *, .aad-ol li, .aad-route-list li {
+.aad-tiles > li > *, .aad-apps > li > *, .aad-ol li {
   transition: opacity var(--d-2) var(--m-settle), transform var(--d-2) var(--m-settle),
               background-color var(--d-1) var(--m-turn), border-color var(--d-1) var(--m-turn);
   transition-delay: calc(160ms + var(--k, 0) * 60ms);
@@ -320,14 +282,13 @@ button.aad-pill { cursor: pointer; }
 .a-js .ak-card:not([data-seen]) .aad-tiles > li > *,
 .a-js .ak-card:not([data-seen]) .aad-apps > li > *,
 .a-js .ak-card:not([data-seen]) .aad-ol li { opacity: 0; transform: translateY(12px); }
-.a-js .ak-card:not([data-seen]) .aad-route-list li { opacity: 0; transform: translateX(-10px); }
 .aad-qr { transition: transform var(--d-3) var(--m-settle) 200ms, opacity var(--d-2) var(--m-settle) 200ms; }
 .a-js .ak-card:not([data-seen]) .aad-qr { opacity: 0; transform: scale(0.94); }
 .a-js .aad-hint { animation: aad-rise var(--d-2) var(--m-settle) 120ms both; }
 
 /* Отклик на руку: плитка подходит и переворачивается в чернильную,
    стрелка уходит вперёд, иконка встаёт кобальтом. */
-.aad-tile-ico, .aad-tile-arrow, .aad-app-mark, .aad-back-ico, .aad-pill, .aad-pill-n, .aad-n {
+.aad-tile-ico, .aad-tile-arrow, .aad-app-mark, .aad-back-ico, .aad-n {
   transition: transform var(--d-1) var(--m-settle), background-color var(--d-1) var(--m-turn), color var(--d-1) var(--m-turn);
 }
 @media (hover: hover) {
@@ -337,17 +298,12 @@ button.aad-pill { cursor: pointer; }
   .aad-tile:hover .aad-tile-arrow, .aad-app:hover .aad-tile-arrow { color: #FFFFFF; transform: translateX(4px); }
   .aad-app:hover .aad-app-mark { background: #FFFFFF; color: var(--a-ink); transform: rotate(-6deg); }
   .aad-back:hover .aad-back-ico { transform: scaleX(-1) translateX(3px); }
-  button.aad-pill:hover { background: var(--a-ink); color: #FFFFFF; }
   .aad-ol li:hover .aad-n { background: var(--a-cobalt); color: #FFFFFF; transform: scale(1.06); }
   .aad-full summary:hover { color: var(--a-shoal-lume); }
 }
 .aad-tile:active, .aad-app:active { transform: scale(0.98); transition-delay: 0s; }
 
 /* Холостой слой — у каждого блока свой; вне кадра на паузе. */
-.aad-pill[data-state="now"] .aad-pill-n::after {                    /* пилюли · текущий шаг */
-  content: ""; position: absolute; inset: -3px; border-radius: 50%;
-  border: 1.5px solid #FFFFFF; animation: aad-ping 2.4s var(--m-tide) infinite;
-}
 .aad-tile-ico { animation: aad-float 4.8s var(--m-tide) infinite; animation-delay: calc(var(--k, 0) * 500ms); }  /* плитки */
 .aad-tile[data-hint] .aad-tile-ico::after {                          /* подсказка по userAgent */
   content: ""; position: absolute; inset: -4px; border-radius: 16px;
@@ -355,10 +311,6 @@ button.aad-pill { cursor: pointer; }
 }
 .aad-hint-ico svg { animation: aad-float 3.6s var(--m-tide) infinite; }
 .aad-app-mark { animation: aad-float 4.2s var(--m-tide) infinite; animation-delay: calc(var(--k, 0) * 700ms); } /* приложения */
-.aad-route-list li[data-state="now"] .aad-route-n::after {          /* плита · где вы сейчас */
-  content: ""; position: absolute; inset: -4px; border-radius: 50%;
-  border: 1.5px solid #FFFFFF; animation: aad-ping 2.4s var(--m-tide) infinite;
-}
 .aad-qr-c { animation: aad-frame 2.8s var(--m-tide) infinite; }     /* QR · видоискатель дышит */
 .aad-qr-c[data-c="tl"] { --fx: -3px; --fy: -3px; }
 .aad-qr-c[data-c="tr"] { --fx: 3px; --fy: -3px; }
@@ -377,7 +329,6 @@ button.aad-pill { cursor: pointer; }
 .aad-ol li:nth-child(6) .aad-n::after { --k-d: 3s; }
 .aad-app-mark-lg { animation-duration: 5.2s; }                     /* действие · знак приложения */
 
-.a-js .aad-bar:not([data-inview]) *, .a-js .aad-bar:not([data-inview]) *::after { animation-play-state: paused; }
 .ak-card:not([data-inview]) *::after { animation-play-state: paused; }
 
 @keyframes aad-rise { from { opacity: 0; transform: translateY(14px); } }
@@ -391,6 +342,6 @@ button.aad-pill { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .aad *, .aad *::before, .aad *::after { animation: none !important; transition: none !important; }
   .a-js .ak-card .aad-tiles > li > *, .a-js .ak-card .aad-apps > li > *,
-  .a-js .ak-card .aad-ol li, .a-js .ak-card .aad-route-list li, .a-js .ak-card .aad-qr { opacity: 1; transform: none; }
+  .a-js .ak-card .aad-ol li, .a-js .ak-card .aad-qr { opacity: 1; transform: none; }
 }
 html[data-static] .aad *, html[data-static] .aad *::before, html[data-static] .aad *::after { animation: none !important; transition: none !important; }

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function SubscribePage() {
   return (
-    <AtlasShell sheetNo="22" sheetTitle="Оплата" headCta={{ href: "/dashboard", label: "Кабинет" }}>
+    <AtlasShell sheetNo="22" sheetTitle="Оплата" headCta={{ href: "/dashboard", label: "Кабинет" }} footer="compact">
       <SubscribeView />
     </AtlasShell>
   );

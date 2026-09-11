@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 
 export default function DashboardPage() {
   return (
-    <AtlasShell sheetNo="20" sheetTitle="Кабинет" headCta={null}>
+    <AtlasShell sheetNo="20" sheetTitle="Кабинет" headCta={null} footer="compact">
       <DashboardView />
     </AtlasShell>
   );

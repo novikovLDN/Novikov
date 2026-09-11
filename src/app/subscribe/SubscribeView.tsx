@@ -4,6 +4,8 @@ import { Suspense, useState, useEffect, useCallback, useRef, type CSSProperties,
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Icon, { type IconName } from "@/components/pixel/Icon";
+import Corner from "@/components/atlas/Corner";
+import OrbGL from "@/components/atlas/OrbGL";
 import {
   PERIODS,
   PERIOD_LABEL,
@@ -34,7 +36,8 @@ import "./subscribe-atlas.css";
  * (прежняя таблица на странице совпадала с ним до рубля и процента).
  *
  * Новое только в подаче:
- *   · индикатор шага над доской; пройденный шаг можно открыть снова;
+ *   · индикатор шага над доской — общая полоса мастеров (.ak-stepper,
+ *     work-atlas.css), как на входе; пройденный шаг можно открыть снова;
  *   · тариф и срок — карточки-переключатели (radiogroup): стрелки
  *     меняют выбор на месте, нажатие/Enter/Пробел — выбрать и дальше;
  *   · сводка заказа всегда видна — справа липкой плитой на широком
@@ -328,45 +331,39 @@ function SubscribeContent() {
         <div className="ak-board asb-board">
           {/* ── Индикатор шага ─────────────────────────────────────── */}
           {inFunnel && (
-            <nav className="asb-bar" data-sheet="22" suppressHydrationWarning aria-label="Шаги оплаты" style={vars({ "--s": stepNum })}>
-              <ol className="asb-steps">
+            <nav className="ak-bar asb-bar" data-sheet="22" suppressHydrationWarning aria-label="Шаги оплаты">
+              <span className="ak-avatar ak-mark" aria-hidden>
+                <Icon name="shield" size={18} />
+              </span>
+              <ol className="ak-stepper">
                 {STEPS.map((label, k) => {
                   const n = k + 1;
                   const state = n < stepNum ? "done" : n === stepNum ? "now" : "next";
-                  const inner = (
-                    <>
-                      <span className="asb-step-n" aria-hidden>
-                        {state === "done" ? <Icon name="check" size={12} /> : n}
-                      </span>
-                      <span className="asb-step-label">{label}</span>
-                    </>
-                  );
                   return (
-                    <li key={label} className="asb-step" data-state={state} style={at(k)}>
+                    <li key={label}>
                       {state === "done" ? (
                         <button
                           type="button"
-                          className="asb-step-btn"
+                          className="ak-step"
+                          data-state={state}
                           onClick={() => goToStep(n)}
                           aria-label={`Шаг ${n}: ${label}, пройден — изменить`}
                         >
-                          {inner}
+                          <span className="ak-step-n" aria-hidden><Icon name="check" size={14} /></span>
+                          <span className="ak-step-label">{label}</span>
                         </button>
                       ) : (
-                        <span
-                          className="asb-step-btn"
-                          aria-current={state === "now" ? "step" : undefined}
-                          aria-label={`Шаг ${n} из ${STEPS.length}: ${label}`}
-                        >
-                          {inner}
+                        <span className="ak-step" data-state={state} aria-current={state === "now" ? "step" : undefined}>
+                          <span className="ak-step-n">{n}</span>
+                          <span className="ak-step-label">{label}</span>
                         </span>
                       )}
                     </li>
                   );
                 })}
               </ol>
-              <span className="asb-rail" aria-hidden>
-                <span className="asb-rail-fill" />
+              <span className="ak-bar-plan">
+                <span key={stepNum} className="a-num ak-kicker-step">Шаг {stepNum} из {STEPS.length}</span>
               </span>
             </nav>
           )}
@@ -472,6 +469,7 @@ function SubscribeContent() {
 
               {/* ── Сводка заказа ─────────────────────────────────────── */}
               <aside className="ak-card ak-dark asb-sum" data-sheet="22" suppressHydrationWarning style={at(2)} aria-labelledby="asb-sum-h">
+                <Corner href="/pricing" label="Сравнить тарифы" />
                 <div className="ak-card-head">
                   <h2 id="asb-sum-h" className="ak-eyebrow">Ваш заказ</h2>
                   <span className="ak-status"><i />Шаг {stepNum} из {STEPS.length}</span>
@@ -500,10 +498,15 @@ function SubscribeContent() {
                   )}
                 </dl>
 
-                <p className="ak-value ak-value-live asb-total">
-                  <span key={order.price} className="a-num asb-tick">{formatRub(order.price)}</span>
-                  <small>₽ к оплате</small>
-                </p>
+                {/* Ядро — рядом с итогом: справа от суммы строки свободны,
+                    значения списка выше выровнены вправо и под ним не лежат. */}
+                <div className="asb-total-row">
+                  <OrbGL className="ak-orb" theme="dark" state="active" />
+                  <p className="ak-value ak-value-live asb-total">
+                    <span key={order.price} className="a-num asb-tick">{formatRub(order.price)}</span>
+                    <small>₽ к оплате</small>
+                  </p>
+                </div>
                 <p className="ak-fine">
                   {step === "plans" ? "Срок можно поменять на следующем шаге. " : null}
                   Оплата сразу за весь срок, цена за месяц — для сравнения.

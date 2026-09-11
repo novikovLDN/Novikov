@@ -49,6 +49,8 @@ export interface BuildCtx {
   camera: PerspectiveCamera;
   renderer: WebGPURenderer;
   tier: Tier;
+  /** Неподвижный режим (reduced-motion, ?static=1): сцена рисует конечный кадр. */
+  still: boolean;
 }
 
 export type Builder = (ctx: BuildCtx) => SceneParts;
@@ -69,6 +71,16 @@ export interface StageOptions {
   /** Бюджет треугольников сцены (проверяется в разработке). */
   budget: number;
   fov?: number;
+  /**
+   * Получить управление живой сценой после первого кадра. `redraw`
+   * перерисовывает неподвижный кадр (reduced-motion, ?static=1), когда
+   * сцена поменяла параметры без пересборки; в идущем цикле не нужен.
+   */
+  bind?: (api: StageApi) => void;
+}
+
+export interface StageApi {
+  redraw(): void;
 }
 
 type Still = "static" | "reduced" | "save-data" | null;
@@ -82,7 +94,7 @@ function stillReason(): Still {
 }
 
 function canRender(): boolean {
-  if ("gpu" in navigator) return true;
+  if ((navigator as Navigator & { gpu?: unknown }).gpu) return true;
   try {
     const c = document.createElement("canvas");
     const gl = c.getContext("webgl2");
@@ -256,7 +268,7 @@ export function mountStage(host: HTMLElement, canvas: HTMLCanvasElement, o: Stag
       camera = new c.THREE.PerspectiveCamera(o.fov ?? 26, 1, 0.1, 100);
       env = c.studioEnv(r, tier);
       scene.environment = env.texture;
-      parts = build({ scene, camera, renderer: r, tier });
+      parts = build({ scene, camera, renderer: r, tier, still });
 
       const tris = c.countTriangles(scene);
       host.setAttribute("data-tris", String(tris));
@@ -276,6 +288,13 @@ export function mountStage(host: HTMLElement, canvas: HTMLCanvasElement, o: Stag
       setMode("gl");
       if (still) host.setAttribute("data-still", "");
       sync();
+      o.bind?.({
+        redraw: () => {
+          if (running || !parts) return;
+          parts.update({ t, dt: 0, px: smooth.x, py: smooth.y });
+          draw();
+        },
+      });
     } catch {
       if (disposed) return;
       teardown();

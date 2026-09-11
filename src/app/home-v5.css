@@ -1,70 +1,262 @@
 /* ═══════════════════════════════════════════════════════════════════
-   ГЛАВНАЯ · редакция 5 (11.09.2026) — разбор владельца по блокам.
+   ГЛАВНАЯ · редакция 6 (11.09.2026, второй разбор владельца).
 
-   02 — вместо «непонятной штучки» данные бегут по дорожкам: без Atlas
-        ползут и застревают, с Atlas текут ровным потоком.
-   04 — тарифы перерисованы карточками: ширина канала — понятная шкала.
-   05 — линия по прокрутке идёт от кружка к кружку и расплывается на
-        третьем.
-   06 — ноутбук открывается по прокрутке (кадры Blender, LaptopScrub).
-   07 — место под живой объект миссии (WebGL, MissionGL).
-   08 — кольцо из трёх дней заполняется по прокрутке.
+   02 — «что меняется, когда Atlas включён»: закреплённая сцена, большой
+        переключатель щёлкает, четыре бытовые ситуации по очереди
+        переходят из «без Atlas» в «с Atlas».
+   04 — стоп и заливка: кадр держится, заголовок заливается кобальтом,
+        под ним бежит линия с точкой; тарифы карточками с кружком в углу.
+   05 — линия по прокрутке идёт от кружка к кружку и расплывается.
+   06 — стоп и заливка + ноутбук открывается по прокрутке (LaptopScrub),
+        платформы загораются по очереди.
+   07 — миссия: заливка заголовка, три числа, ценности плитками; сфера
+        MissionGL за текстом (на телефоне — приглушённым фоном).
+   08 — кольцо из бесплатных дней заполняется по прокрутке.
 
    Префикс h5-. Раскладка сверху, всё движение — в разделе «Движение»
-   внизу: только transform, opacity и переменные (у линии — обводка);
-   без поддержки шкал прокрутки и при reduced-motion — конечный кадр.
+   внизу: только transform, opacity, переменные, обводка линии и позиция
+   фона у заливки текста. Без поддержки шкал прокрутки, при
+   reduced-motion и ?static=1 — конечный кадр и без закрепления.
    ═══════════════════════════════════════════════════════════════════ */
 
-/* ─── 02 · данные на дорожках ───────────────────────────────────── */
-.h5-flow { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-/* Бегунок — во всю ширину дорожки, точка у его правого края: сдвиг
-   бегунка в процентах — это сдвиг по всей дорожке. */
-.h5-flow i { position: absolute; inset: 0; transform: translateX(-100%); }
-.h5-flow i::after {
+/* ─── Ритм на телефоне ──────────────────────────────────────────────
+   Разбор 11.09.2026: «между блоками слишком большие пустоты» — 12vh
+   сверху и снизу давали около 200 px пустого листа между блоками.
+   Ровный шаг: 56–72 px с каждой стороны. */
+@media (max-width: 899px) {
+  .h5-home > .a-sheet:not(.a-cover):not(.a-pin) { padding-block: clamp(3.5rem, 12vw, 4.5rem); }
+  .h5-home .a-h2 { margin-bottom: 1.25rem; }
+}
+
+/* ─── Стоп и заливка — общий приём ──────────────────────────────────
+   Заголовок — фон-градиент под текстом (background-clip: text): левая
+   половина кобальт, правая серая. Фон строчного элемента раскладывается
+   так, будто все строки стоят в одну, поэтому заливка идёт по порядку
+   чтения — строка за строкой. Базовое состояние — залит целиком. */
+.h5-h2 { margin-bottom: 0.9rem; max-width: 24ch; }
+.h5-fill {
+  color: var(--a-cobalt);
+  background-image: linear-gradient(90deg, var(--a-cobalt) 50%, var(--a-g400) 50%);
+  background-size: 200% 100%;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+/* Тонкая линия-бегунок под заголовком: серая дорожка, кобальтовая
+   линия с точкой на конце. */
+.h5-rule {
+  position: relative;
+  height: 12px;
+  margin: 0 0 clamp(1.25rem, 3.5vh, 2rem);
+  overflow: hidden;
+}
+.h5-rule::before {
   content: "";
   position: absolute;
-  right: -5px;
+  left: 0;
+  right: 0;
   top: 50%;
-  width: 10px;
-  height: 10px;
-  margin-top: -5px;
+  height: 1px;
+  background: var(--a-g200);
+}
+.h5-rule i { position: absolute; inset: 0; }
+.h5-rule i::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 6px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--a-cobalt);
+}
+.h5-rule i::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--a-cobalt);
-  box-shadow: 0 0 12px 3px rgba(20, 50, 184, 0.45);
 }
-[data-lane="slow"] .h5-flow i::after {
-  width: 8px;
-  height: 8px;
-  margin-top: -4px;
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: none;
+
+/* ─── Кружок в вырезе угла карточки ─────────────────────────────────
+   Corner.tsx (кабинет, work-atlas.css). Владелец, 11.09.2026: «очень
+   нравится, применять чаще». На главной кольцо — цвет листа (белый),
+   поэтому вырез читается и на светлой карточке, и на тёмной. */
+.h5-home .ak-corner {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--a-ink);
+  color: #FFFFFF;
+  box-shadow: 0 0 0 6px var(--a-paper);
+  text-decoration: none;
+}
+.h5-home .ak-corner svg { transform: rotate(-45deg); }
+.h5-home .ak-corner:focus-visible { outline: 2px solid var(--a-cobalt); outline-offset: 3px; }
+.h5-home [data-plan="plus"] .ak-corner { background: var(--a-cobalt); }
+
+/* ─── 02 · что меняется, когда Atlas включён ────────────────────── */
+.h5-diff-grid { display: grid; gap: 1.75rem; }
+@media (min-width: 1000px) {
+  .h5-diff-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 3rem 4.5rem; align-items: center; }
+}
+.h5-diff .a-h2 { max-width: 13ch; margin-bottom: 1rem; }
+.h5-diff .a-p { max-width: 36ch; margin-bottom: 0; }
+/* Большой переключатель. Базовое состояние — включён: белая дорожка,
+   кобальтовая ручка справа. Выключенный — прозрачная дорожка в рамке,
+   белая ручка слева (начало шкалы). */
+.h5-toggle { display: flex; align-items: center; gap: 1rem; margin-top: clamp(1.25rem, 4vh, 2.25rem); }
+.h5-toggle-sw {
+  --w: 88px;
+  --h: 48px;
+  position: relative;
+  flex: none;
+  width: var(--w);
+  height: var(--h);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+}
+.h5-toggle-sw::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: #FFFFFF;
+}
+.h5-toggle-sw i {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(var(--h) - 12px);
+  height: calc(var(--h) - 12px);
+  border-radius: 50%;
+  background: #FFFFFF;
+  transform: translateX(calc(var(--w) - var(--h)));
+}
+.h5-toggle-sw i::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--a-cobalt);
+}
+.h5-toggle-label { display: grid; }
+.h5-toggle-label b { grid-area: 1 / 1; font-family: var(--a-wide); font-weight: 500; font-size: 1.05rem; }
+.h5-toggle-off { opacity: 0; color: var(--a-shoal-lume); }
+
+.h5-diff-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid rgba(255, 255, 255, 0.24); }
+.h5-diff-row {
+  display: grid;
+  gap: 0.15rem;
+  padding-block: 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+}
+.h5-diff-what { font-size: 0.8125rem; letter-spacing: 0.02em; color: var(--a-shoal-lume); }
+.h5-diff-was { font-size: 0.9375rem; line-height: 1.45; color: var(--a-shoal-lume); }
+/* Зачёркивание — фон строчного элемента, как у заливки заголовка:
+   идёт по порядку чтения и через перенос строки. */
+.h5-strike {
+  background-image: linear-gradient(90deg, currentColor 50%, transparent 50%);
+  background-size: 200% 1.5px;
+  background-position: 0 58%;
+  background-repeat: no-repeat;
+}
+.h5-diff-now {
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: clamp(1.1rem, 1.7vw, 1.5rem);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: #FFFFFF;
+}
+.h5-diff-arrow { display: none; }
+@media (min-width: 1000px) {
+  .h5-diff-row {
+    grid-template-columns: 8.5rem minmax(0, 1fr) 2.25rem minmax(0, 1.25fr);
+    align-items: center;
+    column-gap: 1.25rem;
+    padding-block: 1.3rem;
+  }
+  .h5-diff-arrow { display: block; position: relative; height: 12px; }
+  .h5-diff-arrow i { position: absolute; inset: 0; transform-origin: left; }
+  .h5-diff-arrow i::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 1px;
+    top: 50%;
+    height: 1.5px;
+    margin-top: -0.75px;
+    background: #FFFFFF;
+  }
+  .h5-diff-arrow i::after {
+    content: "";
+    position: absolute;
+    right: 1px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin-top: -4px;
+    border-top: 1.5px solid #FFFFFF;
+    border-right: 1.5px solid #FFFFFF;
+    transform: rotate(45deg);
+  }
+}
+/* Узкий экран: сцена обязана поместиться в окно 375×812 целиком, иначе
+   закрепление прячет низ списка (замер 11.09.2026: 808 при 748). */
+@media (max-width: 999px) {
+  .h5-toggle-sw { --w: 72px; --h: 40px; }
+  .h5-diff-grid { gap: 1.25rem; }
+  .h5-diff .a-h2 { max-width: none; margin-bottom: 0.75rem; }
+  .h5-toggle { margin-top: 1rem; }
+  .h5-diff-row { padding-block: 0.6rem; }
 }
 
 /* ─── 04 · тарифы карточками ────────────────────────────────────── */
-.h5-plans { display: grid; gap: 1rem; margin-top: 2.5rem; }
+/* Заголовок тарифов — в одну строку на широком экране: кадр с
+   карточками обязан помещаться в окно 1280×800 (замер: 780 при 736). */
+@media (min-width: 1200px) {
+  .h5-plans-sec .h5-h2 { max-width: none; font-size: clamp(2.1rem, 4.2vw, 4.25rem); }
+}
+.h5-plans { display: grid; gap: 1rem; margin-top: clamp(1.5rem, 4vh, 2.25rem); }
 @media (min-width: 820px) { .h5-plans { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; } }
 .h5-plan {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: clamp(1.5rem, 3vw, 2.25rem);
+  padding: clamp(1.4rem, 2.4vw, 2rem);
   border: 1px solid var(--a-g200);
   border-radius: 28px;
   background: var(--a-paper);
   color: var(--a-ink);
 }
 .h5-plan[data-plan="plus"] { background: var(--a-ink); border-color: var(--a-ink); color: #FFFFFF; }
+.h5-plan-top { padding-right: 3rem; }
 .h5-plan-name {
   margin: 0;
   font-family: var(--a-wide);
   font-weight: 700;
-  font-size: clamp(1.75rem, 3vw, 2.4rem);
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
   line-height: 1.1;
   letter-spacing: -0.02em;
 }
-.h5-plan-tagline { margin: 0.5rem 0 0; color: var(--a-ink-2); font-size: 0.975rem; max-width: 36ch; }
-.h5-speed { margin-top: 1.75rem; }
-.h5-speed-label { margin: 0 0 0.6rem; font-size: 0.8125rem; color: var(--a-ink-3); }
+.h5-plan-tagline { margin: 0.35rem 0 0; color: var(--a-ink-2); font-size: 0.9375rem; max-width: 36ch; }
+.h5-plan-mid { display: grid; gap: 1.25rem; margin-top: 1.5rem; }
+@media (min-width: 520px) {
+  .h5-plan-mid { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); column-gap: 1.75rem; align-items: end; }
+}
+.h5-speed-label { margin: 0 0 0.55rem; font-size: 0.8125rem; color: var(--a-ink-3); }
 .h5-speed-bar { position: relative; height: 12px; border-radius: 999px; background: var(--a-g100); overflow: hidden; }
 .h5-speed-bar > i {
   position: absolute;
@@ -84,19 +276,20 @@
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
   transform: translateX(-100%);
 }
-.h5-speed-val { margin: 0.65rem 0 0; font-size: 1rem; }
-.h5-speed-val b { margin-right: 0.2rem; font-size: 1.9rem; font-weight: 700; letter-spacing: -0.02em; }
-.h5-price { margin: 1.75rem 0 0; font-size: 1rem; }
-.h5-price b { margin-right: 0.3rem; font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 700; letter-spacing: -0.03em; }
-.h5-price-year { margin: 0.25rem 0 0; font-size: 0.875rem; color: var(--a-ink-3); }
+.h5-speed-val { margin: 0.5rem 0 0; font-size: 1rem; }
+.h5-speed-val b { margin-right: 0.2rem; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
+.h5-price { margin: 0; font-size: 1rem; }
+.h5-price b { margin-right: 0.3rem; font-size: clamp(1.9rem, 3.2vw, 2.6rem); font-weight: 700; letter-spacing: -0.03em; }
+.h5-price-year { margin: 0.2rem 0 0; font-size: 0.875rem; color: var(--a-ink-3); }
 .h5-feats {
   list-style: none;
   display: grid;
-  gap: 0.6rem;
-  margin: 1.5rem 0 1.75rem;
-  padding: 1.25rem 0 0;
+  gap: 0.5rem;
+  margin: 1.25rem 0 1.5rem;
+  padding: 1.1rem 0 0;
   border-top: 1px solid var(--a-g100);
 }
+@media (min-width: 1200px) { .h5-feats { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.25rem; } }
 .h5-feats li { position: relative; padding-left: 1.6rem; font-size: 0.9375rem; line-height: 1.45; }
 .h5-feats li::before {
   content: "";
@@ -118,6 +311,27 @@
 .h5-plan[data-plan="plus"] .h5-speed-bar > i { background: linear-gradient(90deg, var(--a-cobalt), #6B86FF); }
 .h5-plan[data-plan="plus"] .h5-feats { border-top-color: rgba(255, 255, 255, 0.14); }
 .h5-plan[data-plan="plus"] .h5-feats li::before { border-color: #9FB4FF; }
+
+.h5-plans-after { margin-top: 1.5rem; }
+.h5-plans-after .a-legend-note { margin: 0; max-width: 60ch; }
+.h5-vds {
+  position: relative;
+  margin-top: 1.25rem;
+  max-width: 46rem;
+  padding: 1.1rem 4.25rem 1.1rem 1.5rem;
+  border: 1px solid var(--a-g100);
+  border-radius: 20px;
+  background: var(--a-g50);
+}
+.h5-vds-kicker { margin: 0; font-size: 0.8125rem; color: var(--a-ink-3); }
+.h5-vds-text { margin: 0; font-size: 1.05rem; color: var(--a-ink); }
+.h5-vds-text a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--a-cobalt);
+  text-underline-offset: 3px;
+}
 
 /* ─── 05 · кружки и линия ───────────────────────────────────────── */
 .h5-steps { --dot: 72px; }
@@ -149,6 +363,7 @@
 /* Телефон: шаги столбиком, кружок слева; отрезки линии — между
    кружками соседних шагов (точная длина без скрипта). */
 @media (max-width: 899px) {
+  .h5-steps { --dot: 60px; }
   .h5-step { display: grid; grid-template-columns: var(--dot) minmax(0, 1fr); column-gap: 1.25rem; }
   .h5-step .h5-dot { grid-row: span 2; }
   .h5-step h3 { margin-top: 0.5rem; }
@@ -180,9 +395,35 @@
   }
 }
 
-/* ─── 06 · ноутбук ──────────────────────────────────────────────── */
-.h5-dev-grid { display: grid; gap: 2rem; align-items: center; }
-@media (min-width: 900px) { .h5-dev-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); } }
+/* ─── 06 · устройства и ноутбук ─────────────────────────────────── */
+.h5-dev-grid { display: grid; gap: 1.5rem; align-items: center; }
+@media (min-width: 900px) { .h5-dev-grid { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 2.5rem; } }
+.h5-dev .a-lead { margin-bottom: 1.25rem; }
+.h5-os { list-style: none; margin: 0 0 1.25rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.h5-os li {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 40px;
+  padding: 0.4rem 0.85rem 0.4rem 0.7rem;
+  border: 1px solid var(--a-g200);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  line-height: 1.2;
+  color: var(--a-ink);
+}
+.h5-os li svg { flex: none; color: var(--a-cobalt); }
+/* Загоревшаяся платформа — кобальтовый контур поверх серого. */
+.h5-os li::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--a-cobalt);
+  border-radius: inherit;
+  pointer-events: none;
+}
+.h5-dev .a-p { margin-bottom: 0.5rem; }
 /* Постер (открытый ноутбук) лежит под холстом, пока грузятся кадры. */
 .h5-laptop {
   position: relative;
@@ -204,38 +445,121 @@
   mask-composite: intersect;
 }
 .h5-laptop[data-mode="poster"] canvas { display: none; }
-@media (min-width: 900px) {
-  .h5-dev { height: 260svh; padding-block: 0; }
-  .h5-dev .h5-stage {
-    position: sticky;
-    top: var(--a-head-h);
-    min-height: calc(100svh - var(--a-head-h));
-    display: flex;
-    align-items: center;
-  }
-  .h5-dev .h5-stage > .a-field { width: 100%; }
+@media (max-width: 899px) {
+  .h5-laptop { width: min(100%, 520px); justify-self: center; margin-top: -0.5rem; }
 }
 
-/* ─── 07 · место под объект миссии ──────────────────────────────── */
+/* ─── 07 · миссия и компания ────────────────────────────────────── */
 .h5-mission { isolation: isolate; }
+.h5-mission > .a-field { position: relative; z-index: 1; }
+/* Сфера-сеть справа за текстом. Холст с запасом по краям: облако на
+   входе шире собранной сферы (MissionGL, 11.09.2026) — рамки и
+   overflow у холста нет. */
 .h5-mission-art {
   position: absolute;
-  z-index: -1;
-  right: 0;
-  top: 50%;
-  width: min(48vw, 680px);
+  z-index: 0;
+  right: -6vw;
+  top: clamp(0rem, 2vh, 2rem);
+  width: min(60vw, 880px);
   aspect-ratio: 1;
-  transform: translateY(-50%);
   pointer-events: none;
 }
+/* Телефон: отдельной плиткой под текстом сфера была «бессмысленна»
+   (владелец). Здесь она — приглушённый фон за заголовком и числами:
+   сдвинута вправо за край, текст остаётся на белом. */
 @media (max-width: 899px) {
-  .h5-mission-art { position: relative; z-index: 0; top: auto; right: auto; width: min(100%, 420px); margin: 2rem auto 0; transform: none; }
+  .h5-mission-art { top: 0.5rem; right: -38%; width: 108%; opacity: 0.42; }
+}
+/* Заглушка без видеокарты: MissionGL ставит корню data-mission и
+   --mission-x/y/r, режим data-mode="poster" — точечная сфера из фона. */
+[data-mission][data-mode="poster"] {
+  background:
+    radial-gradient(circle closest-side at var(--mission-x) var(--mission-y), rgba(20, 50, 184, 0.1) 0, rgba(20, 50, 184, 0.04) calc(var(--mission-r) * 0.8), transparent calc(var(--mission-r) * 1.25)),
+    radial-gradient(circle, #1432B8 0 1.6px, transparent 2.2px) 0 0 / 46px 46px,
+    radial-gradient(circle, #8F9AB0 0 1.2px, transparent 1.8px) 0 0 / 15px 15px;
+  -webkit-mask-image: radial-gradient(circle closest-side at var(--mission-x) var(--mission-y), #000 calc(var(--mission-r) * 0.72), transparent var(--mission-r));
+  mask-image: radial-gradient(circle closest-side at var(--mission-x) var(--mission-y), #000 calc(var(--mission-r) * 0.72), transparent var(--mission-r));
+}
+.h5-mission .h5-h2 { max-width: 15ch; }
+.h5-mission .h5-rule { max-width: 44rem; }
+.h5-mission-lead { max-width: 42ch; }
+/* Три числа — самый крупный набор блока после заголовка. */
+.h5-facts {
+  list-style: none;
+  margin: clamp(1.75rem, 5vh, 3rem) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  max-width: 42rem;
+}
+.h5-facts li { padding-top: 0.9rem; }
+.h5-facts li::before {
+  content: "";
+  display: block;
+  height: 2px;
+  margin: -0.9rem 0 0.9rem;
+  background: var(--a-ink);
+  transform-origin: left;
+}
+.h5-facts b {
+  display: block;
+  font-family: var(--a-wide);
+  font-weight: 700;
+  font-size: clamp(1.8rem, 8vw, 4.75rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--a-cobalt);
+  white-space: nowrap;
+}
+.h5-facts span { display: block; margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.35; color: var(--a-ink-2); max-width: 18ch; }
+/* Широкий экран: колонки по ширине числа — «2016» крупным кеглем шире
+   трети колонки и наезжал на соседнее число (кадр 11.09.2026). */
+@media (min-width: 900px) {
+  .h5-facts { grid-template-columns: repeat(3, max-content); column-gap: clamp(2rem, 4.5vw, 4.5rem); max-width: none; }
+  .h5-facts b { font-size: clamp(2.4rem, 4.6vw, 4.5rem); }
+}
+/* Ценности — плитки с иконкой: заголовок плитки главнее текста. */
+.h5-values {
+  list-style: none;
+  margin: clamp(2.5rem, 7vh, 4.5rem) 0 1.75rem;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+@media (min-width: 640px) { .h5-values { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .h5-values { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.h5-value {
+  position: relative;
+  padding: 1.35rem 1.35rem 1.5rem;
+  border: 1px solid var(--a-g200);
+  border-radius: 20px;
+  background: var(--a-paper);
+}
+.h5-value-ico {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1.1rem;
+  border-radius: 14px;
+  background: var(--a-shoal);
+  color: var(--a-cobalt);
+}
+.h5-value h3 { margin: 0 0 0.4rem; font-family: var(--a-wide); font-weight: 500; font-size: 1.15rem; line-height: 1.25; }
+.h5-value p { margin: 0; color: var(--a-ink-2); font-size: 0.9375rem; line-height: 1.55; }
+@media (max-width: 639px) {
+  /* Телефон: иконка слева от заголовка — плитка ниже, ритм плотнее. */
+  .h5-value { display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 1rem; padding: 1.1rem; }
+  .h5-value-ico { grid-row: span 2; width: 44px; height: 44px; margin: 0; border-radius: 12px; }
+  .h5-value h3 { align-self: center; margin: 0; }
+  .h5-value p { margin-top: 0.3rem; }
 }
 
 /* ─── 08 · кольцо из трёх дней ──────────────────────────────────── */
 /* Телефон — под текстом (разметка после поля), широкий экран — справа
    внизу, рядом со второй строкой заголовка, а не поверх неё. */
-.h5-days { position: relative; width: min(72vw, 300px); aspect-ratio: 1; margin: 2.5rem var(--a-gutter) 0; }
+.h5-days { position: relative; width: min(64vw, 280px); aspect-ratio: 1; margin: 2rem var(--a-gutter) 0; }
 @media (min-width: 900px) {
   .h5-days {
     position: absolute;
@@ -283,36 +607,47 @@
 
 /* ═══ ДВИЖЕНИЕ ═══════════════════════════════════════════════════════ */
 
-/* 02 — поток: с Atlas точки текут ровно, без Atlas ползут и застревают
-   там, где обрывается дорожка (61%). Холостой слой — пауза вне кадра. */
-[data-lane="fast"] .h5-flow i { animation: h5-run 1.8s linear infinite; animation-delay: calc(var(--k) * -0.257s); }
-[data-lane="slow"] .h5-flow i {
-  animation: h5-stall 6s cubic-bezier(0.25, 0.8, 0.35, 1) infinite;
-  animation-delay: calc(var(--k) * -1.2s);
-}
-@keyframes h5-run { from { transform: translateX(-100%); } to { transform: translateX(0); } }
-@keyframes h5-stall {
-  0%   { transform: translateX(-100%); opacity: 0; }
-  10%  { opacity: 1; }
-  60%  { transform: translateX(-43%); }
-  88%  { transform: translateX(-40%); opacity: 1; }
-  100% { transform: translateX(-39%); opacity: 0; }
-}
-
-/* 04 — по шкале скорости бежит блик; при наведении карточка подходит. */
+/* 04 — по шкале скорости бежит блик; при наведении карточка подходит,
+   стрелка в кружке угла выпрямляется из ↗ в →. */
 .h5-speed-bar > i > b { animation: h5-shine 2.6s var(--m-tide) infinite; }
 .h5-plan[data-plan="basic"] .h5-speed-bar > i > b { animation-duration: 5.2s; }
 @keyframes h5-shine { to { transform: translateX(320%); } }
-.h5-plan { transition: transform var(--d-2) var(--m-settle), border-color var(--d-1) var(--m-turn); }
+.h5-plan, .h5-value { transition: transform var(--d-2) var(--m-settle), border-color var(--d-1) var(--m-turn); }
+.h5-home .ak-corner { transition: background-color var(--d-1) var(--m-turn); }
+.h5-home .ak-corner svg { transition: transform var(--d-2) var(--m-settle); }
+.h5-value-ico { transition: background-color var(--d-1) var(--m-turn), color var(--d-1) var(--m-turn); }
 @media (hover: hover) {
-  .h5-plan:hover { transform: translateY(-4px); border-color: var(--a-cobalt); }
+  .h5-plan:hover, .h5-value:hover { transform: translateY(-4px); border-color: var(--a-cobalt); }
+  .h5-plan:hover .ak-corner svg, .h5-vds:hover .ak-corner svg { transform: none; }
+  .h5-home .ak-corner:hover { background: var(--a-cobalt); }
+  .h5-home [data-plan="plus"] .ak-corner:hover { background: var(--a-cobalt-deep); }
+  /* Наведение переворачивает материал: плитка иконки — кобальтовая. */
+  .h5-value:hover .h5-value-ico { background: var(--a-cobalt); color: #FFFFFF; }
 }
+.h5-home .ak-corner:focus-visible svg { transform: none; }
 
 /* 08 — точка обходит кольцо. */
 .h5-days-orbit { animation: h5-orbit 12s linear infinite; }
 @keyframes h5-orbit { to { transform: rotate(360deg); } }
 
 @supports (animation-timeline: view()) {
+  /* ── Стоп и заливка: без закрепления (телефон, невысокое окно) ──
+     Заголовок заливается, пока идёт от низа окна к середине; линия
+     под ним — синхронно. Закреплённые варианты ниже меняют шкалу. */
+  .h5-h2 { view-timeline: --h5-title block; }
+  .h5-fill {
+    animation: h5-fill linear both;
+    animation-timeline: --h5-title;
+    animation-range: entry 100% cover 50%;
+  }
+  .h5-rule i {
+    animation: h5-rule linear both;
+    animation-timeline: view();
+    animation-range: entry 100% cover 50%;
+  }
+  @keyframes h5-fill { from { background-position: 100% 0; } }
+  @keyframes h5-rule { from { transform: translateX(-100%); } }
+
   /* 04 — шкала скорости дотягивается до своего значения при входе. */
   .h5-speed-bar > i {
     animation: h5-bar linear both;
@@ -320,6 +655,142 @@
     animation-range: entry 40% cover 45%;
   }
   @keyframes h5-bar { from { transform: scaleX(0); } }
+
+  /* 06 — платформы загораются по очереди. */
+  .h5-os { view-timeline: --h5-os block; }
+  .h5-os li { animation: h5-chip linear both; }
+  .h5-os li::before { animation: h5-in linear both; }
+  .h5-os li, .h5-os li::before {
+    animation-timeline: --h5-os;
+    animation-range: entry calc(10% + var(--k) * 12%) entry calc(45% + var(--k) * 12%);
+  }
+  @keyframes h5-chip { from { opacity: 0.3; transform: translateY(8px); } }
+  @keyframes h5-in { from { opacity: 0; } }
+  @keyframes h5-out { from { opacity: 1; } }
+
+  /* 07 — три числа и плитки поднимаются лесенкой, линия над числом
+     прочерчивается. */
+  .h5-facts li, .h5-value { view-timeline: --h5-up block; }
+  .h5-facts li, .h5-value { animation: h5-rise linear both; }
+  .h5-facts li::before { animation: h5-line linear both; }
+  .h5-facts li, .h5-value, .h5-facts li::before {
+    animation-timeline: --h5-up;
+    animation-range: entry calc(5% + var(--k) * 14%) entry calc(60% + var(--k) * 12%);
+  }
+  @keyframes h5-rise { from { opacity: 0; transform: translateY(32px); } }
+  @keyframes h5-line { from { transform: scaleX(0); } }
+
+  /* ── 02 — без закрепления: переключатель щёлкает при входе, каждая
+     строка переходит по своей шкале. ── */
+  .h5-toggle { view-timeline: --h5-tg block; }
+  .h5-toggle-sw::before, .h5-toggle-sw i::after, .h5-toggle-on { animation: h5-in linear both; }
+  .h5-toggle-off { animation: h5-out linear both; }
+  .h5-toggle-sw i { animation: h5-knob linear both; }
+  .h5-toggle-sw::before, .h5-toggle-sw i, .h5-toggle-sw i::after, .h5-toggle-on, .h5-toggle-off {
+    animation-timeline: --h5-tg;
+    animation-range: entry 100% cover 55%;
+  }
+  .h5-diff-row { view-timeline: --h5-row block; }
+  .h5-strike { animation: h5-strike linear both; animation-timeline: --h5-row; animation-range: entry 100% cover 45%; }
+  .h5-diff-arrow i { animation: h5-arrow linear both; animation-timeline: --h5-row; animation-range: cover 40% cover 50%; }
+  .h5-diff-now { animation: h5-now linear both; animation-timeline: --h5-row; animation-range: cover 38% cover 56%; }
+  @keyframes h5-knob { from { transform: none; } }
+  @keyframes h5-strike { from { background-position: 100% 58%; } }
+  @keyframes h5-arrow { from { transform: scaleX(0); } }
+  @keyframes h5-now { from { opacity: 0; transform: translateX(-0.5em); } }
+
+  /* ── Закрепление. Только когда кадр целиком помещается в окно (на
+     телефоне тарифы и ноутбук не помещаются — там без стопа), и не
+     при reduced-motion / ?static=1: там обычный раздел. ── */
+
+  /* 02 — сцена в 2,8 окна: щелчок → четыре ситуации по очереди → пауза. */
+  @media (prefers-reduced-motion: no-preference) and (min-width: 1000px) and (min-height: 700px),
+         (prefers-reduced-motion: no-preference) and (max-width: 999px) and (min-height: 740px) {
+    html:not([data-static]) .h5-diff-hold { height: 280svh; view-timeline: --h5-diff block; }
+    html:not([data-static]) .h5-diff-stage {
+      position: sticky;
+      top: var(--a-head-h);
+      min-height: calc(100svh - var(--a-head-h));
+      display: flex;
+      align-items: center;
+      padding-block: clamp(0.75rem, 4vh, 3rem);
+    }
+    html:not([data-static]) .h5-diff-stage > .a-field { width: 100%; }
+    html:not([data-static]) :is(.h5-toggle-sw::before, .h5-toggle-sw i, .h5-toggle-sw i::after, .h5-toggle-on, .h5-toggle-off) {
+      animation-timeline: --h5-diff;
+      animation-range: contain 3% contain 12%;
+    }
+    html:not([data-static]) .h5-strike {
+      animation-timeline: --h5-diff;
+      animation-range: contain calc(16% + var(--k) * 18%) contain calc(24% + var(--k) * 18%);
+    }
+    html:not([data-static]) .h5-diff-arrow i {
+      animation-timeline: --h5-diff;
+      animation-range: contain calc(21% + var(--k) * 18%) contain calc(26% + var(--k) * 18%);
+    }
+    html:not([data-static]) .h5-diff-now {
+      animation-timeline: --h5-diff;
+      animation-range: contain calc(23% + var(--k) * 18%) contain calc(31% + var(--k) * 18%);
+    }
+  }
+
+  /* 04 — кадр с заголовком и карточками держится ~окно: заголовок
+     заливается, линия бежит, затем дотягиваются шкалы канала. */
+  @media (prefers-reduced-motion: no-preference) and (min-width: 1200px) and (min-height: 780px) {
+    html:not([data-static]) .h5-plans-sec { padding-top: 0; }
+    html:not([data-static]) .h5-plans-sec .h5-hold { height: 190svh; view-timeline: --h5-hold block; }
+    html:not([data-static]) .h5-plans-sec .h5-hold-stage {
+      position: sticky;
+      top: var(--a-head-h);
+      min-height: calc(100svh - var(--a-head-h));
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-block: 0.75rem;
+    }
+    /* Плотнее, чтобы кадр встал в 1280×800 целиком. */
+    html:not([data-static]) .h5-plans-sec .h5-rule { margin-bottom: 1rem; }
+    html:not([data-static]) .h5-plans-sec .a-p { margin-bottom: 0; }
+    html:not([data-static]) .h5-plans-sec .h5-plans { margin-top: 1.25rem; }
+    html:not([data-static]) .h5-plans-sec .h5-plan-mid { margin-top: 1.1rem; }
+    html:not([data-static]) .h5-plans-sec .h5-feats { margin: 1rem 0 1.1rem; padding-top: 0.9rem; }
+    html:not([data-static]) .h5-plans-sec :is(.h5-fill, .h5-rule i) {
+      animation-timeline: --h5-hold;
+      animation-range: contain 0% contain 45%;
+    }
+    html:not([data-static]) .h5-plans-sec .h5-speed-bar > i {
+      animation-timeline: --h5-hold;
+      animation-range: contain 35% contain 75%;
+    }
+  }
+
+  /* 06 — заливка → ноутбук открывается (LaptopScrub по той же высоте)
+     → платформы загораются. Пустых экранов прокрутки нет. */
+  @media (prefers-reduced-motion: no-preference) and (min-width: 900px) and (min-height: 700px) {
+    html:not([data-static]) .h5-dev { padding-block: 0; }
+    html:not([data-static]) .h5-dev .h5-hold { height: 220svh; view-timeline: --h5-hold block; }
+    html:not([data-static]) .h5-dev .h5-hold-stage {
+      position: sticky;
+      top: var(--a-head-h);
+      min-height: calc(100svh - var(--a-head-h));
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-block: 1.25rem;
+    }
+    html:not([data-static]) .h5-dev :is(.h5-fill, .h5-rule i) {
+      animation-timeline: --h5-hold;
+      animation-range: contain 0% contain 30%;
+    }
+    html:not([data-static]) .h5-dev :is(.h5-os li, .h5-os li::before) {
+      animation-timeline: --h5-hold;
+      animation-range: contain calc(40% + var(--k) * 8%) contain calc(47% + var(--k) * 8%);
+    }
+    html:not([data-static]) .h5-dev .h5-laptop {
+      width: min(100%, calc((100svh - var(--a-head-h) - 15rem) * 14 / 9));
+      justify-self: center;
+    }
+  }
 
   /* 05 — шкала раздела. На широком экране раздел закреплён: линия идёт
      от первого кружка ко второму, затем к третьему, светится и
@@ -355,14 +826,14 @@
   }
   @media (max-width: 899px) {
     .h5-step:nth-child(1) :is(.h5-dot, h3, p) { animation-range: cover 18% cover 24%; }
-    .h5-step:nth-child(2) :is(.h5-dot, h3, p) { animation-range: cover 38% cover 44%; }
-    .h5-step:nth-child(3) :is(.h5-dot, h3, p) { animation-range: cover 58% cover 64%; }
+    .h5-step:nth-child(2) :is(.h5-dot, h3, p) { animation-range: cover 30% cover 38%; }
+    .h5-step:nth-child(3) :is(.h5-dot, h3, p) { animation-range: cover 42% cover 50%; }
     .h5-step:not(:last-child)::after {
       animation: h5-seg linear both, h5-seg-melt linear both;
       animation-timeline: --h5-steps, --h5-steps;
     }
-    .h5-step:nth-child(1)::after { animation-range: cover 22% cover 40%, cover 66% cover 80%; }
-    .h5-step:nth-child(2)::after { animation-range: cover 42% cover 60%, cover 66% cover 80%; }
+    .h5-step:nth-child(1)::after { animation-range: cover 22% cover 32%, cover 62% cover 76%; }
+    .h5-step:nth-child(2)::after { animation-range: cover 34% cover 44%, cover 62% cover 76%; }
   }
 
   @keyframes h5-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
@@ -392,12 +863,12 @@
   @keyframes h5-pop { from { opacity: 0; transform: scale(0.7); } }
 }
 
-/* Упрощение: конечный кадр, без закрепления и лишней высоты. */
+/* Упрощение: конечный кадр, без закрепления и лишней высоты. Сцены 02,
+   04, 06 закрепляются только при no-preference и без data-static — их
+   отключать не нужно. */
 @media (prefers-reduced-motion: reduce) {
-  .h5-steps, .h5-dev { height: auto; }
-  .h5-steps .h5-stage, .h5-dev .h5-stage { position: static; min-height: 0; }
-  .h5-flow { display: none; }
+  .h5-steps { height: auto; }
+  .h5-steps .h5-stage { position: static; min-height: 0; }
 }
-html[data-static] .h5-steps, html[data-static] .h5-dev { height: auto; }
-html[data-static] .h5-steps .h5-stage, html[data-static] .h5-dev .h5-stage { position: static; min-height: 0; }
-html[data-static] .h5-flow { display: none; }
+html[data-static] .h5-steps { height: auto; }
+html[data-static] .h5-steps .h5-stage { position: static; min-height: 0; }

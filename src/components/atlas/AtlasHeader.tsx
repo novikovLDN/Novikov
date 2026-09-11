@@ -1,6 +1,11 @@
 import Link from "next/link";
 import BrandMark from "@/components/pixel/BrandMark";
 import { PRODUCTS, HEADER_LINKS, SITE_SHEETS, LEGAL_LINKS } from "@/lib/nav";
+import { TRIAL_DAYS } from "@/lib/brand-facts";
+import { plural } from "@/lib/ru-words";
+import IndexCloser from "./IndexCloser";
+
+const TRIAL = `${TRIAL_DAYS} ${plural(TRIAL_DAYS, ["день", "дня", "дней"])}`;
 
 /**
  * Шапка — верхнее поле листа.
@@ -55,24 +60,35 @@ export default function AtlasHeader({
         {cta ? <Link href={cta.href} className="a-head-cta">{cta.label}</Link> : null}
 
         <details className="a-index">
-          <summary className="a-wide">меню</summary>
+          <summary className="a-wide">
+            <span className="a-index-ico" aria-hidden />
+            <span className="a-index-open">меню</span>
+            <span className="a-index-shut">закрыть</span>
+          </summary>
           <nav className="a-index-panel" aria-label="Разделы сайта">
             <ul>
-              {SITE_SHEETS.map((s) => (
-                <li key={s.href}>
+              {SITE_SHEETS.map((s, i) => (
+                <li key={s.href} style={{ ["--i" as string]: i }}>
                   <Link href={s.href}>
                     <span className="a-wide">{s.no}</span> <em>{s.title}</em>
                   </Link>
                 </li>
               ))}
             </ul>
-            <p className="a-index-legal">
-              {LEGAL_LINKS.map((l) => (
-                <Link key={l.href} href={l.href}>{l.label}</Link>
-              ))}
-            </p>
+            <div className="a-index-foot" style={{ ["--i" as string]: SITE_SHEETS.length }}>
+              {/* Главное действие — только на витрине, где в шапке «Войти». */}
+              {cta?.href === "/auth" ? (
+                <Link href="/auth" className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
+              ) : null}
+              <p className="a-index-legal">
+                {LEGAL_LINKS.map((l) => (
+                  <Link key={l.href} href={l.href}>{l.label}</Link>
+                ))}
+              </p>
+            </div>
           </nav>
         </details>
+        <IndexCloser />
       </div>
     </header>
   );

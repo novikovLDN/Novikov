@@ -1,0 +1,127 @@
+/* ═══════════════════════════════════════════════════════════════════
+   /install-ios — «Atlas на экране „Домой“» (11.09.2026). Префикс ios-.
+   Рендеры iPhone 17 Pro Max из Blender, текст шага рядом с рендером,
+   карточка шага со срезом-кружком в углу (Corner) — ведёт к следующему.
+   Раскладка сверху, движение — в разделе «Движение» внизу.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.ios { background: var(--a-g50); }
+
+/* ─── Первый экран ──────────────────────────────────────────────── */
+.ios-hero { padding-block: clamp(2rem, 6vh, 4rem) clamp(1rem, 3vh, 2rem); }
+.ios-hero-grid { display: grid; gap: 2rem; align-items: center; }
+@media (min-width: 900px) { .ios-hero-grid { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); } }
+.ios-kicker { margin: 0 0 0.9rem; font-family: var(--a-wide); font-size: 0.8125rem; color: var(--a-cobalt); }
+.ios-h1 {
+  margin: 0;
+  font-family: var(--a-wide);
+  font-weight: 700;
+  font-size: clamp(2.2rem, 6vw, 4.4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--a-ink);
+}
+.ios-hero .a-lead { margin-top: 1.25rem; max-width: 34ch; }
+.ios-perks { list-style: none; display: grid; gap: 0.65rem; margin: 1.5rem 0 0; padding: 0; }
+.ios-perks li { position: relative; padding-left: 1.7rem; font-size: 0.975rem; line-height: 1.5; color: var(--a-ink-2); }
+.ios-perks li b { color: var(--a-ink); font-weight: 500; }
+.ios-perks li::before {
+  content: "";
+  position: absolute;
+  left: 0.15rem;
+  top: 0.38em;
+  width: 11px;
+  height: 6px;
+  border-left: 2px solid var(--a-cobalt);
+  border-bottom: 2px solid var(--a-cobalt);
+  transform: rotate(-45deg);
+}
+.ios-hero .a-actions { margin-top: 1.75rem; }
+.ios-hero-art { margin: 0; }
+.ios-hero-art img { display: block; width: min(100%, 560px); height: auto; margin-inline: auto; }
+
+/* ─── Шаги ──────────────────────────────────────────────────────── */
+.ios-steps { list-style: none; margin: 0; padding: 0; }
+.ios-step { padding-block: clamp(1.25rem, 4vh, 3rem); scroll-margin-top: var(--a-head-h); }
+.ios-step-grid { display: grid; gap: 1.25rem; align-items: center; }
+@media (min-width: 900px) {
+  .ios-step-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(2rem, 5vw, 5rem); }
+  .ios-step[data-flip] .ios-shot { order: 2; }
+}
+.ios-shot { margin: 0; }
+.ios-shot img { display: block; width: min(100%, 480px); height: auto; margin-inline: auto; }
+.ios-card {
+  position: relative;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border: 1px solid var(--a-g200);
+  border-radius: 28px;
+  background: var(--a-paper);
+}
+/* Кольцо выреза — цвета поля страницы, а не рамы кабинета. */
+.ios .ak-corner { box-shadow: 0 0 0 6px var(--a-g50); }
+.ios-card:has(> .ak-corner) .ios-step-no { padding-right: 48px; }
+.ios-step-no { margin: 0 0 0.9rem; font-family: var(--a-wide); font-size: 1rem; color: var(--a-ink-3); }
+.ios-step-no b { margin-right: 0.15rem; font-size: clamp(3rem, 7vw, 4.8rem); line-height: 0.9; letter-spacing: -0.04em; color: var(--a-cobalt); }
+.ios-h2 {
+  margin: 0;
+  font-family: var(--a-wide);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--a-ink);
+}
+.ios-text { margin: 0.8rem 0 0; font-size: 1.0625rem; line-height: 1.6; color: var(--a-ink-2); max-width: 40ch; }
+.ios-tip {
+  margin: 1.1rem 0 0;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: var(--a-shoal);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--a-ink);
+}
+.ios-rail { display: block; height: 3px; margin-top: 1.5rem; border-radius: 3px; background: var(--a-g100); overflow: hidden; }
+.ios-rail i { display: block; height: 100%; border-radius: inherit; background: var(--a-cobalt); transform-origin: left; }
+
+/* ─── Финал: тёмная плита ───────────────────────────────────────── */
+.ios-done { padding-block: clamp(1.5rem, 5vh, 3rem) clamp(3rem, 8vh, 5rem); }
+.ios-done-card { padding: clamp(1.75rem, 4vw, 3rem); border-radius: 28px; background: var(--a-ink); color: #FFFFFF; }
+.ios-done-card .ios-h2 { color: #FFFFFF; }
+.ios-done-card .ios-text { color: rgba(255, 255, 255, 0.75); max-width: 56ch; }
+.ios-done-card .a-actions { margin-top: 1.5rem; }
+
+/* ═══ ДВИЖЕНИЕ ═══════════════════════════════════════════════════════ */
+.ios-card { transition: transform var(--d-2) var(--m-settle), border-color var(--d-1) var(--m-turn); }
+@media (hover: hover) {
+  .ios-card:hover { transform: translateY(-3px); border-color: var(--a-cobalt); }
+}
+/* Телефон на первом экране медленно парит — холостой слой. */
+.ios-hero-art img { animation: ios-float 7s var(--m-tide) infinite; }
+@keyframes ios-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+@supports (animation-timeline: view()) {
+  /* Телефон шага поднимается и выпрямляется, пока шаг входит в кадр. */
+  .ios-shot img {
+    animation: ios-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 40%;
+  }
+  .ios-step[data-flip] .ios-shot img { animation-name: ios-rise-r; }
+  @keyframes ios-rise { from { transform: translateY(70px) scale(0.9) rotate(-3deg); opacity: 0.2; } }
+  @keyframes ios-rise-r { from { transform: translateY(70px) scale(0.9) rotate(3deg); opacity: 0.2; } }
+  /* Номер шага проявляется, линия под текстом заполняется синим. */
+  .ios-step-no b {
+    display: inline-block;
+    animation: ios-pop linear both;
+    animation-timeline: view();
+    animation-range: entry 30% cover 35%;
+  }
+  @keyframes ios-pop { from { transform: translateY(24px); opacity: 0.15; } }
+  .ios-rail i {
+    animation: ios-fill linear both;
+    animation-timeline: view();
+    animation-range: entry 50% cover 60%;
+  }
+  @keyframes ios-fill { from { transform: scaleX(0); } }
+}

@@ -29,6 +29,10 @@ export default function IosInstallBanner() {
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (navigator as unknown as { standalone?: boolean }).standalone === true;
+    // В кабинете — свой нижний лист IosInstallSheet (сразу, через 2,5 с);
+    // на странице инструкции предлагать установку незачем.
+    const path = window.location.pathname;
+    if (path.startsWith("/dashboard") || path.startsWith("/install-ios")) return;
     if (!ios || standalone || snoozed(SNOOZE_KEY, 7)) return;
 
     let cancelSlot = () => {};
@@ -145,7 +149,8 @@ export default function IosInstallBanner() {
         </button>
       </div>
       <div className="ov-actions">
-        <button type="button" onClick={() => setGuide(true)} className="ov-btn ov-btn-primary">Как установить</button>
+        {/* Пошаговая инструкция с рендерами — отдельный экран /install-ios. */}
+        <a href="/install-ios" onClick={dismiss} className="ov-btn ov-btn-primary">Как установить</a>
         <button type="button" onClick={dismiss} className="ov-btn ov-btn-text">Не сейчас</button>
       </div>
     </div>

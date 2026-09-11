@@ -1,13 +1,14 @@
 import Link from "next/link";
 import AtlasShell from "./AtlasShell";
 import AtlasDefs from "./AtlasDefs";
-import IsoFragment from "./IsoFragment";
 import HeroField from "./HeroField";
 import HeroReel from "./HeroReel";
 import GlobeGL from "./GlobeGL";
 import MissionGL from "./MissionGL";
 import PointerDrift from "./PointerDrift";
 import LaptopScrub from "./LaptopScrub";
+import Corner from "./Corner";
+import Icon, { type IconName } from "@/components/pixel/Icon";
 import type { ReactNode } from "react";
 import "@/app/home-v5.css";
 import {
@@ -20,23 +21,29 @@ import { plural } from "@/lib/ru-words";
 import { FOUNDED } from "@/lib/nav";
 
 /**
- * Главная — «Атлас-издание», редакция 5 (разбор владельца 11.09.2026).
+ * Главная — «Атлас-издание», редакция 6 (разбор владельца 11.09.2026,
+ * второй проход).
  *
- *   01 буквы поднимаются, объёмные формы из Blender за текстом, нырок
- *   02 закреплённая сцена: слова проявляются, по дорожкам бегут данные —
- *      без Atlas ползут и застревают, с Atlas текут ровно
+ *   01 буквы поднимаются, в строке лида — переключатель, который
+ *      включается при загрузке
+ *   02 закреплённая сцена «что меняется, когда Atlas включён»: большой
+ *      переключатель щёлкает, ситуации по очереди переходят из «без
+ *      Atlas» в «с Atlas»
  *   03 «зум с остановкой»: глобус реального времени за текстом
- *   04 тарифы карточками, ширина канала — шкала
+ *   04 стоп и заливка: раздел держится, заголовок заливается кобальтом,
+ *      под ним бежит линия, шкалы канала дотягиваются
  *   05 линия по прокрутке идёт от кружка к кружку и расплывается
- *   06 ноутбук открывается по прокрутке (кадры Blender, LaptopScrub)
- *   07 миссия и компания, живой объект реального времени
+ *   06 стоп и заливка + ноутбук открывается по прокрутке (LaptopScrub),
+ *      платформы загораются по очереди
+ *   07 миссия: заливка заголовка, три числа, ценности плитками
  *   08 кольцо из бесплатных дней заполняется по прокрутке
  *
  * Тексты — польза и короткое объяснение, числа из src/lib.
  *
- * Моушн: atlas.css, раздел 6 (блоки 01–03), home-v5.css (04–08 и поток
- * в 02). Только transform, opacity и шкалы браузера; холостой слой на
- * паузе вне кадра; без скрипта и при reduced-motion — конечный кадр.
+ * Моушн: atlas.css, раздел 6 (блоки 01, 03), home-v5.css (02, 04–08).
+ * Только transform, opacity, переменные и позиция фона у заливки
+ * заголовка; холостой слой на паузе вне кадра; без скрипта, без шкал
+ * прокрутки и при reduced-motion — конечный кадр.
  */
 
 const TRIAL = `${TRIAL_DAYS} ${plural(TRIAL_DAYS, ["день", "дня", "дней"])}`;
@@ -45,13 +52,6 @@ const DEVICE_WORD = plural(DEVICE_LIMIT, ["устройство", "устрой�
 
 const HERO_1 = "всё открывается";
 const HERO_2 = "и не тормозит";
-
-/** Плитки распада медленной дорожки: сдвиг растёт к краю, как смаз кадра. */
-const MOSH = Array.from({ length: 14 }, (_, i) => {
-  const col = i % 7;
-  const row = Math.floor(i / 7);
-  return Math.round(col * col * 0.55 + (row ? col * 1.5 : 0));
-});
 
 /** Изобаты под плитой: линии глубины, светлее плиты. */
 const ISOBATHS = Array.from({ length: 7 }, (_, k) => {
@@ -97,16 +97,30 @@ function Chars({ text, start = 0 }: { text: string; start?: number }) {
   );
 }
 
-/** 02 — данные бегут по дорожке: без Atlas ползут и застревают, с Atlas текут ровно. */
-function Flow({ n }: { n: number }) {
+/**
+ * Заголовок «стоп и заливка»: текст заливается кобальтом слева направо
+ * по строкам (фон-градиент под текстом, позиция идёт по прокрутке), под
+ * ним бежит тонкая линия с точкой. Конечный кадр — залит целиком.
+ */
+function FillTitle({ id, no, children }: { id: string; no: string; children: ReactNode }) {
   return (
-    <span className="h5-flow" aria-hidden>
-      {Array.from({ length: n }, (_, k) => (
-        <i key={k} className="a-idle" style={{ ["--k" as string]: k }} />
-      ))}
-    </span>
+    <>
+      <h2 id={id} className="a-h2 h5-h2">
+        <span className="a-no">{no}</span>
+        <span className="h5-fill">{children}</span>
+      </h2>
+      <div className="h5-rule" aria-hidden><i /></div>
+    </>
   );
 }
+
+/** 02 — что меняется, когда Atlas включён. Без чисел: только польза. */
+const DIFF: { what: string; was: string; now: string }[] = [
+  { what: "Видео", was: "долго грузится и встаёт на паузу", now: "запускается сразу и идёт без пауз" },
+  { what: "Сайты и приложения", was: "открываются через раз", now: "открываются сразу и целиком" },
+  { what: "Игры и созвоны", was: "звук отстаёт, картинка дёргается", now: "звук и картинка идут ровно" },
+  { what: "Wi-Fi в кафе и отеле", was: "чужие могут видеть, что вы открываете", now: "всё, что вы открываете, зашифровано" },
+];
 
 /** 05 — три шага. */
 const STEPS: { t: string; d: ReactNode }[] = [
@@ -120,6 +134,23 @@ const STEPS: { t: string; d: ReactNode }[] = [
       </>
     ),
   },
+];
+
+/** 06 — платформы. Список повторяет PLATFORMS в src/app/devices/DevicesView.tsx. */
+const OS: { icon: IconName; name: string }[] = [
+  { icon: "iphone", name: "iPhone и iPad" },
+  { icon: "android", name: "Android" },
+  { icon: "windows", name: "Windows" },
+  { icon: "macos", name: "macOS" },
+  { icon: "tv", name: "Android TV" },
+];
+
+/** 07 — ценности компании. */
+const VALUES: { icon: IconName; t: string; d: string }[] = [
+  { icon: "bolt", t: "Скорость по умолчанию", d: "Сайты, видео и игры открываются сразу, где бы вы ни были." },
+  { icon: "check", t: "Простота", d: "Вход по почте, ключ в кабинете, включение одним касанием." },
+  { icon: "clock", t: "Честные условия", d: `${TRIAL} бесплатно без карты, понятные цены и отмена в один клик.` },
+  { icon: "lock", t: "Приватность", d: "Трафик шифруется на пути от вашего устройства до нашего сервера." },
 ];
 
 /** 08 — дуги кольца: по одной на каждый бесплатный день, с зазорами. */
@@ -157,7 +188,7 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
     <AtlasShell sheetNo="01" sheetTitle="Главная">
       <AtlasDefs />
       <PointerDrift target=".a-cover" />
-      <main id="main" className="a-main">
+      <main id="main" className="a-main h5-home">
         {/* ── 01 · Обещание ─────────────────────────────────────── */}
         <section className="a-sheet a-cover" data-sheet="01" data-title="Главная" aria-labelledby="a-cover-title">
           <HeroField />
@@ -169,9 +200,16 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
             </h1>
 
             <div className="a-cover-grid">
+              {/* В строке — переключатель, который щёлкает при загрузке: сама
+                  фраза «включаете Atlas» показана жестом (владелец,
+                  11.09.2026: прежний фрагмент карты читался как мусор). */}
               <p className="a-lead">
-                VPS-ускоритель для телефона и компьютера. Включаете Atlas <IsoFragment /> — и сайты,
-                видео и приложения открываются сразу и на полной скорости.
+                VPS-ускоритель для телефона и компьютера. Включаете{" "}
+                <span style={{ whiteSpace: "nowrap" }}>
+                  Atlas <span className="a-switch" aria-hidden><i /></span>
+                </span>{" "}
+                — и сайты, видео и приложения
+                открываются сразу и на полной скорости.
               </p>
               <div>
                 <div className="a-actions">
@@ -186,47 +224,49 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
           </div>
         </section>
 
-        {/* ── 02 · Проблема и разница — закреплённая сцена ──────── */}
-        <section className="a-sheet a-plate a-why" data-sheet="02" data-title="Зачем" aria-labelledby="a-why-title">
-          <div className="a-why-stick">
-            <Isobaths />
-            <div className="a-field">
-              <h2 id="a-why-title" className="a-beat"><Words text="Сайты перестали открываться?" /></h2>
-              <p className="a-beat a-beat-neg"><Words text="Дело не в вашем интернете." start={3} /></p>
-
-              <div
-                className="a-lanes"
-                role="img"
-                aria-label="Без Atlas страница застревает и не отвечает. С Atlas открывается полностью."
-              >
-                <div className="a-lane" data-lane="slow">
-                  <span className="a-lane-name a-wide">без Atlas</span>
-                  <span className="a-lane-track" aria-hidden>
-                    <span className="a-lane-fill" />
-                    <Flow n={5} />
-                    <span className="a-mosh">
-                      {MOSH.map((s, i) => (
-                        <i key={i} className="a-idle" style={{ ["--s" as string]: `${s}px` }} />
-                      ))}
+        {/* ── 02 · Что меняется — закреплённая сцена ────────────── */}
+        {/* Владелец, 11.09.2026: «Сайты перестали открываться?» — «крайне
+            глупо, полностью переделать». Новый блок — польза в быту: пока
+            читатель листает, большой переключатель щёлкает, и четыре
+            знакомые ситуации по очереди переходят из «без Atlas» в
+            «с Atlas». Сцена держится, только если помещается в экран. */}
+        <section className="a-sheet a-plate h5-diff" data-sheet="02" data-title="Что меняется" aria-labelledby="h5-diff-title">
+          <Isobaths />
+          <div className="h5-diff-hold">
+            <div className="h5-diff-stage">
+              <div className="a-field h5-diff-grid">
+                <div className="h5-diff-head">
+                  <h2 id="h5-diff-title" className="a-h2">
+                    <span className="a-no">02</span>что меняется, когда Atlas включён
+                  </h2>
+                  <p className="a-p">
+                    Одна кнопка в приложении. Дальше Atlas работает сам — вот что вы заметите в первый же вечер.
+                  </p>
+                  <div className="h5-toggle" aria-hidden>
+                    <span className="h5-toggle-sw"><i /></span>
+                    <span className="h5-toggle-label">
+                      <b className="h5-toggle-off">Atlas выключен</b>
+                      <b className="h5-toggle-on">Atlas включён</b>
                     </span>
-                  </span>
-                  <span className="a-lane-out">не отвечает</span>
+                  </div>
                 </div>
-                <div className="a-lane" data-lane="fast">
-                  <span className="a-lane-name a-wide">с Atlas</span>
-                  <span className="a-lane-track" aria-hidden>
-                    <span className="a-lane-fill" />
-                    <Flow n={7} />
-                    <span className="a-lane-glint a-idle" />
-                  </span>
-                  <span className="a-lane-out">открыто</span>
-                </div>
+                <ul className="h5-diff-list">
+                  {DIFF.map((r, k) => (
+                    <li key={r.what} className="h5-diff-row" style={{ ["--k" as string]: k }}>
+                      <span className="h5-diff-what">{r.what}</span>
+                      <span className="h5-diff-was">
+                        <span className="b-sr">Без Atlas: </span>
+                        <span className="h5-strike">{r.was}</span>
+                      </span>
+                      <span className="h5-diff-arrow" aria-hidden><i /></span>
+                      <span className="h5-diff-now">
+                        <span className="b-sr">С Atlas: </span>
+                        {r.now}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-
-              <p className="a-p a-why-end">
-                Часть сайтов тормозит ещё по дороге к вам. Atlas шифрует трафик и ведёт его в обход,
-                через наш сервер в другой стране, — поэтому страница открывается сразу и целиком.
-              </p>
             </div>
           </div>
         </section>
@@ -239,9 +279,6 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
             reduced-motion — обычный раздел с глобусом за текстом. */}
         <section className="a-sheet a-map a-pin" data-sheet="03" data-title="Страны" aria-labelledby="a-map-title">
           <div className="a-pin-stage">
-            {/* Глобус из Blender за текстом. Плоская карта с главной
-                убрана (владелец, 11.09.2026), осталась на /infrastructure.
-                Смысл глобуса — таблицей ниже, для чтеца экрана. */}
             {/* Глобус реального времени (владелец, 11.09.2026: видео 30 fps
                 «очень резкое», нужна максимальная плавность). Рисуется на
                 частоте экрана — 60/120/240 Гц, движение по реальному
@@ -278,64 +315,82 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
           </div>
         </section>
 
-        {/* ── 04 · Тарифы ───────────────────────────────────────── */}
-        <section className="a-sheet a-legend" data-sheet="04" data-title="Тарифы" id="tariffs" aria-labelledby="a-legend-title">
-          <div className="a-field">
-            <h2 id="a-legend-title" className="a-h2 a-settle">
-              <span className="a-no">04</span>два тарифа. всё уже включено
-            </h2>
-            <p className="a-p a-settle" style={{ ["--i" as string]: 1 }}>
-              Тарифы отличаются только шириной канала — тем, сколько данных проходит одновременно.
-              {" "}{PLAN_CONTENT.basic.name} хватает для сайтов, видео и работы. {PLAN_CONTENT.plus.name}{" "}— для
-              игр, стримов и созвонов, где важен каждый кадр.
-            </p>
+        {/* ── 04 · Тарифы — стоп и заливка ──────────────────────── */}
+        {/* Владелец, 11.09.2026: «во время прокрутки экран останавливается,
+            заголовок заполняется синим, под ним линия-бегунок». Закреплён
+            только кадр с заголовком и карточками; строки ниже идут
+            обычным потоком. Числа — из src/lib/plans.ts. */}
+        <section className="a-sheet a-legend h5-plans-sec" data-sheet="04" data-title="Тарифы" id="tariffs" aria-labelledby="a-legend-title">
+          <div className="h5-hold">
+            <div className="h5-hold-stage">
+              <div className="a-field">
+                <FillTitle id="a-legend-title" no="04">два тарифа. всё уже включено</FillTitle>
+                <p className="a-p a-settle" style={{ ["--i" as string]: 1 }}>
+                  Тарифы отличаются только шириной канала — тем, сколько данных проходит одновременно.
+                  {" "}{PLAN_CONTENT.basic.name} хватает для сайтов, видео и работы. {PLAN_CONTENT.plus.name}{" "}— для
+                  игр, стримов и созвонов, где важен каждый кадр.
+                </p>
 
-            {/* Тарифы карточками (владелец, 11.09.2026: «полоса непонятная —
-                полностью перерисовать»). Ширина канала — шкала, где полная
-                длина — самый быстрый тариф; числа — из src/lib/plans.ts. */}
-            <div className="h5-plans">
-              {(["basic", "plus"] as PlanId[]).map((id, i) => (
-                <article
-                  key={id}
-                  className="h5-plan a-slide"
-                  data-plan={id}
-                  style={{
-                    ["--i" as string]: i,
-                    ["--dir" as string]: i ? 1 : -1,
-                    ["--sp" as string]: PLAN_SPEED[id] / PLAN_SPEED.plus,
-                  }}
-                >
-                  <h3 className="h5-plan-name">{PLAN_CONTENT[id].name}</h3>
-                  <p className="h5-plan-tagline">{PLAN_CONTENT[id].tagline}</p>
-                  <div className="h5-speed">
-                    <p className="h5-speed-label">Ширина канала</p>
-                    <div className="h5-speed-bar" aria-hidden>
-                      <i><b className="a-idle" /></i>
-                    </div>
-                    <p className="h5-speed-val"><b className="a-num">{PLAN_SPEED[id]}</b> Гбит/с</p>
-                  </div>
-                  <p className="h5-price"><b className="a-num">{formatRub(PLANS[id][1])} ₽</b> в месяц</p>
-                  <p className="h5-price-year">за год — {formatRub(pricePerMonth(id, 12))} ₽ в месяц</p>
-                  <ul className="h5-feats">
-                    {PLAN_CONTENT[id].features.map((f) => (
-                      <li key={f}>{f}</li>
-                    ))}
-                  </ul>
-                  <Link href="/pricing" className={`a-btn ${id === "plus" ? "a-btn-invert" : "a-btn-primary"}`}>
-                    Выбрать {PLAN_CONTENT[id].name}
-                  </Link>
-                </article>
-              ))}
+                <div className="h5-plans">
+                  {(["basic", "plus"] as PlanId[]).map((id, i) => (
+                    <article
+                      key={id}
+                      className="h5-plan a-slide"
+                      data-plan={id}
+                      aria-labelledby={`h5-plan-${id}`}
+                      style={{
+                        ["--i" as string]: i,
+                        ["--dir" as string]: i ? 1 : -1,
+                        ["--sp" as string]: PLAN_SPEED[id] / PLAN_SPEED.plus,
+                      }}
+                    >
+                      <Corner href="/pricing" label={`Подробнее о тарифе ${PLAN_CONTENT[id].name}`} />
+                      <div className="h5-plan-top">
+                        <h3 id={`h5-plan-${id}`} className="h5-plan-name">{PLAN_CONTENT[id].name}</h3>
+                        <p className="h5-plan-tagline">{PLAN_CONTENT[id].tagline}</p>
+                      </div>
+                      <div className="h5-plan-mid">
+                        <div className="h5-speed">
+                          <p className="h5-speed-label">Ширина канала</p>
+                          <div className="h5-speed-bar" aria-hidden>
+                            <i><b className="a-idle" /></i>
+                          </div>
+                          <p className="h5-speed-val"><b className="a-num">{PLAN_SPEED[id]}</b> Гбит/с</p>
+                        </div>
+                        <div className="h5-price-box">
+                          <p className="h5-price"><b className="a-num">{formatRub(PLANS[id][1])} ₽</b> в месяц</p>
+                          <p className="h5-price-year">за год — {formatRub(pricePerMonth(id, 12))} ₽ в месяц</p>
+                        </div>
+                      </div>
+                      <ul className="h5-feats">
+                        {PLAN_CONTENT[id].features.map((f) => (
+                          <li key={f}>{f}</li>
+                        ))}
+                      </ul>
+                      <Link href="/pricing" className={`a-btn ${id === "plus" ? "a-btn-invert" : "a-btn-primary"}`}>
+                        Выбрать {PLAN_CONTENT[id].name}
+                      </Link>
+                    </article>
+                  ))}
+                </div>
+              </div>
             </div>
+          </div>
+
+          <div className="a-field h5-plans-after">
             <p className="a-legend-note a-settle" style={{ ["--i" as string]: 4 }}>
               В каждом тарифе — до {DEVICE_LIMIT} {DEVICE_WORD}, все {COUNTRY_COUNT} {COUNTRY_WORD} и отмена
               в один клик. За год выходит дешевле, чем помесячно.
             </p>
-
-            <p className="a-servers-line a-settle" style={{ ["--i" as string]: 5 }}>
-              Нужен целый сервер для проекта или компании? <Link href="/vds">Выделенные серверы</Link> — от{" "}
-              {formatUsd(SERVER_ENTRY_USD)} в месяц.
-            </p>
+            {/* Выделенные серверы — карточкой с кружком в углу: переход на
+                отдельный продукт. */}
+            <div className="h5-vds a-settle" style={{ ["--i" as string]: 5 }}>
+              <Corner href="/vds" label="Выделенные серверы" />
+              <p className="h5-vds-kicker">Для проекта или компании</p>
+              <p className="h5-vds-text">
+                Нужен целый сервер? <Link href="/vds">Выделенные серверы</Link> — от {formatUsd(SERVER_ENTRY_USD)} в месяц.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -374,70 +429,85 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
           </div>
         </section>
 
-        {/* ── 06 · Устройства ───────────────────────────────────── */}
-        {/* Список платформ повторяет PLATFORMS в src/app/devices/DevicesView.tsx. */}
-        {/* Ноутбук открывается по прокрутке (владелец, 11.09.2026): на
-            широком экране раздел закреплён, кадры листает LaptopScrub. */}
-        <section className="a-sheet h5-dev" data-sheet="06" data-title="Устройства" data-scrub aria-labelledby="a-devices-title">
-          <div className="h5-stage">
-            <div className="a-field h5-dev-grid">
-              <div>
-                <h2 id="a-devices-title" className="a-h2 a-settle">
-                  <span className="a-no">06</span>одна подписка на {DEVICE_LIMIT} {DEVICE_WORD}
-                </h2>
-                <p className="a-lead a-settle" style={{ ["--i" as string]: 1 }}>
-                  Телефон, ноутбук, планшет и телевизор — подключайте всё, что есть дома, без доплаты
-                  за каждое устройство.
-                </p>
-                <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
-                  Atlas работает на iPhone и iPad, Android, Windows, macOS и Android TV. Для каждого
-                  устройства есть пошаговая инструкция.
-                </p>
-                <div className="a-actions a-settle" style={{ ["--i" as string]: 3 }}>
-                  <Link href="/devices" className="a-btn a-btn-quiet">Инструкции для устройств</Link>
+        {/* ── 06 · Устройства — стоп и заливка ──────────────────── */}
+        {/* Разбор 11.09.2026: прежнее закрепление на 260svh давало экран
+            пустой прокрутки после того, как ноутбук открылся, а заголовок
+            стоял в узкой колонке в три строки. Теперь заголовок во всю
+            ширину, закрепление короче и занято целиком: заливка →
+            ноутбук открывается → платформы загораются по очереди. */}
+        <section className="a-sheet h5-dev" data-sheet="06" data-title="Устройства" aria-labelledby="a-devices-title">
+          <div className="h5-hold" data-scrub>
+            <div className="h5-hold-stage">
+              <div className="a-field">
+                <FillTitle id="a-devices-title" no="06">одна подписка на {DEVICE_LIMIT} {DEVICE_WORD}</FillTitle>
+                <div className="h5-dev-grid">
+                  <div className="h5-dev-copy">
+                    <p className="a-lead a-settle" style={{ ["--i" as string]: 1 }}>
+                      Телефон, ноутбук, планшет и телевизор — подключайте всё, что есть дома, без доплаты
+                      за каждое устройство.
+                    </p>
+                    <ul className="h5-os" aria-label="Atlas работает на">
+                      {OS.map((o, k) => (
+                        <li key={o.name} style={{ ["--k" as string]: k }}>
+                          <Icon name={o.icon} size={18} />
+                          {o.name}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="a-p a-settle" style={{ ["--i" as string]: 3 }}>
+                      Для каждого устройства есть пошаговая инструкция.
+                    </p>
+                    <div className="a-actions a-settle" style={{ ["--i" as string]: 4 }}>
+                      <Link href="/devices" className="a-btn a-btn-quiet">Инструкции для устройств</Link>
+                    </div>
+                  </div>
+                  <LaptopScrub className="h5-laptop" />
                 </div>
               </div>
-              <LaptopScrub className="h5-laptop" />
             </div>
           </div>
         </section>
 
         {/* ── 07 · Миссия и компания ────────────────────────────── */}
+        {/* Разбор 11.09.2026: «сплошной текст, нет приоритетов». Иерархия:
+            утверждение миссии → три числа → ценности плитками → ссылка.
+            Сфера-сеть реального времени — за текстом справа; на телефоне
+            — приглушённым фоном за заголовком и числами (home-v5.css). */}
         <section className="a-sheet h5-mission" data-sheet="07" data-title="Компания" aria-labelledby="a-company-title">
+          <MissionGL className="h5-mission-art" />
           <div className="a-field">
-            <h2 id="a-company-title" className="a-h2 a-settle">
-              <span className="a-no">07</span>свободный и быстрый интернет для каждого
-            </h2>
-            <p className="a-lead a-settle" style={{ ["--i" as string]: 1 }}>
+            <FillTitle id="a-company-title" no="07">свободный и быстрый интернет для каждого</FillTitle>
+            <p className="a-lead h5-mission-lead a-settle" style={{ ["--i" as string]: 1 }}>
               Наша миссия — чтобы интернет у каждого работал свободно и быстро: без тормозов и
-              сложных настроек.
+              сложных настроек. Atlas Secure — технологическая компания в составе группы QoDev.
             </p>
-            <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
-              Atlas Secure — технологическая компания в составе группы QoDev. Работаем с {FOUNDED} года,
-              держим серверы в {COUNTRY_COUNT} {plural(COUNTRY_COUNT, ["стране", "странах", "странах"])},
-              в команде больше 100 человек.
-            </p>
-            <ul>
-              <li className="a-p a-settle" style={{ ["--i" as string]: 3 }}>
-                <b>Скорость по умолчанию.</b> Сайты, видео и игры должны открываться сразу, где бы вы ни были.
+            <ul className="h5-facts">
+              <li style={{ ["--k" as string]: 0 }}>
+                <b className="a-num">{FOUNDED}</b>
+                <span>год основания</span>
               </li>
-              <li className="a-p a-settle" style={{ ["--i" as string]: 4 }}>
-                <b>Простота.</b> Вход по почте, ключ в кабинете, включение одним касанием.
+              <li style={{ ["--k" as string]: 1 }}>
+                <b className="a-num">{COUNTRY_COUNT}</b>
+                <span>{plural(COUNTRY_COUNT, ["страна", "страны", "стран"])} с нашими серверами</span>
               </li>
-              <li className="a-p a-settle" style={{ ["--i" as string]: 5 }}>
-                <b>Честные условия.</b> {TRIAL} бесплатно без карты, понятные цены и отмена в один клик.
+              <li style={{ ["--k" as string]: 2 }}>
+                <b className="a-num">100+</b>
+                <span>человек в команде</span>
               </li>
-              <li className="a-p a-settle" style={{ ["--i" as string]: 6 }}>
-                <b>Приватность.</b> Трафик шифруется на пути от вашего устройства до нашего сервера.
-              </li>
+            </ul>
+            <ul className="h5-values">
+              {VALUES.map((v, k) => (
+                <li key={v.t} className="h5-value" style={{ ["--k" as string]: k }}>
+                  <span className="h5-value-ico" aria-hidden><Icon name={v.icon} size={22} /></span>
+                  <h3>{v.t}</h3>
+                  <p>{v.d}</p>
+                </li>
+              ))}
             </ul>
             <div className="a-actions a-settle" style={{ ["--i" as string]: 7 }}>
               <Link href="/about" className="a-btn a-btn-quiet">Подробнее о компании</Link>
             </div>
           </div>
-          {/* Живой объект миссии реального времени: сфера-сеть из узлов
-              вокруг стеклянного кобальтового ядра, по сети идёт волна. */}
-          <MissionGL className="h5-mission-art" />
         </section>
 
         {/* ── 08 · Попробовать ──────────────────────────────────── */}

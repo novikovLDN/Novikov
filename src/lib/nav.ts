@@ -63,7 +63,7 @@ export const FOOTER_COLUMNS: NavColumn[] = [
     ],
   },
   {
-    title: "Помощь",
+    title: "Поддержка",
     links: [
       { label: "Поддержка", href: "/support" },
       { label: "Контакты", href: "/contact" },
@@ -71,7 +71,7 @@ export const FOOTER_COLUMNS: NavColumn[] = [
     ],
   },
   {
-    title: "Правовое",
+    title: "Документы",
     links: [
       { label: "Условия", href: "/terms" },
       { label: "Приватность", href: "/privacy" },

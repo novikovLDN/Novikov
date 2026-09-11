@@ -1,0 +1,58 @@
+/* ═══════════════════════════════════════════════════════════════════
+   «Ядро связи» (OrbGL) — 3D реального времени для рабочих экранов:
+   кабинет, оплата, новое устройство, вход (владелец, 11.09.2026:
+   «3D-элементы, которые подходят в личный кабинет и на остальные
+   экраны»). Появляется, когда сцена отрисовала первый кадр
+   ([data-mode]); без WebGL/WebGPU и в режиме экономии трафика —
+   неподвижная сфера из градиентов (data-mode="poster").
+   ═══════════════════════════════════════════════════════════════════ */
+
+[data-orb] {
+  position: relative;
+  opacity: 0;
+  transition: opacity 0.9s var(--m-settle, cubic-bezier(0.2, 0, 0, 1));
+  pointer-events: none;
+}
+[data-orb][data-mode] { opacity: 1; }
+
+/* Заглушка: сфера и мягкий ореол, под тему плиты и состояние подписки. */
+[data-orb][data-mode="poster"] {
+  --orb-core: #7d93ff;
+  --orb-body: #e4e9fd;
+  --orb-mid: #d3dafa;
+  --orb-edge: #8797e6;
+  --orb-halo: rgba(20, 50, 184, 0.07);
+  background:
+    radial-gradient(circle closest-side at var(--orb-x) var(--orb-y),
+      var(--orb-core) 0, var(--orb-body) calc(var(--orb-r) * 0.5), var(--orb-mid) calc(var(--orb-r) * 0.86),
+      var(--orb-edge) calc(var(--orb-r) - 0.6%), transparent var(--orb-r)),
+    radial-gradient(circle closest-side at var(--orb-x) var(--orb-y),
+      var(--orb-halo) var(--orb-r), transparent calc(var(--orb-r) * 1.8));
+}
+[data-orb][data-mode="poster"][data-state="idle"] { --orb-core: #a8b6ff; }
+[data-orb][data-mode="poster"][data-theme="dark"] {
+  --orb-core: #eef1ff;
+  --orb-body: #4a68f2;
+  --orb-mid: #2f4fe0;
+  --orb-edge: #a9b8ff;
+  --orb-halo: rgba(120, 146, 255, 0.18);
+}
+[data-orb][data-mode="poster"][data-theme="dark"][data-state="idle"] { --orb-core: #b9c6ff; }
+[data-orb][data-mode="poster"][data-state="off"] {
+  --orb-core: #c3c6cc;
+  --orb-body: #b0b4bb;
+  --orb-mid: #9a9fa7;
+  --orb-edge: #858a93;
+  --orb-halo: transparent;
+}
+[data-orb][data-mode="poster"][data-theme="dark"][data-state="off"] {
+  --orb-core: #8e949e;
+  --orb-body: #7b818b;
+  --orb-mid: #6a707a;
+  --orb-edge: #8a909a;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-orb] { transition: none; }
+}
+html[data-static] [data-orb] { transition: none; }
