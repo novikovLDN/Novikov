@@ -975,7 +975,7 @@ body:has(.a) {
 .a-reel[data-mode="video"] { opacity: 1; }
 .a-reel[data-mode="poster"] {
   opacity: 1;
-  background: url("/media/hero-relief.jpg") center / cover no-repeat;
+  background: url("/media/hero-objects.jpg") center / cover no-repeat;
 }
 .a-reel[data-mode="poster"] .a-reel-video { display: none; }
 .a-cover:has(.a-reel[data-mode]) .a-hf { opacity: 0; }

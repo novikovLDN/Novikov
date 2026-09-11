@@ -25,9 +25,14 @@ import { useEffect, useRef } from "react";
  *   · reduced-motion, режим экономии трафика и ?static=1 — видео нет,
  *     остаётся неподвижный постер того же рельефа.
  */
-const SRC_WEBM = "/media/hero-relief.webm";
-const SRC_MP4 = "/media/hero-relief.mp4";
-export const POSTER = "/media/hero-relief.jpg";
+/* Редакция 2 (11.09.2026, владелец: «новую другую, прям 3D объёмные
+   элементы по типу Yandex Tech»): композиция объёмных форм — кобальтовое
+   кольцо-канал, сквозь которое пролетают металлические капсулы-пакеты,
+   керамические сферы-серверы, стеклянная сфера, ступенчатая шайба.
+   Сцена «AtlasObjects» в том же файле Blender. */
+const SRC_WEBM = "/media/hero-objects.webm";
+const SRC_MP4 = "/media/hero-objects.mp4";
+export const POSTER = "/media/hero-objects.jpg";
 
 export default function HeroReel() {
   const box = useRef<HTMLDivElement>(null);
