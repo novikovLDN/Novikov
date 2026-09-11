@@ -17,7 +17,7 @@ const RINGS = [5, 4, 3, 2, 1];
 
 export default function NotFound() {
   return (
-    <AtlasShell sheetNo="∅" sheetTitle="Белое пятно">
+    <AtlasShell sheetNo="∅" sheetTitle="Страница не найдена">
       <main id="main" className="a-main">
         <section className="a-sheet a-void" data-sheet="∅" aria-labelledby="a-void-title">
           <div className="a-field a-void-in">
@@ -41,7 +41,7 @@ export default function NotFound() {
             </svg>
             <div>
               <h1 id="a-void-title" className="a-h2">
-                <span className="a-no">лист ∅</span>белое пятно
+                <span className="a-no">404</span>белое пятно
                 <span className="b-sr"> — страница не найдена</span>
               </h1>
               <p className="a-p">

@@ -1,4 +1,4 @@
-import { atlasSerif, atlasWide } from "@/app/atlas-fonts";
+import { atlasWide } from "@/app/atlas-fonts";
 import AtlasHeader from "./AtlasHeader";
 import AtlasFooter from "./AtlasFooter";
 import MotionController from "./MotionController";
@@ -34,7 +34,7 @@ export default function AtlasShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`a ${atlasSerif.variable} ${atlasWide.variable}`}>
+    <div className={`a ${atlasWide.variable}`}>
       <script dangerouslySetInnerHTML={{ __html: BOOT }} />
       <a href="#main" className="b-skip">К содержимому</a>
       <AtlasHeader sheetNo={sheetNo} sheetTitle={sheetTitle} />

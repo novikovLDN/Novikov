@@ -66,16 +66,24 @@
 }
 
 /* ═══ 2. Корпус ═════════════════════════════════════════════════════ */
+/* Одна гарнитура на корпус — MTS Wide (решение владельца 10.09.2026).
+   Прежние роли «антиква» и «текст» указывают на неё же, чтобы не
+   переписывать каждое правило. Курсива у гарнитуры нет: синтетический
+   наклон и полужирность запрещены, выделение — цветом и начертанием.
+   Широкий гротеск в абзаце требует кегля меньше и интерлиньяжа больше,
+   чем узкий: 15 px и 1,6. */
 .a {
-  --a-serif: var(--font-atlas-serif), "Times New Roman", serif;
   --a-wide:  var(--font-atlas-wide), Arial, sans-serif;
-  --a-sans:  var(--font-brand), ui-sans-serif, system-ui, sans-serif;
+  --a-serif: var(--a-wide);
+  --a-sans:  var(--a-wide);
 
   background: var(--a-paper);
   color: var(--a-ink);
   font-family: var(--a-sans);
-  font-size: 1.0625rem;
-  line-height: 1.55;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  font-synthesis: none;
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
 }
@@ -106,7 +114,8 @@ body:has(.a) {
   --acid-deep:  var(--a-cobalt-deep);
 }
 
-.a em { font-family: var(--a-serif); font-style: italic; font-weight: 400; }
+.a em { font-style: normal; font-weight: 500; }
+.a-fit-2, .a-beat-neg, .a-caption, .a-servers, .a-city summary::after { font-style: normal; }
 .a-wide {
   font-family: var(--a-wide);
   font-weight: 500;
@@ -188,14 +197,16 @@ body:has(.a) {
   min-width: 0;
 }
 .a-head-sheet .a-wide { color: var(--a-ink-3); }
-@media (max-width: 520px) { .a-head-sheet em { display: none; } }
+@media (max-width: 520px) { .a-head-sheet { visibility: hidden; } }
 .a-head-cta {
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  padding-inline: 1.1rem;
-  background: var(--a-cobalt);
-  color: #FFFFFF;
+  padding-inline: 0.25rem;
+  /* Текст на линии, как пункты меню: кобальтовое действие на экране
+     одно — пробный период. Залитая «Войти» — шапка SaaS (ревью). */
+  background: linear-gradient(currentColor, currentColor) no-repeat left calc(50% + 0.8em) / 100% 1px;
+  color: var(--a-ink);
   font-family: var(--a-wide);
   font-weight: 500;
   font-size: 0.8125rem;
@@ -293,43 +304,7 @@ body:has(.a) {
 /* ═══ 4. Листы главной ═════════════════════════════════════════════ */
 .a-main { position: relative; }
 
-/* Маршрут на поле листа: линия в левом поле, кобальт прочерчивается. */
-.a-route {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: max(7px, calc((100% - var(--a-shell)) / 2 + var(--a-gutter) * 0.42));
-  width: 1px;
-  background: var(--a-g200);
-  pointer-events: none;
-  z-index: 1;
-}
-.a-route-fill {
-  position: absolute;
-  inset: 0;
-  background: var(--a-cobalt);
-  transform-origin: top;
-}
-
 .a-sheet { position: relative; padding-block: clamp(4.5rem, 12vh, 9rem); }
-/* Номер листа у линии маршрута — остановка на пути. */
-.a-sheet[data-sheet]::before {
-  content: attr(data-sheet);
-  position: absolute;
-  top: clamp(4.5rem, 12vh, 9rem);
-  left: max(0px, calc((100% - var(--a-shell)) / 2 + var(--a-gutter) * 0.42 - 7px));
-  width: 15px;
-  height: 15px;
-  display: grid;
-  place-items: center;
-  font-family: var(--a-wide);
-  font-size: 0;
-  background: var(--a-paper);
-  border: 1px solid var(--a-cobalt);
-  border-radius: 50%;
-  z-index: 2;
-}
-.a-plate[data-sheet]::before { background: var(--a-cobalt); border-color: #FFFFFF; }
 
 .a-h2 {
   margin: 0 0 clamp(1.5rem, 4vh, 2.75rem);
@@ -338,7 +313,7 @@ body:has(.a) {
   font-size: clamp(2.1rem, 5vw, 4.75rem);
   line-height: 1.02;
   letter-spacing: -0.03em;
-  max-width: 18ch;
+  max-width: 22ch;
 }
 .a-no {
   display: block;
@@ -350,7 +325,7 @@ body:has(.a) {
   line-height: 1.2;
   color: var(--a-ink-3);
 }
-.a-p { margin: 0 0 1.25rem; max-width: 58ch; font-size: 1.125rem; color: var(--a-ink-2); }
+.a-p { margin: 0 0 1.25rem; max-width: 52ch; font-size: 1rem; line-height: 1.65; color: var(--a-ink-2); }
 
 .a-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; }
 .a-btn {
@@ -369,9 +344,16 @@ body:has(.a) {
   cursor: pointer;
 }
 .a-btn-primary { background: var(--a-cobalt); color: #FFFFFF; }
-.a-btn-quiet { background: transparent; color: var(--a-ink); border-color: var(--a-g200); }
 .a-btn-invert { background: #FFFFFF; color: var(--a-cobalt); }
-.a-btn-line { background: transparent; color: #FFFFFF; border-color: rgba(255, 255, 255, 0.55); }
+/* Второе действие — текст с подчёркиванием, а не кнопка в рамке:
+   пара «залитая + в рамке» — шаблон (партитура §0.3, ревью). */
+.a-btn-quiet, .a-btn-line {
+  padding-inline: 0.25rem;
+  border: 0;
+  background: linear-gradient(currentColor, currentColor) no-repeat left calc(100% - 13px) / 100% 1px;
+}
+.a-btn-quiet { color: var(--a-ink); }
+.a-btn-line { color: #FFFFFF; }
 
 /* ─── Лист 01 · Обложка ───────────────────────────────────────────── */
 .a-cover {
@@ -381,7 +363,13 @@ body:has(.a) {
   flex-direction: column;
   justify-content: space-between;
 }
-.a-cover::before { top: clamp(1.25rem, 4vh, 3rem) !important; }
+/* Афиша: заголовок у верхнего края, предложение и действие — у нижнего. */
+.a-cover > .a-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 /* Две строки выключены по ширине колонки: кегль = 100cqw / k, где k —
    отношение ширины строки к кеглю, измеренное в браузере на живом
    шрифте. Второе слагаемое — потолок по высоте окна: кадр обязан
@@ -405,21 +393,23 @@ body:has(.a) {
    6,452; Literata 300 курсив, opsz 72, трекинг −0,035em — 4,238.
    Потолок 116svh: при окне 900 две строки вместе с подписью
    помещаются в первый экран (замер: 914 при 150svh, 912 при 120svh). */
-.a-display { --fit-w: min(100cqw, 116svh); }
+/* Потолок по высоте окна был нужен Literata (k ≈ 5, строки высокие).
+   У MTS Wide k ≈ 10 и 7,5: две строки во всю колонку занимают около
+   трети окна, поэтому ширина — вся колонка. */
+.a-display { --fit-w: 100cqw; }
 .a-fit { display: block; white-space: nowrap; font-size: calc(var(--fit-w) / var(--k)); }
-.a-fit-1 { --k: 6.452; }
-/* Выносной элемент курсивной «у» уходит ниже строки на ~0,22 кегля:
-   запас под ним, иначе хвост ложится на подпись под заголовком. */
+/* k замерены в Chromium 10.09.2026 на MTS Wide: «всё открывается»
+   Bold 700 — 10,01; «и не тормозит» Medium 500, трекинг −0,035em — 7,50.
+   Меняя текст заголовка — перемерить (scratchpad shots.cjs). */
+.a-fit-1 { --k: 10.01; }
+/* Вторая строка — то же семейство, Medium и кобальт: один материал в
+   двух состояниях вместо пары гротеск/антиква. */
 .a-fit-2 {
-  --k: 4.238;
-  font-family: var(--a-serif);
-  font-weight: 300;
-  font-variation-settings: "opsz" 72;
-  font-style: italic;
+  --k: 7.5;
+  font-weight: 500;
   letter-spacing: -0.035em;
-  line-height: 0.86;
   color: var(--a-cobalt);
-  padding-bottom: 0.2em;
+  padding-bottom: 0.08em;
 }
 
 .a-cover-grid {
@@ -432,26 +422,19 @@ body:has(.a) {
 }
 .a-lead {
   margin: 0 0 1.5rem;
-  max-width: 34ch;
-  font-size: clamp(1.15rem, 1.6vw, 1.45rem);
-  line-height: 1.45;
+  max-width: 40ch;
+  font-size: clamp(1rem, 1.45vw, 1.35rem);
+  line-height: 1.55;
   color: var(--a-ink);
 }
 .a-frag {
   display: inline-block;
-  width: 3.1em;
-  height: 1.05em;
-  vertical-align: -0.2em;
-  margin-inline: 0.1em;
-  border: 1px solid var(--a-g200);
-  background: var(--a-paper);
+  width: 4.6em;
+  height: 1.4em;
+  vertical-align: -0.36em;
+  margin-inline: 0.15em;
   overflow: hidden;
 }
-.a-frag-band[data-level="1"] { fill: var(--a-band-1); }
-.a-frag-band[data-level="2"] { fill: var(--a-band-2); }
-.a-frag-band[data-level="3"] { fill: var(--a-band-3); }
-.a-frag-band[data-level="4"] { fill: var(--a-band-4); }
-.a-frag-band[data-level="5"] { fill: var(--a-band-5); }
 .a-frag-land { fill: none; stroke: var(--a-g400); stroke-width: 1; }
 .a-frag-dot { fill: var(--a-cobalt); }
 .a-frag-bands { transform-box: fill-box; transform-origin: center; }
@@ -460,10 +443,8 @@ body:has(.a) {
 .a-caption {
   margin: 0 0 1.25rem;
   max-width: 40ch;
-  font-family: var(--a-serif);
-  font-style: italic;
-  font-size: 1.05rem;
-  line-height: 1.5;
+  font-size: 0.875rem;
+  line-height: 1.6;
   color: var(--a-ink-2);
 }
 .a-caption .a-reading { font-style: normal; }
@@ -521,7 +502,7 @@ body:has(.a) {
 .a-lanes { display: grid; gap: 1.75rem; margin-block: 2rem 2.5rem; }
 .a-lane {
   display: grid;
-  grid-template-columns: 9.5rem minmax(0, 1fr) 5rem;
+  grid-template-columns: 8rem minmax(0, 1fr);
   align-items: center;
   gap: 0.4rem 1.25rem;
 }
@@ -548,7 +529,7 @@ body:has(.a) {
 .a-lane-pct::after { counter-reset: n var(--a-n); content: counter(n) "\202F%"; }
 .a-lane-out { grid-column: 2 / -1; color: var(--a-ink-3); font-size: 1.05rem; }
 @media (max-width: 720px) {
-  .a-lane { grid-template-columns: minmax(0, 1fr) auto; }
+  .a-lane { grid-template-columns: minmax(0, 1fr); }
   .a-lane-track { grid-column: 1 / -1; grid-row: 2; }
   .a-lane-out { grid-column: 1 / -1; }
 }
@@ -578,7 +559,19 @@ body:has(.a) {
 .a-lane-track { overflow: hidden; }
 [data-lane="slow"] .a-lane-track { overflow: visible; }
 
-/* ─── Плиты (листы 03 и 08) ───────────────────────────────────────── */
+/* Дорожки на кобальтовой плите (раздел 02): белое на кобальте,
+   медленная — полупрозрачная, быстрая — чистый белый. */
+.a-plate .a-lanes { margin-block: clamp(2rem, 6vh, 3.5rem); }
+.a-plate .a-lane-name, .a-plate .a-lane-out { color: var(--a-shoal-lume); }
+.a-plate .a-lane-track { background: rgba(255, 255, 255, 0.14); }
+.a-plate [data-lane="slow"] .a-lane-fill, .a-plate .a-mosh i { background: rgba(255, 255, 255, 0.42); }
+.a-plate .a-mosh i:nth-child(3n) { background: rgba(255, 255, 255, 0.26); }
+.a-plate [data-lane="fast"] .a-lane-fill { background: #FFFFFF; }
+.a-plate .a-lane-glint { background: linear-gradient(90deg, transparent, rgba(20, 50, 184, 0.3), transparent); }
+.a-plate .a-lane-pct { color: #FFFFFF; }
+.a-why .a-p { max-width: 44ch; }
+
+/* ─── Плиты (разделы 02 и 06) ─────────────────────────────────────── */
 .a-plate { background: var(--a-cobalt); color: #FFFFFF; overflow: hidden; }
 .a-plate .a-no { color: var(--a-shoal-lume); }
 .a-plate .a-p { color: #FFFFFF; }
@@ -627,11 +620,18 @@ body:has(.a) {
 .a-chart { position: relative; width: 100%; }
 .a-chart-bands, .a-chart > svg { position: absolute; inset: 0; }
 .a-chart-bands svg, .a-chart > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.a-band[data-level="1"] { fill: var(--a-band-1); }
-.a-band[data-level="2"] { fill: var(--a-band-2); }
-.a-band[data-level="3"] { fill: var(--a-band-3); }
-.a-band[data-level="4"] { fill: var(--a-band-4); }
-.a-band[data-level="5"] { fill: var(--a-band-5); }
+/* Изохроны — линии, а не заливки: круги-заливки вокруг городов
+   читаются как карта серверов любого VPN (ревью design-critic).
+   Каждая ступень рисуется дважды: обводка, затем белая заливка поверх
+   — внутренние пересечения колец закрываются, остаётся только внешний
+   контур союза, как горизонталь на топографической карте. */
+.a .s { fill: none; stroke-width: 1.5; }
+.a .f { fill: var(--a-paper); stroke: none; }
+[data-level="1"] > .s { stroke: rgba(20, 50, 184, 0.62); }
+[data-level="2"] > .s { stroke: rgba(20, 50, 184, 0.46); }
+[data-level="3"] > .s { stroke: rgba(20, 50, 184, 0.34); }
+[data-level="4"] > .s { stroke: rgba(20, 50, 184, 0.24); }
+[data-level="5"] > .s { stroke: rgba(20, 50, 184, 0.16); }
 .a-land path { fill: none; stroke-width: 1; stroke-linecap: round; }
 .a-land-t0 { stroke: var(--a-g200); }
 .a-land-t1 { stroke: var(--a-g300); }
@@ -732,7 +732,12 @@ body:has(.a) {
 .a-chart-cap p { margin: 0; max-width: 46ch; }
 .a-scale { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
 .a-scale li { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; white-space: nowrap; }
-.a-scale i { width: 1.6rem; height: 0.6rem; border: 1px solid var(--a-g200); }
+.a-scale i { width: 1.6rem; height: 0; border-top: 1.5px solid; }
+.a-scale i[data-level="1"] { border-color: rgba(20, 50, 184, 0.62); }
+.a-scale i[data-level="2"] { border-color: rgba(20, 50, 184, 0.46); }
+.a-scale i[data-level="3"] { border-color: rgba(20, 50, 184, 0.34); }
+.a-scale i[data-level="4"] { border-color: rgba(20, 50, 184, 0.24); }
+.a-scale i[data-level="5"] { border-color: rgba(20, 50, 184, 0.16); }
 
 /* Таблицы: данные карты и указатель */
 .a-table-wrap { overflow-x: auto; margin-top: 2.5rem; background: var(--a-g50); }
@@ -763,16 +768,45 @@ body:has(.a) {
 /* ─── Лист 05 · Легенда ──────────────────────────────────────────── */
 .a-legend-group { margin-top: 2.5rem; border-top: 1px solid var(--a-g200); padding-top: 1rem; }
 .a-legend-head { margin: 0 0 0.5rem; color: var(--a-ink-3); }
+/* Строка тарифа: имя, знак канала (толщина ∝ скорости), скорость,
+   цена крупно; под ценой — одна фраза о тарифе. */
 .a-legend-row {
   display: grid;
-  grid-template-columns: 8rem 9rem 9rem minmax(0, 1fr);
+  grid-template-columns: 7rem minmax(6rem, 1fr) 9rem minmax(12rem, 16rem);
+  grid-template-areas: "name sym val price" "tag tag tag price";
   align-items: center;
-  gap: 1rem 1.5rem;
-  min-height: 72px;
-  padding: 0.9rem 0.75rem;
+  gap: 0.35rem 1.75rem;
+  padding: 1.4rem 0.75rem;
   border-bottom: 1px solid var(--a-g100);
   color: inherit;
   text-decoration: none;
+}
+.a-legend-row .a-legend-name { grid-area: name; font-weight: 700; font-size: 1.5rem; letter-spacing: -0.02em; }
+.a-legend-row .a-sym { grid-area: sym; }
+.a-legend-row .a-legend-val { grid-area: val; }
+.a-legend-row .a-legend-price { grid-area: price; text-align: right; }
+.a-legend-price b { font-size: 1.6rem; font-weight: 700; color: var(--a-ink); letter-spacing: -0.02em; }
+.a-legend-price small { display: block; font-size: 0.8125rem; color: var(--a-ink-3); }
+.a-legend-tag { grid-area: tag; color: var(--a-ink-2); font-size: 0.9375rem; }
+.a-servers-line { margin: 2rem 0 0; color: var(--a-ink-2); }
+/* Ссылка в строке — всё равно 44 px высоты: стандарт проекта строже
+   исключения WCAG для строчных ссылок. */
+.a-servers-line a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--a-cobalt);
+  text-underline-offset: 3px;
+}
+@media (max-width: 820px) {
+  .a-legend-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "name price" "sym sym" "val val" "tag tag";
+  }
+}
+@media (hover: hover) {
+  .a-legend-row:hover .a-legend-price b, .a-legend-row:hover .a-legend-price small,
+  .a-legend-row:hover .a-legend-tag { color: #FFFFFF; }
 }
 .a-sym { position: relative; height: var(--w); background: var(--a-g100); overflow: hidden; }
 .a-sym-flow {
@@ -811,20 +845,23 @@ body:has(.a) {
 /* ─── Лист 06 · Три шага ─────────────────────────────────────────── */
 .a-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2.5rem; }
 @media (min-width: 900px) { .a-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; } }
-.a-step { position: relative; padding-top: 3.6rem; }
+/* Лесенка вместо трёх равных колонок с кружками (шаблон «как это
+   работает», ревью): каждый следующий шаг ниже, номер — крупная
+   цифра кобальтом. */
+.a-step { position: relative; }
+@media (min-width: 900px) {
+  .a-step:nth-child(2) { margin-top: 4.5rem; }
+  .a-step:nth-child(3) { margin-top: 9rem; }
+}
 .a-step-n {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2.6rem;
-  height: 2.6rem;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--a-ink);
-  border-radius: 50%;
-  font-family: var(--a-serif);
-  font-size: 1.15rem;
-  background: var(--a-paper);
+  display: block;
+  margin-bottom: 0.75rem;
+  font-family: var(--a-wide);
+  font-weight: 700;
+  font-size: clamp(4rem, 9vw, 8rem);
+  line-height: 0.85;
+  letter-spacing: -0.05em;
+  color: var(--a-cobalt);
 }
 .a-step-link {
   position: absolute;
@@ -863,7 +900,16 @@ body:has(.a) {
 .a-on::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--a-cobalt); }
 
 /* ─── Лист 08 · Финал ────────────────────────────────────────────── */
-.a-final .a-h2 { color: #FFFFFF; }
+/* Нарастание к концу: финал — второй по масштабу заголовок страницы
+   после обложки, а не шестой такой же h2 (ревью: монотонный ритм). */
+.a-final .a-h2 {
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: clamp(2.6rem, 7.6vw, 7.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  max-width: 14ch;
+}
 .a-here { margin: 2.5rem 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: #FFFFFF; }
 .a-here .a-wide { color: var(--a-shoal-lume); }
 .a-here-dot {
@@ -934,14 +980,11 @@ body:has(.a) {
 @keyframes a-note { 0%, 90% { opacity: 1; } 100% { opacity: 0; } }
 
 /* ─── 6.2 Прокрутка ─────────────────────────────────────────────────
-   Две шкалы на главной вместо сорока девяти: маршрут и дорожки листа
-   02 (research/05_MOTION.md: 491 при медиане 330). В Firefox шкалы
-   за флагом — там остаётся базовый конечный кадр. */
+   Одна шкала на главной вместо сорока девяти: дорожки «без Atlas /
+   с Atlas» (research/05_MOTION.md: 491 при медиане 330). Маршрут в
+   поле убран по ревью: читался как индикатор прокрутки. В Firefox
+   шкалы за флагом — там остаётся базовый конечный кадр. */
 @supports (animation-timeline: view()) {
-  .a-route-fill {
-    animation: a-grow linear both;
-    animation-timeline: scroll(root block);
-  }
   .a-lanes { view-timeline-name: --a-lanes; }
   .a-lane {
     animation: a-lane linear both;
@@ -962,7 +1005,7 @@ body:has(.a) {
    Живое по решению владельца, но у каждого блока — слой со смыслом:
    прилив мелей, поток по знаку со скоростью тарифа, вода под плитой,
    живое показание. Вне кадра слой стоит на паузе. */
-.a-band, .a-frag-band, .a-void-ring {
+.a-band, .a-frag-level, .a-void-ring {
   animation: a-tide 8s var(--m-tide) infinite alternate;
   animation-delay: calc(var(--l, 1) * -1.6s);
 }
@@ -1018,10 +1061,10 @@ body:has(.a) {
 .a-nav a, .a-foot-index a { transition: background-size var(--d-1) var(--m-pen), color var(--d-1) var(--m-turn); }
 
 @media (hover: hover) {
-  .a-btn-primary:hover, .a-head-cta:hover { background: var(--a-cobalt-deep); }
-  .a-btn-quiet:hover { border-color: var(--a-ink); }
+  .a-btn-primary:hover { background: var(--a-cobalt-deep); }
+  .a-btn-quiet:hover, .a-head-cta:hover { color: var(--a-cobalt); }
   .a-btn-invert:hover { background: var(--a-shoal); }
-  .a-btn-line:hover { border-color: #FFFFFF; }
+  .a-btn-line:hover { color: var(--a-shoal-lume); }
   .a-nav a:hover { color: var(--a-ink); background-size: 100% 1px; }
   .a-foot-index a:hover { background-size: 100% 1px; }
   .a-legend-row:hover, .a-servers:hover { background: var(--a-cobalt); color: #FFFFFF; }
@@ -1029,7 +1072,7 @@ body:has(.a) {
   .a-legend-row:hover .a-sym { background: rgba(255, 255, 255, 0.2); }
   .a-legend-row:hover .a-sym-flow { background-image: repeating-linear-gradient(90deg, #FFFFFF 0 18px, transparent 18px 30px); }
   .a-table tbody tr:hover td { background: var(--a-cobalt); color: #FFFFFF; }
-  .a-step:hover .a-step-n { background: var(--a-cobalt); border-color: var(--a-cobalt); color: #FFFFFF; }
+  .a-step:hover .a-step-n { color: var(--a-ink); }
   .a-city summary:hover::after { opacity: 1; }
   .a-city summary:hover span { background: var(--a-cobalt); }
   /* «Вязкость = время ответа»: ступени фрагмента откликаются на руку с

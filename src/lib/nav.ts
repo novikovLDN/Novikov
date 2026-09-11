@@ -97,7 +97,7 @@ export interface Sheet {
 }
 
 export const SITE_SHEETS: Sheet[] = [
-  { no: "01", title: "Обложка", href: "/" },
+  { no: "01", title: "Главная", href: "/" },
   { no: "10", title: "Тарифы", href: "/pricing" },
   { no: "11", title: "Выделенные серверы", href: "/vds" },
   { no: "12", title: "Устройства", href: "/devices" },

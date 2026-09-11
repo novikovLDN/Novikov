@@ -20,7 +20,7 @@ export default function AtlasDefs() {
       <defs>
         <path id="a-land-all" d={a + b + c} vectorEffect="non-scaling-stroke" />
         {levels.map((l) => (
-          <path key={l} id={`a-band-${l}`} d={bandPath(l)} />
+          <path key={l} id={`a-band-${l}`} d={bandPath(l)} vectorEffect="non-scaling-stroke" />
         ))}
       </defs>
     </svg>

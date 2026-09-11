@@ -1,24 +1,24 @@
 import { LOCATIONS, CLOSEST } from "@/lib/locations";
 import { MAP_W, MAP_H, project } from "@/lib/world-map";
 import { BAND_COUNT, BAND_STEP_MS, rttToKm } from "@/lib/isochrones";
-import LandLight, { SunNote } from "./LandLight";
+import LandLight from "./LandLight";
 
 /**
- * Лист карты — присутствие честно (SCREEN_SCORE.md, лист 04).
+ * Карта серверов (главная, раздел 04).
  *
  * Слои, снизу вверх:
  *   1. Пять ступеней времени ответа — каждая своим SVG. Отдельные слои
  *      нужны ради прилива: прозрачность целого слоя анимирует
  *      компоновщик, а прозрачность пути внутри одного SVG — перерисовка
  *      всего листа на каждом кадре.
- *   2. Суша гравюрным штрихом, освещённая солнцем читателя.
- *   3. Маршрут от читателя (по умолчанию — Москва, подписано) до
- *      ближайшего сервера и подпись внешней ступени.
+ *   2. Суша штрихом, освещённая солнцем читателя (без подписи — это
+ *      оформление, а не сообщение).
+ *   3. Маршрут от читателя (Москва) до ближайшего сервера.
  *   4. Города с серверами — `<details>`: раскрываются нажатием без
  *      скрипта. Отдельных страниц под страны нет (решение владельца).
  *
- * Все данные карты продублированы таблицей под ней: для чтеца экрана и
- * для телефона, где точки сливаются.
+ * Всё, что есть на карте, продублировано таблицей под ней: для чтеца
+ * экрана и для телефона, где точки сливаются.
  */
 
 export const READER_DEFAULT = { city: "Москва", lat: 55.75, lon: 37.62 };
@@ -47,7 +47,10 @@ export default function Chart() {
               aria-hidden
               focusable="false"
             >
-              <use href={`#a-band-${l}`} />
+              {/* Обводка, затем белая заливка поверх: пересечения колец
+                  закрываются, остаётся внешний контур — изохрона. */}
+              <use href={`#a-band-${l}`} className="s" />
+              <use href={`#a-band-${l}`} className="f" />
             </svg>
           ))}
         </div>
@@ -75,14 +78,14 @@ export default function Chart() {
               <summary
                 className={closest ? "a-idle" : undefined}
                 data-label={l.cities[0]}
-                aria-label={`${cities}, ${l.country}: ${l.latencyMs} мс, ориентировочно`}
+                aria-label={`${cities}, ${l.country}: примерно ${l.latencyMs} мс из Москвы`}
               >
                 <span />
               </summary>
               <div className="a-city-card">
                 <em>{cities}</em>, {l.country}
                 <br />
-                <b className="a-num">{l.latencyMs}</b>&nbsp;мс от Москвы, ориентировочно
+                примерно <b className="a-num">{l.latencyMs}</b>&nbsp;мс из Москвы
               </div>
             </details>
           );
@@ -90,26 +93,22 @@ export default function Chart() {
 
         <span className="a-reader" style={{ left: pct(reader.x, MAP_W), top: pct(reader.y, MAP_H) }} aria-hidden>
           <i />
-          <span className="a-wide">вы — Москва, по умолчанию</span>
+          <span className="a-wide">вы — {READER_DEFAULT.city}</span>
         </span>
       </div>
 
       <figcaption className="a-chart-cap">
-        <ol className="a-scale" aria-label="Ступени времени ответа">
+        <ol className="a-scale" aria-label="Отклик ближайшего сервера">
           {Array.from({ length: BAND_COUNT }, (_, i) => i + 1).map((l) => (
             <li key={l}>
-              <i style={{ background: `var(--a-band-${l})` }} aria-hidden />
+              <i data-level={l} aria-hidden />
               <span className="a-num">{l * BAND_STEP_MS}</span>&nbsp;мс
             </li>
           ))}
         </ol>
         <p>
-          Ступени — нижняя граница времени ответа по расстоянию до ближайшего сервера:
-          свет в оптоволокне проходит около 200&nbsp;км за миллисекунду, туда и обратно.
-          Реальное время всегда больше.
-        </p>
-        <p>
-          Равнопромежуточная проекция: чем дальше от экватора, тем шире страны. <SunNote />
+          Каждая линия — плюс {BAND_STEP_MS}&nbsp;мс до ближайшего сервера. Это оценка по
+          расстоянию, на деле отклик немного больше.
         </p>
       </figcaption>
     </figure>

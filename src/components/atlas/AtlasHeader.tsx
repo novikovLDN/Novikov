@@ -36,15 +36,15 @@ export default function AtlasHeader({ sheetNo, sheetTitle }: { sheetNo: string; 
         </nav>
 
         <p className="a-head-sheet">
-          <span className="a-wide" data-sheet-no>{`лист ${sheetNo}`}</span>{" "}
+          <span className="a-wide" data-sheet-no>{sheetNo}</span>{" "}
           <em data-sheet-title>{sheetTitle}</em>
         </p>
 
         <Link href="/auth" className="a-head-cta">Войти</Link>
 
         <details className="a-index">
-          <summary className="a-wide">указатель</summary>
-          <nav className="a-index-panel" aria-label="Указатель листов">
+          <summary className="a-wide">меню</summary>
+          <nav className="a-index-panel" aria-label="Разделы сайта">
             <ul>
               {SITE_SHEETS.map((s) => (
                 <li key={s.href}>

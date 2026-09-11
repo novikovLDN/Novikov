@@ -26,13 +26,10 @@ export default function IsoFragment() {
     >
       <g className="a-frag-bands">
         {levels.map((l) => (
-          <use
-            key={l}
-            href={`#a-band-${l}`}
-            className="a-frag-band a-idle"
-            data-level={l}
-            style={{ ["--l" as string]: l }}
-          />
+          <g key={l} className="a-frag-level a-idle" data-level={l} style={{ ["--l" as string]: l }}>
+            <use href={`#a-band-${l}`} className="s" />
+            <use href={`#a-band-${l}`} className="f" />
+          </g>
         ))}
       </g>
       <use href="#a-land-all" className="a-frag-land" />

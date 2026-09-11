@@ -46,7 +46,7 @@ export default function MotionController() {
         for (const e of entries) {
           if (!e.isIntersecting) continue;
           const el = e.target as HTMLElement;
-          if (no && el.dataset.sheet) no.textContent = `лист ${el.dataset.sheet}`;
+          if (no && el.dataset.sheet) no.textContent = el.dataset.sheet;
           if (title && el.dataset.title) title.textContent = el.dataset.title;
         }
       },

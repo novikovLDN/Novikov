@@ -43,7 +43,6 @@ export default function Unfold() {
     <div ref={ref} className="a-unfold" aria-hidden>
       <i className="a-fold-v" />
       <i className="a-fold-h" />
-      <span className="a-fold-note a-wide">лист раскладывается</span>
     </div>
   );
 }
