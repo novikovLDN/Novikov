@@ -1,27 +1,25 @@
-"use client";
+import type { Metadata } from "next";
+import LegalDoc, { type LegalSection } from "./LegalDoc";
+import "./legal-atlas.css";
 
-import Link from "next/link";
-import SiteHeader from "@/components/pixel/SiteHeader";
-import SiteFooter from "@/components/pixel/SiteFooter";
+export const metadata: Metadata = {
+  title: "Пользовательское соглашение",
+  description:
+    "Условия использования Atlas Secure: регистрация, тарифы, оплата, ограничения использования и ответственность сторон.",
+};
 
 /**
- * /terms — Пользовательское соглашение in the v4 light shell.
+ * /terms — Пользовательское соглашение на корпусе «Атлас-издание».
  *
- * Legal clauses preserved verbatim from the previous version. Only
- * the visual chrome (top bar, hero, single white card, footer)
- * follows the refreshed provod.ai-inspired aesthetic.
+ * Правовой текст перенесён дословно из прежней версии; поменялись
+ * только оформление и навигация (каркас — LegalDoc.tsx).
  */
-
-const SECTIONS: Array<{
-  n: string;
-  t: string;
-  body: React.ReactNode;
-}> = [
+const SECTIONS: LegalSection[] = [
   {
     n: "01",
     t: "Общие положения",
     body: (
-      <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.65] text-[color:var(--px-text-2)] mb-4">
+      <p>
         Настоящие Условия регулируют правоотношения между Atlas Secure (Сервис) и Пользователем. Акцепт Соглашения осуществляется путём регистрации, использования Сервиса или оплаты подписки и является полным и безоговорочным.
       </p>
     ),
@@ -30,7 +28,7 @@ const SECTIONS: Array<{
     n: "02",
     t: "Предмет Соглашения",
     body: (
-      <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.65] text-[color:var(--px-text-2)] mb-4">
+      <p>
         Сервис предоставляет доступ к технологии защищённого соединения: шифрование трафика (VLESS/Reality, VMess, Trojan), маскирование IP-адреса, доступ к серверной инфраструктуре в различных юрисдикциях и техническую поддержку в рамках выбранного тарифного плана.
       </p>
     ),
@@ -39,7 +37,7 @@ const SECTIONS: Array<{
     n: "03",
     t: "Регистрация",
     body: (
-      <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.65] text-[color:var(--px-text-2)] mb-4">
+      <p>
         Для доступа к Сервису Пользователь обязан пройти регистрацию с действительным адресом email. Пользователь несёт ответственность за сохранность учётных данных и все действия, совершённые с использованием его аккаунта. Сервис вправе приостанавливать или прекращать действие аккаунтов, нарушающих Условия.
       </p>
     ),
@@ -49,13 +47,13 @@ const SECTIONS: Array<{
     t: "Тарифные планы",
     body: (
       <>
-        <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.65] text-[color:var(--px-text-2)] mb-4">
+        <p>
           Стоимость и характеристики всех тарифных планов публикуются на странице Тарифов. Сервис оставляет за собой право изменять стоимость в любое время; изменения не затрагивают уже оплаченные периоды.
         </p>
-        <ul className="font-mts-wide space-y-2 text-[14px] sm:text-[15px] leading-[1.6] text-[color:var(--px-text-2)] pl-5 list-disc marker:text-[color:var(--px-text-4)] mb-4">
-          <li><strong className="text-[color:var(--px-text)] font-semibold">Trial</strong> — 3 дня бесплатно, без оплаты</li>
-          <li><strong className="text-[color:var(--px-text)] font-semibold">Telegram бонус</strong> — +7 дней</li>
-          <li><strong className="text-[color:var(--px-text)] font-semibold">Реферальный бонус</strong> — +20 дней за оплаченного реферала</li>
+        <ul className="al-list">
+          <li><strong>Trial</strong> — 3 дня бесплатно, без оплаты</li>
+          <li><strong>Telegram бонус</strong> — +7 дней</li>
+          <li><strong>Реферальный бонус</strong> — +20 дней за оплаченного реферала</li>
         </ul>
       </>
     ),
@@ -64,7 +62,7 @@ const SECTIONS: Array<{
     n: "05",
     t: "Оплата",
     body: (
-      <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.65] text-[color:var(--px-text-2)] mb-4">
+      <p>
         Оплата производится через авторизованного платёжного оператора. Срок оплаты — 15 минут с момента создания платёжной сессии. Активация подписки происходит автоматически после подтверждения от оператора.
       </p>
     ),
@@ -74,10 +72,8 @@ const SECTIONS: Array<{
     t: "Ограничения использования",
     body: (
       <>
-        <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.65] text-[color:var(--px-text-2)] mb-4">
-          Сервис запрещено использовать для:
-        </p>
-        <ul className="font-mts-wide space-y-2 text-[14px] sm:text-[15px] leading-[1.6] text-[color:var(--px-text-2)] pl-5 list-disc marker:text-[color:var(--px-text-4)] mb-4">
+        <p>Сервис запрещено использовать для:</p>
+        <ul className="al-list">
           <li>Распространения вредоносного ПО или попыток несанкционированного доступа</li>
           <li>Распространения материалов сексуального насилия в отношении детей</li>
           <li>Массовых рассылок спама или коммерческих рассылок</li>
@@ -91,7 +87,7 @@ const SECTIONS: Array<{
     n: "07",
     t: "Качество услуг",
     body: (
-      <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.65] text-[color:var(--px-text-2)] mb-4">
+      <p>
         Сервис предоставляется на условиях «как есть» с SLA по аптайму 99.98%. Сервис прилагает разумные усилия для обеспечения непрерывности, но не гарантирует бесперебойную работу, определённую скорость или доступность конкретных серверов. Кредиты начисляются автоматически при нарушении месячного SLA.
       </p>
     ),
@@ -100,7 +96,7 @@ const SECTIONS: Array<{
     n: "08",
     t: "Ответственность",
     body: (
-      <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.65] text-[color:var(--px-text-2)] mb-4">
+      <p>
         Совокупная ответственность Сервиса ограничивается суммой, уплаченной Пользователем за текущий период подписки. Возврат средств возможен в течение 14 дней с момента платежа при прекращении услуг по вине Сервиса. Сервис не несёт ответственности за действия Пользователя или сторонние сервисы.
       </p>
     ),
@@ -109,23 +105,13 @@ const SECTIONS: Array<{
     n: "09",
     t: "Контакты",
     body: (
-      <p className="font-mts-wide text-[15px] sm:text-[16px] leading-[1.65] text-[color:var(--px-text-2)] mb-4">
+      <p>
         По всем вопросам обращайтесь через{" "}
-        <a
-          href="https://t.me/atlas_suppbot"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline decoration-black/30 underline-offset-2 hover:decoration-black/80 hover:text-[color:var(--px-text)] transition-colors"
-        >
+        <a href="https://t.me/atlas_suppbot" target="_blank" rel="noopener noreferrer">
           @atlas_suppbot
         </a>{" "}
         или по email{" "}
-        <a
-          href="mailto:support@atlas.secure"
-          className="underline decoration-black/30 underline-offset-2 hover:decoration-black/80 hover:text-[color:var(--px-text)] transition-colors"
-        >
-          support@atlas.secure
-        </a>
+        <a href="mailto:support@atlas.secure">support@atlas.secure</a>
         .
       </p>
     ),
@@ -134,43 +120,17 @@ const SECTIONS: Array<{
 
 export default function TermsPage() {
   return (
-    <div className="px-page">
-      <div className="px-grid-bg" aria-hidden />
-      <SiteHeader />
-      <div className="px-header-spacer" aria-hidden />
-
-      {/* Hero */}
-      <section className="px-5 sm:px-8 pt-16 pb-12 sm:pt-24 sm:pb-16 max-w-[860px] mx-auto w-full">
-        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-5">
-          Правовая информация
-        </div>
-        <h1 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.04] tracking-tight font-bold">
-          Пользовательское соглашение
-        </h1>
-        <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.5] text-[color:var(--px-text-3)] mt-6 max-w-[58ch]">
-          Обновлено 23 марта 2026 · Действует с 1 апреля 2026 · Версия 3.1
-        </p>
-      </section>
-
-      {/* Body — single legal card */}
-      <section className="px-5 sm:px-8 pb-20 sm:pb-28 max-w-[860px] mx-auto w-full">
-        <article className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-10 md:p-12">
-          {SECTIONS.map((s) => (
-            <section key={s.n} className="mt-10 first:mt-0">
-              <div className="font-mts-wide text-[12px] tracking-[0.12em] uppercase text-[color:var(--px-text-4)] mb-2">
-                {s.n}
-              </div>
-              <h2 className="font-mts-wide text-[22px] sm:text-[28px] font-bold tracking-tight mb-4">
-                {s.t}
-              </h2>
-              {s.body}
-            </section>
-          ))}
-        </article>
-      </section>
-
-      {/* Footer */}
-      <SiteFooter />
-    </div>
+    <LegalDoc
+      sheetTitle="Условия"
+      title="Пользовательское соглашение"
+      k={11.6}
+      meta={[
+        <time key="u" dateTime="2026-03-23">Обновлено 23 марта 2026</time>,
+        <time key="e" dateTime="2026-04-01">Действует с 1 апреля 2026</time>,
+        "Версия 3.1",
+      ]}
+      tocLabel="Разделы соглашения"
+      sections={SECTIONS}
+    />
   );
 }
