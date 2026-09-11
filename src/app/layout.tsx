@@ -11,6 +11,9 @@ import "./brand.css";
 // Обоснование значений — docs/03_DESIGN_SYSTEM.md, порядок перевода —
 // docs/04_ARCHITECTURE.md §4.
 import "./graticule.css";
+// Нижние карточки и диалоги (cookie, установка, быстрый вход) — одно
+// оформление на весь сайт, без мостов старых слоёв.
+import "./overlays.css";
 import CookieConsent from "@/components/CookieConsent";
 import PwaManager from "@/components/PwaManager";
 import IosInstallBanner from "@/components/IosInstallBanner";

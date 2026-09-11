@@ -1129,7 +1129,6 @@ body:has(.a) {
 .a-nav a, .a-foot-index a { transition: background-size var(--d-1) var(--m-pen), color var(--d-1) var(--m-turn); }
 
 @media (hover: hover) {
-  .a-btn-primary:hover { background: var(--a-cobalt-deep); }
   .a-btn-quiet:hover, .a-head-cta:hover { color: var(--a-cobalt); }
   .a-btn-invert:hover { background: var(--a-shoal); }
   .a-btn-line:hover { color: var(--a-shoal-lume); }
@@ -1257,14 +1256,52 @@ body:has(.a) {
     animation-range: entry calc(20% + var(--i) * 6%) entry calc(55% + var(--i) * 6%);
   }
 }
+/* Заголовки разделов проявляются маской снизу при входе — на всех
+   переведённых страницах, раз класс общий. */
+@supports (animation-timeline: view()) {
+  .a-h2 {
+    animation: a-h2-in linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 75%;
+  }
+}
+@keyframes a-h2-in { from { clip-path: inset(0 0 100% 0); transform: translateY(0.35em); } }
+
+/* 01 — по «и не тормозит» раз в несколько секунд пробегает волна:
+   сигнал проходит по строке. Одним списком с появлением буквы, иначе
+   холостое имя перебивает загрузочное. */
+.a-js .a-fit-2 .a-char {
+  animation: a-char 760ms var(--m-settle) both, a-wave 6s var(--m-tide) infinite;
+  animation-delay: calc(80ms + var(--i) * 26ms), calc(1.6s + (var(--i) - 15) * 70ms);
+}
+@keyframes a-wave {
+  0%, 12%, 100% { transform: none; }
+  6% { transform: translateY(-0.07em); }
+}
+.a-js .a-sheet:not([data-inview]) .a-fit-2 .a-char { animation-play-state: paused; }
+
+/* Главная кнопка: заливка набегает под рукой, а не щёлкает цветом. */
+.a-btn-primary {
+  background: linear-gradient(var(--a-cobalt-deep), var(--a-cobalt-deep)) no-repeat left / 0 100%, var(--a-cobalt);
+  transition: background-size var(--d-2) var(--m-settle), color var(--d-1) var(--m-turn);
+}
+@media (hover: hover) {
+  .a-btn-primary:hover { background-size: 100% 100%; }
+  /* Под рукой поток по знаку тарифа ускоряется втрое. */
+  .a-legend-row:hover .a-sym-flow { animation-duration: calc(var(--flow, 2.4s) / 3); }
+}
+
 @keyframes a-curtain { from { clip-path: inset(0 3.5% 0 3.5%); } }
-@keyframes a-exit-l { to { transform: translateX(-9%); } }
-@keyframes a-exit-r { to { transform: translateX(7%); } }
+/* Ход на уходе — 3 %, с затуханием: при 9 % строки уезжали за край и
+   «и не тормозит» обрезалась (кадр 01b, 11.09.2026). */
+@keyframes a-exit-l { to { transform: translateX(-3%); opacity: 0.3; } }
+@keyframes a-exit-r { to { transform: translateX(3%); opacity: 0.3; } }
 @keyframes a-dive { to { transform: scale(1.45); } }
-@keyframes a-word { from { opacity: 0.1; transform: translateY(0.22em); } }
+@keyframes a-word { from { opacity: 0.18; transform: translateY(0.22em); } }
 @keyframes a-iso-deep { from { transform: translateY(50px); } to { transform: translateY(-70px); } }
 @keyframes a-zoom { from { transform: scale(1.85); } }
-@keyframes a-rise { from { transform: translateY(calc(30px + var(--d, 0) * 36px)); opacity: 0.15; } }
+/* Короткий ход: при 30–102 px цифры наезжали на заголовки шагов. */
+@keyframes a-rise { from { transform: translateY(calc(14px + var(--d, 0) * 12px)); opacity: 0; } }
 @keyframes a-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 
 /* ─── 6.5 Упрощение и стабильный кадр ───────────────────────────────

@@ -1,140 +1,128 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { whenConsentSettled } from "@/lib/overlay-queue";
+import { requestOverlay, releaseOverlay, whenConsentSettled, whenEngaged, snoozed, snooze } from "@/lib/overlay-queue";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+const SNOOZE_KEY = "pwa-install-dismissed";
+
+/**
+ * Сервис-воркер и предложение установки (Chrome, Edge, Android).
+ *
+ * ИСПРАВЛЕНО 11.09.2026:
+ *   · Подписка на push больше не запрашивается у каждого посетителя
+ *     при загрузке страницы. Браузер запрещает спрашивать разрешение
+ *     без жеста пользователя и пишет ошибку в консоль; подписка — дело
+ *     кнопки в кабинете (SettingsCard, PushToggleButton). Здесь осталась
+ *     только тихая синхронизация уже выданной подписки.
+ *   · Карточка установки встаёт в общую очередь (`overlay-queue.ts`):
+ *     после согласия на cookie, со второго визита, после 30 с на
+ *     странице или прокрутки половины документа. Отказ — пауза 7 дней.
+ */
 export default function PwaManager() {
-  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showInstall, setShowInstall] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // Register service worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
+    syncExistingPush();
 
-    // Subscribe to push notifications
-    subscribeToPush();
+    let cancelSlot = () => {};
+    let cancelConsent = () => {};
+    let cancelEngaged = () => {};
 
-    // Listen for install prompt
-    const handler = (e: Event) => {
+    const onPrompt = (e: Event) => {
       e.preventDefault();
-      setInstallPrompt(e as BeforeInstallPromptEvent);
-      // Показываем не сразу и только после того, как посетитель
-      // разобрался с обязательным согласием на cookie: иначе две
-      // карточки рисуются в одной точке внизу экрана.
-      whenConsentSettled(() => {
-        setTimeout(() => {
-          const dismissedAt = localStorage.getItem("pwa-install-dismissed");
-          const expired = !dismissedAt || (Date.now() - Number(dismissedAt)) > 24 * 60 * 60 * 1000;
-          if (expired) {
-            setShowInstall(true);
-          }
-        }, 5000);
+      setPrompt(e as BeforeInstallPromptEvent);
+      if (snoozed(SNOOZE_KEY, 7)) return;
+      cancelConsent = whenConsentSettled(() => {
+        cancelEngaged = whenEngaged(() => {
+          cancelSlot = requestOverlay("install", () => setShow(true));
+        });
       });
     };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onPrompt);
+      cancelConsent();
+      cancelEngaged();
+      cancelSlot();
+    };
   }, []);
 
-  const subscribeToPush = async () => {
-    try {
-      if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
-
-      const registration = await navigator.serviceWorker.ready;
-
-      // Check if already subscribed
-      const existing = await registration.pushManager.getSubscription();
-      if (existing) {
-        // Send to server in case it was lost
-        await fetch("/api/push/subscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ subscription: existing.toJSON() }),
-        });
-        return;
-      }
-
-      // Get VAPID key
-      const res = await fetch("/api/push/vapid-key");
-      const data = await res.json();
-      if (!data.success || !data.data.publicKey) return;
-
-      // Convert VAPID key
-      const urlBase64ToUint8Array = (base64String: string) => {
-        const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-        const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-        const rawData = atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-        for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
-        return outputArray;
-      };
-
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(data.data.publicKey),
-      });
-
-      await fetch("/api/push/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscription: subscription.toJSON() }),
-      });
-    } catch {
-      // Push not supported or denied — that's fine
-    }
+  const close = () => {
+    setShow(false);
+    releaseOverlay("install");
   };
 
-  const handleInstall = async () => {
-    if (!installPrompt) return;
-    await installPrompt.prompt();
-    const { outcome } = await installPrompt.userChoice;
-    if (outcome === "accepted") {
-      setShowInstall(false);
-    }
-    setInstallPrompt(null);
+  const install = async () => {
+    if (!prompt) return close();
+    await prompt.prompt();
+    const { outcome } = await prompt.userChoice;
+    if (outcome !== "accepted") snooze(SNOOZE_KEY);
+    setPrompt(null);
+    close();
   };
 
-  const handleDismiss = () => {
-    setShowInstall(false);
-    setDismissed(true);
-    // Remember dismissal with timestamp — will show again after 24h
-    localStorage.setItem("pwa-install-dismissed", String(Date.now()));
+  const dismiss = () => {
+    snooze(SNOOZE_KEY);
+    close();
   };
 
-  if (!showInstall || dismissed) return null;
+  if (!show) return null;
 
   return (
-    <div className="b-install" role="dialog" aria-labelledby="pwa-install-title">
-      <div className="b-install-card">
-        <div className="b-install-row">
-          <span className="b-install-mark" aria-hidden>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-          </span>
-          <div className="b-install-copy">
-            <p id="pwa-install-title" className="b-install-title">Приложение на главный экран</p>
-            <p className="b-install-note">Открывается как обычное приложение и умеет присылать уведомления.</p>
-          </div>
-          <button onClick={handleDismiss} className="b-install-x" aria-label="Закрыть">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-          </button>
+    <div className="ov-card" role="dialog" aria-labelledby="pwa-install-title">
+      <div className="ov-row">
+        <span className="ov-mark" aria-hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+        </span>
+        <div className="ov-copy">
+          <p id="pwa-install-title" className="ov-title">Atlas на главном экране</p>
+          <p className="ov-note">Открывается одним касанием, как обычное приложение.</p>
         </div>
-        <button onClick={handleInstall} className="b-btn b-btn-acid b-install-cta">
-          Установить
+        <button type="button" onClick={dismiss} className="ov-x" aria-label="Закрыть">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
         </button>
+      </div>
+      <div className="ov-actions">
+        <button type="button" onClick={install} className="ov-btn ov-btn-primary">Установить</button>
+        <button type="button" onClick={dismiss} className="ov-btn ov-btn-text">Не сейчас</button>
       </div>
     </div>
   );
+}
+
+/**
+ * Если человек уже включил уведомления в кабинете, подписка могла
+ * потеряться на сервере — отправляем её заново. Разрешение не
+ * запрашивается: без выданного разрешения функция ничего не делает.
+ */
+async function syncExistingPush() {
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    const registration = await navigator.serviceWorker.ready;
+    const existing = await registration.pushManager.getSubscription();
+    if (!existing) return;
+    await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subscription: existing.toJSON() }),
+    });
+  } catch {
+    // Нет поддержки или сети — не критично.
+  }
 }

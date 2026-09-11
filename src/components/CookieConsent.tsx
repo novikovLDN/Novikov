@@ -1,39 +1,71 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CONSENT_KEY, announceConsentSettled } from "@/lib/overlay-queue";
+import { useEffect, useRef, useState } from "react";
+import {
+  CONSENT_KEY, announceConsentSettled, hasCookieConsent, requestOverlay, releaseOverlay,
+} from "@/lib/overlay-queue";
 
 /**
- * Согласие на cookie.
+ * Согласие на cookie — первое в очереди нижних карточек.
  *
- * Переведено на бренд-слой 2027: чернильная плита без скруглений,
- * кислотная кнопка, дисплейный шрифт в заголовках. Прежняя версия —
- * белая карточка с оранжевой кнопкой и радиусом 14px — на чернильном
- * первом экране читалась как всплывшее окно другого сайта.
+ * ПЕРЕДЕЛАНО 11.09.2026 (владелец: «отображаются в одно время и много
+ * там ошибок»). Карточка теперь занимает общий слот очереди
+ * (`overlay-queue.ts`): пока она на экране, ни установка, ни быстрый
+ * вход не показываются. Оформление — `overlays.css`, одно на все
+ * страницы, без мостов старых слоёв: белая карточка в углу, MTS Wide,
+ * кобальтовая кнопка.
+ *
+ * «Подробнее» — диалог: фокус на кнопке закрытия, Esc закрывает,
+ * страница под ним не прокручивается, фокус возвращается на кнопку,
+ * которая его открыла.
  *
  * Правовой текст сохранён дословно — он согласован и не является
  * предметом редизайна.
- *
- * Крестики в списке «чего мы не делаем» заменены собственным глифом:
- * типографский знак ✗ рисуется по-разному в разных ОС и выпадает из
- * единого набора иконок.
  */
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
+  const [details, setDetails] = useState(false);
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const accepted = localStorage.getItem(CONSENT_KEY);
-    if (!accepted) {
-      const timer = setTimeout(() => setVisible(true), 1000);
-      return () => clearTimeout(timer);
-    }
+    if (hasCookieConsent()) return;
+    let cancel = () => {};
+    const t = window.setTimeout(() => {
+      cancel = requestOverlay("cookie", () => setVisible(true));
+    }, 1200);
+    return () => {
+      window.clearTimeout(t);
+      cancel();
+    };
   }, []);
 
-  const handleAccept = () => {
-    localStorage.setItem(CONSENT_KEY, "1");
+  // Диалог: Esc, блокировка прокрутки, фокус.
+  useEffect(() => {
+    if (!details) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDetails(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+      moreRef.current?.focus();
+    };
+  }, [details]);
+
+  const accept = () => {
+    try {
+      localStorage.setItem(CONSENT_KEY, "1");
+    } catch {
+      // Хранилище недоступно: согласие действует до конца визита.
+    }
+    setDetails(false);
     setVisible(false);
-    // Низ экрана освободился — промпты установки могут показаться.
+    releaseOverlay("cookie");
     announceConsentSettled();
   };
 
@@ -41,60 +73,42 @@ export default function CookieConsent() {
 
   return (
     <>
-      <div
-        className={`b-consent${showDetails ? " b-consent-hidden" : ""}`}
-        role="region"
-        aria-label="Использование cookie"
-      >
-        <div className="b-consent-card">
-          <p className="b-consent-text">
-            Мы используем минимально необходимые файлы cookie для обеспечения работы сервиса:
-            авторизации и безопасности вашей учётной записи. Мы не используем рекламные или
-            аналитические cookie.
-          </p>
-          <div className="mt-4 flex items-center gap-3">
-            <button type="button" onClick={handleAccept} className="b-btn b-btn-acid b-consent-accept">
-              Принять
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowDetails(true)}
-              className="b-btn b-btn-ghost b-consent-more"
-            >
-              Подробнее
-            </button>
-          </div>
+      <div className="ov-card" role="region" aria-label="Использование cookie" hidden={details}>
+        <p className="ov-text">
+          Мы используем минимально необходимые файлы cookie для обеспечения работы сервиса:
+          авторизации и безопасности вашей учётной записи. Мы не используем рекламные или
+          аналитические cookie.
+        </p>
+        <div className="ov-actions">
+          <button type="button" onClick={accept} className="ov-btn ov-btn-primary">
+            Принять
+          </button>
+          <button ref={moreRef} type="button" onClick={() => setDetails(true)} className="ov-btn ov-btn-text">
+            Подробнее
+          </button>
         </div>
       </div>
 
-      {showDetails && (
-        <div className="b-sheet" onClick={() => setShowDetails(false)}>
-          <div className="b-sheet-scrim" aria-hidden />
+      {details && (
+        <div className="ov-dialog" onClick={() => setDetails(false)}>
           <div
-            className="b-sheet-panel"
+            className="ov-dialog-panel"
             role="dialog"
             aria-modal="true"
             aria-labelledby="cookie-policy-title"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="b-sheet-head">
-              <h2 id="cookie-policy-title" className="b-md">Политика использования cookie</h2>
-              <button
-                type="button"
-                onClick={() => setShowDetails(false)}
-                className="b-sheet-x"
-                aria-label="Закрыть"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
+            <div className="ov-dialog-head">
+              <h2 id="cookie-policy-title" className="ov-title">Политика использования cookie</h2>
+              <button ref={closeRef} type="button" onClick={() => setDetails(false)} className="ov-x" aria-label="Закрыть">
+                <Cross />
               </button>
             </div>
 
-            <div className="b-sheet-body">
+            <div className="ov-dialog-body">
               <section>
-                <h3 className="b-sheet-h">Какие данные мы обрабатываем</h3>
-                <p className="b-sheet-body-text">
+                <h3 className="ov-h">Какие данные мы обрабатываем</h3>
+                <p className="ov-note">
                   Atlas Secure использует исключительно функциональные cookie-файлы, необходимые
                   для корректной работы сервиса. Мы не собираем и не обрабатываем данные в рекламных
                   или маркетинговых целях.
@@ -102,26 +116,26 @@ export default function CookieConsent() {
               </section>
 
               <section>
-                <h3 className="b-sheet-h">Типы используемых cookie</h3>
-                <div className="flex flex-col gap-3">
+                <h3 className="ov-h">Типы используемых cookie</h3>
+                <ul className="ov-list">
                   {COOKIE_TYPES.map((c) => (
-                    <div key={c.name} className="b-sheet-item">
-                      <div className="flex items-center justify-between gap-3 mb-1.5">
-                        <span className="b-sheet-item-name">{c.name}</span>
-                        <span className="b-sheet-tag">{c.tag}</span>
+                    <li key={c.name} className="ov-item">
+                      <div className="ov-item-head">
+                        <span className="ov-item-name">{c.name}</span>
+                        <span className="ov-tag">{c.tag}</span>
                       </div>
-                      <p className="b-sheet-note">{c.text}</p>
-                    </div>
+                      <p className="ov-note">{c.text}</p>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </section>
 
               <section>
-                <h3 className="b-sheet-h">Чего мы не делаем</h3>
-                <ul className="flex flex-col gap-2">
+                <h3 className="ov-h">Чего мы не делаем</h3>
+                <ul className="ov-never">
                   {NEVER.map((t) => (
-                    <li key={t} className="b-sheet-never">
-                      <NoMark />
+                    <li key={t}>
+                      <Cross small />
                       {t}
                     </li>
                   ))}
@@ -129,8 +143,8 @@ export default function CookieConsent() {
               </section>
 
               <section>
-                <h3 className="b-sheet-h">Правовое основание</h3>
-                <p className="b-sheet-note">
+                <h3 className="ov-h">Правовое основание</h3>
+                <p className="ov-note">
                   Обработка данных осуществляется на основании законного интереса оператора в обеспечении
                   функционирования сервиса (статья 6(1)(f) GDPR). Используемые cookie являются строго
                   необходимыми для предоставления запрошенной вами услуги и не требуют отдельного
@@ -140,8 +154,8 @@ export default function CookieConsent() {
               </section>
 
               <section>
-                <h3 className="b-sheet-h">Управление cookie</h3>
-                <p className="b-sheet-note">
+                <h3 className="ov-h">Управление cookie</h3>
+                <p className="ov-note">
                   Вы можете в любой момент удалить cookie через настройки вашего браузера. Обратите
                   внимание, что удаление сессионного cookie приведёт к необходимости повторной
                   авторизации в сервисе.
@@ -149,12 +163,8 @@ export default function CookieConsent() {
               </section>
             </div>
 
-            <div className="b-sheet-foot">
-              <button
-                type="button"
-                onClick={() => { handleAccept(); setShowDetails(false); }}
-                className="b-btn b-btn-acid b-sheet-done"
-              >
+            <div className="ov-dialog-foot">
+              <button type="button" onClick={accept} className="ov-btn ov-btn-primary">
                 Принять и закрыть
               </button>
             </div>
@@ -190,15 +200,11 @@ const NEVER = [
   "Не используем пиксели отслеживания и фингерпринтинг",
 ];
 
-/** Собственный глиф отрицания — вместо типографского знака ✗. */
-function NoMark() {
+/** Собственный глиф крестика — вместо типографского ✗, который в ОС рисуется по-разному. */
+function Cross({ small = false }: { small?: boolean }) {
+  const s = small ? 12 : 16;
   return (
-    <svg
-      width="13" height="13" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"
-      className="mt-[3px] shrink-0 opacity-45"
-      aria-hidden
-    >
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden focusable="false">
       <path d="M6 6 18 18M18 6 6 18" />
     </svg>
   );

@@ -109,7 +109,7 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
   const enter = referralCode ? `/auth?ref=${encodeURIComponent(referralCode)}` : "/auth";
 
   return (
-    <AtlasShell sheetNo="01" sheetTitle="Главная" unfold>
+    <AtlasShell sheetNo="01" sheetTitle="Главная">
       <AtlasDefs />
       <PointerDrift target=".a-cover" />
       <main id="main" className="a-main">
