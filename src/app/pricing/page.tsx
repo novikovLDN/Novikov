@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import AtlasShell from "@/components/atlas/AtlasShell";
 import PricingView from "./PricingView";
 import { PLANS, formatRub } from "@/lib/plans";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
@@ -6,10 +7,13 @@ import { COUNTRY_COUNT } from "@/lib/locations";
 import { FAQ } from "@/lib/faq";
 
 /**
- * /pricing — серверная обёртка: метаданные страницы.
+ * /pricing — серверная обёртка: метаданные страницы и оболочка листа 10.
  *
  * Числа в описании берутся из кода, а не пишутся руками: иначе
  * поисковая выдача обещает одну цену, а касса берёт другую.
+ *
+ * Оболочка «Атлас-издания» (шапка, футер, наблюдатель движения) живёт
+ * здесь, на сервере; тело со стейтом срока — клиентский PricingView.
  */
 export const metadata: Metadata = {
   title: "Тарифы",
@@ -52,7 +56,9 @@ export default function PricingRoute() {
         // пользовательских данных в ней нет.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_LD) }}
       />
-      <PricingView />
+      <AtlasShell sheetNo="10" sheetTitle="Тарифы">
+        <PricingView />
+      </AtlasShell>
     </>
   );
 }

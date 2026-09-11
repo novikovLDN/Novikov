@@ -1,42 +1,36 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import SiteHeader from "@/components/graticule/SiteHeader";
-import SiteFooter from "@/components/graticule/SiteFooter";
+import type { CSSProperties } from "react";
+import AtlasShell from "@/components/atlas/AtlasShell";
 import {
   SERVERS,
   SERVER_ENTRY_USD,
   SERVER_MAX_GBPS,
   GUARANTEES,
   formatUsd,
+  type ServerTier,
 } from "@/lib/servers";
-import "./vds.css";
+import { PLANS, formatRub } from "@/lib/plans";
+import { TRIAL_DAYS } from "@/lib/brand-facts";
+import { plural, wordsFeminine } from "@/lib/ru-words";
+import "./vds-atlas.css";
 
 /**
- * /vds — выделенные серверы. Первая страница на светлой системе
- * «Гратикул» (фаза 5, шаг 2).
+ * /vds — лист 11 «Выделенные серверы» на корпусе «Атлас-издание».
  *
- * ЧТО ИЗМЕНИЛОСЬ ПО СУЩЕСТВУ, А НЕ ПО ОФОРМЛЕНИЮ.
+ * Серверный компонент: состояния на странице нет, заказ — переписка с
+ * инженером (/contact?topic=vds), как и было. Все числа — из
+ * src/lib/servers.ts; неподтверждённые параметры каждой конфигурации
+ * показаны на странице строкой «Уточняется», а не спрятаны.
  *
- * 1. Цены переехали в `src/lib/servers.ts`. Раньше они были записаны
- *    прямо в разметке в четырёх местах — при том что цены подписки
- *    живут в `plans.ts` и оттуда же берутся кассой.
+ * Блоки:
+ *   01 первый экран — буквы поднимаются, дорожки порта вытягиваются
+ *   02 конфигурации — сцена: строки раскрываются шторкой по прокрутке
+ *   03 что обещаем, а что нет
+ *   04 сервер или ускоритель — две строки, куда идти
+ *   05 финал — кобальтовая плита, одно действие
  *
- * 2. Линейка строится по ПОЛОСЕ, а не по модели процессора. Разбор
- *    рынка (docs/01_VDS_MARKET.md): 32 ГБ с портом 10 Гбит/с стоят
- *    ≈$190, а 128 ГБ с 32 ядрами, но портом 1 Гбит/с — €560,70.
- *    Вторая машина втрое дороже и для сетевой нагрузки хуже первой.
- *    Прежние четыре карточки различались только процессором.
- *
- * 3. Появился блок «что гарантируем, а что нет» — позиция бренда
- *    «названная граница» (docs/02_BRAND.md), выведенная в интерфейс.
- *    Ни один конкурент такого блока не показывает.
- *
- * 4. Страница стала серверным компонентом. Клиентского кода на ней
- *    не осталось вовсе: ссылки и разметка. Прежняя была `"use client"`
- *    без единого состояния.
- *
- * Конфигуратор и заказ — следующий шаг (ADR-0007); пока действия
- * ведут в переписку с инженером.
+ * Весь моушн — vds-atlas.css, раздел «Движение».
  */
 export const metadata: Metadata = {
   title: "Выделенные серверы",
@@ -45,165 +39,260 @@ export const metadata: Metadata = {
     "Полоса порта, память, диски и срок выдачи — числами, до заявки.",
 };
 
+const HERO_1 = "выделенные серверы";
+const HERO_2 = `от ${formatUsd(SERVER_ENTRY_USD)} в месяц`;
+const TRIAL = `${TRIAL_DAYS} ${plural(TRIAL_DAYS, ["день", "дня", "дней"])}`;
+const TIERS_WORD = plural(SERVERS.length, ["конфигурация", "конфигурации", "конфигураций"]);
+
+const v = (vars: Record<string, string | number>) => vars as CSSProperties;
+
+/** Длина полосы порта: линейно, с порогом видимости 6% (гигабит иначе — невидимая чёрточка). */
+const portLen = (s: ServerTier) => `${Math.max(6, (s.portGbps / SERVER_MAX_GBPS) * 100)}%`;
+
+/** Поток по дорожке тем быстрее, чем шире порт; у гигабита — медленный. */
+const portFlow = (s: ServerTier) => `${Math.min(12, (2.4 * SERVER_MAX_GBPS) / s.portGbps).toFixed(2)}s`;
+
+function spec(s: ServerTier): Array<[string, string]> {
+  return [
+    ["Процессор", s.cpu],
+    ["Память", `${s.ramGb} ГБ ECC`],
+    ["Диски", s.disks],
+    ["Защита от атак", s.ddos],
+    ["IP-адреса", s.ip],
+  ];
+}
+
+const PROMISE: Array<{ kind: "yes" | "no" | "ask"; title: string; items: string[] }> = [
+  { kind: "yes", title: "Гарантируем", items: GUARANTEES.yes },
+  { kind: "no", title: "Не гарантируем", items: GUARANTEES.no },
+  { kind: "ask", title: "Уточняем", items: GUARANTEES.confirm },
+];
+
+function Chars({ text, start = 0 }: { text: string; start?: number }) {
+  let n = start;
+  const words = text.split(" ");
+  return (
+    <>
+      {words.map((word, w) => (
+        <span key={w}>
+          <span className="av-w">
+            {[...word].map((ch) => {
+              const i = n++;
+              return (
+                <span key={i} className="a-char" style={v({ "--i": i })}>
+                  {ch}
+                </span>
+              );
+            })}
+          </span>
+          {w < words.length - 1 ? " " : null}
+        </span>
+      ))}
+    </>
+  );
+}
+
+function Words({ text }: { text: string }) {
+  const words = text.split(" ");
+  return (
+    <>
+      {words.map((w, i) => (
+        <span key={i}>
+          <span className="a-word" style={v({ "--i": i })}>{w}</span>
+          {i < words.length - 1 ? " " : null}
+        </span>
+      ))}
+    </>
+  );
+}
+
 export default function VdsPage() {
   return (
-    <div className="g g-page">
-      <SiteHeader />
-      <div className="g-header-space" aria-hidden />
+    <AtlasShell sheetNo="11" sheetTitle="Выделенные серверы">
+      <main id="main" className="a-main">
+        {/* ── 01 · Первый экран ─────────────────────────────────────── */}
+        <section className="a-sheet av-cover" data-sheet="11" data-title="Выделенные серверы" aria-labelledby="av-title">
+          <div className="a-field">
+            <h1 id="av-title" className="av-display" aria-label={`${HERO_1} ${HERO_2}`}>
+              <span className="av-line av-line-1" aria-hidden><Chars text={HERO_1} /></span>
+              <span className="av-line av-line-2" aria-hidden><Chars text={HERO_2} start={HERO_1.length} /></span>
+            </h1>
 
-      <main>
-        <section className="g-field g-hero">
-          <h1>Железо, у которого написано, что именно гарантировано</h1>
-          <p className="g-lead">
-            Полоса, трафик, срок выдачи и предел — числами, до того как вы
-            оставите заявку.
-          </p>
-          <div className="g-actions">
-            <Link href="/contact?topic=vds" className="b-btn b-btn-acid">
-              Обсудить конфигурацию
-            </Link>
-            <Link href="/pricing" className="b-btn b-btn-ghost">
-              Тарифы ускорителя
-            </Link>
-          </div>
-        </section>
-
-        <section className="g-field g-axis" aria-labelledby="tiers-title">
-          <div className="g-axis-head">
-            <h2 id="tiers-title">Четыре ступени по ширине канала</h2>
-            <p>
-              Для сетевой нагрузки узкое место — не процессор, а порт. Поэтому
-              линейка растёт по полосе: от гарантированного гигабита до
-              двадцати пяти.
-            </p>
-          </div>
-
-          <div className="g-tiers">
-            {SERVERS.map((s) => (
-              <article
-                key={s.id}
-                className={`g-tier${s.id === "parallel" ? " g-tier-lead" : ""}`}
-              >
-                <h3 className="g-tier-name">{s.name}</h3>
-                <p className="g-tier-role">{s.role}</p>
-
-                {/* Полоса порта: шкала от нуля до верхней точки линейки.
-                    Разницу между 1 и 25 Гбит/с глазу видно, числам
-                    нужно верить.
-
-                    Шкала линейная, но с нижним порогом видимости в 6%:
-                    честные 4% для гигабита превращались в невидимую
-                    чёрточку, и ступень читалась как сломанная. Точное
-                    число напечатано рядом, поэтому порог не вводит в
-                    заблуждение — он не даёт полосе исчезнуть.
-
-                    Parallel и Azimuth стоят на одном порту, и по длине
-                    полосы они одинаковы — так и есть. Различает их
-                    учёт трафика, и он показан тоном заливки, а не
-                    подделанной длиной. */}
-                <div className="g-port">
-                  <span className="g-port-track" aria-hidden>
-                    <span
-                      className={`g-port-fill${s.meteredTraffic ? " g-port-fill-metered" : ""}`}
-                      style={{
-                        width: `${Math.max(6, (s.portGbps / SERVER_MAX_GBPS) * 100)}%`,
-                      }}
-                    />
-                  </span>
-                  <span className="g-port-value g-figure">
-                    {s.portGbps} Гбит/с
-                  </span>
-                  <span className="g-port-note">
-                    {s.meteredTraffic ? "трафик считается" : "без учёта трафика"}
-                  </span>
-                </div>
-
-                <dl className="g-spec">
-                  <div>
-                    <dt>Процессор</dt>
-                    <dd>{s.cpu}</dd>
-                  </div>
-                  <div>
-                    <dt>Память</dt>
-                    <dd className="g-figure">{s.ramGb} ГБ ECC</dd>
-                  </div>
-                  <div>
-                    <dt>Диски</dt>
-                    <dd>{s.disks}</dd>
-                  </div>
-                  <div>
-                    <dt>Защита</dt>
-                    <dd>{s.ddos}</dd>
-                  </div>
-                  <div>
-                    <dt>Адреса</dt>
-                    <dd>{s.ip}</dd>
-                  </div>
-                </dl>
-
-                <p className="g-price">
-                  <span className="g-price-num g-figure">
-                    {s.from ? "от " : ""}
-                    {formatUsd(s.usd)}
-                  </span>
-                  <span className="g-price-per">в месяц</span>
+            <div className="av-cover-grid">
+              <div>
+                <p className="a-lead a-settle">
+                  Целый сервер под ваш проект — ни с кем его не делите. Скорость порта, память,
+                  диски и цена написаны заранее, до заявки.
                 </p>
-
-                {/* Незакрытые параметры показываются, а не прячутся:
-                    это и есть «названная граница». */}
-                <p className="g-confirm">Уточняется: {s.confirm.join(", ")}.</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="g-field g-guarantee" aria-labelledby="guarantee-title">
-          <div className="g-plane g-guarantee-card">
-            <h2 id="guarantee-title">Что мы гарантируем, а что нет</h2>
-            <div className="g-guarantee-cols">
-              <div>
-                <h3>Гарантируем</h3>
-                <ul className="g-col-yes">
-                  {GUARANTEES.yes.map((t) => (
-                    <li key={t}>{t}</li>
-                  ))}
-                </ul>
+                <div className="a-actions a-settle" style={v({ "--i": 2 })}>
+                  <Link href="/contact?topic=vds" className="a-btn a-btn-primary">Обсудить конфигурацию</Link>
+                  <Link href="/pricing" className="a-btn a-btn-quiet">Тарифы ускорителя</Link>
+                </div>
+                <p className="a-fine a-settle" style={v({ "--i": 3 })}>Отвечает инженер, а не отдел продаж.</p>
               </div>
-              <div>
-                <h3>Не гарантируем</h3>
-                <ul className="g-col-no">
-                  {GUARANTEES.no.map((t) => (
-                    <li key={t}>{t}</li>
+
+              <div className="av-lanes a-settle" style={v({ "--i": 2 })}>
+                <p className="av-lanes-head a-wide">скорость порта, Гбит/с</p>
+                <div
+                  role="img"
+                  aria-label={`Скорость порта: ${SERVERS.map((s) => `${s.name} — ${s.portGbps} Гбит/с`).join(", ")}`}
+                >
+                  {SERVERS.map((s, i) => (
+                    <div key={s.id} className="av-lane" style={v({ "--i": i })}>
+                      <span className="av-lane-name">{s.name}</span>
+                      <span className="av-lane-track">
+                        <span className="a-sym" style={v({ "--w": "8px", "--flow": portFlow(s), "--len": portLen(s) })}>
+                          <span className="a-sym-flow a-idle" />
+                        </span>
+                      </span>
+                      <span className="av-lane-val a-num">{s.portGbps}</span>
+                    </div>
                   ))}
-                </ul>
-              </div>
-              <div>
-                <h3>Уточняем</h3>
-                <ul className="g-col-ask">
-                  {GUARANTEES.confirm.map((t) => (
-                    <li key={t}>{t}</li>
-                  ))}
-                </ul>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="g-field g-outro">
-          <h2>Расскажите про нагрузку — предложим конфигурацию</h2>
-          <p>
-            Отвечает инженер, а не отдел продаж. Если подходящей ступени нет,
-            так и скажем.
-          </p>
-          <div className="g-actions">
-            <Link href="/contact?topic=vds" className="b-btn b-btn-acid">
-              Написать инженеру
-            </Link>
+        {/* ── 02 · Конфигурации — строки раскрываются шторкой ──────── */}
+        <section className="a-sheet av-tiers" data-sheet="11" data-title="Конфигурации" id="servers" aria-labelledby="av-tiers-title">
+          <div className="a-field">
+            <h2 id="av-tiers-title" className="a-h2 a-settle">
+              <span className="a-no">02</span>
+              {wordsFeminine(SERVERS.length)} {TIERS_WORD}
+            </h2>
+            <p className="a-p a-settle" style={v({ "--i": 2 })}>
+              Чем шире порт, тем больше данных сервер отдаёт одновременно. Поэтому конфигурации
+              растут по скорости порта, а не по числу ядер.
+            </p>
+
+            <ol className="av-rows">
+              {SERVERS.map((s, i) => (
+                <li key={s.id} className="a-settle" style={v({ "--i": i + 3 })}>
+                  <article className="av-card" aria-labelledby={`av-${s.id}`}>
+                    <div className="av-head">
+                      <h3 id={`av-${s.id}`} className="av-name">{s.name}</h3>
+                      <p className="av-role">{s.role}</p>
+                    </div>
+
+                    <div className="av-port">
+                      <span className="av-track" aria-hidden>
+                        <span
+                          className={`av-fill${s.meteredTraffic ? " av-fill-metered" : ""}`}
+                          style={v({ "--len": portLen(s) })}
+                        />
+                      </span>
+                      <p className="av-port-val">
+                        <b className="a-num">{s.portGbps}</b> Гбит/с
+                        <span> · {s.meteredTraffic ? "трафик считается" : "без учёта трафика"}</span>
+                      </p>
+                    </div>
+
+                    <p className="av-price">
+                      <b className="a-num">
+                        {s.from ? "от " : ""}
+                        {formatUsd(s.usd)}
+                      </b>
+                      в месяц
+                    </p>
+
+                    <div className="av-more">
+                      <dl className="av-spec">
+                        {spec(s).map(([k, val]) => (
+                          <div key={k}>
+                            <dt>{k}</dt>
+                            <dd>{val}</dd>
+                          </div>
+                        ))}
+                      </dl>
+                      {/* Незакрытые параметры показываются, а не прячутся. */}
+                      <p className="av-confirm">Уточняется: {s.confirm.join(", ")}.</p>
+                    </div>
+                  </article>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* ── 03 · Что обещаем, а что нет ──────────────────────────── */}
+        <section className="a-sheet av-promise" data-sheet="11" data-title="Что обещаем" aria-labelledby="av-promise-title">
+          <div className="a-field">
+            <h2 id="av-promise-title" className="a-h2 a-settle">
+              <span className="a-no">03</span>что обещаем, а что нет
+            </h2>
+            <p className="a-p a-settle" style={v({ "--i": 2 })}>
+              Пишем заранее, за что отвечаем, — чтобы после оплаты не было сюрпризов.
+            </p>
+
+            <div className="av-groups">
+              {PROMISE.map((g, k) => (
+                <div key={g.kind} className="av-group" data-kind={g.kind}>
+                  <h3 className="av-group-head a-slide" style={v({ "--i": k * 2 + 2, "--dir": -1 })}>{g.title}</h3>
+                  <ul className="av-list">
+                    {g.items.map((t, i) => (
+                      <li key={t} className="a-settle" style={v({ "--i": k * 2 + i + 3 })}>
+                        <span className="av-row">{t}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── 04 · Сервер или ускоритель ───────────────────────────── */}
+        <section className="a-sheet av-pick" data-sheet="11" data-title="Что выбрать" aria-labelledby="av-pick-title">
+          <div className="a-field">
+            <h2 id="av-pick-title" className="a-h2 a-settle">
+              <span className="a-no">04</span>сервер или ускоритель
+            </h2>
+
+            <div className="av-pick-list">
+              <div className="a-slide" style={v({ "--i": 1, "--dir": -1 })}>
+                <Link href="#servers" className="av-pick-row">
+                  <span className="av-pick-name">выделенный сервер</span>
+                  <span className="av-pick-for">
+                    Для своего проекта: сайт, база, сервис. Сервер целиком ваш и ни с кем не делится.
+                  </span>
+                  <span className="av-pick-price">
+                    <b className="a-num">от {formatUsd(SERVER_ENTRY_USD)}</b> в месяц
+                  </span>
+                </Link>
+              </div>
+              <div className="a-slide" style={v({ "--i": 2, "--dir": 1 })}>
+                <Link href="/pricing" className="av-pick-row">
+                  <span className="av-pick-name">VPS-ускоритель</span>
+                  <span className="av-pick-for">
+                    Для себя: чтобы на телефоне и компьютере всё открывалось и не тормозило. Первые {TRIAL} бесплатно.
+                  </span>
+                  <span className="av-pick-price">
+                    <b className="a-num">от {formatRub(PLANS.basic[1])} ₽</b> в месяц
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 05 · Финал ───────────────────────────────────────────── */}
+        <section className="a-sheet a-plate a-final av-final" data-sheet="11" data-title="Заявка" aria-labelledby="av-final-title">
+          <div className="a-field">
+            <h2 id="av-final-title" className="a-h2">
+              <span className="a-no">05</span>
+              <Words text="подберём сервер под вашу задачу" />
+            </h2>
+            <p className="a-p a-settle" style={v({ "--i": 6 })}>
+              Напишите, что будет работать на сервере. Отвечает инженер. Если подходящей
+              конфигурации нет — так и скажем.
+            </p>
+            <div className="a-actions a-settle" style={v({ "--i": 8 })}>
+              <Link href="/contact?topic=vds" className="a-btn a-btn-invert a-idle">Написать инженеру</Link>
+            </div>
           </div>
         </section>
       </main>
-
-      <SiteFooter />
-    </div>
+    </AtlasShell>
   );
 }
