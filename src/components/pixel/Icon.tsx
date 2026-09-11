@@ -22,7 +22,19 @@ export type IconName =
   | "globe"
   | "clock"
   | "menu"
-  | "close";
+  | "close"
+  // Кабинет (11.09.2026): тот же штрих и та же сетка 24.
+  | "bell"
+  | "copy"
+  | "qr"
+  | "users"
+  | "logout"
+  | "send"
+  | "lock"
+  | "refresh"
+  | "share"
+  | "devices"
+  | "chat";
 
 interface IconProps {
   name: IconName;
@@ -126,4 +138,39 @@ const PATHS: Record<IconName, React.ReactNode> = {
   ),
   menu: <path d="M3.5 7h17M3.5 12h17M3.5 17h17" />,
   close: <path d="M6 6l12 12M18 6L6 18" />,
+  bell: <path d="M18 9a6 6 0 1 0-12 0c0 6.5-2.5 8.5-2.5 8.5h17S18 15.5 18 9M13.7 20.5a2 2 0 0 1-3.4 0" />,
+  copy: (
+    <>
+      <rect x="8.5" y="8.5" width="12" height="12" rx="2.5" />
+      <path d="M15.5 8.5V6A2.5 2.5 0 0 0 13 3.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5" />
+    </>
+  ),
+  qr: (
+    <>
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+      <path d="M13.5 13.5h3v3M20.5 13.5v3M13.5 17v3.5M17 20.5h3.5" />
+    </>
+  ),
+  users: <path d="M16 20.5V19a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1.5M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 20.5V19a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8" />,
+  logout: <path d="M9 20.5H5.5a2 2 0 0 1-2-2v-13a2 2 0 0 1 2-2H9M16 16.5l4.5-4.5L16 7.5M20.5 12H9" />,
+  send: <path d="M21 3.5 10.5 14M21 3.5l-6.5 17-4-6.5-6.5-4z" />,
+  lock: (
+    <>
+      <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />
+      <path d="M8 10.5v-3a4 4 0 0 1 8 0v3" />
+    </>
+  ),
+  refresh: <path d="M20.5 12a8.5 8.5 0 1 1-2.6-6.1l2.6 2.6M20.5 3.5v5h-5" />,
+  share: (
+    <>
+      <circle cx="18" cy="5.5" r="2.5" />
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="18.5" r="2.5" />
+      <path d="m8.2 13.3 7.6 4M15.8 6.7l-7.6 4" />
+    </>
+  ),
+  devices: <path d="M3.5 5.5h17v10h-17zM2 19.5h20M9 15.5v4M15 15.5v4" />,
+  chat: <path d="M20.5 12a8 8 0 0 1-11.6 7.1l-5.4 1.4 1.4-5.3A8 8 0 1 1 20.5 12" />,
 };

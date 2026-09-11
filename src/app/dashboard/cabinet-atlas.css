@@ -1,0 +1,427 @@
+/* ═══════════════════════════════════════════════════════════════════
+   КАБИНЕТ — /dashboard на корпусе «Атлас-издание» (11.09.2026).
+
+   Рабочий экран, а не витрина: белые панели на сером поле, крупный
+   кегль — значению, ради которого человек пришёл (сколько осталось,
+   баланс, кешбэк). Кобальт — главное действие и живые показания.
+   Кнопки и панели слегка скруглены (владелец: «для технологичности»),
+   токены --a-radius / --a-radius-lg в atlas.css.
+
+   Префикс ak-. Порядок: раскладка → панели → детали → ДВИЖЕНИЕ.
+   Выше раздела «Движение» анимация не объявляется.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.ak {
+  --ak-warn:    #8A4B00;
+  --ak-warn-bg: #FBF1E4;
+  --ak-rock:    #B3261E;
+  --ak-rock-bg: #FBEAEA;
+
+  min-height: calc(100svh - var(--a-head-h));
+  padding-block: clamp(1.25rem, 3vw, 2.5rem) clamp(3rem, 6vw, 5rem);
+  background: var(--a-g50);
+}
+
+/* ─── Верх: кто вы и действия кабинета ──────────────────────────── */
+.ak-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  margin-bottom: clamp(1.25rem, 2.6vw, 2rem);
+}
+.ak-kicker { margin: 0 0 0.35rem; color: var(--a-ink-3); overflow-wrap: anywhere; }
+.ak-h1 {
+  margin: 0;
+  font-family: var(--a-wide);
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--a-ink);
+}
+.ak-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+
+/* ─── Сетка панелей ─────────────────────────────────────────────── */
+.ak-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(0.75rem, 1.4vw, 1.1rem); }
+@media (min-width: 720px) {
+  .ak-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ak-sub, .ak-key, .ak-friends, .ak-net { grid-column: 1 / -1; }
+}
+@media (min-width: 1100px) {
+  .ak-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .ak-sub, .ak-key { grid-column: span 8; }
+  .ak-bal, .ak-quick { grid-column: span 4; }
+  .ak-friends { grid-column: span 7; }
+  .ak-net { grid-column: span 5; }
+  .ak-tg, .ak-set { grid-column: span 6; }
+}
+
+/* ─── Панель ────────────────────────────────────────────────────── */
+.ak-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: clamp(1.1rem, 2.2vw, 1.6rem);
+  background: var(--a-paper);
+  border: 1px solid var(--a-g200);
+  border-radius: var(--a-radius-lg);
+}
+.ak-card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 0.75rem; margin-bottom: 1.1rem; }
+.ak-eyebrow {
+  margin: 0;
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  color: var(--a-ink-3);
+}
+.ak-h3 { margin: 0; font-family: var(--a-wide); font-weight: 700; font-size: 1.125rem; line-height: 1.3; color: var(--a-ink); }
+.ak-text { margin: 0.35rem 0 0; font-size: 0.875rem; line-height: 1.55; color: var(--a-ink-2); }
+.ak-fine { margin: 0.6rem 0 0; font-size: 0.8125rem; line-height: 1.5; color: var(--a-ink-3); }
+
+/* Главное значение панели. */
+.ak-value {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.6rem;
+  margin: 0;
+  font-family: var(--a-wide);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 4.2vw, 2.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--a-ink);
+}
+.ak-value-live { width: fit-content; }
+.ak-value small { font-weight: 500; font-size: 0.875rem; letter-spacing: 0.01em; color: var(--a-ink-3); }
+
+/* Статус — точка и слово. Успех кобальтом: зелёного в корпусе нет. */
+.ak-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 28px;
+  padding: 0 0.7rem;
+  border-radius: 999px;
+  font-family: var(--a-wide);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  background: var(--a-shoal);
+  color: var(--a-cobalt);
+}
+.ak-status i { position: relative; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.ak-status[data-tone="warn"] { background: var(--ak-warn-bg); color: var(--ak-warn); }
+.ak-status[data-tone="off"] { background: var(--ak-rock-bg); color: var(--ak-rock); }
+.ak-plan { font-family: var(--a-wide); font-size: 0.75rem; color: var(--a-ink-3); }
+
+/* ─── Кнопки кабинета ───────────────────────────────────────────── */
+.ak .a-btn { min-height: 44px; padding: 0.6rem 1.1rem; gap: 0.5rem; font-size: 0.8125rem; }
+.ak-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: auto; padding-top: 1.25rem; }
+.ak-btn-soft { background: var(--a-g50); border-color: var(--a-g200); color: var(--a-ink); }
+.ak-btn-danger { background: var(--ak-rock); color: #FFFFFF; }
+.ak-btn-soft[data-state="ok"] { border-color: var(--a-cobalt); color: var(--a-cobalt); background: var(--a-shoal); }
+.ak-btn-soft[data-state="error"] { border-color: var(--ak-rock); color: var(--ak-rock); background: var(--ak-rock-bg); }
+.ak .a-btn:disabled { opacity: 0.55; cursor: default; }
+.ak .a-btn:focus-visible, .ak-icon:focus-visible, .ak-link:focus-visible, .ak-switch:focus-visible {
+  outline: 2px solid var(--a-cobalt);
+  outline-offset: 2px;
+}
+
+.ak-icon {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--a-g200);
+  border-radius: var(--a-radius);
+  background: var(--a-paper);
+  color: var(--a-ink);
+  cursor: pointer;
+}
+.ak-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 2px solid var(--a-g50);
+  background: var(--a-cobalt);
+  color: #FFFFFF;
+  font-family: var(--a-wide);
+  font-size: 0.6875rem;
+  line-height: 1;
+}
+
+/* ─── 1 · Подписка: тридцать дней клетками ──────────────────────── */
+.ak-days {
+  display: grid;
+  grid-template-columns: repeat(30, minmax(0, 1fr));
+  gap: 3px;
+  margin-top: 1.1rem;
+  max-width: 560px;
+}
+.ak-day { height: 14px; border-radius: 3px; background: var(--a-g100); transform-origin: bottom; }
+.ak-day[data-on] { background: var(--a-cobalt); }
+.ak-days[data-tone="warn"] .ak-day[data-on] { background: var(--ak-warn); }
+.ak-days-cap { display: flex; justify-content: space-between; max-width: 560px; margin-top: 0.4rem; font-size: 0.75rem; color: var(--a-ink-3); }
+
+/* ─── 2 · Баланс и проверка ─────────────────────────────────────── */
+.ak-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--a-g100);
+}
+.ak-bal .ak-row { margin-top: 1.25rem; }
+.ak-row-copy { flex: 1; min-width: 0; }
+.ak-row-title { margin: 0; font-family: var(--a-wide); font-size: 0.875rem; color: var(--a-ink); }
+.ak-row-text { margin: 0.15rem 0 0; font-size: 0.75rem; line-height: 1.45; color: var(--a-ink-3); }
+
+/* ─── 3 · Ключ ──────────────────────────────────────────────────── */
+.ak-key-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--a-radius);
+  background: var(--a-g50);
+  border: 1px dashed var(--a-g300);
+  font-family: var(--a-wide);
+  font-size: 0.8125rem;
+  color: var(--a-ink-2);
+  min-width: 0;
+}
+.ak-key-strip span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ak-key-dots { display: inline-flex; gap: 4px; flex: none; }
+.ak-key-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--a-cobalt); }
+.ak-reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--d-2) var(--m-settle); }
+.ak-reveal[data-open] { grid-template-rows: 1fr; }
+.ak-reveal > div { overflow: hidden; }
+.ak-qr {
+  display: grid;
+  place-items: center;
+  width: fit-content;
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border: 1px solid var(--a-g200);
+  border-radius: var(--a-radius);
+  background: #FFFFFF;
+}
+.ak-qr svg { display: block; width: 200px; height: 200px; max-width: 100%; }
+.ak-fallback { margin-top: 0.75rem; padding: 0.75rem; border-radius: var(--a-radius); background: var(--a-g50); }
+.ak-fallback code { display: block; margin-top: 0.35rem; font-size: 0.75rem; overflow-wrap: anywhere; color: var(--a-ink-2); }
+.ak-apps { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin-top: 1rem; font-size: 0.8125rem; color: var(--a-ink-3); }
+.ak-apps { align-items: center; }
+.ak-apps a { display: inline-flex; align-items: center; min-height: 44px; color: var(--a-ink); text-decoration: none;
+  background: linear-gradient(currentColor, currentColor) no-repeat left calc(50% + 0.75em) / 100% 1px; }
+
+/* ─── 4 · Быстрые переходы ──────────────────────────────────────── */
+.ak-links { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
+.ak-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 52px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--a-g100);
+  border-radius: var(--a-radius);
+  background: var(--a-g50);
+  color: var(--a-ink);
+  font: inherit;
+  font-family: var(--a-wide);
+  font-size: 0.875rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.ak-link-ico { position: relative; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: var(--a-paper); color: var(--a-cobalt); flex: none; }
+.ak-link-ico .ak-badge { top: -8px; right: -10px; }
+.ak-link-label { flex: 1; min-width: 0; }
+.ak-link-arrow { color: var(--a-ink-3); flex: none; }
+
+/* ─── 5 · Друзья: шкала кешбэка ─────────────────────────────────── */
+.ak-rail { position: relative; height: 8px; margin: 1.4rem 8px 0; border-radius: 999px; background: var(--a-g100); }
+.ak-rail-fill { position: absolute; inset: 0; border-radius: inherit; background: var(--a-cobalt); transform-origin: left; transform: scaleX(var(--p, 0)); }
+.ak-rail-stop {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  background: var(--a-paper);
+  border: 2px solid var(--a-g300);
+}
+.ak-rail-stop[data-on] { border-color: var(--a-cobalt); background: var(--a-cobalt); }
+.ak-rail-stop[data-here]::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--a-cobalt); opacity: 0; }
+.ak-tiers { display: flex; justify-content: space-between; margin-top: 0.75rem; }
+.ak-tier { font-size: 0.75rem; color: var(--a-ink-3); text-align: center; }
+.ak-tier:first-child { text-align: left; }
+.ak-tier:last-child { text-align: right; }
+.ak-tier b { display: block; font-family: var(--a-wide); font-size: 0.9375rem; color: var(--a-ink-2); }
+.ak-tier[data-on] b { color: var(--a-cobalt); }
+.ak-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; margin-top: 1.25rem; }
+.ak-stat { padding: 0.75rem 0.85rem; border-radius: var(--a-radius); background: var(--a-g50); }
+.ak-stat span { display: block; font-size: 0.75rem; color: var(--a-ink-3); }
+.ak-stat b { display: block; margin-top: 0.15rem; font-family: var(--a-wide); font-size: 1.25rem; color: var(--a-ink); }
+
+/* ─── 6 · Сеть ──────────────────────────────────────────────────── */
+.ak-delta { font-family: var(--a-wide); font-size: 0.8125rem; color: var(--a-ink-3); }
+.ak-delta[data-dir="up"] { color: var(--a-cobalt); }
+.ak-spark { display: block; width: 100%; height: 64px; margin-top: 0.75rem; }
+.ak-spark-area { fill: var(--a-shoal); opacity: 0.7; }
+.ak-spark-line { fill: none; stroke: var(--a-cobalt); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.ak-codes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.4rem; margin-top: 1rem; }
+.ak-code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--a-g50);
+  font-family: var(--a-wide);
+  font-size: 0.75rem;
+  color: var(--a-ink);
+}
+.ak-code i { width: 6px; height: 6px; border-radius: 50%; background: var(--a-cobalt); }
+
+/* ─── 7 · Telegram ──────────────────────────────────────────────── */
+.ak-tg-row { display: flex; align-items: flex-start; gap: 0.9rem; }
+.ak-tg-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--a-radius); background: var(--a-shoal); color: var(--a-cobalt); flex: none; }
+
+/* ─── 8 · Уведомления и вход ────────────────────────────────────── */
+.ak-set-row { display: flex; align-items: center; gap: 0.9rem; padding-block: 0.85rem; }
+.ak-set-row + .ak-set-row { border-top: 1px solid var(--a-g100); }
+.ak-set-ico { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9px; background: var(--a-g50); color: var(--a-ink-2); flex: none; }
+.ak-set-copy { flex: 1; min-width: 0; }
+.ak-switch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  flex: none;
+  border: 0;
+  border-radius: 999px;
+  background: var(--a-g200);
+  cursor: pointer;
+}
+.ak-switch::before { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; }
+.ak-switch[aria-checked="true"] { background: var(--a-cobalt); }
+.ak-switch[aria-checked="true"]::before { transform: translateX(20px); }
+.ak-switch:disabled { opacity: 0.55; cursor: default; }
+/* Тап-зона 44px при визуальном переключателе 28px. */
+.ak-switch::after { content: ""; position: absolute; inset: -8px -2px; }
+.ak-err { margin: 0.4rem 0 0; font-size: 0.8125rem; color: var(--ak-rock); }
+
+/* ─── Диалог выхода ─────────────────────────────────────────────── */
+.ak-dialog { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 1rem; }
+.ak-dialog-veil { position: absolute; inset: 0; background: rgba(11, 19, 34, 0.45); }
+.ak-dialog-card {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  padding: 1.5rem;
+  border-radius: var(--a-radius-lg);
+  background: var(--a-paper);
+}
+.ak-dialog-card .ak-actions { padding-top: 1.5rem; }
+.ak-dialog-card .a-btn { flex: 1; }
+
+/* ─── Загрузка ──────────────────────────────────────────────────── */
+.ak-skel { min-height: 180px; border: 1px solid var(--a-g200); border-radius: var(--a-radius-lg); background: linear-gradient(90deg, var(--a-paper) 0%, var(--a-g50) 50%, var(--a-paper) 100%) 0 0 / 200% 100%; }
+
+/* ═══ ДВИЖЕНИЕ ═══════════════════════════════════════════════════════
+   Только transform, opacity, фон-позиция и переменные. Скрытые до
+   входа состояния — под .a-js (без скрипта кабинет в конечном виде).
+   Холостой слой стоит на паузе, пока панель вне кадра ([data-inview]
+   ставит MotionController). */
+
+/* Вход: панели поднимаются по очереди, при первом появлении в кадре. */
+.a-js .ak-top, .a-js .ak-card {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--d-2) var(--m-settle), transform var(--d-3) var(--m-settle),
+              border-color var(--d-1) var(--m-turn);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+.a-js .ak-top[data-seen], .a-js .ak-card[data-seen] { opacity: 1; transform: none; }
+
+/* Подписка: клетки дней заполняются слева направо. */
+.ak-day { transition: transform var(--d-2) var(--m-settle), background-color var(--d-2) var(--m-settle);
+  transition-delay: calc(240ms + var(--k, 0) * 18ms); }
+.a-js .ak-card:not([data-seen]) .ak-day[data-on] { transform: scaleY(0.25); background: var(--a-g200); }
+
+/* Друзья: шкала дотягивается до уровня. */
+.ak-rail-fill { transition: transform var(--d-3) var(--m-settle) 260ms; }
+.a-js .ak-card:not([data-seen]) .ak-rail-fill { transform: scaleX(0); }
+
+/* Ключ: QR разворачивается из нулевой высоты (grid-строка, выше). */
+.ak-switch, .ak-switch::before { transition: background-color var(--d-1) var(--m-turn), transform var(--d-1) var(--m-settle); }
+
+/* Наведение: панель подходит на 2px, строка переходов уводит стрелку. */
+.ak-link, .ak-link-arrow, .ak-icon, .ak .a-btn { transition: transform var(--d-1) var(--m-settle), background-color var(--d-1) var(--m-turn),
+  border-color var(--d-1) var(--m-turn), color var(--d-1) var(--m-turn); }
+@media (hover: hover) {
+  .a-js .ak-card[data-seen]:hover, .ak-card:hover { transform: translateY(-2px); border-color: var(--a-g300); transition-delay: 0s; }
+  .ak .a-btn-primary:hover { background: var(--a-cobalt-deep); }
+  .ak-btn-soft:hover { border-color: var(--a-cobalt); color: var(--a-cobalt); }
+  .ak-icon:hover { border-color: var(--a-cobalt); color: var(--a-cobalt); }
+  .ak-link:hover { background: var(--a-shoal); border-color: var(--a-shoal); }
+  .ak-link:hover .ak-link-arrow { transform: translateX(4px); color: var(--a-cobalt); }
+  .ak-code:hover i { transform: scale(1.6); }
+}
+.ak-code i { transition: transform var(--d-1) var(--m-settle); }
+.ak .a-btn:active:not(:disabled), .ak-link:active, .ak-icon:active { transform: scale(0.98); }
+
+/* Холостой слой — у каждой панели свой. */
+.ak-status i::after {                                /* 1 · пульс статуса */
+  content: ""; position: absolute; inset: -4px; border-radius: 50%;
+  border: 1.5px solid currentColor; animation: ak-ping 2.4s var(--m-tide) infinite;
+}
+.ak-day[data-last] { animation: ak-blink 1.6s var(--m-tide) infinite; }     /* 1 · сегодняшний день */
+.ak-value-live::after {                              /* 2 · баланс: блик под суммой */
+  content: ""; position: absolute; left: 0; right: 0; bottom: -0.35rem; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--a-cobalt), transparent) 0 0 / 40% 100% no-repeat;
+  opacity: 0.5; animation: ak-sweep 3.6s var(--m-tide) infinite;
+}
+.ak-key-dots i { animation: ak-wave 1.4s var(--m-tide) infinite; animation-delay: calc(var(--k, 0) * 140ms); } /* 3 · ключ передаёт */
+.ak-link-ico { animation: ak-float 4.8s var(--m-tide) infinite; animation-delay: calc(var(--k, 0) * 600ms); } /* 4 · переходы */
+.ak-rail-stop[data-here]::after { animation: ak-ping-lg 2.4s var(--m-tide) infinite; }                     /* 5 · текущий уровень */
+.ak-code i { animation: ak-blink 1.8s var(--m-tide) infinite; animation-delay: calc(var(--k, 0) * 230ms); } /* 6 · серверы */
+.ak-spark-line { stroke-dasharray: 6 4; animation: ak-flow 2.4s linear infinite; }                         /* 6 · линия идёт */
+.ak-tg-ico svg { animation: ak-float 3.6s var(--m-tide) infinite; }                                       /* 7 · бот */
+.ak-set-ico { animation: ak-float 5.2s var(--m-tide) infinite; }                                         /* 8 · настройки */
+.ak-skel { animation: ak-sweep-bg 1.4s linear infinite; }
+
+.ak-card:not([data-inview]) *, .ak-card:not([data-inview])::after { animation-play-state: paused; }
+
+@keyframes ak-ping { 0% { transform: scale(0.6); opacity: 0.8; } 100% { transform: scale(2.2); opacity: 0; } }
+@keyframes ak-ping-lg { 0% { transform: scale(0.7); opacity: 0.7; } 100% { transform: scale(1.8); opacity: 0; } }
+@keyframes ak-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes ak-sweep { 0% { background-position: -40% 0; } 100% { background-position: 140% 0; } }
+@keyframes ak-sweep-bg { to { background-position: -200% 0; } }
+@keyframes ak-wave { 0%, 100% { transform: translateY(0); opacity: 0.45; } 40% { transform: translateY(-3px); opacity: 1; } }
+@keyframes ak-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes ak-flow { to { stroke-dashoffset: -20; } }
+
+/* Упрощение: конечный кадр, без холостого и без событий. */
+@media (prefers-reduced-motion: reduce) {
+  .ak *, .ak *::before, .ak *::after { animation: none !important; transition: none !important; }
+  .a-js .ak-top, .a-js .ak-card { opacity: 1; transform: none; }
+  .a-js .ak-card .ak-day[data-on] { transform: none; background: var(--a-cobalt); }
+  .a-js .ak-card .ak-rail-fill { transform: scaleX(var(--p, 0)); }
+}
+html[data-static] .ak *, html[data-static] .ak *::before, html[data-static] .ak *::after { animation: none !important; transition: none !important; }

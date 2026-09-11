@@ -74,6 +74,7 @@
   min-height: 44px;
   padding: 0 1.1rem;
   border: 0;
+  border-radius: var(--a-radius, 10px);
   font: inherit;
   font-size: 0.8125rem;
   letter-spacing: 0.01em;

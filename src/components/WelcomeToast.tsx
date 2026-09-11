@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { requestOverlay, releaseOverlay, whenConsentSettled } from "@/lib/overlay-queue";
 
 const STORAGE_KEY = "atlas_welcome_dismissed";
 const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -12,30 +13,26 @@ interface WelcomeToastProps {
 }
 
 function formatTimeLeft(subscriptionEnd: string): string {
-  const end = new Date(subscriptionEnd).getTime();
-  const now = Date.now();
-  const diff = end - now;
-
+  const diff = new Date(subscriptionEnd).getTime() - Date.now();
   if (diff <= 0) return "0 ч";
-
   const totalHours = Math.floor(diff / 3600000);
   const days = Math.floor(totalHours / 24);
   const hours = totalHours % 24;
   const minutes = Math.floor((diff % 3600000) / 60000);
-
-  if (days >= 1) {
-    return `${days} дн ${hours} ч`;
-  }
-  if (totalHours >= 1) {
-    return `${totalHours} ч ${minutes} мин`;
-  }
+  if (days >= 1) return `${days} дн ${hours} ч`;
+  if (totalHours >= 1) return `${totalHours} ч ${minutes} мин`;
   return `${minutes} мин`;
 }
 
-/* Отступ снизу — от кнопки возврата к первому экрану (.b-top): она
-   стоит в том же правом нижнем углу. 16 + 44 + 16 на телефоне,
-   24 + 48 + 16 на десктопе. Раньше тост стоял на bottom-3/6 и ложился
-   прямо на кнопку. */
+/**
+ * Остаток пробного периода (кабинет).
+ *
+ * ИСПРАВЛЕНО 11.09.2026: карточка встаёт в общую очередь нижних карточек
+ * (`overlay-queue.ts`, место «welcome» — после cookie, до быстрого
+ * входа) и больше не выходит одновременно с ними; оформление —
+ * overlays.css вместо старой темы. Кабинет показывает её только на
+ * пробном периоде. Пауза после закрытия — сутки, как было.
+ */
 export default function WelcomeToast({ telegramLinkToken, subscriptionEnd }: WelcomeToastProps) {
   const router = useRouter();
   const [visible, setVisible] = useState(false);
@@ -44,27 +41,30 @@ export default function WelcomeToast({ telegramLinkToken, subscriptionEnd }: Wel
   useEffect(() => {
     try {
       const dismissed = localStorage.getItem(STORAGE_KEY);
-      if (dismissed) {
-        const elapsed = Date.now() - parseInt(dismissed, 10);
-        if (elapsed < COOLDOWN_MS) return;
-      }
-      setVisible(true);
+      if (dismissed && Date.now() - parseInt(dismissed, 10) < COOLDOWN_MS) return;
     } catch {
-      setVisible(true);
+      // хранилище недоступно — покажем
     }
+    let cancelSlot = () => {};
+    const cancelConsent = whenConsentSettled(() => {
+      cancelSlot = requestOverlay("welcome", () => setVisible(true));
+    });
+    return () => {
+      cancelConsent();
+      cancelSlot();
+    };
   }, []);
 
   useEffect(() => {
     if (!visible || !subscriptionEnd) return;
     setTimeLeft(formatTimeLeft(subscriptionEnd));
-    const interval = setInterval(() => {
-      setTimeLeft(formatTimeLeft(subscriptionEnd));
-    }, 60000);
+    const interval = setInterval(() => setTimeLeft(formatTimeLeft(subscriptionEnd)), 60000);
     return () => clearInterval(interval);
   }, [visible, subscriptionEnd]);
 
   const handleClose = () => {
     setVisible(false);
+    releaseOverlay("welcome");
     try {
       localStorage.setItem(STORAGE_KEY, Date.now().toString());
     } catch {
@@ -75,59 +75,43 @@ export default function WelcomeToast({ telegramLinkToken, subscriptionEnd }: Wel
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-[76px] sm:bottom-[88px] right-3 sm:right-6 z-50 w-[calc(100%-1.5rem)] sm:w-auto sm:max-w-sm animate-fade-in-up">
-      <div className="relative bg-[color:var(--px-surface)] border border-[color:var(--px-accent-line)] rounded-2xl  overflow-hidden">
-        {/* Header */}
-        <div className="flex items-start gap-3 p-4 sm:p-5 pb-0">
-          <div className="w-10 h-10 rounded-xl bg-[color:var(--px-accent)]/15 flex items-center justify-center shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--px-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-          </div>
-          <div className="flex-1 min-w-0 pr-6">
-            <h3 className="font-mts-wide font-bold text-sm sm:text-base text-[color:var(--px-text)] leading-tight">
-              Осталось: {timeLeft || "..."}
-            </h3>
-            <p className="font-mts-wide text-xs sm:text-sm text-[color:var(--px-text-2)] leading-relaxed mt-1.5">
-              Ваш тестовый ключ активен ещё <b className="text-[color:var(--px-text)]">{timeLeft || "..."}</b>. Для приобретения полноценной подписки перейдите в Telegram-бот.
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-[color:var(--px-surface-2)] flex items-center justify-center text-[color:var(--px-text-3)] hover:text-[color:var(--px-text)] transition-colors"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+    <div className="ov-card" role="dialog" aria-labelledby="welcome-title" aria-live="polite">
+      <div className="ov-row">
+        <span className="ov-mark" aria-hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+          </svg>
+        </span>
+        <div className="ov-copy">
+          <p id="welcome-title" className="ov-title">Пробный период: осталось {timeLeft || "…"}</p>
+          <p className="ov-note">Подписку можно оформить в Telegram-боте — ключ останется тем же.</p>
         </div>
-
-        {/* Buttons */}
-        <div className="p-4 sm:p-5 pt-3 sm:pt-4 flex flex-col gap-2">
-          <a
-            href={`https://t.me/atlas_suppbot${telegramLinkToken ? `?start=${telegramLinkToken}` : ""}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-mts-wide h-10 sm:h-11 rounded-xl bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] font-medium text-sm hover:bg-[color:var(--px-accent-hi)] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z" />
-            </svg>
-            Открыть Telegram-бот
-          </a>
-          <button
-            onClick={() => { handleClose(); router.push("/devices"); }}
-            className="font-mts-wide h-10 sm:h-11 rounded-xl bg-[color:var(--px-surface-2)] text-[color:var(--px-text)] border border-[color:var(--px-line)] font-medium text-sm hover:border-[color:var(--px-line-2)] transition-all active:scale-[0.985] flex items-center justify-center gap-2"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-              <line x1="12" y1="18" x2="12.01" y2="18" />
-            </svg>
-            Перейти к подключению ключа
-          </button>
-        </div>
+        <button type="button" onClick={handleClose} className="ov-x" aria-label="Закрыть">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="ov-actions">
+        <a
+          href={`https://t.me/atlas_suppbot${telegramLinkToken ? `?start=${telegramLinkToken}` : ""}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ov-btn ov-btn-primary"
+        >
+          Открыть Telegram-бот
+        </a>
+        <button
+          type="button"
+          onClick={() => {
+            handleClose();
+            router.push("/devices");
+          }}
+          className="ov-btn ov-btn-text"
+        >
+          Подключить ключ
+        </button>
       </div>
     </div>
   );

@@ -26,18 +26,21 @@ export default function AtlasShell({
   sheetNo,
   sheetTitle,
   unfold = false,
+  headCta,
   children,
 }: {
   sheetNo: string;
   sheetTitle: string;
   unfold?: boolean;
+  /** Действие справа в шапке; `null` — без него (кабинет). */
+  headCta?: { href: string; label: string } | null;
   children: React.ReactNode;
 }) {
   return (
     <div className={`a ${atlasWide.variable}`}>
       <script dangerouslySetInnerHTML={{ __html: BOOT }} />
       <a href="#main" className="b-skip">К содержимому</a>
-      <AtlasHeader sheetNo={sheetNo} sheetTitle={sheetTitle} />
+      <AtlasHeader sheetNo={sheetNo} sheetTitle={sheetTitle} cta={headCta} />
       {unfold ? <Unfold /> : null}
       {children}
       <AtlasFooter />

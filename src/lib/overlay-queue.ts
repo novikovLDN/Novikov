@@ -21,8 +21,10 @@
 export const CONSENT_KEY = "cookie_consent";
 export const CONSENT_EVENT = "atlas:cookie-consent";
 
-export type OverlayId = "cookie" | "passkey" | "install";
-const PRIORITY: Record<OverlayId, number> = { cookie: 0, passkey: 1, install: 2 };
+/* `welcome` — остаток пробного периода в кабинете (11.09.2026): раньше
+   стоял вне очереди и выходил одновременно с быстрым входом. */
+export type OverlayId = "cookie" | "welcome" | "passkey" | "install";
+const PRIORITY: Record<OverlayId, number> = { cookie: 0, welcome: 1, passkey: 2, install: 3 };
 /** Пауза между карточками: следующая не выпрыгивает в тот же кадр. */
 const GAP_MS = 900;
 

@@ -55,6 +55,12 @@
   --a-shell:       1560px;
   --a-head-h:      64px;
 
+  /* Скругление действий (владелец, 11.09.2026: «кнопки закруглёнными
+     слегка — для технологичности»). Кнопки, поля действий и панели
+     кабинета; плиты и полосы витрины остаются с прямым углом. */
+  --a-radius:      10px;
+  --a-radius-lg:   14px;
+
   /* Движение. Пружин и отскоков нет; событие дольше 900 мс запрещено. */
   --m-pen:    linear;
   --m-settle: cubic-bezier(0.2, 0, 0, 1);
@@ -335,6 +341,7 @@ body:has(.a) {
   min-height: 52px;
   padding: 0.9rem 1.4rem;
   border: 1px solid transparent;
+  border-radius: var(--a-radius);
   font: inherit;
   font-family: var(--a-wide);
   font-weight: 500;

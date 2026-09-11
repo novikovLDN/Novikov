@@ -17,7 +17,19 @@ import { PRODUCTS, HEADER_LINKS, SITE_SHEETS, LEGAL_LINKS } from "@/lib/nav";
  * Серверный компонент. Указатель листов на телефоне — `<details>`:
  * раскрывается без скрипта, закрывается им же.
  */
-export default function AtlasHeader({ sheetNo, sheetTitle }: { sheetNo: string; sheetTitle: string }) {
+type Cta = { href: string; label: string };
+
+/* `cta` — действие справа. По умолчанию «Войти»; в кабинете `null`:
+   человек уже внутри, свои действия у кабинета в панели под шапкой. */
+export default function AtlasHeader({
+  sheetNo,
+  sheetTitle,
+  cta = { href: "/auth", label: "Войти" },
+}: {
+  sheetNo: string;
+  sheetTitle: string;
+  cta?: Cta | null;
+}) {
   return (
     <header className="a-head">
       <div className="a-field a-head-inner">
@@ -40,7 +52,7 @@ export default function AtlasHeader({ sheetNo, sheetTitle }: { sheetNo: string; 
           <em data-sheet-title>{sheetTitle}</em>
         </p>
 
-        <Link href="/auth" className="a-head-cta">Войти</Link>
+        {cta ? <Link href={cta.href} className="a-head-cta">{cta.label}</Link> : null}
 
         <details className="a-index">
           <summary className="a-wide">меню</summary>
