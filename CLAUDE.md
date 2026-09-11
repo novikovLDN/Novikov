@@ -56,6 +56,13 @@ See `.env.example`. Key groups:
 - **SMTP_*** — email delivery (codes logged to console without config)
 - **XRAY_*** — Xray server: domain, port, protocol, Reality keys
 - **XRAY_PANEL_*** — optional panel API (3x-ui, Marzban)
+- **SERVER_ACTIONS_ALLOWED_ORIGINS** — дополнительные домены для server
+  actions входа. Next отклоняет действие, если Origin не совпадает с
+  x-forwarded-host (за прокси Railway так и бывает): «Invalid Server
+  Actions request», E80. Свои домены перечислены в `next.config.ts`.
+  Новый домен сайта добавлять туда же, иначе «Получить код» падает.
+
+Исходники 3D-рендеров (Blender) — `design/blender/`, описание в README там.
 
 ## Architecture
 

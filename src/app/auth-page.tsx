@@ -9,9 +9,21 @@ import OrbGL from "@/components/atlas/OrbGL";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { DEVICE_LIMIT } from "@/lib/plans";
 import { COUNTRY_COUNT, plural } from "@/lib/locations";
-import { sendCodeAction, verifyCodeAction } from "./actions";
+import { sendCodeAction, verifyCodeAction, type SendCodeState, type VerifyCodeState } from "./actions";
 import "@/app/work-atlas.css";
 import "./auth/auth-atlas.css";
+
+/** Вызов server action, который при отказе запроса возвращает ошибку
+ *  в состояние формы, а не бросает её в границу ошибок страницы. */
+async function guardAction<S extends { success: boolean; error?: string }>(run: () => Promise<S>): Promise<S> {
+  try {
+    return await run();
+  } catch (e) {
+    const digest = (e as { digest?: unknown })?.digest;
+    if (typeof digest === "string" && digest.startsWith("NEXT_")) throw e; // redirect / notFound
+    return { success: false, error: "Не удалось связаться с сервером. Обновите страницу и попробуйте ещё раз." } as S;
+  }
+}
 
 /**
  * Вход на корпусе «Атлас-издание» — рабочий экран в стиле кабинета.
@@ -352,13 +364,17 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   };
 
   // ─── Server Actions ───────────────────────────────────────────
+  // Отказ самого запроса (сервер отклонил действие, сеть, устаревшая
+  // вкладка после выкладки) не должен ронять страницу в «This page
+  // couldn't load» — показываем ошибку у поля. Переход (redirect)
+  // пробрасываем дальше: его обрабатывает роутер Next.
   const [sendState, sendAction, sendPending] = useActionState(
-    sendCodeAction,
+    (prev: SendCodeState, fd: FormData) => guardAction(() => sendCodeAction(prev, fd)),
     { success: false }
   );
 
   const [verifyState, verifyAction, verifyPending] = useActionState(
-    verifyCodeAction,
+    (prev: VerifyCodeState, fd: FormData) => guardAction(() => verifyCodeAction(prev, fd)),
     { success: false }
   );
 
