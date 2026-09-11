@@ -28,6 +28,8 @@ export interface Location {
   /** Координаты первого города — для карты присутствия. */
   lat: number;
   lon: number;
+  /** Координаты остальных городов из `cities` (для глобуса главной). */
+  more?: { city: string; lat: number; lon: number }[];
 }
 
 export const LOCATIONS: Location[] = [
@@ -46,14 +48,26 @@ export const LOCATIONS: Location[] = [
   { code: "KZ", country: "Казахстан",   cities: ["Алматы"],                             latencyMs: 60, lat: 43.2, lon: 76.9 },
   { code: "IR", country: "Иран",        cities: ["Тегеран"],                            latencyMs: 80, lat: 35.7, lon: 51.4 },
   { code: "AE", country: "ОАЭ",         cities: ["Дубай"],                              latencyMs: 90, lat: 25.2, lon: 55.3 },
-  { code: "US", country: "США",         cities: ["Нью-Йорк", "Лос-Анджелес", "Майами"], latencyMs: 120, lat: 40.7, lon: -74.0 },
+  { code: "US", country: "США",         cities: ["Нью-Йорк", "Лос-Анджелес", "Майами"], latencyMs: 120, lat: 40.7, lon: -74.0,
+    more: [{ city: "Лос-Анджелес", lat: 34.05, lon: -118.24 }, { city: "Майами", lat: 25.76, lon: -80.19 }] },
   { code: "JP", country: "Япония",      cities: ["Токио"],                              latencyMs: 130, lat: 35.7, lon: 139.7 },
-  { code: "CN", country: "Китай",       cities: ["Гонконг", "Шанхай"],                  latencyMs: 150, lat: 22.3, lon: 114.2 },
+  { code: "CN", country: "Китай",       cities: ["Гонконг", "Шанхай"],                  latencyMs: 150, lat: 22.3, lon: 114.2,
+    more: [{ city: "Шанхай", lat: 31.23, lon: 121.47 }] },
   { code: "SG", country: "Сингапур",    cities: ["Сингапур"],                           latencyMs: 160, lat: 1.3, lon: 103.8 },
 ];
 
 /** Число стран присутствия. Считается, а не пишется руками. */
 export const COUNTRY_COUNT = LOCATIONS.length;
+
+/**
+ * Все города с серверами как точки: первый город страны плюс `more`.
+ * `latencyMs` — страны (ориентир для порядка), `code` — страны.
+ */
+export const SERVER_POINTS: { code: string; city: string; lat: number; lon: number; latencyMs: number }[] =
+  LOCATIONS.flatMap((l) => [
+    { code: l.code, city: l.cities[0], lat: l.lat, lon: l.lon, latencyMs: l.latencyMs },
+    ...(l.more ?? []).map((m) => ({ code: l.code, city: m.city, lat: m.lat, lon: m.lon, latencyMs: l.latencyMs })),
+  ]);
 
 /** Число точек: страна может нести несколько городов. */
 export const CITY_COUNT = LOCATIONS.reduce((n, l) => n + l.cities.length, 0);

@@ -1,16 +1,20 @@
 /**
  * Глобус раздела 03 — «19 стран. выбирайте ближайшую».
  *
- * Белая керамика, мягкие точки суши по маске `world-map.ts`, 19
- * кобальтовых бусин по `locations.ts`, жемчужная бусина Москвы с
- * тонким кольцом и три дуги к ближайшим серверам со спокойным светом.
+ * Белая керамика, мягкие точки суши по маске `world-map.ts`, кобальтовые
+ * бусины по всем городам с серверами (`SERVER_POINTS` в `locations.ts`),
+ * жемчужная бусина Москвы с тонким кольцом. Сеть (владелец, 11.09.2026:
+ * «больше связующих анимированных линий»): магистрали от Москвы ко всем
+ * городам — свет по ближним бежит чаще — и тонкие связи каждого сервера
+ * с двумя ближайшими соседями.
  *
- * БЮДЖЕТ (уровень 2, замер): ≈57k треугольников при потолке 150k —
- * сфера ≈18k, точки суши ≈18k (по 2 на точку), бусины ≈15k, дуги ≈3k.
- * Отрисовок — 9.
+ * БЮДЖЕТ (уровень 2, оценка): сфера ≈18k треугольников, точки суши ≈18k,
+ * бусины ≈17k, дуги ≈35k (~47 трубок по 72×5) — ≈90k при потолке 150k.
+ * Материалов у дуг два: фаза и скорость света — атрибуты геометрии.
  */
 import * as THREE from "three/webgpu";
 import {
+  attribute,
   clamp,
   color,
   exp,
@@ -28,7 +32,7 @@ import {
   uv,
 } from "three/tsl";
 import { CELL_DEG, COLS, LAT_TOP, LON_LEFT, ROWS, WORLD_ROWS } from "@/lib/world-map";
-import { LOCATIONS } from "@/lib/locations";
+import { SERVER_POINTS } from "@/lib/locations";
 import { addLights, geo, tangentMatrix } from "./core";
 import type { Builder } from "./stage";
 
@@ -96,7 +100,8 @@ export const buildGlobe: Builder = ({ scene, tier }) => {
   spin.add(sphere);
 
   // Серверы — единичные векторы, нужны и для подсветки суши.
-  const servers = LOCATIONS.map((l) => geo(l.lat, l.lon, 1));
+  // Все города с серверами (страны с несколькими городами — несколько точек).
+  const servers = SERVER_POINTS.map((l) => geo(l.lat, l.lon, 1));
   const moscow = geo(MOSCOW.lat, MOSCOW.lon, 1);
 
   // ── Суша: точки по сфере Фибоначчи, отобранные маской ────────────
@@ -229,35 +234,84 @@ export const buildGlobe: Builder = ({ scene, tier }) => {
   ripple.renderOrder = 3;
   spin.add(ripple);
 
-  // ── Дуги к трём ближайшим серверам, свет течёт от Москвы ─────────
-  const arcTargets = LOCATIONS.slice(0, 3);
-  const tubeSeg = tier === 0 ? 64 : 96;
-  arcTargets.forEach((l, i) => {
-    const b = geo(l.lat, l.lon, 1);
-    const omega = Math.acos(THREE.MathUtils.clamp(moscow.dot(b), -1, 1));
-    const lift = 0.035 + 0.3 * omega;
+  // ── Сеть: от Москвы ко всем городам с серверами + связи между ними ─
+  // Владелец, 11.09.2026: «больше связующих анимированных линий, чтобы
+  // было красиво». Два материала на все дуги (шейдер собирается дважды,
+  // а не на каждую из ~47 линий): фаза и скорость света — атрибутами
+  // геометрии. Чем ближе город к Москве по отклику, тем чаще бежит свет.
+  const tubeSeg = tier === 0 ? 40 : tier === 1 ? 56 : 72;
+  const arcPath = (a: THREE.Vector3, b: THREE.Vector3, liftK: number, base: number) => {
+    const omega = Math.acos(THREE.MathUtils.clamp(a.dot(b), -1, 1));
+    // Высота дуги растёт с расстоянием, но с потолком: дуги к США и
+    // Азии иначе уходили петлями за верх кадра (замечено 11.09.2026).
+    const lift = base + liftK * Math.min(omega, 0.75);
+    const sinO = Math.sin(omega) || 1;
     const pts: THREE.Vector3[] = [];
-    const sinO = Math.sin(omega);
     for (let k = 0; k <= 48; k++) {
       const s = k / 48;
-      const a = Math.sin((1 - s) * omega) / sinO;
-      const c = Math.sin(s * omega) / sinO;
-      const p = moscow.clone().multiplyScalar(a).add(b.clone().multiplyScalar(c)).normalize();
+      const p = a
+        .clone()
+        .multiplyScalar(Math.sin((1 - s) * omega) / sinO)
+        .add(b.clone().multiplyScalar(Math.sin(s * omega) / sinO))
+        .normalize();
       pts.push(p.multiplyScalar(1.006 + lift * Math.sin(Math.PI * s)));
     }
-    const geom = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), tubeSeg, 0.0042, 6, false);
-
+    return new THREE.CatmullRomCurve3(pts);
+  };
+  const flowMat = (baseOp: number, peak: number) => {
     const mat = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false });
     const u = uv().x;
-    const head = fract(uTime.div(FLOW).add(i * 0.18)).mul(1.6).sub(0.2);
+    // Приведение только для TS: в типах three перегрузки mul/add не
+    // принимают узел атрибута и выводят never. Шейдер тот же — атрибут
+    // float на вершину.
+    type F = ReturnType<typeof float>;
+    const phase = attribute("aPhase", "float") as unknown as F;
+    const speed = attribute("aSpeed", "float") as unknown as F;
+    const head = fract(uTime.div(FLOW).mul(speed).add(phase)).mul(1.6).sub(0.2);
     const d = head.sub(u);
-    const glow = smoothstep(-0.03, 0.0, d).mul(clamp(float(1).sub(d.div(0.45)), 0, 1).pow(2));
-    const ends = smoothstep(0.0, 0.08, u).mul(float(1).sub(smoothstep(0.92, 1.0, u)));
+    const glow = smoothstep(-0.03, 0.0, d).mul(clamp(float(1).sub(d.div(0.4)), 0, 1).pow(2));
+    const ends = smoothstep(0.0, 0.06, u).mul(float(1).sub(smoothstep(0.94, 1.0, u)));
     mat.colorNode = mix(color(COBALT), color(0x4d6bff), glow.mul(0.7));
-    mat.opacityNode = mix(float(0.42), float(1), glow).mul(ends);
-    const arc = new THREE.Mesh(geom, mat);
-    arc.renderOrder = 4;
-    spin.add(arc);
+    mat.opacityNode = mix(float(baseOp), float(peak), glow).mul(ends);
+    return mat;
+  };
+  const trunkMat = flowMat(0.32, 1);
+  const linkMat = flowMat(0.13, 0.7);
+  const addArc = (
+    curve: THREE.CatmullRomCurve3,
+    radius: number,
+    mat: THREE.Material,
+    phase: number,
+    speed: number,
+    order: number
+  ) => {
+    const geom = new THREE.TubeGeometry(curve, tubeSeg, radius, 5, false);
+    const n = geom.attributes.position.count;
+    geom.setAttribute("aPhase", new THREE.Float32BufferAttribute(new Float32Array(n).fill(phase), 1));
+    geom.setAttribute("aSpeed", new THREE.Float32BufferAttribute(new Float32Array(n).fill(speed), 1));
+    const mesh = new THREE.Mesh(geom, mat);
+    mesh.renderOrder = order;
+    spin.add(mesh);
+  };
+  // Магистрали от Москвы: свет по ближним бежит чаще (отклик страны).
+  SERVER_POINTS.forEach((p, i) => {
+    const speed = THREE.MathUtils.clamp(40 / p.latencyMs, 0.35, 1.6);
+    addArc(arcPath(moscow, servers[i], 0.3, 0.03), 0.0036, trunkMat, (i * 0.137) % 1, speed, 4);
+  });
+  // Связи между серверами: каждый — с двумя ближайшими соседями, без повторов.
+  const linked = new Set<string>();
+  servers.forEach((a, i) => {
+    servers
+      .map((b, j) => ({ j, d: a.dot(b) }))
+      .filter((o) => o.j !== i)
+      .sort((x, y) => y.d - x.d)
+      .slice(0, 2)
+      .forEach(({ j }) => {
+        const key = i < j ? `${i}-${j}` : `${j}-${i}`;
+        if (linked.has(key)) return;
+        linked.add(key);
+        addArc(arcPath(a, servers[j], 0.22, 0.012), 0.0024, linkMat, ((i * 7 + j * 3) * 0.071) % 1, 0.7, 3);
+      });
   });
 
   const spinAt = (t: number) => -FRONT_LON * DEG + (t / PERIOD) * Math.PI * 2;
