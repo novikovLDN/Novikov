@@ -194,24 +194,29 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
         </section>
 
         {/* ── 03 · Страны ───────────────────────────────────────── */}
-        <section className="a-sheet a-map" data-sheet="03" data-title="Страны" aria-labelledby="a-map-title">
+        {/* Зум с остановкой (владелец, 11.09.2026): раздел высотой в
+            несколько экранов, сцена в нём закреплена. Пока читатель
+            листает, глобус за текстом подъезжает, держится и уходит
+            вперёд — atlas.css, 6.8. Без поддержки шкал прокрутки и при
+            reduced-motion — обычный раздел с глобусом за текстом. */}
+        <section className="a-sheet a-map a-pin" data-sheet="03" data-title="Страны" aria-labelledby="a-map-title">
+          <div className="a-pin-stage">
+            {/* Глобус из Blender за текстом. Плоская карта с главной
+                убрана (владелец, 11.09.2026), осталась на /infrastructure.
+                Смысл глобуса — таблицей ниже, для чтеца экрана. */}
+            <Reel className="a-globe a-pin-art" webm="/media/globe.webm" mp4="/media/globe.mp4" poster="/media/globe.jpg" />
+            <div className="a-field a-pin-copy">
+              <h2 id="a-map-title" className="a-h2 a-settle">
+                <span className="a-no">03</span>{COUNTRY_COUNT} {COUNTRY_WORD}. выбирайте ближайшую
+              </h2>
+              <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
+                Чем ближе сервер, тем меньше задержка и тем быстрее открываются сайты и видео. Все{" "}
+                {COUNTRY_COUNT} {COUNTRY_WORD} входят в каждый тариф — доплачивать за страну не нужно.
+              </p>
+            </div>
+          </div>
           <div className="a-field">
-            <h2 id="a-map-title" className="a-h2 a-settle">
-              <span className="a-no">03</span>{COUNTRY_COUNT} {COUNTRY_WORD}. выбирайте ближайшую
-            </h2>
-            <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
-              Чем ближе сервер, тем меньше задержка и тем быстрее открываются сайты и видео. Все{" "}
-              {COUNTRY_COUNT} {COUNTRY_WORD} входят в каждый тариф — доплачивать за страну не нужно.
-            </p>
-
-            {/* Глобус из Blender (сцена «AtlasGlobe»): 19 кобальтовых
-                серверов, от Москвы к каждому бежит импульс — чем ближе
-                сервер, тем чаще. Плоская карта с главной убрана (владелец,
-                11.09.2026), осталась на /infrastructure. Смысл глобуса —
-                таблицей ниже, для чтеца экрана. */}
-            <Reel className="a-globe" webm="/media/globe.webm" mp4="/media/globe.mp4" poster="/media/globe.jpg" />
-
-            {/* Всё, что есть на карте, — словами, для чтеца экрана. */}
+            {/* Всё, что есть на глобусе, — словами, для чтеца экрана. */}
             <table className="b-sr">
               <caption>Серверы Atlas Secure и примерный отклик из Москвы</caption>
               <thead>
