@@ -457,6 +457,114 @@
 .ak .ak-dark .a-btn:focus-visible { outline-color: #FFFFFF; }
 .ak .ak-dark .ak-corner { background: var(--a-paper); color: var(--a-ink); }
 
+/* ─── Удобство на любом экране ──────────────────────────────────────
+   Владелец, 11.09.2026: «дашборд — для удобства пользователя на любом
+   экране». Телефон: вкладки разделов внизу у большого пальца, самое
+   нужное первым (подписка → ключ → переходы → баланс), кнопки во всю
+   ширину. Планшет: пары панелей без пустых клеток. Десктоп: панель
+   разделов держится под шапкой, раздел в кадре подсвечен. */
+html:has(.ak) { scroll-behavior: smooth; }
+.ak-pill[aria-current="true"] { background: var(--a-ink); color: #FFFFFF; }
+
+@media (min-width: 720px) {
+  .ak-bar {
+    position: sticky;
+    top: calc(var(--a-head-h) + 6px);
+    z-index: 5;
+    margin: -6px -6px 4px;
+    padding: 6px;
+    border-radius: 26px;
+    background: var(--a-g100);
+  }
+  .ak-board .ak-card { scroll-margin-top: calc(var(--a-head-h) + 84px); }
+}
+
+/* Десктоп без ключа (подписка истекла): строки без пустых клеток —
+   переходы + друзья, затем сеть, Telegram и настройки по трети. */
+@media (min-width: 1100px) {
+  .ak-grid[data-nokey] .ak-friends { grid-column: span 8; }
+  .ak-grid[data-nokey] .ak-net, .ak-grid[data-nokey] .ak-tg, .ak-grid[data-nokey] .ak-set { grid-column: span 4; }
+}
+
+/* Планшет: баланс и переходы — пара в одной строке, ключ под ними. */
+@media (min-width: 720px) and (max-width: 1099px) {
+  .ak-sub { order: 1; } .ak-bal { order: 2; } .ak-quick { order: 3; } .ak-key { order: 4; }
+  .ak-friends { order: 5; } .ak-net { order: 6; } .ak-tg { order: 7; } .ak-set { order: 8; }
+}
+
+.ak-tabbar { display: none; }
+
+@media (max-width: 719px) {
+  .ak { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
+  .ak-bar { display: none; }
+  .ak-board { padding: 6px; border-radius: 26px; }
+  .ak-board .ak-card { border-radius: 20px; scroll-margin-top: calc(var(--a-head-h) + 12px); }
+  .ak-corner { top: -4px; right: -4px; box-shadow: 0 0 0 4px var(--a-g100); }
+
+  /* Самое нужное — первым. */
+  .ak-sub { order: 1; } .ak-key { order: 2; } .ak-quick { order: 3; } .ak-bal { order: 4; }
+  .ak-friends { order: 5; } .ak-tg { order: 6; } .ak-set { order: 7; } .ak-net { order: 8; }
+
+  /* Шапка кабинета в одну строку: действия — значками. */
+  .ak-top { flex-wrap: nowrap; align-items: center; margin-bottom: 1rem; }
+  .ak-top > div:first-child { min-width: 0; }
+  .ak-h1 { font-size: 1.75rem; }
+  .ak-kicker { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ak-tools { flex-wrap: nowrap; }
+  .ak-tools .ak-lbl { display: none; }
+  .ak-tools .a-btn { width: 44px; padding: 0; }
+
+  /* Вкладки внизу — тёмная пилюля, как на референсе. */
+  .ak-tabbar {
+    position: fixed;
+    z-index: 60;
+    left: 12px;
+    right: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    border-radius: 26px;
+    background: var(--a-ink);
+  }
+  .ak-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-height: 52px;
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.72);
+    font-family: var(--a-wide);
+    font-size: 0.6875rem;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .ak-tab[aria-current="true"] { background: #FFFFFF; color: var(--a-ink); }
+  .ak-tab:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }
+
+  /* Нижние карточки встают над вкладками; «наверх» не нужен — есть вкладки. */
+  body:has(.ak-tabbar) .ov-card { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 76px); }
+  body:has(.ak-tabbar) .b-top { display: none; }
+}
+
+@media (max-width: 519px) {
+  .ak-actions .a-btn { flex: 1 1 100%; }
+  .ak-row { flex-wrap: wrap; }
+  .ak-row .a-btn { flex: 1 1 100%; }
+  /* Строка настроек: подпись не сжимается в столбик по слову —
+     кнопка уходит под неё во всю ширину (переключатель остаётся рядом). */
+  .ak-set-row { flex-wrap: wrap; }
+  .ak-set-copy { flex: 1 1 calc(100% - 36px - 0.9rem - 60px); }
+  .ak-set-row > .a-btn, .ak-set-row > span:last-child:not(.ak-set-ico) { flex: 1 1 100%; }
+  .ak-set-row > span:last-child .a-btn { flex: 1 1 0; }
+  /* Счётчики друзей: по две плитки в ряд, подписи не режутся. */
+  .ak-stats { grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); }
+}
+
 .ak-skel { min-height: 180px; border: 1px solid var(--a-g200); border-radius: var(--a-radius-lg); background: linear-gradient(90deg, var(--a-paper) 0%, var(--a-g50) 50%, var(--a-paper) 100%) 0 0 / 200% 100%; }
 
 /* ═══ ДВИЖЕНИЕ ═══════════════════════════════════════════════════════
@@ -555,4 +663,12 @@ html[data-static] .ak *, html[data-static] .ak *::before, html[data-static] .ak 
 }
 @media (prefers-reduced-motion: reduce) {
   .a-js .ak .ak-dark .ak-day[data-on] { background: var(--a-shoal-lume); }
+  html:has(.ak) { scroll-behavior: auto; }
 }
+
+/* Вкладки: выезжают снизу после загрузки, активная переворачивается
+   в белую пилюлю; значок активной слегка подпрыгивает. */
+.ak-tab, .ak-pill { transition: background-color var(--d-1) var(--m-turn), color var(--d-1) var(--m-turn); }
+.a-js .ak-tabbar { animation: ak-tab-in var(--d-3) var(--m-settle) 300ms both; }
+.ak-tab[aria-current="true"] svg { animation: ak-float 2.4s var(--m-tide) infinite; }
+@keyframes ak-tab-in { from { transform: translateY(140%); } }

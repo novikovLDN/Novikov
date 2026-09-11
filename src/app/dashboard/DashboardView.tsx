@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Icon from "@/components/pixel/Icon";
+import Icon, { type IconName } from "@/components/pixel/Icon";
 import NotificationsModal from "@/components/NotificationsModal";
 import WelcomeToast from "@/components/WelcomeToast";
 import PasskeyPrompt from "@/components/PasskeyPrompt";
@@ -15,7 +15,7 @@ import CabinetFriends from "./CabinetFriends";
 import CabinetNetwork from "./CabinetNetwork";
 import CabinetSettings from "./CabinetSettings";
 import Corner from "./Corner";
-import "./cabinet-atlas.css";
+import "@/app/work-atlas.css";
 
 /**
  * Кабинет на корпусе «Атлас-издание» (владелец, 11.09.2026: «дашборд —
@@ -29,7 +29,7 @@ import "./cabinet-atlas.css";
  * (без сессии — на вход), проверка подписки, выход с подтверждением,
  * привязка и отвязка Telegram, уведомления, приглашения, push, passkey.
  *
- * Движение — cabinet-atlas.css, раздел «Движение»: панели поднимаются
+ * Движение — src/app/work-atlas.css, раздел «Движение»: панели поднимаются
  * при первом входе в кадр (MotionController ставит data-seen на
  * [data-sheet]), у каждой свой холостой слой, на паузе вне кадра.
  */
@@ -53,6 +53,16 @@ function humanRemaining(days: number, hours: number): string {
 
 const at = (i: number) => ({ "--i": i }) as CSSProperties;
 
+/* Разделы кабинета: пилюли на доске (планшет, десктоп) и вкладки внизу
+   (телефон) — один список, одна подсветка. */
+const SECTIONS: { id: string; label: string; icon: IconName }[] = [
+  { id: "ak-sub", label: "Подписка", icon: "clock" },
+  { id: "ak-key", label: "Ключ", icon: "qr" },
+  { id: "referral-section", label: "Друзья", icon: "users" },
+  { id: "ak-set", label: "Настройки", icon: "bell" },
+];
+const SECTION_IDS = SECTIONS.map((s) => s.id);
+
 export default function DashboardView() {
   const router = useRouter();
   const [data, setData] = useState<SubscriptionData | null>(null);
@@ -66,6 +76,8 @@ export default function DashboardView() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [resyncing, setResyncing] = useState(false);
   const [resyncStatus, setResyncStatus] = useState<null | { kind: "ok" | "error"; text: string }>(null);
+  // Раздел в кадре — подсвечивает пилюлю сверху и вкладку снизу.
+  const [active, setActive] = useState("ak-sub");
 
   const fetchSubscription = useCallback(async () => {
     try {
@@ -91,6 +103,18 @@ export default function DashboardView() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [showLogoutConfirm, loggingOut]);
+
+  // Какой раздел пересекает середину окна — тот и активен.
+  useEffect(() => {
+    if (!data) return;
+    const els = SECTION_IDS.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => !!el);
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && setActive(e.target.id)),
+      { rootMargin: "-40% 0px -55% 0px" },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, [data]);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -202,6 +226,8 @@ export default function DashboardView() {
   // Тридцать клеток — месяц. Больше месяца — полная полоса.
   const filled = isExpired ? 0 : Math.min(30, Math.max(1, data.daysLeft));
   const unreadLabel = unreadCount > 9 ? "9+" : String(unreadCount);
+  // Без активной подписки ключа нет — и раздела «Ключ» тоже.
+  const sections = isExpired ? SECTIONS.filter((s) => s.id !== "ak-key") : SECTIONS;
 
   return (
     <>
@@ -215,9 +241,9 @@ export default function DashboardView() {
             </div>
             <div className="ak-tools">
               {data.isAdmin && (
-                <Link href="/admin" className="a-btn ak-btn-soft">
+                <Link href="/admin" className="a-btn ak-btn-soft" aria-label="Админ-панель">
                   <Icon name="shield" size={16} />
-                  Админ-панель
+                  <span className="ak-lbl">Админ-панель</span>
                 </Link>
               )}
               <button
@@ -229,9 +255,9 @@ export default function DashboardView() {
                 <Icon name="bell" size={18} />
                 {unreadCount > 0 && <span className="ak-badge" aria-hidden>{unreadLabel}</span>}
               </button>
-              <button type="button" className="a-btn ak-btn-soft" onClick={() => setShowLogoutConfirm(true)}>
+              <button type="button" className="a-btn ak-btn-soft" onClick={() => setShowLogoutConfirm(true)} aria-label="Выйти">
                 <Icon name="logout" size={16} />
-                Выйти
+                <span className="ak-lbl">Выйти</span>
               </button>
             </div>
           </section>
@@ -241,14 +267,15 @@ export default function DashboardView() {
           <nav className="ak-bar" aria-label="Разделы кабинета">
             <span className="ak-avatar" aria-hidden>{data.email.trim().charAt(0) || "A"}</span>
             <div className="ak-pills">
-              <a className="ak-pill" href="#ak-sub">Подписка</a>
-              {!isExpired && <a className="ak-pill" href="#ak-key">Ключ</a>}
-              <a className="ak-pill" href="#referral-section">Друзья</a>
-              <a className="ak-pill" href="#ak-set">Настройки</a>
+              {sections.map((s) => (
+                <a key={s.id} className="ak-pill" href={`#${s.id}`} aria-current={active === s.id ? "true" : undefined}>
+                  {s.label}
+                </a>
+              ))}
             </div>
             <span className="ak-bar-plan">{planLabel}</span>
           </nav>
-          <div className="ak-grid">
+          <div className="ak-grid" data-nokey={isExpired ? "" : undefined}>
             {/* ── 1 · Подписка ─────────────────────────────────────── */}
             <section id="ak-sub" className="ak-card ak-sub ak-dark" data-sheet="20" style={at(1)} aria-labelledby="ak-sub-h">
               <Corner href="/pricing" label="Тарифы и цены" />
@@ -469,6 +496,16 @@ export default function DashboardView() {
           </div>
           </div>
         </div>
+
+        {/* Телефон: разделы — вкладками у большого пальца. */}
+        <nav className="ak-tabbar" aria-label="Разделы кабинета, быстрый переход">
+          {sections.map((s) => (
+            <a key={s.id} className="ak-tab" href={`#${s.id}`} aria-current={active === s.id ? "true" : undefined}>
+              <Icon name={s.icon} size={18} />
+              {s.label}
+            </a>
+          ))}
+        </nav>
 
         {showLogoutConfirm && (
           <div className="ak-dialog" role="dialog" aria-modal="true" aria-labelledby="ak-out-h">

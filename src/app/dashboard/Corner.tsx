@@ -4,7 +4,7 @@ import Icon from "@/components/pixel/Icon";
 /**
  * Круглая кнопка в вырезе угла панели (референс владельца 11.09.2026:
  * кружок со стрелкой, врезанный в угол карточки). Вырез рисует кольцо
- * цвета доски вокруг кнопки — cabinet-atlas.css, «.ak-corner».
+ * цвета доски вокруг кнопки — src/app/work-atlas.css, «.ak-corner».
  * Стрелка смотрит ↗, на наведение выпрямляется в →.
  */
 export default function Corner({ href, label, external = false }: { href: string; label: string; external?: boolean }) {
