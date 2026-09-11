@@ -2,35 +2,36 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
-import SiteHeader from "@/components/pixel/SiteHeader";
-import SiteFooter from "@/components/pixel/SiteFooter";
-import Icon from "@/components/pixel/Icon";
-import { useReveal } from "@/components/pixel/motion";
+import Icon, { type IconName } from "@/components/pixel/Icon";
+import { DEVICE_LIMIT } from "@/lib/plans";
+import { plural } from "@/lib/ru-words";
+import "./devices-atlas.css";
 
 /**
- * /devices — two-step wizard.
+ * /devices — лист 12 «Атлас-издания».
  *
- * The old page laid everything out in one long scroll: hero → platform
- * picker → instructions. Users on phones tapped a device and thought
- * nothing happened, because the "Шаг 2" heading was below the fold.
+ * Логика прежняя, двухшаговый мастер: выбор устройства → настройка.
+ * Состояние шага и платформы зеркалится в адрес
+ * (`?step=setup&platform=ios`), поэтому кнопка «назад» на телефоне
+ * возвращает к выбору, а обновление страницы оставляет человека там,
+ * где он был. Ссылка профиля запрашивается только при наличии сессии
+ * (гость не получает 401 в консоль).
  *
- * v6 makes the two steps into two actual screens:
- *   - Step 1 (pick device): full-height screen with a clear "Выберите
- *     устройство" prompt, a large platform grid, and NO other blocks
- *     underneath to trick the eye.
- *   - Step 2 (setup): full-height screen with a "← Назад" chip, the
- *     picked device pinned at the top for context, then the install
- *     + import flow, big numbered steps, one action per row.
+ * Что изменилось — только оформление:
+ *   01 первый экран: заголовок буквами, строки устройств въезжают
+ *      с разных сторон, наведение переворачивает строку в плиту;
+ *   02 настройка: инструкция раскрывается лесенкой из трёх шагов
+ *      с крупными кобальтовыми цифрами (как «три шага» на главной),
+ *      при смене устройства или приложения лесенка собирается заново;
+ *   03 финал: кобальтовая плита, одно действие.
  *
- * Picking a device auto-advances to step 2 (setState + smooth scroll
- * to the top). Nothing to figure out.
+ * Блок настройки присутствует в разметке всегда и скрыт атрибутом
+ * `hidden`, пока устройство не выбрано: MotionController собирает листы
+ * один раз при монтировании, и лист, добавленный позже, остался бы без
+ * наблюдателя (холостой слой навсегда на паузе).
  *
- * The wizard state lives entirely in the URL search params
- * (`?step=setup&platform=ios&app=happ`) so the back-button on iOS/
- * Android returns to step 1 naturally, and refreshing keeps the
- * user where they were.
+ * Весь моушн — devices-atlas.css, раздел «Движение».
  */
 
 // ─── Types ──────────────────────────────────────────────────
@@ -52,13 +53,15 @@ interface AppInfo {
 
 // ─── Platform Config ────────────────────────────────────────
 
-const PLATFORMS: { id: Platform; name: string; detail: string }[] = [
-  { id: "ios",     name: "iPhone / iPad", detail: "iOS 16+" },
-  { id: "android", name: "Android",       detail: "10+" },
-  { id: "macos",   name: "macOS",         detail: "M1 / Intel" },
-  { id: "windows", name: "Windows",       detail: "10 / 11" },
-  { id: "tv",      name: "Android TV",    detail: "все модели" },
+const PLATFORMS: { id: Platform; name: string; detail: string; icon: IconName }[] = [
+  { id: "ios",     name: "iPhone / iPad", detail: "iOS 16+",    icon: "iphone" },
+  { id: "android", name: "Android",       detail: "10+",        icon: "android" },
+  { id: "macos",   name: "macOS",         detail: "M1 / Intel", icon: "macos" },
+  { id: "windows", name: "Windows",       detail: "10 / 11",    icon: "windows" },
+  { id: "tv",      name: "Android TV",    detail: "все модели", icon: "tv" },
 ];
+
+const PLATFORM_IDS = PLATFORMS.map((p) => p.id);
 
 const APPS: Record<Platform, AppInfo[]> = {
   ios: [
@@ -165,73 +168,62 @@ const APPS: Record<Platform, AppInfo[]> = {
   ],
 };
 
-// ─── Icons ──────────────────────────────────────────────────
+const DEVICE_WORD = plural(DEVICE_LIMIT, ["устройстве", "устройствах", "устройствах"]);
 
-function PlatformIcon({ id, className }: { id: Platform; className?: string }) {
-  const props = {
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.4,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    className: className ?? "w-8 h-8",
-  };
-  switch (id) {
-    case "ios":
-      return (
-        <svg {...props}>
-          <rect x="7" y="2" width="10" height="20" rx="2" />
-          <line x1="11" y1="18" x2="13" y2="18" />
-        </svg>
-      );
-    case "android":
-      return (
-        <svg {...props}>
-          <path d="M4 16V9a2 2 0 012-2h12a2 2 0 012 2v7" />
-          <path d="M4 16h16v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z" />
-          <path d="M8 7l-2-3M16 7l2-3" />
-        </svg>
-      );
-    case "macos":
-      return (
-        <svg {...props}>
-          <rect x="2" y="4" width="20" height="12" rx="1" />
-          <path d="M2 20h20M9 20l1-4M15 20l-1-4" />
-        </svg>
-      );
-    case "windows":
-      return (
-        <svg {...props}>
-          <path d="M3 5l8-1v8H3zM11 4l10-1v10H11zM3 13h8v7l-8-1zM11 13h10v8l-10-1z" />
-        </svg>
-      );
-    case "tv":
-      return (
-        <svg {...props}>
-          <rect x="2" y="4" width="20" height="13" rx="2" />
-          <line x1="8" y1="21" x2="16" y2="21" />
-          <line x1="12" y1="17" x2="12" y2="21" />
-        </svg>
-      );
-  }
+const H1_A = "подключим";
+const H1_B = "за минуту";
+
+/** Подпись кнопки магазина: «Скачать с сайта» уже глагол, остальные — «Открыть App Store». */
+function storeAction(label: string): string {
+  return /^скачать/i.test(label) ? label : `Открыть ${label}`;
 }
 
-// ─── Nav Links ──────────────────────────────────────────────
+/** Разбивка по буквам для заголовка первого экрана (как на главной). */
+function Chars({ text, start = 0 }: { text: string; start?: number }) {
+  return (
+    <>
+      {[...text].map((ch, i) =>
+        ch === " " ? (
+          " "
+        ) : (
+          <span key={i} className="a-char" style={{ ["--i" as string]: start + i }}>
+            {ch}
+          </span>
+        ),
+      )}
+    </>
+  );
+}
 
-const NAV_LINKS = [
-  { label: "Тарифы",       href: "/pricing" },
-  { label: "Безопасность", href: "/security" },
-  { label: "О нас",        href: "/about" },
-  { label: "Поддержка",    href: "/contact" },
-];
+/** Разбивка по словам для финала: слова проявляются на входе плиты. */
+function Words({ text }: { text: string }) {
+  const words = text.split(" ");
+  return (
+    <>
+      {words.map((w, i) => (
+        <span key={i}>
+          <span className="a-word" style={{ ["--i" as string]: i }}>{w}</span>
+          {i < words.length - 1 ? " " : null}
+        </span>
+      ))}
+    </>
+  );
+}
+
+function isPlatform(v: string | null): v is Platform {
+  return v !== null && (PLATFORM_IDS as string[]).includes(v);
+}
+
+function prefersStill(): boolean {
+  return (
+    document.documentElement.hasAttribute("data-static") ||
+    matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
 
 // ─── Main Component ─────────────────────────────────────────
 
 export default function DevicesView({ hasSession }: { hasSession: boolean }) {
-  const router = useRouter();
-  const [menuOpen, setMenuOpen] = useState(false);
-
   // Wizard state — mirrored to the URL for back-button + refresh.
   const [step, setStep] = useState<Step>("device");
   const [platform, setPlatform] = useState<Platform>("ios");
@@ -242,30 +234,40 @@ export default function DevicesView({ hasSession }: { hasSession: boolean }) {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [copied, setCopied] = useState(false);
   const [showQR, setShowQR] = useState(false);
-  const setupSectionRef = useRef<HTMLDivElement>(null);
+  const setupRef = useRef<HTMLElement>(null);
+
+  /** Показать блок настройки: прокрутка к нему и фокус на заголовок,
+   *  чтобы и глаз, и чтец экрана сразу оказались на втором шаге. */
+  const revealSetup = useCallback((smooth: boolean) => {
+    setTimeout(() => {
+      const el = setupRef.current;
+      if (!el) return;
+      el.scrollIntoView({ behavior: smooth && !prefersStill() ? "smooth" : "auto", block: "start" });
+      el.querySelector<HTMLElement>("#ad-setup-title")?.focus({ preventScroll: true });
+    }, 20);
+  }, []);
 
   // Read initial state from URL once the client mounts.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const p = params.get("platform") as Platform | null;
+    const p = params.get("platform");
     const s = params.get("step") as Step | null;
-    if (p && (["ios", "android", "macos", "windows", "tv"] as Platform[]).includes(p)) {
-      setPlatform(p);
+    if (isPlatform(p)) setPlatform(p);
+    if (s === "setup") {
+      setStep("setup");
+      revealSetup(false);
     }
-    if (s === "setup") setStep("setup");
     // hook browser back so leaving step 2 lands the user on step 1
     const onPop = () => {
       const q = new URLSearchParams(window.location.search);
       const stepQ = q.get("step") as Step | null;
       setStep(stepQ === "setup" ? "setup" : "device");
-      const platQ = q.get("platform") as Platform | null;
-      if (platQ && (["ios", "android", "macos", "windows", "tv"] as Platform[]).includes(platQ)) {
-        setPlatform(platQ);
-      }
+      const platQ = q.get("platform");
+      if (isPlatform(platQ)) setPlatform(platQ);
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, []);
+  }, [revealSetup]);
 
   const fetchKey = useCallback(async () => {
     // Гостю запрос не отправляется вовсе. Раньше страница спрашивала
@@ -299,7 +301,7 @@ export default function DevicesView({ hasSession }: { hasSession: boolean }) {
 
   const selectedApps = APPS[platform];
   const currentApp = selectedApps[appIndex] ?? selectedApps[0];
-  const currentPlatformMeta = PLATFORMS.find((p) => p.id === platform)!;
+  const platformMeta = PLATFORMS.find((p) => p.id === platform)!;
 
   const getKeyUrl = useCallback(() => {
     if (!vpnKey) return null;
@@ -321,11 +323,9 @@ export default function DevicesView({ hasSession }: { hasSession: boolean }) {
     url.searchParams.set("step", "setup");
     url.searchParams.set("platform", p);
     window.history.pushState({}, "", url.toString());
-    // Give React a tick to render step 2, then scroll top-of-content
-    // into view so the user immediately sees the new screen.
-    setTimeout(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }, 20);
+    // Шаг 2 стоит под первым экраном: даём React отрисовать его и
+    // подводим к нему, иначе на телефоне кажется, что ничего не случилось.
+    revealSetup(true);
   };
 
   const goBackToDevices = () => {
@@ -342,7 +342,7 @@ export default function DevicesView({ hasSession }: { hasSession: boolean }) {
       url.searchParams.delete("platform");
       window.history.replaceState({}, "", url.pathname);
     }
-    setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 20);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: prefersStill() ? "auto" : "smooth" }), 20);
   };
 
   const handleSelectApp = (idx: number) => {
@@ -375,531 +375,279 @@ export default function DevicesView({ hasSession }: { hasSession: boolean }) {
   };
 
   const keyUrl = getKeyUrl();
-
-  return (
-    <div className="px-page" ref={setupSectionRef}>
-      <div className="px-grid-bg" aria-hidden />
-      <SiteHeader />
-
-      {/* ═══ Progress ═══ */}
-      <div className="px-shell max-w-[900px] pt-[calc(var(--px-header-h)+32px)] sm:pt-[calc(var(--px-header-h)+48px)]">
-        <button
-          type="button"
-          onClick={() => (step === "setup" ? goBackToDevices() : router.push("/dashboard"))}
-          className="px-chip mb-8"
-        >
-          <Icon name="arrow-right" size={14} className="rotate-180" />
-          {step === "setup" ? "К выбору устройства" : "В личный кабинет"}
-        </button>
-        <ProgressBar step={step} />
-      </div>
-
-      {step === "device" ? (
-        <DeviceStep onSelect={goToSetup} platform={platform} />
-      ) : (
-        <SetupStep
-          platform={platform}
-          platformMeta={currentPlatformMeta}
-          selectedApps={selectedApps}
-          currentApp={currentApp}
-          appIndex={appIndex}
-          onSelectApp={handleSelectApp}
-          keyUrl={keyUrl}
-          signedIn={signedIn}
-          copied={copied}
-          onCopy={handleCopy}
-          onAutoInstall={handleAutoInstall}
-          showQR={showQR}
-          onToggleQR={() => setShowQR((v) => !v)}
-          onBack={goBackToDevices}
-          onChangeDevice={() => goBackToDevices()}
-        />
-      )}
-
-      <SiteFooter />
-    </div>
-  );
-}
-
-// ═══ Progress bar ═══════════════════════════════════════════
-
-function ProgressBar({ step }: { step: Step }) {
   const isSetup = step === "setup";
+
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex items-center gap-2">
-        <span
-          className={`font-mts-wide w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold transition-colors ${
-            !isSetup ? "bg-[color:var(--px-accent)] text-[#101010]" : "bg-[color:var(--px-good)] text-[#101010]"
-          }`}
-        >
-          {!isSetup ? "1" : (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          )}
-        </span>
-        <span className={`font-mts-wide text-[12px] tracking-[0.10em] uppercase transition-colors ${!isSetup ? "text-[color:var(--px-text)]" : "text-[color:var(--px-text-4)]"}`}>
-          Устройство
-        </span>
-      </div>
+    <main id="main" className="a-main ad" data-step={step}>
+      {/* ── 01 · Выбор устройства ──────────────────────────────── */}
+      <section className="a-sheet ad-cover" data-sheet="12" data-title="Устройства" aria-labelledby="ad-title">
+        <div className="a-field">
+          <ol className="ad-progress a-wide a-settle" aria-label="Шаги настройки">
+            <li aria-current={!isSetup ? "step" : undefined}>1 · устройство</li>
+            <li className="ad-progress-line" aria-hidden>
+              <i className="ad-progress-fill" />
+              <i className="ad-progress-glint a-idle" />
+            </li>
+            <li aria-current={isSetup ? "step" : undefined}>2 · настройка</li>
+          </ol>
 
-      <div className="flex-1 h-px bg-[color:var(--px-line-2)] relative overflow-hidden">
-        <span
-          className="absolute inset-y-0 left-0 bg-[color:var(--px-accent)] transition-all duration-500 ease-out"
-          style={{ width: isSetup ? "100%" : "0%" }}
-        />
-      </div>
+          <h1 id="ad-title" className="ad-h1" aria-label={`${H1_A} ${H1_B}`}>
+            <span className="ad-h1-line" aria-hidden><Chars text={H1_A} /></span>
+            <span className="ad-h1-line ad-h1-2" aria-hidden><Chars text={H1_B} start={H1_A.length} /></span>
+          </h1>
 
-      <div className="flex items-center gap-2">
-        <span
-          className={`font-mts-wide w-7 h-7 rounded-full flex items-center justify-center text-[12px] font-semibold transition-colors ${
-            isSetup ? "bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)]" : "bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] text-[color:var(--px-text-4)]"
-          }`}
-        >
-          2
-        </span>
-        <span className={`font-mts-wide text-[12px] tracking-[0.10em] uppercase transition-colors ${isSetup ? "text-[color:var(--px-text)]" : "text-[color:var(--px-text-4)]"}`}>
-          Настройка
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ═══ Step 1 — Device picker ═════════════════════════════════
-
-function DeviceStep({
-  onSelect,
-  platform,
-}: {
-  onSelect: (p: Platform) => void;
-  platform: Platform;
-}) {
-  return (
-    <>
-      {/* Hero */}
-      <section className="px-5 sm:px-8 pt-8 pb-6 sm:pt-14 sm:pb-10 max-w-[900px] mx-auto w-full">
-        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">
-          Шаг 1 из 2
-        </div>
-        <h1 className="px-page-hero-title max-w-[16ch]">
-          На каком устройстве<br />подключаем?
-        </h1>
-        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-[color:var(--px-text-3)] mt-5 max-w-[54ch]">
-          Нажмите устройство — дальше мы автоматически поведём по установке.
-        </p>
-      </section>
-
-      {/* Platform grid */}
-      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[900px] mx-auto w-full">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-          {PLATFORMS.map((p) => {
-            const active = platform === p.id;
-            return (
-              <button
-                key={p.id}
-                onClick={() => onSelect(p.id)}
-                /* aria-label убран: он подменял доступное имя строкой
-                   «Выбрать iPhone», тогда как на кнопке написано
-                   «iPhone · iOS 15+». Голосовое управление по видимой
-                   надписи кнопку не находило (аудит
-                   label-content-name-mismatch). Собственного текста
-                   кнопки достаточно. */
-                aria-pressed={active}
-                className={
-                  "group px-spot aspect-square rounded-2xl border p-4 sm:p-5 flex flex-col justify-between text-left transition-all active:scale-[0.98] relative overflow-hidden " +
-                  (active
-                    ? "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-[color:var(--px-accent)]"
-                    : "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-[color:var(--px-line)] hover:border-[color:var(--px-line-2)] hover:-translate-y-0.5")
-                }
-              >
-                <PlatformIcon
-                  id={p.id}
-                  className={
-                    "w-9 h-9 sm:w-8 sm:h-8 transition-colors " +
-                    (active ? "text-[color:var(--px-accent-text)]" : "text-[color:var(--px-text-3)] group-hover:text-[color:var(--px-text)]")
-                  }
-                />
-                <div>
-                  <div className={"font-mts-wide text-[15px] sm:text-[17px] font-medium " + "text-[color:var(--px-text)]"}>
-                    {p.name}
-                  </div>
-                  <div className={"font-mts-wide text-[11px] sm:text-[12px] mt-0.5 " + "text-[color:var(--px-text-4)]"}>
-                    {p.detail}
-                  </div>
-                </div>
-
-                {/* Arrow-affordance corner — appears on hover to signal "this leads somewhere" */}
-                <span
-                  className={
-                    "absolute top-3 right-3 w-7 h-7 rounded-full border flex items-center justify-center transition-all " +
-                    (active
-                      ? "bg-[color:var(--px-surface)] text-[color:var(--px-text)] border-white opacity-100"
-                      : "border-[color:var(--px-line-2)] text-[color:var(--px-text-3)] opacity-0 group-hover:opacity-100 group-active:opacity-100")
-                  }
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-6 sm:mt-8 flex items-center gap-2 font-mts-wide text-[13px] text-[color:var(--px-text-4)]">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 8v4M12 16h.01" />
-          </svg>
-          Не нашли устройство? Напишите в{" "}
-          <Link href="/contact" className="px-link underline underline-offset-4">поддержку</Link>
-          — поможем.
-        </div>
-      </section>
-    </>
-  );
-}
-
-// ═══ Step 2 — Setup flow ════════════════════════════════════
-
-function SetupStep({
-  platform,
-  platformMeta,
-  selectedApps,
-  currentApp,
-  appIndex,
-  onSelectApp,
-  keyUrl,
-  signedIn,
-  copied,
-  onCopy,
-  onAutoInstall,
-  showQR,
-  onToggleQR,
-  onBack,
-  onChangeDevice,
-}: {
-  platform: Platform;
-  platformMeta: { id: Platform; name: string; detail: string };
-  selectedApps: AppInfo[];
-  currentApp: AppInfo;
-  appIndex: number;
-  onSelectApp: (idx: number) => void;
-  keyUrl: string | null;
-  signedIn: boolean | null;
-  copied: boolean;
-  onCopy: () => void;
-  onAutoInstall: () => void;
-  showQR: boolean;
-  onToggleQR: () => void;
-  onBack: () => void;
-  onChangeDevice: () => void;
-}) {
-  void platform;
-  return (
-    <>
-      {/* Chosen device chip + change link */}
-      <section className="px-5 sm:px-8 pt-8 pb-4 sm:pt-10 sm:pb-6 max-w-[900px] mx-auto w-full">
-        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">
-          Шаг 2 из 2
-        </div>
-        <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
-          <div className="inline-flex items-center gap-3 pl-2 pr-4 py-2 rounded-full bg-[color:var(--px-surface)] border border-[color:var(--px-line)] text-[color:var(--px-text)]">
-            <span className="w-8 h-8 rounded-full bg-[color:var(--px-surface)]/10 flex items-center justify-center">
-              <PlatformIcon id={platformMeta.id} className="w-4 h-4 text-[color:var(--px-accent-text)]" />
-            </span>
-            <div className="pr-1 -mt-px">
-              <div className="font-mts-wide text-[13px] font-semibold leading-tight">{platformMeta.name}</div>
-              <div className="font-mts-wide text-[10px] text-[color:var(--px-text-4)] tracking-[0.08em] uppercase leading-tight">{platformMeta.detail}</div>
+          <div className="ad-cover-grid">
+            <p className="a-lead a-settle" style={{ ["--i" as string]: 2 }}>
+              Выберите устройство — покажем, что нажать. Одна подписка работает
+              на {DEVICE_LIMIT} {DEVICE_WORD}, приложение бесплатное.
+            </p>
+            <div className="a-actions a-settle" style={{ ["--i" as string]: 3 }}>
+              <Link href="/dashboard" className="a-btn a-btn-quiet">В личный кабинет</Link>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onChangeDevice}
-            className="px-link underline underline-offset-4"
-          >
-            Сменить устройство
-          </button>
-        </div>
 
-        <h1 className="px-page-hero-title mt-6 max-w-[18ch]">
-          Установка за минуту
-        </h1>
-        <p className="font-mts-wide text-[15px] sm:text-[17px] leading-[1.5] text-[color:var(--px-text-3)] mt-4 max-w-[54ch]">
-          Два действия — установить приложение и перенести профиль. Кнопки внизу сделают всё автоматически.
-        </p>
-      </section>
-
-      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[900px] mx-auto w-full">
-        {/* App tabs — only when >1 app for the platform */}
-        {selectedApps.length > 1 && (
-          <div className="mb-4">
-            <div className="font-mts-wide text-[12px] tracking-[0.12em] uppercase text-[color:var(--px-text-4)] mb-3">
-              Приложение
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {selectedApps.map((a, i) => {
-                const active = i === appIndex;
+          <div className="ad-pick">
+            <h2 className="ad-pick-head a-wide a-settle" style={{ ["--i" as string]: 4 }}>на каком устройстве</h2>
+            <ul className="ad-platforms">
+              {PLATFORMS.map((p, i) => {
+                const active = isSetup && platform === p.id;
                 return (
-                  <button
-                    key={a.id}
-                    onClick={() => onSelectApp(i)}
-                    className={"px-chip" + (active ? " px-chip-active" : "")}
+                  <li
+                    key={p.id}
+                    className="a-slide"
+                    style={{ ["--i" as string]: i, ["--dir" as string]: i % 2 ? 1 : -1 }}
                   >
-                    {a.name}
-                  </button>
+                    {/* Доступное имя — видимый текст кнопки: голосовое
+                        управление находит кнопку по надписи. */}
+                    <button
+                      type="button"
+                      className="ad-platform"
+                      aria-pressed={active}
+                      onClick={() => goToSetup(p.id)}
+                    >
+                      <span className="ad-platform-no a-wide" aria-hidden>{String(i + 1).padStart(2, "0")}</span>
+                      <Icon name={p.icon} size={28} className="ad-platform-icon" />
+                      <span className="ad-platform-name">{p.name}</span>
+                      <span className="ad-platform-detail">{p.detail}</span>
+                      <span className="ad-platform-go" aria-hidden>
+                        <Icon name={active ? "check" : "arrow-right"} size={20} />
+                      </span>
+                    </button>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
+            <p className="ad-note a-settle" style={{ ["--i" as string]: 6 }}>
+              Не нашли своё устройство? <Link href="/contact">Напишите нам</Link> — поможем.
+            </p>
           </div>
-        )}
-
-        {/* ─── STEP A — Install app ─── */}
-        <StepCard
-          number="1"
-          title="Установите приложение"
-          subtitle={currentApp.description}
-          appLetter={currentApp.name[0]}
-          appName={currentApp.name}
-        >
-          <p className="font-mts-wide text-[14px] leading-[1.55] text-[color:var(--px-text-3)] mb-4">
-            {currentApp.searchHint}
-          </p>
-          <a
-            href={currentApp.downloadUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-btn px-btn-md px-btn-secondary"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Открыть {currentApp.storeLabel}
-          </a>
-        </StepCard>
-
-        {/* Down-arrow connector */}
-        <div className="flex justify-center my-3 sm:my-4" aria-hidden>
-          <div className="w-9 h-9 rounded-full bg-[color:var(--px-surface)] border border-black/[0.10] flex items-center justify-center text-[color:var(--px-text-3)]">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 5v14M5 12l7 7 7-7" />
-            </svg>
-          </div>
-        </div>
-
-        {/* ─── STEP B — Import profile ─── */}
-        <StepCard
-          number="2"
-          title="Перенесите профиль"
-          subtitle="Ссылка ниже — уникальная для вас"
-          appLetter={null}
-          appName={null}
-        >
-          {/* Key display */}
-          {keyUrl ? (
-            <div className="bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] rounded-2xl p-4 font-mono text-xs break-all text-[color:var(--px-text-2)] mb-4">
-              {keyUrl}
-            </div>
-          ) : signedIn === false ? (
-            <div className="bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] rounded-2xl p-5 mb-4">
-              <p className="px-body">
-                Ссылка профиля выдаётся после входа — она уникальна для вашего
-                аккаунта. Инструкция выше работает и без неё.
-              </p>
-              <Link href="/auth" className="px-btn px-btn-sm px-btn-primary mt-4">
-                Войти и получить ссылку
-              </Link>
-            </div>
-          ) : (
-            <div className="bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] rounded-2xl p-4 font-mono text-xs text-[color:var(--px-text-4)] mb-4">
-              Загружаем ссылку профиля…
-            </div>
-          )}
-
-          {/* CTAs — deepLink primary, copy secondary, QR ghost */}
-          <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 mb-4">
-            {currentApp.deepLink && (
-              <button
-                onClick={onAutoInstall}
-                disabled={!keyUrl}
-                className="px-btn px-btn-md px-btn-primary px-btn-block"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                </svg>
-                Открыть в приложении
-              </button>
-            )}
-            <button
-              onClick={onCopy}
-              disabled={!keyUrl}
-              className="px-btn px-btn-md px-btn-secondary"
-            >
-              {copied ? (
-                <>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--px-good)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  <span className="text-[color:var(--px-good)]">Скопировано</span>
-                </>
-              ) : (
-                <>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" />
-                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                  </svg>
-                  Скопировать ссылку
-                </>
-              )}
-            </button>
-            <button
-              onClick={onToggleQR}
-              disabled={!keyUrl}
-              aria-pressed={showQR}
-              className="px-btn px-btn-md px-btn-secondary"
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <path d="M14 14h3v3h-3zM20 14h1M14 20h1M20 20h1" />
-              </svg>
-              {showQR ? "Скрыть QR" : "Показать QR"}
-            </button>
-          </div>
-
-          {/* QR panel */}
-          {showQR && keyUrl && (
-            <div className="mb-4 inline-flex flex-col items-center gap-3 p-5 bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl">
-              <QRCodeSVG value={keyUrl} size={192} bgColor="#ffffff" fgColor="#000000" level="M" />
-              <div className="font-mts-wide text-[12px] text-[color:var(--px-text-3)] max-w-[220px] text-center leading-[1.45]">
-                Наведите камеру приложения на код, чтобы импортировать профиль
-              </div>
-            </div>
-          )}
-
-          {/* Numbered manual steps — for users who prefer to do it themselves */}
-          <details className="mt-4 group">
-            <summary className="font-mts-wide text-[13px] text-[color:var(--px-text-3)] cursor-pointer hover:text-[color:var(--px-text)] inline-flex items-center gap-1.5 list-none">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-open:rotate-90">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-              Показать шаги вручную (если автоматика не сработала)
-            </summary>
-            <ol className="space-y-3 mt-4">
-              {currentApp.steps.map((s, i) => (
-                <li key={i} className="flex gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="font-mts-wide text-[11px] font-semibold text-[color:var(--px-text-2)]">{i + 1}</span>
-                  </div>
-                  <p className="font-mts-wide text-[14px] leading-[1.55] text-[color:var(--px-text-2)]">{s}</p>
-                </li>
-              ))}
-            </ol>
-          </details>
-        </StepCard>
-
-        {/* Success + return */}
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-[color:var(--px-surface)] border border-[color:var(--px-line)]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#22C55E]/12 border border-[#22C55E]/25 flex items-center justify-center shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--px-good)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </div>
-            <div>
-              <div className="font-mts-wide text-[15px] font-semibold text-[color:var(--px-text)] leading-tight">Готово</div>
-              <div className="font-mts-wide text-[12px] text-[color:var(--px-text-3)] mt-0.5">Приложение подключится автоматически при запуске</div>
-            </div>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <button
-              type="button"
-              onClick={onBack}
-              className="px-btn px-btn-sm px-btn-secondary"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-              К устройствам
-            </button>
-            <Link
-              href="/dashboard"
-              className="px-btn px-btn-sm px-btn-primary"
-            >
-              В кабинет
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
-        </div>
-
-        {/* Help nudge */}
-        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 sm:p-6 rounded-3xl border border-[color:var(--px-line)] bg-[color:var(--px-surface)]">
-          <div>
-            <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-2">Не получается?</div>
-            <div className="font-mts-wide text-[16px] font-bold leading-tight">Мы поможем настроить лично</div>
-          </div>
-          <Link
-            href="/contact"
-            className="px-btn px-btn-md px-btn-secondary self-start sm:self-auto shrink-0"
-          >
-            Написать в поддержку
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </Link>
         </div>
       </section>
-    </>
-  );
-}
 
-// ─── Small building block ─────────────────────────────────
+      {/* ── 02 · Настройка — лесенка из трёх шагов ────────────── */}
+      <section
+        ref={setupRef}
+        className="a-sheet ad-setup"
+        data-sheet="12"
+        data-title="Настройка"
+        aria-labelledby="ad-setup-title"
+        hidden={!isSetup}
+      >
+        <div className="a-field">
+          <h2 id="ad-setup-title" className="a-h2" tabIndex={-1}>
+            <span className="a-no">02</span>настройка на {platformMeta.name}
+          </h2>
 
-function StepCard({
-  number,
-  title,
-  subtitle,
-  appLetter,
-  appName,
-  children,
-}: {
-  number: string;
-  title: string;
-  subtitle?: string;
-  appLetter: string | null;
-  appName: string | null;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-5 sm:p-7">
-      <div className="flex items-start gap-3 sm:gap-4 mb-5">
-        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-[22%] bg-[color:var(--px-accent-dim)] border border-[rgba(255,115,80,0.28)] text-[color:var(--px-accent-text)] flex items-center justify-center font-mts-wide text-[15px] sm:text-[16px] font-bold shrink-0">
-          {number}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="font-mts-wide text-[18px] sm:text-[20px] font-bold leading-tight tracking-tight">
-            {title}
+          <div className="ad-device-line">
+            <Icon name={platformMeta.icon} size={22} className="ad-device-icon" />
+            <span>{platformMeta.name}</span>
+            <span className="ad-device-detail">{platformMeta.detail}</span>
+            <button type="button" className="a-btn a-btn-quiet" onClick={goBackToDevices}>
+              Сменить устройство
+            </button>
           </div>
-          {subtitle && (
-            <div className="font-mts-wide text-[13px] sm:text-[14px] text-[color:var(--px-text-3)] mt-1 leading-snug">
-              {subtitle}
-            </div>
+
+          {/* Выбор приложения — только когда для платформы их несколько. */}
+          {selectedApps.length > 1 && (
+            <fieldset className="ad-apps">
+              <legend className="a-wide">приложение</legend>
+              <div className="ad-apps-row">
+                {selectedApps.map((a, i) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    className="ad-app"
+                    aria-pressed={i === appIndex}
+                    onClick={() => handleSelectApp(i)}
+                  >
+                    <span>{a.name}</span>
+                    <small>{a.description}</small>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
           )}
-        </div>
-        {appLetter && (
-          <div className="w-11 h-11 rounded-2xl bg-[color:var(--px-surface-2)] border border-[color:var(--px-line)] flex items-center justify-center shrink-0" aria-label={appName ?? undefined}>
-            <span className="font-mts-wide text-[18px] font-semibold text-[color:var(--px-text)]">{appLetter}</span>
+
+          {/* key: при смене устройства или приложения лесенка
+              пересобирается и раскрывается заново. */}
+          <ol className="ad-ladder" key={`${platform}-${currentApp.id}`}>
+            <li className="ad-step" style={{ ["--i" as string]: 0 }}>
+              <span className="ad-step-n" aria-hidden>1</span>
+              <div className="ad-step-body">
+                <h3>Установите {currentApp.name}</h3>
+                <p>{currentApp.searchHint}</p>
+                <a
+                  href={currentApp.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="a-btn a-btn-quiet"
+                >
+                  {storeAction(currentApp.storeLabel)}
+                  <span className="b-sr"> (откроется в новой вкладке)</span>
+                </a>
+              </div>
+            </li>
+
+            <li className="ad-step" style={{ ["--i" as string]: 1 }}>
+              <span className="ad-step-n" aria-hidden>2</span>
+              <div className="ad-step-body">
+                <h3>Добавьте ключ</h3>
+                {keyUrl ? (
+                  <>
+                    <p>Ссылка ниже — только ваша. Кнопка сама откроет приложение и добавит её.</p>
+                    <div className="ad-key">
+                      <span className="ad-key-text">{keyUrl}</span>
+                      <span className="ad-key-flow a-idle" aria-hidden />
+                    </div>
+                  </>
+                ) : signedIn === false ? (
+                  <div className="ad-guest">
+                    <p>
+                      Ключ выдаётся после входа — он свой у каждого аккаунта. Остальные шаги
+                      работают и без него.
+                    </p>
+                    <Link href="/auth" className="a-btn a-btn-primary">Войти и получить ключ</Link>
+                  </div>
+                ) : signedIn === true ? (
+                  <p>
+                    Ключ появится в <Link href="/dashboard" className="ad-inline">личном кабинете</Link>.
+                  </p>
+                ) : (
+                  <div className="ad-key" aria-busy="true">
+                    <span className="ad-key-text ad-key-wait">Секунду, загружаем ключ…</span>
+                    <span className="ad-key-flow a-idle" aria-hidden />
+                  </div>
+                )}
+
+                {signedIn !== false && (
+                  <div className="a-actions ad-key-actions">
+                    {currentApp.deepLink && (
+                      <button
+                        type="button"
+                        onClick={handleAutoInstall}
+                        disabled={!keyUrl}
+                        className="a-btn a-btn-primary"
+                      >
+                        Открыть в приложении
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      disabled={!keyUrl}
+                      className="a-btn a-btn-quiet ad-copy"
+                      data-copied={copied || undefined}
+                    >
+                      {copied ? (
+                        <>
+                          <Icon name="check" size={16} />
+                          Скопировано
+                        </>
+                      ) : (
+                        "Скопировать ссылку"
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowQR((v) => !v)}
+                      disabled={!keyUrl}
+                      aria-pressed={showQR}
+                      className="a-btn a-btn-quiet"
+                    >
+                      {showQR ? "Скрыть QR-код" : "Показать QR-код"}
+                    </button>
+                  </div>
+                )}
+                <p className="b-sr" role="status" aria-live="polite">
+                  {copied ? "Ссылка скопирована" : ""}
+                </p>
+
+                {showQR && keyUrl && (
+                  <figure className="ad-qr">
+                    <QRCodeSVG value={keyUrl} size={192} bgColor="#ffffff" fgColor="#0B1322" level="M" />
+                    <figcaption>Наведите камеру приложения на код — ключ добавится сам.</figcaption>
+                  </figure>
+                )}
+              </div>
+            </li>
+
+            <li className="ad-step" style={{ ["--i" as string]: 2 }}>
+              <span className="ad-step-n" aria-hidden>3</span>
+              <div className="ad-step-body">
+                <h3>Включите</h3>
+                <p>
+                  Нажмите кнопку подключения в {currentApp.name}. Дальше всё работает само.{" "}
+                  <span className="ad-on a-idle">включено</span>
+                </p>
+
+                <details className="ad-manual">
+                  <summary>
+                    <span className="ad-manual-mark" aria-hidden />
+                    Не сработало? Шаги вручную
+                  </summary>
+                  <ol>
+                    {currentApp.steps.map((s, i) => (
+                      <li key={i} style={{ ["--i" as string]: i }}>
+                        <b className="a-num" aria-hidden>{i + 1}</b>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              </div>
+            </li>
+          </ol>
+
+          <div className="ad-done">
+            <p className="ad-done-text">
+              <Icon name="check" size={22} className="ad-done-icon" />
+              Готово — при следующем запуске приложение подключится само.
+            </p>
+            <div className="a-actions">
+              <button type="button" className="a-btn a-btn-quiet" onClick={goBackToDevices}>
+                К устройствам
+              </button>
+              <Link href="/dashboard" className="a-btn a-btn-quiet">В кабинет</Link>
+            </div>
           </div>
-        )}
-      </div>
-      {children}
-    </div>
+        </div>
+      </section>
+
+      {/* ── 03 · Помощь — плита с одним действием ─────────────── */}
+      <section className="a-sheet a-plate a-final ad-final" data-sheet="12" data-title="Помощь" aria-labelledby="ad-final-title">
+        <div className="a-field">
+          <h2 id="ad-final-title" className="a-h2">
+            <span className="a-no">{isSetup ? "03" : "02"}</span>
+            <Words text="не получается? настроим вместе" />
+          </h2>
+          <p className="a-p a-settle" style={{ ["--i" as string]: 6 }}>
+            Напишите, какое у вас устройство и на каком шаге остановились, — ответим и доведём до конца.
+          </p>
+          <div className="a-actions a-settle" style={{ ["--i" as string]: 8 }}>
+            <Link href="/contact" className="a-btn a-btn-invert a-idle">Написать в поддержку</Link>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
