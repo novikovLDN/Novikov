@@ -1,13 +1,35 @@
 "use client";
 
-import { useState, useRef, useEffect, useActionState } from "react";
+import { useState, useRef, useEffect, useActionState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { useRouter } from "next/navigation";
-import FeatureCard from "@/components/FeatureCard";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import PasswordInput from "@/components/PasswordInput";
 import { startAuthentication } from "@simplewebauthn/browser";
+import Icon, { type IconName } from "@/components/pixel/Icon";
+import Corner from "@/app/dashboard/Corner";
+import { TRIAL_DAYS } from "@/lib/brand-facts";
+import { DEVICE_LIMIT } from "@/lib/plans";
+import { COUNTRY_COUNT, plural } from "@/lib/locations";
 import { sendCodeAction, verifyCodeAction } from "./actions";
-import BrandMark from "@/components/pixel/BrandMark";
+import "@/app/work-atlas.css";
+import "./auth/auth-atlas.css";
+
+/**
+ * Вход на корпусе «Атлас-издание» — рабочий экран в стиле кабинета.
+ *
+ * Доска (скруглённая рама) держит полосу шагов и две панели: слева
+ * форма текущего шага, справа тёмная плита «что даёт вход». На телефоне
+ * одна колонка: форма первой, поле шага видно без прокрутки.
+ *
+ * Логика прежнего экрана перенесена без изменений: шаги email → code →
+ * set-password, login, reset-email → reset-code → reset-password →
+ * reset-success; server actions sendCodeAction / verifyCodeAction;
+ * запросы /api/auth/*; passkey; реферальный код; отпечаток устройства;
+ * редиректы. Одно изменение ввода: код набирается в ОДНО поле (шесть
+ * клеток — только рисунок), а в server action уходят те же поля
+ * code-0…code-5. Одно поле даёт iOS/Android подставить код из письма
+ * и держит тап-зону во всю ширину даже на 320px.
+ *
+ * Движение — auth/auth-atlas.css, раздел «Движение».
+ */
 
 type AuthStep =
   | "email"
@@ -25,33 +47,25 @@ interface AuthPageProps {
   referralCode?: string;
 }
 
-function BackButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="px-link -ml-1 gap-1.5 mb-6 sm:mb-8"
-    >
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-      <span className="text-sm font-medium">Назад</span>
-    </button>
-  );
-}
+/* Полоса шагов: у каждого сценария свой ряд. */
+const FLOWS = {
+  code: ["Почта", "Код", "Пароль"],
+  login: ["Почта и пароль"],
+  reset: ["Почта", "Код", "Новый пароль"],
+} as const;
+const STEP_POS: Record<AuthStep, [keyof typeof FLOWS, number]> = {
+  email: ["code", 0],
+  code: ["code", 1],
+  "set-password": ["code", 2],
+  login: ["login", 0],
+  "reset-email": ["reset", 0],
+  "reset-code": ["reset", 1],
+  "reset-password": ["reset", 2],
+  "reset-success": ["reset", 3],
+};
 
-function ErrorMessage({ error }: { error: string }) {
-  return (
-    <p className="text-[#FF6B6B] text-xs sm:text-sm flex items-center gap-1.5 animate-fade-in">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="12" y1="8" x2="12" y2="12" />
-        <line x1="12" y1="16" x2="12.01" y2="16" />
-      </svg>
-      {error}
-    </p>
-  );
-}
+const at = (i: number) => ({ "--i": i }) as CSSProperties;
+const k = (n: number) => ({ "--k": n }) as CSSProperties;
 
 function generateDeviceFingerprint(): string {
   const parts: string[] = [];
@@ -81,6 +95,170 @@ function generateDeviceFingerprint(): string {
   return Math.abs(hash).toString(36);
 }
 
+/* ─── Мелкие части формы ─────────────────────────────────────────── */
+
+function BackButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="a-btn ak-btn-soft au-back">
+      <Icon name="arrow-right" size={16} />
+      Назад
+    </button>
+  );
+}
+
+function FieldError({ id, text }: { id: string; text: string }) {
+  return (
+    <p id={id} className="au-err" role="alert">
+      <i aria-hidden />
+      {text}
+    </p>
+  );
+}
+
+function Busy({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <span className="au-spin" aria-hidden />
+      {children}
+    </>
+  );
+}
+
+function PasswordField({
+  id,
+  label,
+  value,
+  onChange,
+  show,
+  onToggle,
+  autoComplete,
+  autoFocus,
+  invalid,
+  describedBy,
+  inputRef,
+  hint,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  show: boolean;
+  onToggle: () => void;
+  autoComplete: "current-password" | "new-password";
+  autoFocus?: boolean;
+  invalid?: boolean;
+  describedBy?: string;
+  inputRef?: RefObject<HTMLInputElement | null>;
+  hint?: string;
+}) {
+  const hintId = hint ? `${id}-hint` : undefined;
+  const described = [hintId, describedBy].filter(Boolean).join(" ") || undefined;
+  return (
+    <div className="au-field">
+      <label className="au-label" htmlFor={id}>{label}</label>
+      <div className="au-control au-control-pw">
+        <input
+          ref={inputRef}
+          id={id}
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          autoFocus={autoFocus}
+          autoCapitalize="none"
+          spellCheck={false}
+          className="au-input"
+          aria-invalid={invalid ? true : undefined}
+          aria-describedby={described}
+          required
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          className="au-peek"
+          aria-pressed={show}
+          aria-controls={id}
+          aria-label={show ? "Скрыть пароль" : "Показать пароль"}
+        >
+          {show ? "Скрыть" : "Показать"}
+        </button>
+      </div>
+      {hint && <p id={hintId} className="au-hint">{hint}</p>}
+    </div>
+  );
+}
+
+/**
+ * Поле кода: одно настоящее поле поверх шести нарисованных клеток.
+ * Поле прозрачное и занимает всю ширину ряда — куда бы ни попал палец,
+ * фокус попадает в него. Клетки показывают набранные цифры и курсор.
+ */
+function CodeField({
+  id,
+  name,
+  value,
+  onChange,
+  invalid,
+  describedBy,
+  inputRef,
+}: {
+  id: string;
+  name?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  invalid?: boolean;
+  describedBy?: string;
+  inputRef: RefObject<HTMLInputElement | null>;
+}) {
+  const active = Math.min(value.length, 5);
+  return (
+    <div className="au-field">
+      <label className="au-label" htmlFor={id}>Код из письма — 6 цифр</label>
+      <div className="au-code" data-invalid={invalid ? "" : undefined}>
+        <input
+          ref={inputRef}
+          id={id}
+          name={name}
+          type="text"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          enterKeyHint="done"
+          value={value}
+          onChange={onChange}
+          onFocus={(e) => e.target.select()}
+          className="au-code-input"
+          aria-invalid={invalid ? true : undefined}
+          aria-describedby={describedBy}
+          required
+        />
+        {Array.from({ length: 6 }, (_, i) => (
+          <span
+            key={i}
+            className="au-cell"
+            aria-hidden
+            data-filled={value[i] ? "" : undefined}
+            data-active={i === active ? "" : undefined}
+          >
+            {value[i] ? <b key={`${i}-${value[i]}`}>{value[i]}</b> : null}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Perk({ icon, title, text, n }: { icon: IconName; title: string; text: string; n: number }) {
+  return (
+    <li className="au-perk" style={k(n)}>
+      <span className="au-perk-ico" style={k(n)}><Icon name={icon} size={20} /></span>
+      <span>
+        <b className="au-perk-title">{title}</b>
+        <span className="au-perk-text">{text}</span>
+      </span>
+    </li>
+  );
+}
+
 export default function AuthPage({ initialStep, initialEmail, referralCode }: AuthPageProps) {
   const router = useRouter();
   const [step, setStep] = useState<AuthStep>(initialStep);
@@ -89,7 +267,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   const [countdown, setCountdown] = useState(initialStep === "code" ? 60 : 0);
   const emailRef = useRef<HTMLInputElement>(null);
   const codeFormRef = useRef<HTMLFormElement>(null);
-  const codeRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const codeRef = useRef<HTMLInputElement>(null);
+  const [code, setCode] = useState("");
 
   // Resend loading state
   const [resendLoading, setResendLoading] = useState(false);
@@ -100,6 +279,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   const [loginError, setLoginError] = useState("");
   const [loginLoading, setLoginLoading] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const loginPwRef = useRef<HTMLInputElement>(null);
 
   // Passkey state
   const [passkeyLoading, setPasskeyLoading] = useState(false);
@@ -112,10 +292,13 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   const [setPasswordLoading, setSetPasswordLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const newPwRef = useRef<HTMLInputElement>(null);
+  const confirmPwRef = useRef<HTMLInputElement>(null);
 
   // Reset password state
   const [resetEmail, setResetEmail] = useState("");
   const [resetCode, setResetCode] = useState("");
+  const [resetCodeInput, setResetCodeInput] = useState("");
   const [resetPassword1, setResetPassword1] = useState("");
   const [resetPassword2, setResetPassword2] = useState("");
   const [resetError, setResetError] = useState("");
@@ -123,7 +306,9 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   const [resetCountdown, setResetCountdown] = useState(0);
   const [showResetPassword1, setShowResetPassword1] = useState(false);
   const [showResetPassword2, setShowResetPassword2] = useState(false);
-  const resetCodeRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const resetCodeRef = useRef<HTMLInputElement>(null);
+  const resetPw1Ref = useRef<HTMLInputElement>(null);
+  const resetPw2Ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setDeviceFingerprint(generateDeviceFingerprint());
@@ -174,13 +359,22 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
     { success: false }
   );
 
+  /* Код набирается в одно поле; server action ждёт те же code-0…code-5,
+     что и раньше, — раскладываем перед отправкой. */
+  const submitCode = (fd: FormData) => {
+    const digits = String(fd.get("code") ?? "").replace(/\D/g, "").slice(0, 6);
+    fd.delete("code");
+    for (let i = 0; i < 6; i++) fd.set(`code-${i}`, digits[i] ?? "");
+    verifyAction(fd);
+  };
+
   // When send-code succeeds or user has password
   useEffect(() => {
     if (sendState.success && sendState.email) {
       setEmail(sendState.email);
       setStep("code");
       setCountdown(60);
-      setTimeout(() => codeRefs.current[0]?.focus(), 150);
+      setTimeout(() => codeRef.current?.focus(), 150);
     } else if (sendState.hasPassword && sendState.email) {
       setLoginEmail(sendState.email);
       setLoginPassword("");
@@ -193,8 +387,18 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
   useEffect(() => {
     if (verifyState.success && verifyState.needsPassword) {
       setStep("set-password");
+    } else if (verifyState.error) {
+      // Неверный код: выделяем набранное — новый набор его заменит.
+      codeRef.current?.focus();
+      codeRef.current?.select();
     }
   }, [verifyState]);
+
+  // Ошибка входа: кнопка на время запроса выключена и фокус теряется —
+  // возвращаем его в поле пароля, рядом с которым стоит ошибка.
+  useEffect(() => {
+    if (loginError) loginPwRef.current?.focus();
+  }, [loginError]);
 
   // Countdown timer
   useEffect(() => {
@@ -215,75 +419,23 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
     if (step === "email") {
       emailRef.current?.focus();
     } else if (step === "code") {
-      codeRefs.current[0]?.focus();
+      codeRef.current?.focus();
     }
   }, [step]);
 
   // ─── Code Input Handlers ────────────────────────────────────────
 
-  const handleCodeInput = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "");
-    e.target.value = value.slice(-1);
-    if (value && index < 5) {
-      codeRefs.current[index + 1]?.focus();
-    }
-    if (value && index === 5) {
-      const allFilled = codeRefs.current.every((ref) => ref?.value);
-      if (allFilled && codeFormRef.current) {
-        codeFormRef.current.requestSubmit();
-      }
-    }
-  };
-
-  const handleCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !e.currentTarget.value && index > 0) {
-      codeRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleCodePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (!pasted.length) return;
-    for (let i = 0; i < 6; i++) {
-      const ref = codeRefs.current[i];
-      if (ref) ref.value = pasted[i] || "";
-    }
-    if (pasted.length === 6 && codeFormRef.current) {
+  const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setCode(value);
+    // Как раньше: шестая цифра (или вставка всех шести) отправляет форму.
+    if (value.length === 6 && codeFormRef.current && !verifyPending) {
       codeFormRef.current.requestSubmit();
-    } else {
-      codeRefs.current[Math.min(pasted.length, 5)]?.focus();
     }
   };
 
-  // Same handlers for reset code inputs
-  const handleResetCodeInput = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "");
-    e.target.value = value.slice(-1);
-    if (value && index < 5) {
-      resetCodeRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleResetCodeKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !e.currentTarget.value && index > 0) {
-      resetCodeRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleResetCodePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    if (!pasted.length) return;
-    for (let i = 0; i < 6; i++) {
-      const ref = resetCodeRefs.current[i];
-      if (ref) ref.value = pasted[i] || "";
-    }
-    if (pasted.length === 6) {
-      resetCodeRefs.current[5]?.focus();
-    } else {
-      resetCodeRefs.current[Math.min(pasted.length, 5)]?.focus();
-    }
+  const handleResetCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setResetCodeInput(e.target.value.replace(/\D/g, "").slice(0, 6));
   };
 
   const handleResendCode = async () => {
@@ -298,8 +450,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
       const data = await res.json();
       if (data.success) {
         setCountdown(60);
-        codeRefs.current.forEach((ref) => { if (ref) ref.value = ""; });
-        codeRefs.current[0]?.focus();
+        setCode("");
+        codeRef.current?.focus();
       }
     } catch {
       // silent
@@ -334,6 +486,12 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
     }
   };
 
+  const goReset = () => {
+    setStep("reset-email");
+    setResetEmail(loginEmail);
+    setResetError("");
+  };
+
   // ─── Set Password Handler ─────────────────────────────────────
 
   const handleSetPassword = async (e: React.FormEvent) => {
@@ -342,11 +500,13 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
     if (newPassword.length < 6) {
       setSetPasswordError("Пароль должен содержать минимум 6 символов");
+      newPwRef.current?.focus();
       return;
     }
 
     if (newPassword !== confirmPassword) {
       setSetPasswordError("Пароли не совпадают");
+      confirmPwRef.current?.focus();
       return;
     }
 
@@ -388,7 +548,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
       if (data.success) {
         setStep("reset-code");
         setResetCountdown(60);
-        setTimeout(() => resetCodeRefs.current[0]?.focus(), 150);
+        setTimeout(() => resetCodeRef.current?.focus(), 150);
       } else {
         setResetError(data.error || "Ошибка отправки кода");
       }
@@ -401,12 +561,13 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
   const handleVerifyResetCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    const code = resetCodeRefs.current.map((r) => r?.value || "").join("");
-    if (code.length !== 6) {
+    const entered = resetCodeInput;
+    if (entered.length !== 6) {
       setResetError("Введите код из 6 цифр");
+      resetCodeRef.current?.focus();
       return;
     }
-    setResetCode(code);
+    setResetCode(entered);
     setResetError("");
     setStep("reset-password");
   };
@@ -417,11 +578,13 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
     if (resetPassword1.length < 6) {
       setResetError("Пароль должен содержать минимум 6 символов");
+      resetPw1Ref.current?.focus();
       return;
     }
 
     if (resetPassword1 !== resetPassword2) {
       setResetError("Пароли не совпадают");
+      resetPw2Ref.current?.focus();
       return;
     }
 
@@ -461,8 +624,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
       const data = await res.json();
       if (data.success) {
         setResetCountdown(60);
-        resetCodeRefs.current.forEach((ref) => { if (ref) ref.value = ""; });
-        resetCodeRefs.current[0]?.focus();
+        setResetCodeInput("");
+        resetCodeRef.current?.focus();
       }
     } catch {
       // silent
@@ -473,631 +636,484 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
 
   const emailError = sendState.error || null;
   const codeError = verifyState.error || null;
+  const [flow, pos] = STEP_POS[step];
+  const steps = FLOWS[flow];
+  const stepLabel = steps.length > 1 && pos < steps.length ? `Шаг ${pos + 1} из ${steps.length}` : null;
+  const trialLabel = `${TRIAL_DAYS} ${plural(TRIAL_DAYS, ["день", "дня", "дней"])}`;
+  // Ошибки паролей: «не совпадают» — у второго поля, остальные — у первого.
+  const pwMismatch = setPasswordError === "Пароли не совпадают";
+  const resetMismatch = resetError === "Пароли не совпадают";
+  const cameFromEmail = !!sendState.hasPassword && sendState.email === loginEmail;
+  const showRef = !!referralCode && (step === "email" || step === "code");
+
+  const timer = (left: number) => (
+    <span className="au-timer" aria-hidden>
+      <i style={{ "--left": left / 60 } as CSSProperties} />
+    </span>
+  );
 
   return (
-    <div className="auth-shell">
-      <div className="px-grid-bg" aria-hidden />
-      <AuthTopBar />
-      <div className="flex-1 flex items-start sm:items-center justify-center px-4 sm:px-6 pt-6 sm:pt-10 pb-16">
-        <div className="w-full max-w-[520px]">
-          <div className="auth-card px-spot">
-        {step === "email" && (
-          <div className="animate-fade-in-up pt-2 sm:pt-6">
-            <div className="dv2-eyebrow mb-2">ВХОД ИЛИ РЕГИСТРАЦИЯ</div>
-            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
-              Введите<br />
-              <span className="text-[color:var(--px-text-3)]">почту</span>
-            </h1>
-            <p className="text-[13px] text-[color:var(--px-text-3)] mb-6 sm:mb-8">
-              Отправим одноразовый код для подтверждения
-            </p>
+    <main id="main" className="a-main ak au">
+      <div className="a-field">
+        <div className="ak-board au-board">
+          {/* Полоса шагов: где вы и сколько осталось. */}
+          <div className="ak-bar au-bar" data-sheet="21">
+            <span className="ak-avatar au-mark" aria-hidden>
+              <Icon name="lock" size={18} />
+            </span>
+            <ol className="au-steps" aria-label={flow === "reset" ? "Восстановление пароля" : "Вход"}>
+              {steps.map((label, n) => {
+                const state = n < pos ? "done" : n === pos ? "now" : "next";
+                return (
+                  <li
+                    key={label}
+                    className="au-pill"
+                    data-state={state}
+                    aria-current={state === "now" ? "step" : undefined}
+                  >
+                    <span className="au-pill-n">
+                      {state === "done" ? <Icon name="check" size={14} /> : n + 1}
+                    </span>
+                    <span className="au-pill-label">
+                      {label}
+                      {state === "done" && <span className="b-sr"> — готово</span>}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+            <span className="ak-bar-plan">{trialLabel} бесплатно</span>
+          </div>
 
-            <form action={sendAction} className="space-y-3 sm:space-y-4">
-              {/* Pass referral code through the form */}
-              {referralCode && <input type="hidden" name="ref" value={referralCode} />}
+          <div className="au-grid">
+            {/* ── Форма текущего шага ──────────────────────────────── */}
+            <section className="ak-card au-form-card" data-sheet="21" style={at(0)} aria-labelledby="au-h">
+              <div key={step} className="au-step">
+                <div className="ak-card-head au-head">
+                  {step === "code" && <BackButton onClick={() => setStep("email")} />}
+                  {step === "login" && <BackButton onClick={() => setStep("email")} />}
+                  {step === "reset-email" && <BackButton onClick={() => setStep("login")} />}
+                  {step === "reset-code" && <BackButton onClick={() => setStep("reset-email")} />}
+                  {step === "reset-password" && <BackButton onClick={() => setStep("reset-code")} />}
+                  <p className="ak-eyebrow">
+                    {flow === "reset" && step !== "reset-success" ? "Новый пароль" : flow === "login" ? "Вход по паролю" : "Вход или регистрация"}
+                    {stepLabel && <> · <span className="a-num au-nowrap">{stepLabel}</span></>}
+                  </p>
+                  {showRef && <span className="ak-status au-ref"><i />По приглашению</span>}
+                </div>
 
-              <div className="relative">
-                <input
-                  ref={emailRef}
-                  name="email"
-                  type="email"
-                  placeholder="email@example.com"
-                  defaultValue={initialEmail}
-                  className={`auth-input ${emailError ? "auth-input-error" : ""}`}
-                  autoComplete="email"
-                  inputMode="email"
-                  enterKeyHint="go"
-                  required
-                />
-              </div>
-
-              {emailError && <ErrorMessage error={emailError} />}
-
-              <button type="submit" disabled={sendPending} className="px-btn px-btn-md px-btn-primary px-btn-block">
-                {sendPending ? (
-                  <><LoadingSpinner size="sm" /> Отправка…</>
-                ) : (
-                  <>Далее <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg></>
-                )}
-              </button>
-            </form>
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-[color:var(--px-line)]" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="px-3 text-[10px] font-mono tracking-wider uppercase text-[color:var(--px-text-4)] bg-[color:var(--px-surface)]">или</span>
-              </div>
-            </div>
-
-            <div className="space-y-2.5">
-              <button
-                onClick={() => { setStep("login"); setLoginError(""); }}
-                className="px-btn px-btn-md px-btn-secondary px-btn-block"
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0110 0v4" />
-                </svg>
-                Войти по логину и паролю
-              </button>
-
-              <button
-                onClick={handlePasskeyLogin}
-                disabled={passkeyLoading}
-                className="px-btn px-btn-md px-btn-secondary px-btn-block"
-              >
-                {passkeyLoading ? (
-                  <><LoadingSpinner size="sm" /> Проверка…</>
-                ) : (
+                {/* ── 1 · Почта ─────────────────────────────────────── */}
+                {step === "email" && (
                   <>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 10a3 3 0 100-6 3 3 0 000 6z" />
-                      <path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
-                    </svg>
-                    Быстрый вход через Passkey
+                    <h1 id="au-h" className="ak-h1 au-h1">Войдите по почте</h1>
+                    <p className="au-lead">Пришлём код из 6 цифр. Нет аккаунта — создадим его сами.</p>
+
+                    <form action={sendAction} className="au-form">
+                      {/* Pass referral code through the form */}
+                      {referralCode && <input type="hidden" name="ref" value={referralCode} />}
+
+                      <div className="au-field">
+                        <label className="au-label" htmlFor="au-email">Почта</label>
+                        <div className="au-control">
+                          <input
+                            ref={emailRef}
+                            id="au-email"
+                            name="email"
+                            type="email"
+                            placeholder="name@example.com"
+                            defaultValue={initialEmail}
+                            className="au-input"
+                            autoComplete="email"
+                            inputMode="email"
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            enterKeyHint="go"
+                            aria-invalid={emailError ? true : undefined}
+                            aria-describedby={emailError ? "au-email-err" : undefined}
+                            required
+                          />
+                        </div>
+                        {emailError && <FieldError id="au-email-err" text={emailError} />}
+                      </div>
+
+                      <button type="submit" disabled={sendPending} className="a-btn a-btn-primary au-submit">
+                        {sendPending ? <Busy>Отправляем код…</Busy> : <>Получить код <Icon name="arrow-right" size={16} className="au-arrow" /></>}
+                      </button>
+                    </form>
+
+                    <p className="au-or"><span>или</span></p>
+
+                    <div className="au-alt">
+                      <button
+                        type="button"
+                        onClick={() => { setStep("login"); setLoginError(""); }}
+                        className="a-btn ak-btn-soft"
+                      >
+                        <Icon name="lock" size={16} />
+                        Войти по паролю
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handlePasskeyLogin}
+                        disabled={passkeyLoading}
+                        className="a-btn ak-btn-soft"
+                        aria-describedby={passkeyError ? "au-pk-err" : "au-pk-hint"}
+                      >
+                        {passkeyLoading ? <Busy>Проверяем…</Busy> : <><Icon name="shield" size={16} />Войти через Passkey</>}
+                      </button>
+                    </div>
+                    {passkeyError ? (
+                      <FieldError id="au-pk-err" text={passkeyError} />
+                    ) : (
+                      <p id="au-pk-hint" className="ak-fine">Passkey — вход отпечатком, лицом или PIN-кодом устройства.</p>
+                    )}
                   </>
                 )}
-              </button>
-            </div>
 
-            {passkeyError && (
-              <p className="text-[#FF6B6B] text-xs text-center mt-2 animate-fade-in">{passkeyError}</p>
-            )}
+                {/* ── 2 · Код ───────────────────────────────────────── */}
+                {step === "code" && (
+                  <>
+                    <h1 id="au-h" className="ak-h1 au-h1">Введите код</h1>
+                    <p className="au-lead">
+                      Отправили письмо на <b className="au-mail">{email}</b>. Не видите — загляните в «Спам».
+                    </p>
 
-            {/* Features */}
-            <div className="mt-8 sm:mt-10 space-y-2.5 sm:space-y-3">
-              <FeatureCard
-                icon={<svg width="22" height="22" className="text-[color:var(--px-accent-text)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="currentColor" strokeWidth="1.5" /><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" /></svg>}
-                iconBg="bg-[color:var(--px-accent-dim)]"
-                title="Канал до 75 Гбит/с"
-                description="Вечерний час пик и нагрузка соседей по каналу не превращаются в фризы"
-                className="animate-fade-in-up animate-delay-1"
-              />
-              <FeatureCard
-                icon={<svg width="22" height="22" className="text-[color:var(--px-accent-text)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" /><rect x="2" y="14" width="20" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" /><circle cx="6" cy="6.5" r="1" fill="currentColor" /><circle cx="6" cy="17.5" r="1" fill="currentColor" /><line x1="10" y1="6.5" x2="18" y2="6.5" stroke="currentColor" strokeWidth="1.5" /><line x1="10" y1="17.5" x2="18" y2="17.5" stroke="currentColor" strokeWidth="1.5" /></svg>}
-                iconBg="bg-[color:var(--px-accent-dim)]"
-                title="Пинг меньше 5 мс"
-                description="В регионе присутствия — игры и созвоны без задержки и эха"
-                className="animate-fade-in-up animate-delay-2"
-              />
-              <FeatureCard
-                icon={<svg width="22" height="22" className="text-[color:var(--px-accent-text)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="12" r="1" fill="currentColor" /></svg>}
-                iconBg="bg-[color:var(--px-accent-dim)]"
-                title="Соединение держится"
-                description="Резервные каналы и автопереключение. Целевая доступность 99,98%"
-                className="animate-fade-in-up animate-delay-3"
-              />
-              <FeatureCard
-                icon={<svg width="22" height="22" className="text-[color:var(--px-accent-text)]" viewBox="0 0 24 24" fill="none" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" /><path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" strokeWidth="1.5" /><circle cx="12" cy="16" r="1.5" fill="currentColor" /></svg>}
-                iconBg="bg-[color:var(--px-accent-dim)]"
-                title="Ничего не записываем"
-                description="Ни посещённых сайтов, ни DNS-запросов, ни истории подключений"
-                className="animate-fade-in-up animate-delay-4"
-              />
-            </div>
-          </div>
-        )}
+                    <form ref={codeFormRef} action={submitCode} className="au-form">
+                      <input type="hidden" name="email" value={email} />
+                      <input type="hidden" name="fingerprint" value={deviceFingerprint} />
+                      {referralCode && <input type="hidden" name="ref" value={referralCode} />}
 
-        {step === "code" && (
-          <div className="animate-fade-in-up pt-2 sm:pt-4">
-            <BackButton onClick={() => setStep("email")} />
+                      <CodeField
+                        id="au-code"
+                        name="code"
+                        value={code}
+                        onChange={handleCodeChange}
+                        invalid={!!codeError}
+                        describedBy={codeError ? "au-code-err" : undefined}
+                        inputRef={codeRef}
+                      />
+                      {codeError && <FieldError id="au-code-err" text={codeError} />}
 
-            <div>
-              <div className="dv2-eyebrow mb-2">ШАГ 2 — КОД</div>
-              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
-                Введите<br />
-                <span className="text-[color:var(--px-text-3)]">код из письма</span>
-              </h1>
-              <p className="text-[13px] text-[color:var(--px-text-3)] mb-1">
-                Отправили на{" "}
-                <span className="text-[color:var(--px-text)] font-medium break-all">{email}</span>
-              </p>
-              <p className="text-[11px] text-[color:var(--px-text-4)] mb-6">
-                Проверьте папку «Спам», если письмо не пришло
-              </p>
-            </div>
+                      <button type="submit" disabled={verifyPending} className="a-btn a-btn-primary au-submit">
+                        {verifyPending ? <Busy>Проверяем…</Busy> : <>Подтвердить <Icon name="arrow-right" size={16} className="au-arrow" /></>}
+                      </button>
+                    </form>
 
-            <form ref={codeFormRef} action={verifyAction}>
-              <input type="hidden" name="email" value={email} />
-              <input type="hidden" name="fingerprint" value={deviceFingerprint} />
-              {referralCode && <input type="hidden" name="ref" value={referralCode} />}
-
-              <div className="flex gap-1.5 xs:gap-2 sm:gap-3 justify-center mb-6 w-full max-w-xs mx-auto" onPaste={handleCodePaste}>
-                {[0, 1, 2, 3, 4, 5].map((i) => (
-                  <input
-                    key={i}
-                    ref={(el) => { codeRefs.current[i] = el; }}
-                    name={`code-${i}`}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]"
-                    maxLength={1}
-                    required
-                    autoComplete="one-time-code"
-                    onChange={(e) => handleCodeInput(i, e)}
-                    onKeyDown={(e) => handleCodeKeyDown(i, e)}
-                    onFocus={(e) => e.target.select()}
-                    aria-label={`Цифра ${i + 1}`}
-                    className={`auth-code-cell ${codeError ? "auth-code-cell-error" : ""}`}
-                    style={{ fontSize: "max(16px, 1.5rem)" }}
-                  />
-                ))}
-              </div>
-
-              {codeError && (
-                <p className="text-danger text-xs sm:text-sm text-center mb-4 flex items-center justify-center gap-1.5 animate-fade-in">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  {codeError}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={verifyPending}
-                className="px-btn px-btn-md px-btn-primary px-btn-block mb-5"
-              >
-                {verifyPending ? (
-                  <span className="inline-flex items-center gap-2">
-                    <LoadingSpinner size="sm" />
-                    Проверяем...
-                  </span>
-                ) : (
-                  "Подтвердить"
+                    <div className="au-resend" aria-live="polite">
+                      {countdown > 0 ? (
+                        <>
+                          <p className="au-resend-text">
+                            Отправить ещё раз через <b className="a-num">0:{String(countdown).padStart(2, "0")}</b>
+                          </p>
+                          {timer(countdown)}
+                        </>
+                      ) : (
+                        <button type="button" onClick={handleResendCode} disabled={resendLoading} className="a-btn ak-btn-soft">
+                          {resendLoading ? <Busy>Отправляем…</Busy> : <><Icon name="refresh" size={16} />Отправить код ещё раз</>}
+                        </button>
+                      )}
+                    </div>
+                  </>
                 )}
-              </button>
-            </form>
 
-            <div className="text-center">
-              {countdown > 0 ? (
-                <p className="text-muted text-xs sm:text-sm">
-                  Отправить повторно через{" "}
-                  <span className="text-foreground font-medium tabular-nums">
-                    {countdown} сек
-                  </span>
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleResendCode}
-                  disabled={resendLoading}
-                  className="px-btn px-btn-sm px-btn-secondary"
-                >
-                  {resendLoading ? "Отправляем..." : "Отправить код повторно"}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+                {/* ── 3 · Пароль для новых ──────────────────────────── */}
+                {step === "set-password" && (
+                  <>
+                    <h1 id="au-h" className="ak-h1 au-h1">Придумайте пароль</h1>
+                    <p className="au-lead">В следующий раз войдёте по почте и паролю — без ожидания письма. Шаг можно пропустить.</p>
 
-        {step === "set-password" && (
-          <div className="animate-fade-in-up pt-2 sm:pt-4">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-[color:var(--px-accent-dim)] flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-accent-text)]">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0110 0v4" />
-                </svg>
-              </div>
-            </div>
+                    <form onSubmit={handleSetPassword} className="au-form">
+                      <PasswordField
+                        id="au-new-pw"
+                        label="Пароль"
+                        hint="Не короче 6 символов"
+                        value={newPassword}
+                        onChange={setNewPassword}
+                        show={showNewPassword}
+                        onToggle={() => setShowNewPassword(!showNewPassword)}
+                        autoComplete="new-password"
+                        autoFocus
+                        inputRef={newPwRef}
+                        invalid={!!setPasswordError && !pwMismatch}
+                        describedBy={setPasswordError && !pwMismatch ? "au-setpw-err" : undefined}
+                      />
+                      {setPasswordError && !pwMismatch && <FieldError id="au-setpw-err" text={setPasswordError} />}
 
-            <div className="text-center">
-              <div className="dv2-eyebrow mb-2">ШАГ 3 — ПАРОЛЬ</div>
-              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
-                Создайте<br /><span className="text-[color:var(--px-text-3)]">пароль</span>
-              </h1>
-              <p className="text-muted text-sm sm:text-base mb-8">
-                Придумайте пароль для входа в личный кабинет. В дальнейшем вы сможете войти по почте и паролю.
-              </p>
-            </div>
+                      <PasswordField
+                        id="au-new-pw2"
+                        label="Повторите пароль"
+                        value={confirmPassword}
+                        onChange={setConfirmPassword}
+                        show={showConfirmPassword}
+                        onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
+                        autoComplete="new-password"
+                        inputRef={confirmPwRef}
+                        invalid={pwMismatch}
+                        describedBy={pwMismatch ? "au-setpw-err2" : undefined}
+                      />
+                      {pwMismatch && <FieldError id="au-setpw-err2" text={setPasswordError} />}
 
-            <form onSubmit={handleSetPassword} className="space-y-3 sm:space-y-4">
-              <PasswordInput
-                value={newPassword}
-                onChange={setNewPassword}
-                show={showNewPassword}
-                onToggle={() => setShowNewPassword(!showNewPassword)}
-                placeholder="Пароль (мин. 6 символов)"
-                autoFocus
-                hasError={!!setPasswordError}
-              />
-
-              <PasswordInput
-                value={confirmPassword}
-                onChange={setConfirmPassword}
-                show={showConfirmPassword}
-                onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
-                placeholder="Повторите пароль"
-                hasError={!!setPasswordError}
-              />
-
-              {setPasswordError && <ErrorMessage error={setPasswordError} />}
-
-              <button
-                type="submit"
-                disabled={setPasswordLoading}
-                className="px-btn px-btn-md px-btn-primary px-btn-block"
-              >
-                {setPasswordLoading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <LoadingSpinner size="sm" />
-                    Сохраняем...
-                  </span>
-                ) : (
-                  "Сохранить пароль"
+                      <button type="submit" disabled={setPasswordLoading} className="a-btn a-btn-primary au-submit">
+                        {setPasswordLoading ? <Busy>Сохраняем…</Busy> : "Сохранить пароль"}
+                      </button>
+                      <button type="button" onClick={() => router.push("/dashboard")} className="a-btn ak-btn-soft au-submit">
+                        Пропустить
+                      </button>
+                    </form>
+                  </>
                 )}
-              </button>
-            </form>
 
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="px-btn px-btn-md px-btn-secondary px-btn-block mt-3"
-            >
-              Пропустить
-            </button>
-          </div>
-        )}
+                {/* ── Вход по паролю ────────────────────────────────── */}
+                {step === "login" && (
+                  <>
+                    <h1 id="au-h" className="ak-h1 au-h1">С возвращением</h1>
+                    <p className="au-lead">
+                      {cameFromEmail
+                        ? "У этой почты уже есть пароль — войдите с ним."
+                        : "Введите почту и пароль от аккаунта."}
+                    </p>
 
-        {step === "login" && (
-          <div className="animate-fade-in-up pt-2 sm:pt-4">
-            <BackButton onClick={() => setStep("email")} />
+                    <form onSubmit={handleLogin} className="au-form">
+                      <div className="au-field">
+                        <label className="au-label" htmlFor="au-login-email">Почта</label>
+                        <div className="au-control">
+                          <input
+                            id="au-login-email"
+                            type="email"
+                            value={loginEmail}
+                            onChange={(e) => setLoginEmail(e.target.value)}
+                            placeholder="name@example.com"
+                            autoComplete="email"
+                            inputMode="email"
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            autoFocus={!cameFromEmail}
+                            className="au-input"
+                            aria-invalid={loginError ? true : undefined}
+                            aria-describedby={loginError ? "au-login-err" : undefined}
+                            required
+                          />
+                        </div>
+                      </div>
 
-            <div className="dv2-eyebrow mb-2">ВХОД</div>
-            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
-              С возвращением
-            </h1>
-            <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
-              Введите почту и пароль
-            </p>
+                      <PasswordField
+                        id="au-login-pw"
+                        label="Пароль"
+                        value={loginPassword}
+                        onChange={setLoginPassword}
+                        show={showLoginPassword}
+                        onToggle={() => setShowLoginPassword(!showLoginPassword)}
+                        autoComplete="current-password"
+                        autoFocus={cameFromEmail}
+                        inputRef={loginPwRef}
+                        invalid={!!loginError}
+                        describedBy={loginError ? "au-login-err" : undefined}
+                      />
+                      {loginError && <FieldError id="au-login-err" text={loginError} />}
 
-            <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
-              <input
-                type="email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                placeholder="Email"
-                autoComplete="email"
-                inputMode="email"
-                autoFocus
-                className={`auth-input ${loginError ? "auth-input-error" : ""}`}
-                required
-              />
+                      <button type="submit" disabled={loginLoading} className="a-btn a-btn-primary au-submit">
+                        {loginLoading ? <Busy>Входим…</Busy> : <>Войти <Icon name="arrow-right" size={16} className="au-arrow" /></>}
+                      </button>
+                    </form>
 
-              <PasswordInput
-                value={loginPassword}
-                onChange={setLoginPassword}
-                show={showLoginPassword}
-                onToggle={() => setShowLoginPassword(!showLoginPassword)}
-                placeholder="Пароль"
-                hasError={!!loginError}
-              />
-
-              {loginError && (
-                <>
-                  <ErrorMessage error={loginError} />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep("reset-email");
-                      setResetEmail(loginEmail);
-                      setResetError("");
-                    }}
-                    className="px-btn px-btn-sm px-btn-secondary"
-                  >
-                    Сбросить пароль
-                  </button>
-                </>
-              )}
-
-              <button
-                type="submit"
-                disabled={loginLoading}
-                className="px-btn px-btn-md px-btn-primary px-btn-block"
-              >
-                {loginLoading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <LoadingSpinner size="sm" />
-                    Входим...
-                  </span>
-                ) : (
-                  "Войти"
+                    <div className="au-alt">
+                      <button type="button" onClick={goReset} className="a-btn ak-btn-soft" data-state={loginError ? "hint" : undefined}>
+                        <Icon name="refresh" size={16} />
+                        {loginError ? "Сбросить пароль" : "Забыли пароль?"}
+                      </button>
+                    </div>
+                  </>
                 )}
-              </button>
-            </form>
 
-            <div className="text-center mt-5">
-              <button
-                type="button"
-                onClick={() => {
-                  setStep("reset-email");
-                  setResetEmail(loginEmail);
-                  setResetError("");
-                }}
-                className="px-btn px-btn-sm px-btn-secondary"
-              >
-                Забыли пароль?
-              </button>
-            </div>
-          </div>
-        )}
+                {/* ── Восстановление · 1 · почта ────────────────────── */}
+                {step === "reset-email" && (
+                  <>
+                    <h1 id="au-h" className="ak-h1 au-h1">Восстановим доступ</h1>
+                    <p className="au-lead">Укажите почту аккаунта — пришлём код для нового пароля.</p>
 
-        {step === "reset-email" && (
-          <div className="animate-fade-in-up pt-2 sm:pt-4">
-            <BackButton onClick={() => setStep("login")} />
+                    <form onSubmit={handleSendResetCode} className="au-form">
+                      <div className="au-field">
+                        <label className="au-label" htmlFor="au-reset-email">Почта</label>
+                        <div className="au-control">
+                          <input
+                            id="au-reset-email"
+                            type="email"
+                            value={resetEmail}
+                            onChange={(e) => setResetEmail(e.target.value)}
+                            placeholder="name@example.com"
+                            autoComplete="email"
+                            inputMode="email"
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            autoFocus
+                            className="au-input"
+                            aria-invalid={resetError ? true : undefined}
+                            aria-describedby={resetError ? "au-reset-err" : undefined}
+                            required
+                          />
+                        </div>
+                        {resetError && <FieldError id="au-reset-err" text={resetError} />}
+                      </div>
 
-            <div className="dv2-eyebrow mb-2">ВОССТАНОВЛЕНИЕ</div>
-            <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
-              Восстановление<br /><span className="text-[color:var(--px-text-3)]">пароля</span>
-            </h1>
-            <p className="text-muted text-sm sm:text-base mb-6 sm:mb-8">
-              Введите почту, привязанную к аккаунту
-            </p>
-
-            <form onSubmit={handleSendResetCode} className="space-y-3 sm:space-y-4">
-              <input
-                type="email"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                placeholder="Email"
-                autoComplete="email"
-                inputMode="email"
-                autoFocus
-                className={`auth-input ${resetError ? "auth-input-error" : ""}`}
-                required
-              />
-
-              {resetError && <ErrorMessage error={resetError} />}
-
-              <button
-                type="submit"
-                disabled={resetLoading}
-                className="px-btn px-btn-md px-btn-primary px-btn-block"
-              >
-                {resetLoading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <LoadingSpinner size="sm" />
-                    Отправка...
-                  </span>
-                ) : (
-                  "Получить код"
+                      <button type="submit" disabled={resetLoading} className="a-btn a-btn-primary au-submit">
+                        {resetLoading ? <Busy>Отправляем…</Busy> : <>Получить код <Icon name="arrow-right" size={16} className="au-arrow" /></>}
+                      </button>
+                    </form>
+                  </>
                 )}
-              </button>
-            </form>
-          </div>
-        )}
 
-        {step === "reset-code" && (
-          <div className="animate-fade-in-up pt-2 sm:pt-4">
-            <BackButton onClick={() => setStep("reset-email")} />
+                {/* ── Восстановление · 2 · код ──────────────────────── */}
+                {step === "reset-code" && (
+                  <>
+                    <h1 id="au-h" className="ak-h1 au-h1">Введите код</h1>
+                    <p className="au-lead">
+                      Отправили письмо на <b className="au-mail">{resetEmail}</b>. Не видите — загляните в «Спам».
+                    </p>
 
-            <div className="text-center sm:text-left">
-              <div className="dv2-eyebrow mb-2">КОД ИЗ ПИСЬМА</div>
-              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
-                Введите код
-              </h1>
-              <p className="text-muted text-sm sm:text-base mb-1">
-                Мы отправили код на{" "}
-                <span className="text-foreground font-medium break-all">{resetEmail}</span>
-              </p>
-              <p className="text-muted/70 text-xs sm:text-sm mb-8">
-                Проверь папку «Спам», если не видишь письмо
-              </p>
-            </div>
+                    <form onSubmit={handleVerifyResetCode} className="au-form">
+                      <CodeField
+                        id="au-reset-code"
+                        value={resetCodeInput}
+                        onChange={handleResetCodeChange}
+                        invalid={!!resetError}
+                        describedBy={resetError ? "au-rcode-err" : undefined}
+                        inputRef={resetCodeRef}
+                      />
+                      {resetError && <FieldError id="au-rcode-err" text={resetError} />}
 
-            <form onSubmit={handleVerifyResetCode}>
-              <div className="flex gap-2 sm:gap-3 justify-center mb-6" onPaste={handleResetCodePaste}>
-                {[0, 1, 2, 3, 4, 5].map((i) => (
-                  <input
-                    key={i}
-                    ref={(el) => { resetCodeRefs.current[i] = el; }}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]"
-                    maxLength={1}
-                    required
-                    autoComplete="one-time-code"
-                    onChange={(e) => handleResetCodeInput(i, e)}
-                    onKeyDown={(e) => handleResetCodeKeyDown(i, e)}
-                    aria-label={`Цифра ${i + 1}`}
-                    className={`auth-code-cell ${resetError ? "auth-code-cell-error" : ""}`}
-                    style={{ fontSize: "max(16px, 1.5rem)" }}
-                  />
-                ))}
-              </div>
+                      <button type="submit" className="a-btn a-btn-primary au-submit">
+                        Подтвердить <Icon name="arrow-right" size={16} className="au-arrow" />
+                      </button>
+                    </form>
 
-              {resetError && (
-                <p className="text-danger text-xs sm:text-sm text-center mb-4 flex items-center justify-center gap-1.5 animate-fade-in">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  {resetError}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                className="px-btn px-btn-md px-btn-primary px-btn-block mb-5"
-              >
-                Подтвердить
-              </button>
-            </form>
-
-            <div className="text-center">
-              {resetCountdown > 0 ? (
-                <p className="text-muted text-xs sm:text-sm">
-                  Отправить повторно через{" "}
-                  <span className="text-foreground font-medium tabular-nums">
-                    {String(Math.floor(resetCountdown / 60)).padStart(1, "0")}:
-                    {String(resetCountdown % 60).padStart(2, "0")}
-                  </span>
-                </p>
-              ) : (
-                <button type="button" onClick={handleResendResetCode} className="px-btn px-btn-sm px-btn-secondary">
-                  Отправить код повторно
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {step === "reset-password" && (
-          <div className="animate-fade-in-up pt-2 sm:pt-4">
-            <BackButton onClick={() => setStep("reset-code")} />
-
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 rounded-2xl bg-[color:var(--px-accent-dim)] flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[color:var(--px-accent-text)]">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0110 0v4" />
-                </svg>
-              </div>
-            </div>
-
-            <div className="text-center">
-              <div className="dv2-eyebrow mb-2">НОВЫЙ ПАРОЛЬ</div>
-              <h1 className="font-mts-wide text-[32px] sm:text-[40px] font-bold tracking-tight leading-[1.05] text-[color:var(--px-text)] mb-2">
-                Придумайте<br /><span className="text-[color:var(--px-text-3)]">новый пароль</span>
-              </h1>
-              <p className="text-muted text-sm sm:text-base mb-8">
-                Придумайте новый пароль для аккаунта
-              </p>
-            </div>
-
-            <form onSubmit={handleResetPassword} className="space-y-3 sm:space-y-4">
-              <PasswordInput
-                value={resetPassword1}
-                onChange={setResetPassword1}
-                show={showResetPassword1}
-                onToggle={() => setShowResetPassword1(!showResetPassword1)}
-                placeholder="Новый пароль (мин. 6 символов)"
-                autoFocus
-                hasError={!!resetError}
-              />
-
-              <PasswordInput
-                value={resetPassword2}
-                onChange={setResetPassword2}
-                show={showResetPassword2}
-                onToggle={() => setShowResetPassword2(!showResetPassword2)}
-                placeholder="Повторите пароль"
-                hasError={!!resetError}
-              />
-
-              {resetError && <ErrorMessage error={resetError} />}
-
-              <button
-                type="submit"
-                disabled={resetLoading}
-                className="px-btn px-btn-md px-btn-primary px-btn-block"
-              >
-                {resetLoading ? (
-                  <span className="inline-flex items-center gap-2">
-                    <LoadingSpinner size="sm" />
-                    Сохраняем...
-                  </span>
-                ) : (
-                  "Сохранить новый пароль"
+                    <div className="au-resend" aria-live="polite">
+                      {resetCountdown > 0 ? (
+                        <>
+                          <p className="au-resend-text">
+                            Отправить ещё раз через{" "}
+                            <b className="a-num">
+                              {Math.floor(resetCountdown / 60)}:{String(resetCountdown % 60).padStart(2, "0")}
+                            </b>
+                          </p>
+                          {timer(resetCountdown)}
+                        </>
+                      ) : (
+                        <button type="button" onClick={handleResendResetCode} className="a-btn ak-btn-soft">
+                          <Icon name="refresh" size={16} />
+                          Отправить код ещё раз
+                        </button>
+                      )}
+                    </div>
+                  </>
                 )}
-              </button>
-            </form>
-          </div>
-        )}
 
-        {step === "reset-success" && (
-          <div className="animate-fade-in-up pt-2 sm:pt-4">
-            <div className="flex justify-center mb-6 mt-8">
-              <div className="w-20 h-20 rounded-full bg-[color:var(--px-good-dim)] flex items-center justify-center animate-scale-in">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+                {/* ── Восстановление · 3 · новый пароль ─────────────── */}
+                {step === "reset-password" && (
+                  <>
+                    <h1 id="au-h" className="ak-h1 au-h1">Новый пароль</h1>
+                    <p className="au-lead">С ним и почтой вы будете входить дальше.</p>
+
+                    <form onSubmit={handleResetPassword} className="au-form">
+                      <PasswordField
+                        id="au-reset-pw"
+                        label="Новый пароль"
+                        hint="Не короче 6 символов"
+                        value={resetPassword1}
+                        onChange={setResetPassword1}
+                        show={showResetPassword1}
+                        onToggle={() => setShowResetPassword1(!showResetPassword1)}
+                        autoComplete="new-password"
+                        autoFocus
+                        inputRef={resetPw1Ref}
+                        invalid={!!resetError && !resetMismatch}
+                        describedBy={resetError && !resetMismatch ? "au-rpw-err" : undefined}
+                      />
+                      {resetError && !resetMismatch && <FieldError id="au-rpw-err" text={resetError} />}
+
+                      <PasswordField
+                        id="au-reset-pw2"
+                        label="Повторите пароль"
+                        value={resetPassword2}
+                        onChange={setResetPassword2}
+                        show={showResetPassword2}
+                        onToggle={() => setShowResetPassword2(!showResetPassword2)}
+                        autoComplete="new-password"
+                        inputRef={resetPw2Ref}
+                        invalid={resetMismatch}
+                        describedBy={resetMismatch ? "au-rpw-err2" : undefined}
+                      />
+                      {resetMismatch && <FieldError id="au-rpw-err2" text={resetError} />}
+
+                      <button type="submit" disabled={resetLoading} className="a-btn a-btn-primary au-submit">
+                        {resetLoading ? <Busy>Сохраняем…</Busy> : "Сохранить пароль"}
+                      </button>
+                    </form>
+                  </>
+                )}
+
+                {/* ── Восстановление · готово ───────────────────────── */}
+                {step === "reset-success" && (
+                  <>
+                    <span className="au-done" aria-hidden><Icon name="check" size={28} /></span>
+                    <h1 id="au-h" className="ak-h1 au-h1">Пароль изменён</h1>
+                    <p className="au-lead">Теперь войдите с новым паролем.</p>
+                    <div className="au-form">
+                      <button
+                        type="button"
+                        autoFocus
+                        onClick={() => {
+                          setStep("login");
+                          setLoginEmail(resetEmail);
+                          setLoginPassword("");
+                          setLoginError("");
+                        }}
+                        className="a-btn a-btn-primary au-submit"
+                      >
+                        Войти <Icon name="arrow-right" size={16} className="au-arrow" />
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
-            </div>
+            </section>
 
-            <div className="text-center">
-              <h1 className="text-2xl sm:text-3xl font-bold mb-3">Пароль изменён</h1>
-              <p className="text-muted text-sm sm:text-base mb-8">
-                Ваш пароль успешно обновлён. Теперь вы можете войти в аккаунт с новым паролем.
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                setStep("login");
-                setLoginEmail(resetEmail);
-                setLoginPassword("");
-                setLoginError("");
-              }}
-              className="px-btn px-btn-md px-btn-primary px-btn-block"
-            >
-              Войти в аккаунт
-            </button>
-          </div>
-        )}
+            {/* ── Что даёт вход ────────────────────────────────────── */}
+            <section className="ak-card ak-dark au-perks-card" data-sheet="21" style={at(1)} aria-labelledby="au-perks-h">
+              <Corner href="/pricing" label="Тарифы и цены" />
+              <div className="ak-card-head">
+                <h2 id="au-perks-h" className="ak-eyebrow">Что даёт вход</h2>
+              </div>
+              <p className="au-dark-title">Интернет без просадок — сразу после входа</p>
+              <ul className="au-perks">
+                <Perk
+                  n={0}
+                  icon="clock"
+                  title={`${trialLabel} бесплатно`}
+                  text="Пробный период включается сам. Карта не нужна."
+                />
+                <Perk
+                  n={1}
+                  icon="devices"
+                  title={`До ${DEVICE_LIMIT} устройств`}
+                  text="Телефон, ноутбук и телевизор — на одной подписке."
+                />
+                <Perk
+                  n={2}
+                  icon="globe"
+                  title={`${COUNTRY_COUNT} ${plural(COUNTRY_COUNT, ["страна", "страны", "стран"])}`}
+                  text="Выбирайте, через какую страну подключаться."
+                />
+              </ul>
+              <div className="ak-actions">
+                <a href="/support" className="a-btn ak-btn-soft">
+                  <Icon name="chat" size={16} />
+                  Помощь со входом
+                </a>
+              </div>
+            </section>
           </div>
         </div>
       </div>
-      <AuthFooterBar />
-    </div>
-  );
-}
-
-/**
- * Шапка экрана входа.
- *
- * Намеренно минимальна: полная навигация здесь отвлекает от
- * единственного действия. Логотип возвращает на главную, вторая ссылка
- * отвечает на самый частый вопрос перед регистрацией — сколько стоит.
- */
-function AuthTopBar() {
-  return (
-    <div className="px-shell flex items-center justify-between pt-6 sm:pt-8">
-      {/* Марка бренда 2027: квадратная ячейка — та же, из которой
-          сложена стена первого экрана. Прежний знак и написание
-          «atlas.secure» относились к снятой системе. */}
-      <a href="/" className="b-mark" aria-label="Atlas — на главную">
-        <span className="b-mark-cell" aria-hidden />
-        Atlas
-      </a>
-      <a href="/pricing" className="b-btn b-btn-ghost b-header-cta">Тарифы</a>
-    </div>
-  );
-}
-
-function AuthFooterBar() {
-  return (
-    <div className="px-shell pb-8 sm:pb-10">
-      <div className="max-w-[520px] mx-auto flex flex-wrap justify-center gap-x-6">
-        <a href="/terms" className="px-link text-[12px]">Условия</a>
-        <a href="/privacy" className="px-link text-[12px]">Приватность</a>
-        <a href="/support" className="px-link text-[12px]">Поддержка</a>
-      </div>
-    </div>
+    </main>
   );
 }
