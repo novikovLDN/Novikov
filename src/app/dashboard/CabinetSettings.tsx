@@ -119,7 +119,7 @@ export default function CabinetSettings({ i }: { i: number }) {
   };
 
   return (
-    <section className="ak-card ak-set" data-sheet="20" style={{ "--i": i } as CSSProperties} aria-labelledby="ak-set-h">
+    <section id="ak-set" className="ak-card ak-set" data-sheet="20" style={{ "--i": i } as CSSProperties} aria-labelledby="ak-set-h">
       <div className="ak-card-head" style={{ marginBottom: "0.25rem" }}>
         <h2 id="ak-set-h" className="ak-eyebrow">Уведомления и вход</h2>
       </div>

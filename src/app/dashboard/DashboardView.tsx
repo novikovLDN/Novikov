@@ -14,6 +14,7 @@ import CabinetKey from "./CabinetKey";
 import CabinetFriends from "./CabinetFriends";
 import CabinetNetwork from "./CabinetNetwork";
 import CabinetSettings from "./CabinetSettings";
+import Corner from "./Corner";
 import "./cabinet-atlas.css";
 
 /**
@@ -235,9 +236,22 @@ export default function DashboardView() {
             </div>
           </section>
 
+          {/* Доска: все панели в одной раме (референс владельца). */}
+          <div className="ak-board">
+          <nav className="ak-bar" aria-label="Разделы кабинета">
+            <span className="ak-avatar" aria-hidden>{data.email.trim().charAt(0) || "A"}</span>
+            <div className="ak-pills">
+              <a className="ak-pill" href="#ak-sub">Подписка</a>
+              {!isExpired && <a className="ak-pill" href="#ak-key">Ключ</a>}
+              <a className="ak-pill" href="#referral-section">Друзья</a>
+              <a className="ak-pill" href="#ak-set">Настройки</a>
+            </div>
+            <span className="ak-bar-plan">{planLabel}</span>
+          </nav>
           <div className="ak-grid">
             {/* ── 1 · Подписка ─────────────────────────────────────── */}
-            <section className="ak-card ak-sub" data-sheet="20" style={at(1)} aria-labelledby="ak-sub-h">
+            <section id="ak-sub" className="ak-card ak-sub ak-dark" data-sheet="20" style={at(1)} aria-labelledby="ak-sub-h">
+              <Corner href="/pricing" label="Тарифы и цены" />
               <div className="ak-card-head">
                 <h2 id="ak-sub-h" className="ak-eyebrow">
                   Подписка{planLabel !== "Подписка" && <> · <span className="ak-plan">{planLabel}</span></>}
@@ -408,6 +422,7 @@ export default function DashboardView() {
 
             {/* ── 7 · Telegram ─────────────────────────────────────── */}
             <section className="ak-card ak-tg" data-sheet="20" style={at(7)} aria-labelledby="ak-tg-h">
+              <Corner href="https://t.me/atlas_suppbot" label="Открыть Telegram-бот" external />
               <div className="ak-card-head">
                 <h2 id="ak-tg-h" className="ak-eyebrow">Telegram</h2>
                 {data.telegramLinked && <span className="ak-status"><i />Привязан</span>}
@@ -451,6 +466,7 @@ export default function DashboardView() {
 
             {/* ── 8 · Уведомления и вход ───────────────────────────── */}
             <CabinetSettings i={8} />
+          </div>
           </div>
         </div>
 

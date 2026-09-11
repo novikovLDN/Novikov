@@ -341,6 +341,122 @@
 .ak-dialog-card .a-btn { flex: 1; }
 
 /* ─── Загрузка ──────────────────────────────────────────────────── */
+/* ─── Доска ─────────────────────────────────────────────────────────
+   Референс владельца (11.09.2026, «очень нравится такой UX/UI»): все
+   панели лежат в одной скруглённой раме, как экран устройства; зазор
+   между ними тонкий, внутри панелей — вложенные плитки; одна тёмная
+   плита; наверху кластер пилюль; в углах — кружки со стрелкой,
+   врезанные в вырез. Тона — наши: белый, серый, кобальт. */
+.ak-board {
+  padding: 8px;
+  border-radius: 30px;
+  background: var(--a-g100);
+  border: 1px solid var(--a-g200);
+}
+@media (min-width: 720px) { .ak-board { padding: 10px; } }
+.ak-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 0 10px; }
+.ak-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--a-ink);
+  color: #FFFFFF;
+  font-family: var(--a-wide);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  text-transform: uppercase;
+}
+.ak-pills {
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--a-paper);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.ak-pills::-webkit-scrollbar { display: none; }
+/* Телефон: пилюли в одну строку с аватаром и листаются вбок; правый
+   край растворён — видно, что ряд продолжается. */
+@media (max-width: 719px) {
+  .ak-bar { flex-wrap: nowrap; }
+  .ak-pills { flex: 1 1 0; -webkit-mask-image: linear-gradient(to right, #000 82%, transparent); mask-image: linear-gradient(to right, #000 82%, transparent); }
+  .ak-pill { padding: 0 0.85rem; }
+}
+.ak-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 999px;
+  font-family: var(--a-wide);
+  font-size: 0.8125rem;
+  color: var(--a-ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.ak-bar-plan {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-left: auto;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  background: var(--a-ink);
+  color: #FFFFFF;
+  font-family: var(--a-wide);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+@media (max-width: 719px) { .ak-bar-plan { display: none; } }
+
+.ak-board .ak-grid { gap: 8px; }
+@media (min-width: 1100px) { .ak-board .ak-grid { gap: 10px; } }
+.ak-board .ak-card { border-color: transparent; border-radius: 24px; scroll-margin-top: calc(var(--a-head-h) + 16px); }
+.ak-board .ak-stat, .ak-board .ak-code, .ak-board .ak-link, .ak-board .ak-key-strip,
+.ak-board .ak-qr, .ak-board .ak-fallback { border-radius: 16px; }
+
+/* Кружок в вырезе угла. Кольцо цвета доски «выгрызает» угол панели. */
+.ak-corner {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--a-ink);
+  color: #FFFFFF;
+  box-shadow: 0 0 0 6px var(--a-g100);
+  text-decoration: none;
+}
+.ak-corner svg { transform: rotate(-45deg); }
+.ak-corner:focus-visible { outline: 2px solid var(--a-cobalt); outline-offset: 3px; }
+.ak-card:has(> .ak-corner) .ak-card-head { padding-right: 46px; }
+
+/* Тёмная плита — подписка, главное значение кабинета. */
+.ak .ak-dark { background: var(--a-ink); color: #FFFFFF; }
+.ak .ak-dark .ak-eyebrow, .ak .ak-dark .ak-plan, .ak .ak-dark .ak-days-cap, .ak .ak-dark .ak-fine { color: rgba(255, 255, 255, 0.68); }
+.ak .ak-dark .ak-value { color: #FFFFFF; }
+.ak .ak-dark .ak-value small { color: rgba(255, 255, 255, 0.68); }
+.ak .ak-dark .ak-day { background: rgba(255, 255, 255, 0.12); }
+.ak .ak-dark .ak-day[data-on] { background: var(--a-shoal-lume); }
+.ak .ak-dark .ak-days[data-tone="warn"] .ak-day[data-on] { background: #F2B45B; }
+.ak .ak-dark .ak-status { background: rgba(255, 255, 255, 0.1); color: #FFFFFF; }
+.ak .ak-dark .ak-status[data-tone="warn"] { background: rgba(242, 180, 91, 0.16); color: #F7C77E; }
+.ak .ak-dark .ak-status[data-tone="off"] { background: rgba(255, 156, 149, 0.16); color: #FFB3AD; }
+.ak .ak-dark .a-btn-primary { background: #FFFFFF; color: var(--a-ink); }
+.ak .ak-dark .ak-btn-soft { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.22); color: #FFFFFF; }
+.ak .ak-dark .a-btn:focus-visible { outline-color: #FFFFFF; }
+.ak .ak-dark .ak-corner { background: var(--a-paper); color: var(--a-ink); }
+
 .ak-skel { min-height: 180px; border: 1px solid var(--a-g200); border-radius: var(--a-radius-lg); background: linear-gradient(90deg, var(--a-paper) 0%, var(--a-g50) 50%, var(--a-paper) 100%) 0 0 / 200% 100%; }
 
 /* ═══ ДВИЖЕНИЕ ═══════════════════════════════════════════════════════
@@ -425,3 +541,18 @@
   .a-js .ak-card .ak-rail-fill { transform: scaleX(var(--p, 0)); }
 }
 html[data-static] .ak *, html[data-static] .ak *::before, html[data-static] .ak *::after { animation: none !important; transition: none !important; }
+
+/* Доска: кружок в углу выпрямляет стрелку и заливается кобальтом,
+   пилюля переворачивается в чернильную. */
+.ak-corner, .ak-corner svg, .ak-pill { transition: transform var(--d-1) var(--m-settle), background-color var(--d-1) var(--m-turn), color var(--d-1) var(--m-turn); }
+@media (hover: hover) {
+  .ak-corner:hover { background: var(--a-cobalt); color: #FFFFFF; }
+  .ak-corner:hover svg { transform: rotate(0deg); }
+  .ak .ak-dark .ak-corner:hover { background: var(--a-shoal-lume); color: var(--a-ink); }
+  .ak-pill:hover { background: var(--a-ink); color: #FFFFFF; }
+  .ak .ak-dark .a-btn-primary:hover { background: var(--a-shoal); }
+  .ak .ak-dark .ak-btn-soft:hover { border-color: #FFFFFF; color: #FFFFFF; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .a-js .ak .ak-dark .ak-day[data-on] { background: var(--a-shoal-lume); }
+}

@@ -3,6 +3,7 @@
 import { useState, type CSSProperties } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import Icon from "@/components/pixel/Icon";
+import Corner from "./Corner";
 
 /**
  * Кабинет · ключ подключения. Логика — из прежней SubscriptionCard один
@@ -41,7 +42,7 @@ export default function CabinetKey({
 
   if (!subscriptionUrl) {
     return (
-      <section className="ak-card ak-key" data-sheet="20" style={style} aria-labelledby="ak-key-h">
+      <section id="ak-key" className="ak-card ak-key" data-sheet="20" style={style} aria-labelledby="ak-key-h">
         <div className="ak-card-head">
           <h2 id="ak-key-h" className="ak-eyebrow">Ключ подключения</h2>
           <span className="ak-status" data-tone="warn"><i />Готовится</span>
@@ -67,7 +68,8 @@ export default function CabinetKey({
   };
 
   return (
-    <section className="ak-card ak-key" data-sheet="20" style={style} aria-labelledby="ak-key-h">
+    <section id="ak-key" className="ak-card ak-key" data-sheet="20" style={style} aria-labelledby="ak-key-h">
+      <Corner href="/devices" label="Инструкции по подключению" />
       <div className="ak-card-head">
         <h2 id="ak-key-h" className="ak-eyebrow">Ключ подключения</h2>
         <span className="ak-status"><i />Готов</span>

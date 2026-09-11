@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { onlineAt } from "@/lib/online-counter";
 import { COUNTRY_COUNT, LOCATIONS, citiesLabel, plural } from "@/lib/locations";
+import Corner from "./Corner";
 
 /**
  * Кабинет · сеть сейчас. Логика — из прежней ServerStatusCard: число
@@ -54,6 +55,7 @@ export default function CabinetNetwork({ i }: { i: number }) {
 
   return (
     <section className="ak-card ak-net" data-sheet="20" style={{ "--i": i } as CSSProperties} aria-labelledby="ak-net-h">
+      <Corner href="/infrastructure" label="Как устроена сеть" />
       <div className="ak-card-head">
         <h2 id="ak-net-h" className="ak-eyebrow">Сеть сейчас</h2>
         <span className="ak-status"><i />Серверы работают</span>
