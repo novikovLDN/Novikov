@@ -58,14 +58,33 @@ export default function MotionController() {
       { rootMargin: "-45% 0px -54% 0px" },
     );
 
-    for (const s of sheets) {
+    const watched = new WeakSet<HTMLElement>();
+    const watch = (s: HTMLElement) => {
+      if (watched.has(s)) return;
+      watched.add(s);
       view.observe(s);
       if (s.dataset.title) label.observe(s);
-    }
+    };
+    sheets.forEach(watch);
+
+    // Разделы, которые появляются после загрузки (например, блок
+    // настройки на /devices после выбора устройства), тоже получают
+    // вход и паузу холостого слоя: наблюдатель подхватывает их сам.
+    const mo = new MutationObserver((records) => {
+      for (const r of records) {
+        r.addedNodes.forEach((n) => {
+          if (!(n instanceof HTMLElement)) return;
+          if (n.matches("[data-sheet]")) watch(n);
+          n.querySelectorAll<HTMLElement>("[data-sheet]").forEach(watch);
+        });
+      }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
 
     return () => {
       view.disconnect();
       label.disconnect();
+      mo.disconnect();
     };
   }, []);
 
