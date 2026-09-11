@@ -6,7 +6,6 @@ import HeroField from "./HeroField";
 import HeroReel from "./HeroReel";
 import Reel from "./Reel";
 import PointerDrift from "./PointerDrift";
-import Chart from "./Chart";
 import {
   PLANS, PLAN_SPEED, PLAN_CONTENT, DEVICE_LIMIT, formatRub, pricePerMonth, type PlanId,
 } from "@/lib/plans";
@@ -190,16 +189,15 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
               <span className="a-no">03</span>{COUNTRY_COUNT} {COUNTRY_WORD}. выбирайте ближайшую
             </h2>
             <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
-              Чем ближе сервер, тем быстрее. Нажмите на город — покажем отклик.
+              Чем ближе сервер, тем быстрее всё открывается.
             </p>
 
             {/* Глобус из Blender (сцена «AtlasGlobe»): 19 кобальтовых
                 серверов, от Москвы к каждому бежит импульс — чем ближе
-                сервер, тем чаще. Оформление; смысл продублирован картой
-                и таблицей ниже. */}
+                сервер, тем чаще. Плоская карта с главной убрана (владелец,
+                11.09.2026), осталась на /infrastructure. Смысл глобуса —
+                таблицей ниже, для чтеца экрана. */}
             <Reel className="a-globe" webm="/media/globe.webm" mp4="/media/globe.mp4" poster="/media/globe.jpg" />
-
-            <Chart />
 
             {/* Всё, что есть на карте, — словами, для чтеца экрана. */}
             <table className="b-sr">

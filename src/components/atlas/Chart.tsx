@@ -4,7 +4,8 @@ import { BAND_COUNT, BAND_STEP_MS, rttToKm } from "@/lib/isochrones";
 import LandLight from "./LandLight";
 
 /**
- * Карта серверов (главная, раздел 04).
+ * Карта серверов (/infrastructure). С главной убрана 11.09.2026 — там
+ * раздел 03 держит глобус из Blender.
  *
  * Слои, снизу вверх:
  *   1. Пять ступеней времени ответа — каждая своим SVG. Отдельные слои
