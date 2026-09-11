@@ -4,8 +4,12 @@ import AtlasDefs from "./AtlasDefs";
 import IsoFragment from "./IsoFragment";
 import HeroField from "./HeroField";
 import HeroReel from "./HeroReel";
-import Reel from "./Reel";
+import GlobeGL from "./GlobeGL";
+import MissionGL from "./MissionGL";
 import PointerDrift from "./PointerDrift";
+import LaptopScrub from "./LaptopScrub";
+import type { ReactNode } from "react";
+import "@/app/home-v5.css";
 import {
   PLANS, PLAN_SPEED, PLAN_CONTENT, DEVICE_LIMIT, formatRub, pricePerMonth, type PlanId,
 } from "@/lib/plans";
@@ -16,28 +20,23 @@ import { plural } from "@/lib/ru-words";
 import { FOUNDED } from "@/lib/nav";
 
 /**
- * Главная — «Атлас-издание», редакция 4: погружение.
+ * Главная — «Атлас-издание», редакция 5 (разбор владельца 11.09.2026).
  *
- * Владелец 11.09.2026: «стиль отличный, блоки переделывай и доделывай
- * каждый детально, больше анимированного погружения». Состав шести
- * блоков прежний (редакция 3), каждый получил свою сцену:
+ *   01 буквы поднимаются, объёмные формы из Blender за текстом, нырок
+ *   02 закреплённая сцена: слова проявляются, по дорожкам бегут данные —
+ *      без Atlas ползут и застревают, с Atlas текут ровно
+ *   03 «зум с остановкой»: глобус реального времени за текстом
+ *   04 тарифы карточками, ширина канала — шкала
+ *   05 линия по прокрутке идёт от кружка к кружку и расплывается
+ *   06 ноутбук открывается по прокрутке (кадры Blender, LaptopScrub)
+ *   07 миссия и компания, живой объект реального времени
+ *   08 кольцо из бесплатных дней заполняется по прокрутке
  *
- *   01 буквы поднимаются, поле изохрон за рукой, нырок на уходе
- *   02 закреплённая сцена: слова проявляются, дорожки идут по прокрутке
- *   03 карта входит приближенной и отдаляется, города волной, пакет
- *   04 строки тарифов въезжают с разных сторон
- *   05 цифры шагов с разной глубиной, диагональ прочерчивается
- *   06 устройства: одна подписка на DEVICE_LIMIT устройств (11.09.2026)
- *   07 миссия и компания (11.09.2026)
- *   08 слова финала проявляются, кольцо у кнопки
+ * Тексты — польза и короткое объяснение, числа из src/lib.
  *
- * Тексты 11.09.2026 переписаны под продажу: заголовок о пользе, 1–3
- * предложения «как это работает». Пустые `.a-art[data-art="bNN"]` первым
- * ребёнком раздела — место под 3D-объект (NN = номер раздела).
- *
- * Весь моушн — atlas.css, раздел 6. Только transform, opacity и шкалы
- * браузера; холостой слой на паузе вне кадра; без скрипта и при
- * reduced-motion страница отрисована в конечном виде.
+ * Моушн: atlas.css, раздел 6 (блоки 01–03), home-v5.css (04–08 и поток
+ * в 02). Только transform, opacity и шкалы браузера; холостой слой на
+ * паузе вне кадра; без скрипта и при reduced-motion — конечный кадр.
  */
 
 const TRIAL = `${TRIAL_DAYS} ${plural(TRIAL_DAYS, ["день", "дня", "дней"])}`;
@@ -98,6 +97,44 @@ function Chars({ text, start = 0 }: { text: string; start?: number }) {
   );
 }
 
+/** 02 — данные бегут по дорожке: без Atlas ползут и застревают, с Atlas текут ровно. */
+function Flow({ n }: { n: number }) {
+  return (
+    <span className="h5-flow" aria-hidden>
+      {Array.from({ length: n }, (_, k) => (
+        <i key={k} className="a-idle" style={{ ["--k" as string]: k }} />
+      ))}
+    </span>
+  );
+}
+
+/** 05 — три шага. */
+const STEPS: { t: string; d: ReactNode }[] = [
+  { t: "Войдите по почте", d: "Нужны только адрес и код из письма. Без пароля и без карты." },
+  { t: "Поставьте приложение", d: "Ключ и QR-код уже ждут в личном кабинете — отсканируйте код в приложении." },
+  {
+    t: "Включите",
+    d: (
+      <>
+        Одно касание — дальше всё работает само. <span className="a-on a-idle">включено</span>
+      </>
+    ),
+  },
+];
+
+/** 08 — дуги кольца: по одной на каждый бесплатный день, с зазорами. */
+function arc(r: number, a0: number, a1: number) {
+  const pt = (a: number) => {
+    const t = ((a - 90) * Math.PI) / 180;
+    return `${(100 + r * Math.cos(t)).toFixed(2)} ${(100 + r * Math.sin(t)).toFixed(2)}`;
+  };
+  return `M${pt(a0)} A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${pt(a1)}`;
+}
+const DAY_ARCS = Array.from({ length: TRIAL_DAYS }, (_, k) => {
+  const s = 360 / TRIAL_DAYS;
+  return arc(86, k * s + 6, (k + 1) * s - 6);
+});
+
 /** Разбивка по словам для сцен, где слова проявляются по прокрутке. */
 function Words({ text, start = 0 }: { text: string; start?: number }) {
   const words = text.split(" ");
@@ -151,7 +188,6 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
 
         {/* ── 02 · Проблема и разница — закреплённая сцена ──────── */}
         <section className="a-sheet a-plate a-why" data-sheet="02" data-title="Зачем" aria-labelledby="a-why-title">
-          <div className="a-art" data-art="b02" aria-hidden />
           <div className="a-why-stick">
             <Isobaths />
             <div className="a-field">
@@ -167,6 +203,7 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
                   <span className="a-lane-name a-wide">без Atlas</span>
                   <span className="a-lane-track" aria-hidden>
                     <span className="a-lane-fill" />
+                    <Flow n={5} />
                     <span className="a-mosh">
                       {MOSH.map((s, i) => (
                         <i key={i} className="a-idle" style={{ ["--s" as string]: `${s}px` }} />
@@ -179,6 +216,7 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
                   <span className="a-lane-name a-wide">с Atlas</span>
                   <span className="a-lane-track" aria-hidden>
                     <span className="a-lane-fill" />
+                    <Flow n={7} />
                     <span className="a-lane-glint a-idle" />
                   </span>
                   <span className="a-lane-out">открыто</span>
@@ -204,17 +242,12 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
             {/* Глобус из Blender за текстом. Плоская карта с главной
                 убрана (владелец, 11.09.2026), осталась на /infrastructure.
                 Смысл глобуса — таблицей ниже, для чтеца экрана. */}
-            {/* globe2 (сцена «AtlasGlobe2», 11.09.2026): белая керамика,
-                мягкие точки суши, 19 кобальтовых бусин, две дуги от Москвы
-                со спокойным светом. Петля 12 с на 30 fps; играется на 0,8 —
-                оборот за 15 с, 24 кадра в секунду с размытием движения. */}
-            <Reel
-              className="a-globe a-pin-art"
-              webm="/media/globe2.webm"
-              mp4="/media/globe2.mp4"
-              poster="/media/globe2.jpg"
-              rate={0.8}
-            />
+            {/* Глобус реального времени (владелец, 11.09.2026: видео 30 fps
+                «очень резкое», нужна максимальная плавность). Рисуется на
+                частоте экрана — 60/120/240 Гц, движение по реальному
+                времени. Без WebGL/WebGPU, при reduced-motion и экономии
+                трафика — постер того же глобуса из Blender. */}
+            <GlobeGL className="a-globe a-pin-art" poster="/media/globe2.jpg" />
             <div className="a-field a-pin-copy">
               <h2 id="a-map-title" className="a-h2 a-settle">
                 <span className="a-no">03</span>{COUNTRY_COUNT} {COUNTRY_WORD}. выбирайте ближайшую
@@ -247,7 +280,6 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
 
         {/* ── 04 · Тарифы ───────────────────────────────────────── */}
         <section className="a-sheet a-legend" data-sheet="04" data-title="Тарифы" id="tariffs" aria-labelledby="a-legend-title">
-          <div className="a-art" data-art="b04" aria-hidden />
           <div className="a-field">
             <h2 id="a-legend-title" className="a-h2 a-settle">
               <span className="a-no">04</span>два тарифа. всё уже включено
@@ -258,35 +290,47 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
               игр, стримов и созвонов, где важен каждый кадр.
             </p>
 
-            <div className="a-legend-group">
+            {/* Тарифы карточками (владелец, 11.09.2026: «полоса непонятная —
+                полностью перерисовать»). Ширина канала — шкала, где полная
+                длина — самый быстрый тариф; числа — из src/lib/plans.ts. */}
+            <div className="h5-plans">
               {(["basic", "plus"] as PlanId[]).map((id, i) => (
-                <div key={id} className="a-slide" style={{ ["--i" as string]: i, ["--dir" as string]: i ? 1 : -1 }}>
-                  <Link
-                    href="/pricing"
-                    className="a-legend-row"
-                    style={{
-                      ["--w" as string]: `${Math.max(2, Math.round((PLAN_SPEED[id] / PLAN_SPEED.plus) * 6))}px`,
-                      ["--flow" as string]: `${((2.4 * PLAN_SPEED.plus) / PLAN_SPEED[id]).toFixed(2)}s`,
-                    }}
-                  >
-                    <span className="a-legend-name">{PLAN_CONTENT[id].name}</span>
-                    <span className="a-sym a-print" aria-hidden>
-                      <span className="a-sym-flow a-idle" />
-                    </span>
-                    <span className="a-legend-val"><b className="a-num">{PLAN_SPEED[id]}</b> Гбит/с</span>
-                    <span className="a-legend-price">
-                      <b className="a-num">{formatRub(PLANS[id][1])} ₽</b> в месяц
-                      <small>за год — {formatRub(pricePerMonth(id, 12))} ₽ в месяц</small>
-                    </span>
-                    <span className="a-legend-tag">{PLAN_CONTENT[id].tagline}</span>
+                <article
+                  key={id}
+                  className="h5-plan a-slide"
+                  data-plan={id}
+                  style={{
+                    ["--i" as string]: i,
+                    ["--dir" as string]: i ? 1 : -1,
+                    ["--sp" as string]: PLAN_SPEED[id] / PLAN_SPEED.plus,
+                  }}
+                >
+                  <h3 className="h5-plan-name">{PLAN_CONTENT[id].name}</h3>
+                  <p className="h5-plan-tagline">{PLAN_CONTENT[id].tagline}</p>
+                  <div className="h5-speed">
+                    <p className="h5-speed-label">Ширина канала</p>
+                    <div className="h5-speed-bar" aria-hidden>
+                      <i><b className="a-idle" /></i>
+                    </div>
+                    <p className="h5-speed-val"><b className="a-num">{PLAN_SPEED[id]}</b> Гбит/с</p>
+                  </div>
+                  <p className="h5-price"><b className="a-num">{formatRub(PLANS[id][1])} ₽</b> в месяц</p>
+                  <p className="h5-price-year">за год — {formatRub(pricePerMonth(id, 12))} ₽ в месяц</p>
+                  <ul className="h5-feats">
+                    {PLAN_CONTENT[id].features.map((f) => (
+                      <li key={f}>{f}</li>
+                    ))}
+                  </ul>
+                  <Link href="/pricing" className={`a-btn ${id === "plus" ? "a-btn-invert" : "a-btn-primary"}`}>
+                    Выбрать {PLAN_CONTENT[id].name}
                   </Link>
-                </div>
+                </article>
               ))}
-              <p className="a-legend-note a-settle" style={{ ["--i" as string]: 4 }}>
-                В каждом тарифе — до {DEVICE_LIMIT} {DEVICE_WORD}, все {COUNTRY_COUNT} {COUNTRY_WORD} и отмена
-                в один клик. За год выходит дешевле, чем помесячно.
-              </p>
             </div>
+            <p className="a-legend-note a-settle" style={{ ["--i" as string]: 4 }}>
+              В каждом тарифе — до {DEVICE_LIMIT} {DEVICE_WORD}, все {COUNTRY_COUNT} {COUNTRY_WORD} и отмена
+              в один клик. За год выходит дешевле, чем помесячно.
+            </p>
 
             <p className="a-servers-line a-settle" style={{ ["--i" as string]: 5 }}>
               Нужен целый сервер для проекта или компании? <Link href="/vds">Выделенные серверы</Link> — от{" "}
@@ -296,68 +340,70 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
         </section>
 
         {/* ── 05 · Подключение ──────────────────────────────────── */}
-        <section className="a-sheet a-steps-sheet" data-sheet="05" data-title="Подключение" id="how" aria-labelledby="a-steps-title">
-          <div className="a-art" data-art="b05" aria-hidden />
-          <div className="a-field">
-            <h2 id="a-steps-title" className="a-h2 a-settle">
-              <span className="a-no">05</span>три шага — и всё работает
-            </h2>
-            <p className="a-p a-settle" style={{ ["--i" as string]: 1 }}>
-              Настраивать вручную ничего не нужно. Регистрация, ключ и инструкция — в одном месте.
-            </p>
-            <div className="a-steps-wrap">
-            {/* Диагональ через три цифры: прочерчивается по прокрутке. */}
-            <svg className="a-steps-line" viewBox="0 0 1376 320" preserveAspectRatio="none" aria-hidden focusable="false">
-              <path d="M40 55 L509 127 L978 199" pathLength="1" />
-            </svg>
-            <ol className="a-steps">
-              <li className="a-step a-settle">
-                <span className="a-step-n" aria-hidden style={{ ["--d" as string]: 0 }}>1</span>
-                <h3>Войдите по почте</h3>
-                <p>Нужны только адрес и код из письма. Без пароля и без карты.</p>
-              </li>
-              <li className="a-step a-settle" style={{ ["--i" as string]: 3 }}>
-                <span className="a-step-n" aria-hidden style={{ ["--d" as string]: 1 }}>2</span>
-                <h3>Поставьте приложение</h3>
-                <p>Ключ и QR-код уже ждут в личном кабинете — отсканируйте код в приложении.</p>
-              </li>
-              <li className="a-step a-settle" style={{ ["--i" as string]: 6 }}>
-                <span className="a-step-n" aria-hidden style={{ ["--d" as string]: 2 }}>3</span>
-                <h3>Включите</h3>
-                <p>
-                  Одно касание — дальше всё работает само. <span className="a-on a-idle">включено</span>
-                </p>
-              </li>
-            </ol>
+        {/* Линия по прокрутке идёт от кружка к кружку и расплывается на
+            третьем (владелец, 11.09.2026). На широком экране раздел
+            закреплён; шкала — его прокрутка (home-v5.css). */}
+        <section className="a-sheet h5-steps" data-sheet="05" data-title="Подключение" id="how" aria-labelledby="a-steps-title">
+          <div className="h5-stage">
+            <div className="a-field">
+              <h2 id="a-steps-title" className="a-h2 a-settle">
+                <span className="a-no">05</span>три шага — и всё работает
+              </h2>
+              <p className="a-p a-settle" style={{ ["--i" as string]: 1 }}>
+                Настраивать вручную ничего не нужно. Регистрация, ключ и инструкция — в одном месте.
+              </p>
+              <div className="h5-track">
+                {/* Кружки — в центрах трёх равных колонок (1/6, 1/2, 5/6 ширины).
+                    Координаты 1200×72: без non-scaling-stroke, иначе Chrome
+                    считает штрих в экранных единицах и линия рвётся на куски. */}
+                <svg className="h5-path" viewBox="0 0 1200 72" preserveAspectRatio="none" aria-hidden focusable="false">
+                  <path className="h5-path-glow" d="M200 36 C 330 -4, 470 -4, 600 36 S 870 76, 1000 36" pathLength="1" />
+                  <path className="h5-path-line" d="M200 36 C 330 -4, 470 -4, 600 36 S 870 76, 1000 36" pathLength="1" />
+                </svg>
+                <ol className="h5-list">
+                  {STEPS.map((s, k) => (
+                    <li key={s.t} className="h5-step">
+                      <span className="h5-dot" aria-hidden>{k + 1}</span>
+                      <h3>{s.t}</h3>
+                      <p>{s.d}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             </div>
           </div>
         </section>
 
         {/* ── 06 · Устройства ───────────────────────────────────── */}
         {/* Список платформ повторяет PLATFORMS в src/app/devices/DevicesView.tsx. */}
-        <section className="a-sheet" data-sheet="06" data-title="Устройства" aria-labelledby="a-devices-title">
-          <div className="a-art" data-art="b06" aria-hidden />
-          <div className="a-field">
-            <h2 id="a-devices-title" className="a-h2 a-settle">
-              <span className="a-no">06</span>одна подписка на {DEVICE_LIMIT} {DEVICE_WORD}
-            </h2>
-            <p className="a-lead a-settle" style={{ ["--i" as string]: 1 }}>
-              Телефон, ноутбук, планшет и телевизор — подключайте всё, что есть дома, без доплаты
-              за каждое устройство.
-            </p>
-            <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
-              Atlas работает на iPhone и iPad, Android, Windows, macOS и Android TV. Для каждого
-              устройства есть пошаговая инструкция.
-            </p>
-            <div className="a-actions a-settle" style={{ ["--i" as string]: 3 }}>
-              <Link href="/devices" className="a-btn a-btn-quiet">Инструкции для устройств</Link>
+        {/* Ноутбук открывается по прокрутке (владелец, 11.09.2026): на
+            широком экране раздел закреплён, кадры листает LaptopScrub. */}
+        <section className="a-sheet h5-dev" data-sheet="06" data-title="Устройства" data-scrub aria-labelledby="a-devices-title">
+          <div className="h5-stage">
+            <div className="a-field h5-dev-grid">
+              <div>
+                <h2 id="a-devices-title" className="a-h2 a-settle">
+                  <span className="a-no">06</span>одна подписка на {DEVICE_LIMIT} {DEVICE_WORD}
+                </h2>
+                <p className="a-lead a-settle" style={{ ["--i" as string]: 1 }}>
+                  Телефон, ноутбук, планшет и телевизор — подключайте всё, что есть дома, без доплаты
+                  за каждое устройство.
+                </p>
+                <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
+                  Atlas работает на iPhone и iPad, Android, Windows, macOS и Android TV. Для каждого
+                  устройства есть пошаговая инструкция.
+                </p>
+                <div className="a-actions a-settle" style={{ ["--i" as string]: 3 }}>
+                  <Link href="/devices" className="a-btn a-btn-quiet">Инструкции для устройств</Link>
+                </div>
+              </div>
+              <LaptopScrub className="h5-laptop" />
             </div>
           </div>
         </section>
 
         {/* ── 07 · Миссия и компания ────────────────────────────── */}
-        <section className="a-sheet" data-sheet="07" data-title="Компания" aria-labelledby="a-company-title">
-          <div className="a-art" data-art="b07" aria-hidden />
+        <section className="a-sheet h5-mission" data-sheet="07" data-title="Компания" aria-labelledby="a-company-title">
           <div className="a-field">
             <h2 id="a-company-title" className="a-h2 a-settle">
               <span className="a-no">07</span>свободный и быстрый интернет для каждого
@@ -389,11 +435,13 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
               <Link href="/about" className="a-btn a-btn-quiet">Подробнее о компании</Link>
             </div>
           </div>
+          {/* Живой объект миссии реального времени: сфера-сеть из узлов
+              вокруг стеклянного кобальтового ядра, по сети идёт волна. */}
+          <MissionGL className="h5-mission-art" />
         </section>
 
         {/* ── 08 · Попробовать ──────────────────────────────────── */}
         <section className="a-sheet a-plate a-final" data-sheet="08" data-title="Попробовать" aria-labelledby="a-final-title">
-          <div className="a-art" data-art="b08" aria-hidden />
           <Isobaths />
           <div className="a-field">
             <h2 id="a-final-title" className="a-h2">
@@ -407,6 +455,22 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
               <Link href={enter} className="a-btn a-btn-invert a-idle">Начать бесплатно</Link>
               <Link href="/contact" className="a-btn a-btn-line">Написать нам</Link>
             </div>
+          </div>
+          {/* Кольцо из бесплатных дней: заполняется по прокрутке по одному
+              дню, по кольцу идёт светлая точка (владелец, 11.09.2026). После
+              текста — на телефоне стоит под ним, на широком экране справа. */}
+          <div className="h5-days" aria-hidden>
+            <svg viewBox="0 0 200 200" focusable="false">
+              <circle className="h5-days-track" cx="100" cy="100" r="86" />
+              {DAY_ARCS.map((d, k) => (
+                <path key={k} className="h5-day" d={d} pathLength="1" style={{ ["--k" as string]: k }} />
+              ))}
+            </svg>
+            <span className="h5-days-orbit a-idle"><i /></span>
+            <p className="h5-days-num">
+              <b className="a-num">{TRIAL_DAYS}</b>
+              {plural(TRIAL_DAYS, ["день", "дня", "дней"])} бесплатно
+            </p>
           </div>
         </section>
       </main>
