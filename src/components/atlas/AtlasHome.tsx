@@ -13,6 +13,7 @@ import { LOCATIONS, COUNTRY_COUNT } from "@/lib/locations";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { SERVER_ENTRY_USD, formatUsd } from "@/lib/servers";
 import { plural } from "@/lib/ru-words";
+import { FOUNDED } from "@/lib/nav";
 
 /**
  * Главная — «Атлас-издание», редакция 4: погружение.
@@ -26,7 +27,13 @@ import { plural } from "@/lib/ru-words";
  *   03 карта входит приближенной и отдаляется, города волной, пакет
  *   04 строки тарифов въезжают с разных сторон
  *   05 цифры шагов с разной глубиной, диагональ прочерчивается
- *   06 слова финала проявляются, кольцо у кнопки
+ *   06 устройства: одна подписка на DEVICE_LIMIT устройств (11.09.2026)
+ *   07 миссия и компания (11.09.2026)
+ *   08 слова финала проявляются, кольцо у кнопки
+ *
+ * Тексты 11.09.2026 переписаны под продажу: заголовок о пользе, 1–3
+ * предложения «как это работает». Пустые `.a-art[data-art="bNN"]` первым
+ * ребёнком раздела — место под 3D-объект (NN = номер раздела).
  *
  * Весь моушн — atlas.css, раздел 6. Только transform, opacity и шкалы
  * браузера; холостой слой на паузе вне кадра; без скрипта и при
@@ -126,15 +133,17 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
 
             <div className="a-cover-grid">
               <p className="a-lead">
-                VPS-ускоритель для телефона и компьютера. Включаете Atlas <IsoFragment /> — и сайты
-                с приложениями снова работают на полной скорости.
+                VPS-ускоритель для телефона и компьютера. Включаете Atlas <IsoFragment /> — и сайты,
+                видео и приложения открываются сразу и на полной скорости.
               </p>
               <div>
                 <div className="a-actions">
                   <Link href={enter} className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
-                  <Link href="#tariffs" className="a-btn a-btn-quiet">Тарифы</Link>
+                  <Link href="#tariffs" className="a-btn a-btn-quiet">Смотреть тарифы</Link>
                 </div>
-                <p className="a-fine">Без карты. Потом — от {formatRub(PLANS.basic[1])} ₽ в месяц.</p>
+                <p className="a-fine">
+                  Без карты. До {DEVICE_LIMIT} {DEVICE_WORD} в одной подписке. Потом — от {formatRub(PLANS.basic[1])} ₽ в месяц.
+                </p>
               </div>
             </div>
           </div>
@@ -142,6 +151,7 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
 
         {/* ── 02 · Проблема и разница — закреплённая сцена ──────── */}
         <section className="a-sheet a-plate a-why" data-sheet="02" data-title="Зачем" aria-labelledby="a-why-title">
+          <div className="a-art" data-art="b02" aria-hidden />
           <div className="a-why-stick">
             <Isobaths />
             <div className="a-field">
@@ -176,7 +186,8 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
               </div>
 
               <p className="a-p a-why-end">
-                Atlas шифрует трафик и меняет страну — и открывает то, что перестало открываться.
+                Часть сайтов тормозит ещё по дороге к вам. Atlas шифрует трафик и ведёт его в обход,
+                через наш сервер в другой стране, — поэтому страница открывается сразу и целиком.
               </p>
             </div>
           </div>
@@ -189,7 +200,8 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
               <span className="a-no">03</span>{COUNTRY_COUNT} {COUNTRY_WORD}. выбирайте ближайшую
             </h2>
             <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
-              Чем ближе сервер, тем быстрее всё открывается.
+              Чем ближе сервер, тем меньше задержка и тем быстрее открываются сайты и видео. Все{" "}
+              {COUNTRY_COUNT} {COUNTRY_WORD} входят в каждый тариф — доплачивать за страну не нужно.
             </p>
 
             {/* Глобус из Blender (сцена «AtlasGlobe»): 19 кобальтовых
@@ -220,10 +232,16 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
 
         {/* ── 04 · Тарифы ───────────────────────────────────────── */}
         <section className="a-sheet a-legend" data-sheet="04" data-title="Тарифы" id="tariffs" aria-labelledby="a-legend-title">
+          <div className="a-art" data-art="b04" aria-hidden />
           <div className="a-field">
             <h2 id="a-legend-title" className="a-h2 a-settle">
-              <span className="a-no">04</span>два тарифа
+              <span className="a-no">04</span>два тарифа. всё уже включено
             </h2>
+            <p className="a-p a-settle" style={{ ["--i" as string]: 1 }}>
+              Тарифы отличаются только шириной канала — тем, сколько данных проходит одновременно.
+              {" "}{PLAN_CONTENT.basic.name} хватает для сайтов, видео и работы. {PLAN_CONTENT.plus.name}{" "}— для
+              игр, стримов и созвонов, где важен каждый кадр.
+            </p>
 
             <div className="a-legend-group">
               {(["basic", "plus"] as PlanId[]).map((id, i) => (
@@ -250,22 +268,28 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
                 </div>
               ))}
               <p className="a-legend-note a-settle" style={{ ["--i" as string]: 4 }}>
-                В каждом — до {DEVICE_LIMIT} {DEVICE_WORD} и все {COUNTRY_COUNT} {COUNTRY_WORD}. Отмена в один клик.
+                В каждом тарифе — до {DEVICE_LIMIT} {DEVICE_WORD}, все {COUNTRY_COUNT} {COUNTRY_WORD} и отмена
+                в один клик. За год выходит дешевле, чем помесячно.
               </p>
             </div>
 
             <p className="a-servers-line a-settle" style={{ ["--i" as string]: 5 }}>
-              Нужен сервер целиком? <Link href="/vds">Выделенные серверы</Link> — от {formatUsd(SERVER_ENTRY_USD)} в месяц.
+              Нужен целый сервер для проекта или компании? <Link href="/vds">Выделенные серверы</Link> — от{" "}
+              {formatUsd(SERVER_ENTRY_USD)} в месяц.
             </p>
           </div>
         </section>
 
         {/* ── 05 · Подключение ──────────────────────────────────── */}
         <section className="a-sheet a-steps-sheet" data-sheet="05" data-title="Подключение" id="how" aria-labelledby="a-steps-title">
+          <div className="a-art" data-art="b05" aria-hidden />
           <div className="a-field">
             <h2 id="a-steps-title" className="a-h2 a-settle">
-              <span className="a-no">05</span>три шага
+              <span className="a-no">05</span>три шага — и всё работает
             </h2>
+            <p className="a-p a-settle" style={{ ["--i" as string]: 1 }}>
+              Настраивать вручную ничего не нужно. Регистрация, ключ и инструкция — в одном месте.
+            </p>
             <div className="a-steps-wrap">
             {/* Диагональ через три цифры: прочерчивается по прокрутке. */}
             <svg className="a-steps-line" viewBox="0 0 1376 320" preserveAspectRatio="none" aria-hidden focusable="false">
@@ -275,18 +299,18 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
               <li className="a-step a-settle">
                 <span className="a-step-n" aria-hidden style={{ ["--d" as string]: 0 }}>1</span>
                 <h3>Войдите по почте</h3>
-                <p>Только адрес и код из письма.</p>
+                <p>Нужны только адрес и код из письма. Без пароля и без карты.</p>
               </li>
               <li className="a-step a-settle" style={{ ["--i" as string]: 3 }}>
                 <span className="a-step-n" aria-hidden style={{ ["--d" as string]: 1 }}>2</span>
                 <h3>Поставьте приложение</h3>
-                <p>Ключ и QR-код ждут в кабинете.</p>
+                <p>Ключ и QR-код уже ждут в личном кабинете — отсканируйте код в приложении.</p>
               </li>
               <li className="a-step a-settle" style={{ ["--i" as string]: 6 }}>
                 <span className="a-step-n" aria-hidden style={{ ["--d" as string]: 2 }}>3</span>
                 <h3>Включите</h3>
                 <p>
-                  Дальше всё работает само. <span className="a-on a-idle">включено</span>
+                  Одно касание — дальше всё работает само. <span className="a-on a-idle">включено</span>
                 </p>
               </li>
             </ol>
@@ -294,15 +318,76 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
           </div>
         </section>
 
-        {/* ── 06 · Попробовать ──────────────────────────────────── */}
-        <section className="a-sheet a-plate a-final" data-sheet="06" data-title="Попробовать" aria-labelledby="a-final-title">
+        {/* ── 06 · Устройства ───────────────────────────────────── */}
+        {/* Список платформ повторяет PLATFORMS в src/app/devices/DevicesView.tsx. */}
+        <section className="a-sheet" data-sheet="06" data-title="Устройства" aria-labelledby="a-devices-title">
+          <div className="a-art" data-art="b06" aria-hidden />
+          <div className="a-field">
+            <h2 id="a-devices-title" className="a-h2 a-settle">
+              <span className="a-no">06</span>одна подписка на {DEVICE_LIMIT} {DEVICE_WORD}
+            </h2>
+            <p className="a-lead a-settle" style={{ ["--i" as string]: 1 }}>
+              Телефон, ноутбук, планшет и телевизор — подключайте всё, что есть дома, без доплаты
+              за каждое устройство.
+            </p>
+            <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
+              Atlas работает на iPhone и iPad, Android, Windows, macOS и Android TV. Для каждого
+              устройства есть пошаговая инструкция.
+            </p>
+            <div className="a-actions a-settle" style={{ ["--i" as string]: 3 }}>
+              <Link href="/devices" className="a-btn a-btn-quiet">Инструкции для устройств</Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 07 · Миссия и компания ────────────────────────────── */}
+        <section className="a-sheet" data-sheet="07" data-title="Компания" aria-labelledby="a-company-title">
+          <div className="a-art" data-art="b07" aria-hidden />
+          <div className="a-field">
+            <h2 id="a-company-title" className="a-h2 a-settle">
+              <span className="a-no">07</span>свободный и быстрый интернет для каждого
+            </h2>
+            <p className="a-lead a-settle" style={{ ["--i" as string]: 1 }}>
+              Наша миссия — чтобы интернет у каждого работал свободно и быстро: без тормозов и
+              сложных настроек.
+            </p>
+            <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
+              Atlas Secure — технологическая компания в составе группы QoDev. Работаем с {FOUNDED} года,
+              держим серверы в {COUNTRY_COUNT} {plural(COUNTRY_COUNT, ["стране", "странах", "странах"])},
+              в команде больше 100 человек.
+            </p>
+            <ul>
+              <li className="a-p a-settle" style={{ ["--i" as string]: 3 }}>
+                <b>Скорость по умолчанию.</b> Сайты, видео и игры должны открываться сразу, где бы вы ни были.
+              </li>
+              <li className="a-p a-settle" style={{ ["--i" as string]: 4 }}>
+                <b>Простота.</b> Вход по почте, ключ в кабинете, включение одним касанием.
+              </li>
+              <li className="a-p a-settle" style={{ ["--i" as string]: 5 }}>
+                <b>Честные условия.</b> {TRIAL} бесплатно без карты, понятные цены и отмена в один клик.
+              </li>
+              <li className="a-p a-settle" style={{ ["--i" as string]: 6 }}>
+                <b>Приватность.</b> Трафик шифруется на пути от вашего устройства до нашего сервера.
+              </li>
+            </ul>
+            <div className="a-actions a-settle" style={{ ["--i" as string]: 7 }}>
+              <Link href="/about" className="a-btn a-btn-quiet">Подробнее о компании</Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 08 · Попробовать ──────────────────────────────────── */}
+        <section className="a-sheet a-plate a-final" data-sheet="08" data-title="Попробовать" aria-labelledby="a-final-title">
+          <div className="a-art" data-art="b08" aria-hidden />
           <Isobaths />
           <div className="a-field">
             <h2 id="a-final-title" className="a-h2">
-              <span className="a-no">06</span>
+              <span className="a-no">08</span>
               <Words text={`попробуйте ${TRIAL} бесплатно`} />
             </h2>
-            <p className="a-p a-settle" style={{ ["--i" as string]: 6 }}>Без карты. Не понравится — просто не продлевайте.</p>
+            <p className="a-p a-settle" style={{ ["--i" as string]: 6 }}>
+              Без карты и без обязательств. Понравится — выберите тариф, нет — просто не продлевайте.
+            </p>
             <div className="a-actions a-settle" style={{ ["--i" as string]: 8 }}>
               <Link href={enter} className="a-btn a-btn-invert a-idle">Начать бесплатно</Link>
               <Link href="/contact" className="a-btn a-btn-line">Написать нам</Link>

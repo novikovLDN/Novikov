@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
+import Icon from "@/components/pixel/Icon";
+import { useAdminConfirm, useAdminLayer, Spin } from "@/app/admin/AdminConfirm";
 
 type AuditProblem =
   | "no_uuid"
@@ -42,19 +45,20 @@ interface AuditReport {
 const PROBLEM_LABEL: Record<AuditProblem, string> = {
   no_uuid: "нет UUID в панели",
   missing_in_panel: "потерян в панели",
-  url_missing: "нет subscription URL",
+  url_missing: "нет ссылки подписки",
   date_drift: "дата не совпадает",
-  status_mismatch: "статус ≠ ACTIVE",
-  tag_mismatch: "тег ≠ плану",
+  status_mismatch: "статус не ACTIVE",
+  tag_mismatch: "тег не равен тарифу",
 };
 
-const PROBLEM_COLOR: Record<AuditProblem, string> = {
-  no_uuid: "#EF4444",
-  missing_in_panel: "#EF4444",
-  url_missing: "var(--px-accent)",
-  date_drift: "var(--px-accent)",
-  status_mismatch: "var(--px-accent)",
-  tag_mismatch: "#6366F1",
+/** Тон класса проблемы: потерянные — красный, расхождения — внимание. */
+const PROBLEM_TONE: Record<AuditProblem, "off" | "warn" | "mute"> = {
+  no_uuid: "off",
+  missing_in_panel: "off",
+  url_missing: "warn",
+  date_drift: "warn",
+  status_mismatch: "warn",
+  tag_mismatch: "mute",
 };
 
 /**
@@ -72,14 +76,26 @@ const PROBLEM_COLOR: Record<AuditProblem, string> = {
  * Any error surface (audit-level or per-user fix-level) fills an
  * error-log modal with a one-tap "Copy all" button so the admin can
  * ship the log to us verbatim.
+ *
+ * Модальное окно лога рисуется в слое админки (useAdminLayer), а не
+ * внутри панели: transform у .ak-card ломает position: fixed.
  */
-export default function PanelSyncAuditCard() {
+export default function PanelSyncAuditCard({ i = 0 }: { i?: number }) {
+  const confirm = useAdminConfirm();
+  const layer = useAdminLayer();
   const [loading, setLoading] = useState<"audit" | "apply" | null>(null);
   const [report, setReport] = useState<AuditReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+
+  useEffect(() => {
+    if (!errorModalOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setErrorModalOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [errorModalOpen]);
 
   const callOnce = async (body: object): Promise<{ ok: boolean; data?: AuditReport; error?: string; rawText?: string; status?: number }> => {
     const res = await fetch("/api/admin/remnawave/audit", {
@@ -98,10 +114,15 @@ export default function PanelSyncAuditCard() {
 
   const run = async (apply: boolean) => {
     if (apply) {
-      const ok = window.confirm(
+      const ok = await confirm(
         report
-          ? `Починить ${report.broken} проблемных пользователей? Каждому запустится полный sync (repair ghost-даты + push expireAt + ACTIVE + tag). Действие не деструктивное — только приведение панели в соответствие с локальной БД.\n\nОбработка идёт батчами по 25 — займёт около ${Math.ceil(report.broken / 25 * 40 / 60)} мин.`
-          : "Запустить починку? Сначала лучше запустить проверку."
+          ? {
+              title: `Починить ${report.broken} проблемных пользователей?`,
+              text: `Каждому запустится полный sync (repair ghost-даты + push expireAt + ACTIVE + tag). Действие не деструктивное — только приведение панели в соответствие с локальной БД.\n\nОбработка идёт батчами по 25 — займёт около ${Math.ceil(report.broken / 25 * 40 / 60)} мин.`,
+              confirmLabel: "Починить",
+              tone: "primary",
+            }
+          : { title: "Запустить починку?", text: "Сначала лучше запустить проверку.", confirmLabel: "Запустить", tone: "primary" },
       );
       if (!ok) return;
     }
@@ -231,187 +252,144 @@ export default function PanelSyncAuditCard() {
 
   const brokenRows = report ? report.rows.filter((r) => r.problems.length > 0) : [];
   const errorRows = report ? report.rows.filter((r) => r.fixError) : [];
+  const share = progress && progress.total > 0 ? Math.min(1, progress.done / Math.max(1, progress.total)) : 0;
+
+  const modal = errorModalOpen ? (
+    <div className="ak-dialog adm-dialog" role="dialog" aria-modal="true" aria-labelledby="adm-log-h">
+      <div className="ak-dialog-veil" onClick={() => setErrorModalOpen(false)} />
+      <div className="ak-dialog-card adm-modal">
+        <div className="adm-modal-head">
+          <div>
+            <h2 id="adm-log-h" className="ak-h3">Полный лог аудита</h2>
+            <p className="ak-fine">Нажмите «Скопировать всё» и отправьте разработке.</p>
+          </div>
+          <button type="button" onClick={() => setErrorModalOpen(false)} className="ak-icon" aria-label="Закрыть лог">
+            <Icon name="close" size={18} />
+          </button>
+        </div>
+        <pre className="adm-log-pre" tabIndex={0}>{buildErrorLog()}</pre>
+        <div className="ak-actions">
+          <button type="button" onClick={copyLog} autoFocus className={`a-btn ${copied ? "ak-btn-soft" : "a-btn-primary"}`} data-state={copied ? "ok" : undefined}>
+            <Icon name={copied ? "check" : "copy"} size={16} />
+            {copied ? "Скопировано" : "Скопировать всё"}
+          </button>
+          <button type="button" onClick={() => setErrorModalOpen(false)} className="a-btn ak-btn-soft">
+            Закрыть
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
 
   return (
-    <div className="bg-card border border-border/50 rounded-2xl p-4 space-y-3">
-      <div>
-        <h3 className="font-semibold text-sm">Аудит панели (Remnawave 3.x)</h3>
-        <p className="text-xs text-muted mt-1 leading-relaxed">
-          Сверяет каждого локального пользователя с панелью — expireAt, status,
-          tag, subscription URL. По кнопке «Починить всех» запускает полный
-          sync (repair ghost + PATCH ACTIVE + tag) для проблемных.
-        </p>
+    <section className="ak-card adm-audit" data-sheet="24" style={{ "--i": i } as CSSProperties} aria-labelledby="adm-audit-h">
+      <div className="ak-card-head">
+        <h2 id="adm-audit-h" className="ak-eyebrow">Аудит панели · Remnawave 3.x</h2>
+        {report && (
+          <span className="ak-status" data-tone={report.broken > 0 ? "warn" : undefined}>
+            <i />
+            {report.broken > 0 ? `Проблем: ${report.broken}` : "Всё сходится"}
+          </span>
+        )}
       </div>
+      <p className="ak-text">
+        Сверяет каждого пользователя с панелью: срок (expireAt), статус, тег и ссылку подписки. «Починить всех» запускает
+        полный sync для проблемных — исправление ghost-даты, статус ACTIVE и тег.
+      </p>
 
-      {error && !errorModalOpen && (
-        <div className="p-2 rounded-lg bg-danger/10 border border-danger/20">
-          <p className="text-danger text-xs">{error}</p>
-        </div>
-      )}
+      {error && !errorModalOpen && <p className="ak-err adm-pre" role="alert">{error}</p>}
 
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={() => run(false)}
-          disabled={loading !== null}
-          className="h-10 rounded-xl bg-card-hover border border-border text-foreground font-medium text-xs btn-press disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {loading === "audit" ? "Проверяем…" : "Проверить"}
+      <div className="adm-sub-actions">
+        <button type="button" onClick={() => run(false)} disabled={loading !== null} className="a-btn ak-btn-soft">
+          {loading === "audit" ? <><Spin />Проверяем…</> : <><Icon name="shield" size={16} />Проверить</>}
         </button>
         <button
+          type="button"
           onClick={() => run(true)}
           disabled={loading !== null || !report || report.broken === 0}
           title={!report ? "Сначала запустите проверку" : report.broken === 0 ? "Проблем не найдено" : ""}
-          className="h-10 rounded-xl bg-warning/10 border border-warning/30 text-warning font-semibold text-xs btn-press disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-warning/15"
+          className="a-btn a-btn-primary"
         >
-          {loading === "apply" ? "Чиним…" : "Починить всех"}
+          {loading === "apply" ? <><Spin />Чиним…</> : <><Icon name="refresh" size={16} />Починить всех</>}
         </button>
       </div>
+      {!report && loading === null && <p className="ak-fine">«Починить всех» станет доступна после проверки.</p>}
 
       {progress && progress.total > 0 && (
-        <div>
-          <div className="flex items-center justify-between text-[10px] text-muted mb-1">
+        <div className="adm-progress-box">
+          <p className="adm-result-row">
             <span>Прогресс починки</span>
-            <span className="font-mono">
-              {progress.done} / {progress.total}
-            </span>
-          </div>
-          <div className="h-1.5 rounded-full bg-card-hover overflow-hidden">
-            <div
-              className="h-full bg-warning transition-all duration-300"
-              style={{ width: `${Math.min(100, Math.round((progress.done / Math.max(1, progress.total)) * 100))}%` }}
-            />
+            <span className="a-num">{progress.done} / {progress.total}</span>
+          </p>
+          <div
+            className="adm-progress"
+            role="progressbar"
+            aria-label="Прогресс починки"
+            aria-valuemin={0}
+            aria-valuemax={progress.total}
+            aria-valuenow={progress.done}
+            style={{ "--p": share } as CSSProperties}
+          >
+            <i />
           </div>
         </div>
       )}
 
       {report && (
-        <div className="space-y-2">
-          <div className="text-[11px] text-muted">
-            Scanned: {report.scanned} · OK: {report.ok} · Broken: {report.broken}
-            {report.fixed > 0 && ` · Fixed: ${report.fixed}`}
-            {report.fixFailed > 0 && (
-              <span className="text-danger"> · Fix failed: {report.fixFailed}</span>
-            )}
-          </div>
+        <div className="adm-report">
+          <ul className="adm-tiles">
+            <li className="adm-tile"><span>Проверено</span><b className="a-num">{report.scanned}</b></li>
+            <li className="adm-tile"><span>В порядке</span><b className="a-num">{report.ok}</b></li>
+            <li className="adm-tile" data-tone={report.broken > 0 ? "warn" : undefined}><span>С проблемами</span><b className="a-num">{report.broken}</b></li>
+            {report.fixed > 0 && <li className="adm-tile" data-tone="ok"><span>Починено</span><b className="a-num">{report.fixed}</b></li>}
+            {report.fixFailed > 0 && <li className="adm-tile" data-tone="off"><span>Не починилось</span><b className="a-num">{report.fixFailed}</b></li>}
+          </ul>
 
-          <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
+          <p className="adm-f-label adm-gap">По видам проблем</p>
+          <ul className="adm-tiles adm-tiles-sm">
             {(Object.keys(report.byProblem) as AuditProblem[]).map((k) => (
-              <div
-                key={k}
-                className="rounded-lg p-2"
-                style={{ background: `${PROBLEM_COLOR[k]}18`, border: `1px solid ${PROBLEM_COLOR[k]}30` }}
-              >
-                <div className="text-base font-bold tabular-nums" style={{ color: PROBLEM_COLOR[k] }}>
-                  {report.byProblem[k]}
-                </div>
-                <div className="text-muted mt-0.5">{PROBLEM_LABEL[k]}</div>
-              </div>
+              <li key={k} className="adm-tile" data-tone={report.byProblem[k] > 0 ? PROBLEM_TONE[k] : undefined}>
+                <span>{PROBLEM_LABEL[k]}</span>
+                <b className="a-num">{report.byProblem[k]}</b>
+              </li>
             ))}
-          </div>
+          </ul>
 
           {(brokenRows.length > 0 || errorRows.length > 0) && (
-            <button
-              onClick={() => setErrorModalOpen(true)}
-              className="w-full h-9 rounded-lg bg-card-hover border border-border text-foreground text-[11px] font-medium hover:bg-card-active transition-colors"
-            >
-              Показать лог ({brokenRows.length} проблем
-              {errorRows.length > 0 && ` · ${errorRows.length} ошибок починки`})
-            </button>
+            <div className="adm-sub-actions">
+              <button type="button" onClick={() => setErrorModalOpen(true)} className="a-btn ak-btn-soft">
+                Показать лог ({brokenRows.length} проблем
+                {errorRows.length > 0 && ` · ${errorRows.length} ошибок починки`})
+              </button>
+            </div>
           )}
 
           {brokenRows.length > 0 && (
-            <details className="pt-1">
-              <summary className="text-xs text-muted cursor-pointer hover:text-foreground">
-                Список проблемных ({brokenRows.length})
-              </summary>
-              <div className="mt-2 space-y-1 max-h-64 overflow-y-auto">
+            <details className="adm-details">
+              <summary>Список проблемных ({brokenRows.length})</summary>
+              <ul className="adm-issues">
                 {brokenRows.map((r) => (
-                  <div key={r.userId} className="text-[11px] p-2 bg-card-hover rounded">
-                    <div className="flex justify-between gap-2">
-                      <span className="truncate font-medium">{r.email}</span>
-                      <span className="shrink-0 text-muted text-[10px]">{r.publicId || "—"}</span>
+                  <li key={r.userId}>
+                    <div className="adm-result-row">
+                      <span className="adm-issue-mail">{r.email}</span>
+                      <span className="a-num adm-muted">{r.publicId || "—"}</span>
                     </div>
-                    <div className="mt-1 flex flex-wrap gap-1">
+                    <div className="adm-tagrow">
                       {r.problems.map((p) => (
-                        <span
-                          key={p}
-                          className="text-[9px] px-1.5 py-0.5 rounded"
-                          style={{ background: `${PROBLEM_COLOR[p]}18`, color: PROBLEM_COLOR[p] }}
-                        >
-                          {PROBLEM_LABEL[p]}
-                        </span>
+                        <span key={p} className="adm-tag" data-tone={PROBLEM_TONE[p]}>{PROBLEM_LABEL[p]}</span>
                       ))}
                     </div>
-                    {r.fixError && (
-                      <div className="text-[10px] text-danger mt-1 font-mono break-all">
-                        ✗ {r.fixError}
-                      </div>
-                    )}
-                    {r.fixSummary && !r.fixError && (
-                      <div className="text-[10px] text-success mt-1 font-mono break-all">
-                        ✓ {r.fixSummary}
-                      </div>
-                    )}
-                  </div>
+                    {r.fixError && <p className="adm-result-line adm-break" data-tone="off">Ошибка: {r.fixError}</p>}
+                    {r.fixSummary && !r.fixError && <p className="adm-result-line adm-break" data-tone="ok">Готово: {r.fixSummary}</p>}
+                  </li>
                 ))}
-              </div>
+              </ul>
             </details>
           )}
         </div>
       )}
 
-      {errorModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60"
-          onClick={() => setErrorModalOpen(false)}
-        >
-          <div
-            className="relative bg-card border border-border rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="p-4 border-b border-border flex items-center justify-between gap-3">
-              <div>
-                <h4 className="font-semibold text-sm">Полный лог аудита</h4>
-                <p className="text-[11px] text-muted mt-0.5">
-                  Нажмите «Скопировать всё» — вставьте в чат разработке.
-                </p>
-              </div>
-              <button
-                onClick={() => setErrorModalOpen(false)}
-                className="w-8 h-8 rounded-lg bg-card-hover text-muted hover:text-foreground flex items-center justify-center shrink-0"
-                aria-label="Закрыть"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <pre className="flex-1 overflow-auto p-4 text-[11px] font-mono bg-background whitespace-pre-wrap break-all leading-relaxed">
-              {buildErrorLog()}
-            </pre>
-
-            <div className="p-4 border-t border-border flex gap-2">
-              <button
-                onClick={copyLog}
-                className={`flex-1 h-11 rounded-xl font-semibold text-sm transition-colors ${
-                  copied
-                    ? "bg-success/15 border border-success/30 text-success"
-                    : "bg-foreground text-background hover:bg-foreground/90"
-                }`}
-              >
-                {copied ? "✓ Скопировано" : "Скопировать всё"}
-              </button>
-              <button
-                onClick={() => setErrorModalOpen(false)}
-                className="h-11 px-5 rounded-xl border border-border text-foreground text-sm hover:bg-card-hover"
-              >
-                Закрыть
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      {modal && (layer ? createPortal(modal, layer) : modal)}
+    </section>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
+import { useAdminConfirm, Spin } from "@/app/admin/AdminConfirm";
 
 /**
  * Admin kill switch for bot → site synchronization.
@@ -13,8 +14,13 @@ import { useEffect, useState } from "react";
  *
  * Use this when sync is causing damage (e.g. wrong dates being pushed)
  * and you need a stable baseline before investigating.
+ *
+ * Оформление — корпус «Атлас-издание» (admin-atlas.css): вся строка —
+ * переключатель role="switch", оба направления спрашивают подтверждение,
+ * как и раньше.
  */
-export default function BotSyncToggleCard() {
+export default function BotSyncToggleCard({ i = 0 }: { i?: number }) {
+  const confirm = useAdminConfirm();
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,10 +43,16 @@ export default function BotSyncToggleCard() {
   const toggle = async () => {
     if (enabled === null) return;
     const next = !enabled;
-    const action = next
-      ? "Включить синхронизацию с ботом?"
-      : "ВЫКЛЮЧИТЬ синхронизацию с ботом? Бот не сможет создавать/продлевать/привязывать пока ты не включишь обратно.";
-    if (!confirm(action)) return;
+    const ok = await confirm(
+      next
+        ? { title: "Включить синхронизацию с ботом?", confirmLabel: "Включить", tone: "primary" }
+        : {
+            title: "Выключить синхронизацию с ботом?",
+            text: "Бот не сможет создавать, продлевать и привязывать подписки, пока вы не включите её обратно.",
+            confirmLabel: "Выключить",
+          },
+    );
+    if (!ok) return;
 
     setBusy(true);
     setError(null);
@@ -61,58 +73,49 @@ export default function BotSyncToggleCard() {
   };
 
   return (
-    <div className="bg-card border border-border/50 rounded-2xl p-4">
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <div>
-          <h3 className="font-semibold text-sm">Синхронизация с ботом</h3>
-          <p className="text-xs text-muted leading-relaxed mt-1">
-            Когда выключено — бот не может создавать, продлевать или менять подписки на сайте.
-            Read-only запросы (статус, поиск юзера) продолжают работать. Глобально, общий рубильник.
-          </p>
-        </div>
+    <section className="ak-card adm-bot" data-sheet="24" style={{ "--i": i } as CSSProperties} aria-labelledby="adm-bot-h">
+      <div className="ak-card-head">
+        <h2 id="adm-bot-h" className="ak-eyebrow">Синхронизация с ботом</h2>
         {enabled !== null && (
-          <span
-            className={`shrink-0 px-2 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wide ${
-              enabled
-                ? "bg-success/15 text-success border border-success/30"
-                : "bg-danger/15 text-danger border border-danger/30"
-            }`}
-          >
-            {enabled ? "ON" : "OFF"}
+          <span className="ak-status" data-tone={enabled ? undefined : "off"}>
+            <i />
+            {enabled ? "Включена" : "Выключена"}
           </span>
         )}
       </div>
 
       <button
+        type="button"
+        role="switch"
+        aria-checked={enabled === true}
+        aria-describedby="adm-bot-t"
         onClick={toggle}
         disabled={busy || enabled === null}
-        className={`w-full h-11 rounded-xl font-semibold text-sm btn-press disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-          enabled
-            ? "bg-danger/10 border border-danger/30 text-danger hover:bg-danger/15"
-            : "bg-success/10 border border-success/30 text-success hover:bg-success/15"
-        }`}
+        className="adm-toggle"
       >
-        {busy ? (
-          <>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="animate-spin">
-              <path d="M21 12a9 9 0 11-6.219-8.56" strokeLinecap="round" />
-            </svg>
-            Применяем…
-          </>
-        ) : enabled === null ? (
-          <>Загрузка…</>
-        ) : enabled ? (
-          <>⏸ Выключить синхронизацию с ботом</>
-        ) : (
-          <>▶ Включить синхронизацию с ботом</>
-        )}
+        <span className="adm-toggle-copy">
+          <span className="ak-h3">Бот может менять подписки</span>
+          <span className="adm-toggle-state" aria-live="polite">
+            {busy ? (
+              <><Spin />Применяем…</>
+            ) : enabled === null ? (
+              "Загружаем состояние…"
+            ) : enabled ? (
+              "Сейчас включено"
+            ) : (
+              "Сейчас выключено"
+            )}
+          </span>
+        </span>
+        <span className="ak-switch" aria-hidden />
       </button>
 
-      {error && (
-        <div className="mt-3 p-2 rounded-lg bg-danger/10 border border-danger/20">
-          <p className="text-danger text-xs">{error}</p>
-        </div>
-      )}
-    </div>
+      <p id="adm-bot-t" className="ak-fine">
+        Когда выключено — бот не может создавать, продлевать или менять подписки на сайте. Запросы только на чтение
+        (статус, поиск пользователя) продолжают работать. Рубильник общий для всех.
+      </p>
+
+      {error && <p className="ak-err" role="alert">{error}</p>}
+    </section>
   );
 }

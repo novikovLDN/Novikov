@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
+import Icon from "@/components/pixel/Icon";
+import { useAdminConfirm, Spin } from "@/app/admin/AdminConfirm";
 
 interface PerUserReport {
   userId: string;
@@ -38,28 +40,40 @@ const ACTION_LABEL: Record<PerUserReport["action"], string> = {
   corrected_from_payment: "по оплате",
 };
 
-const ACTION_COLOR: Record<PerUserReport["action"], string> = {
-  expired_no_payment: "text-danger",
-  expired_payment_too_old: "text-warning",
-  corrected_from_payment: "text-success",
+const ACTION_TONE: Record<PerUserReport["action"], "off" | "warn" | undefined> = {
+  expired_no_payment: "off",
+  expired_payment_too_old: "warn",
+  corrected_from_payment: undefined,
 };
 
 /**
  * Cleans up users with subscription_end > NOW + 400 days. Honest
  * re-grant: latest confirmed payment → use that period, else expire.
  * Always preview first via dry-run.
+ *
+ * «Применить» — только после превью и после подтверждения (тот же
+ * текст, что был в window.confirm), кнопка опасного действия.
  */
-export default function GhostDateCleanupCard() {
+export default function GhostDateCleanupCard({ i = 0 }: { i?: number }) {
+  const confirm = useAdminConfirm();
   const [loading, setLoading] = useState<"dry" | "apply" | null>(null);
   const [result, setResult] = useState<CleanupResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const run = async (dryRun: boolean) => {
     if (!dryRun) {
-      const ok = confirm(
+      const ok = await confirm(
         result
-          ? `Применить ${result.scanned} изменений?\n\n• ${result.expired_no_payment} истекут (не платили)\n• ${result.expired_payment_too_old} истекут (платили давно)\n• ${result.corrected_from_payment} получат корректную дату по оплате`
-          : "Применить cleanup? Это запишет новые subscription_end в БД и проставит expireAt в панели."
+          ? {
+              title: `Применить ${result.scanned} изменений?`,
+              text: `• ${result.expired_no_payment} истекут (не платили)\n• ${result.expired_payment_too_old} истекут (платили давно)\n• ${result.corrected_from_payment} получат корректную дату по оплате`,
+              confirmLabel: "Применить",
+            }
+          : {
+              title: "Применить очистку?",
+              text: "Это запишет новые subscription_end в БД и проставит expireAt в панели.",
+              confirmLabel: "Применить",
+            },
       );
       if (!ok) return;
     }
@@ -84,115 +98,100 @@ export default function GhostDateCleanupCard() {
   };
 
   return (
-    <div className="bg-card border border-border/50 rounded-2xl p-4 space-y-3">
-      <div>
-        <h3 className="font-semibold text-sm">Очистка ghost-дат (10-летние)</h3>
-        <p className="text-xs text-muted mt-1 leading-relaxed">
-          Находит юзеров с subscription_end &gt; NOW+400 дней. По каждому смотрит последнюю подтверждённую оплату:
-          если есть — выставляет paid_at + период тарифа; если нет — истекаем (NOW-1с локально, NOW+1д в панели).
-        </p>
+    <section className="ak-card adm-ghost" data-sheet="24" style={{ "--i": i } as CSSProperties} aria-labelledby="adm-ghost-h">
+      <div className="ak-card-head">
+        <h2 id="adm-ghost-h" className="ak-eyebrow">Очистка ghost-дат</h2>
+        {result && (
+          <span className="ak-status" data-tone={result.dryRun ? "warn" : undefined}>
+            <i />
+            {result.dryRun ? "Превью" : "Применено"}
+          </span>
+        )}
       </div>
+      <p className="ak-text">
+        Находит пользователей со сроком больше чем через 400 дней (десятилетние даты). По каждому смотрит последнюю
+        подтверждённую оплату: если она есть — ставит дату оплаты плюс период тарифа; если нет — подписка истекает.
+      </p>
 
-      {error && (
-        <div className="p-2 rounded-lg bg-danger/10 border border-danger/20">
-          <p className="text-danger text-xs">{error}</p>
-        </div>
-      )}
+      {error && <p className="ak-err" role="alert">{error}</p>}
 
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={() => run(true)}
-          disabled={loading !== null}
-          className="h-10 rounded-xl bg-card-hover border border-border text-foreground font-medium text-xs btn-press disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {loading === "dry" ? "Считаем…" : "🔍 Превью (dry-run)"}
+      <div className="adm-sub-actions">
+        <button type="button" onClick={() => run(true)} disabled={loading !== null} className="a-btn ak-btn-soft">
+          {loading === "dry" ? <><Spin />Считаем…</> : <><Icon name="clock" size={16} />Превью без записи</>}
         </button>
         <button
+          type="button"
           onClick={() => run(false)}
           disabled={loading !== null || !result?.dryRun}
-          title={!result?.dryRun ? "Сначала запусти превью" : ""}
-          className="h-10 rounded-xl bg-warning/10 border border-warning/30 text-warning font-semibold text-xs btn-press disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 hover:bg-warning/15"
+          title={!result?.dryRun ? "Сначала запустите превью" : ""}
+          className="a-btn ak-btn-danger"
         >
-          {loading === "apply" ? "Применяем…" : "⚠ Применить"}
+          {loading === "apply" ? <><Spin />Применяем…</> : "Применить"}
         </button>
       </div>
+      {!result?.dryRun && loading === null && <p className="ak-fine">«Применить» доступно только после превью.</p>}
 
       {result && (
-        <div className="space-y-2">
-          <div className="text-[11px] text-muted">
-            {result.dryRun ? "Превью (изменений в БД нет)" : "Применено"} · сканировано {result.scanned}
-          </div>
-
-          <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
-            <div className="bg-success/10 rounded-lg p-2">
-              <div className="text-base font-bold tabular-nums text-success">{result.corrected_from_payment}</div>
-              <div className="text-muted">по оплате</div>
-            </div>
-            <div className="bg-warning/10 rounded-lg p-2">
-              <div className="text-base font-bold tabular-nums text-warning">{result.expired_payment_too_old}</div>
-              <div className="text-muted">истекли (старая)</div>
-            </div>
-            <div className="bg-danger/10 rounded-lg p-2">
-              <div className="text-base font-bold tabular-nums text-danger">{result.expired_no_payment}</div>
-              <div className="text-muted">не платил</div>
-            </div>
-          </div>
+        <div className="adm-report">
+          <p className="adm-f-label">
+            {result.dryRun ? "Превью — в базе ничего не изменено" : "Применено"} · проверено <span className="a-num">{result.scanned}</span>
+          </p>
+          <ul className="adm-tiles">
+            <li className="adm-tile" data-tone="ok"><span>По оплате</span><b className="a-num">{result.corrected_from_payment}</b></li>
+            <li className="adm-tile" data-tone={result.expired_payment_too_old > 0 ? "warn" : undefined}><span>Истекут: оплата давно</span><b className="a-num">{result.expired_payment_too_old}</b></li>
+            <li className="adm-tile" data-tone={result.expired_no_payment > 0 ? "off" : undefined}><span>Истекут: не платили</span><b className="a-num">{result.expired_no_payment}</b></li>
+          </ul>
 
           {!result.dryRun && (
-            <div className="grid grid-cols-2 gap-2 text-center text-[10px]">
-              <div className="bg-card-hover rounded-lg p-2">
-                <div className="text-sm font-bold tabular-nums">{result.db_written}</div>
-                <div className="text-muted">БД обновлено</div>
-              </div>
-              <div className="bg-card-hover rounded-lg p-2">
-                <div className="text-sm font-bold tabular-nums">
+            <ul className="adm-tiles adm-tiles-sm">
+              <li className="adm-tile"><span>Записано в БД</span><b className="a-num">{result.db_written}</b></li>
+              <li className="adm-tile" data-tone={result.panel_failed > 0 ? "off" : undefined}>
+                <span>Отправлено в панель</span>
+                <b className="a-num">
                   {result.panel_pushed}
-                  {result.panel_failed > 0 && <span className="text-danger"> · {result.panel_failed} fail</span>}
-                </div>
-                <div className="text-muted">в панель</div>
-              </div>
-            </div>
+                  {result.panel_failed > 0 && <small> · {result.panel_failed} с ошибкой</small>}
+                </b>
+              </li>
+            </ul>
           )}
 
           {result.users.length > 0 && (
-            <details>
-              <summary className="text-xs text-muted cursor-pointer hover:text-foreground">
-                Детали по юзерам ({result.users.length})
-              </summary>
-              <div className="mt-2 space-y-1 max-h-72 overflow-y-auto">
+            <details className="adm-details">
+              <summary>Подробно по пользователям ({result.users.length})</summary>
+              <ul className="adm-issues">
                 {result.users.map((u) => (
-                  <div key={u.userId} className="text-[11px] p-2 bg-card-hover rounded">
-                    <div className="flex justify-between gap-2">
-                      <span className="truncate font-medium">{u.email}</span>
-                      <span className={`shrink-0 ${ACTION_COLOR[u.action]}`}>{ACTION_LABEL[u.action]}</span>
+                  <li key={u.userId}>
+                    <div className="adm-result-row">
+                      <span className="adm-issue-mail">{u.email}</span>
+                      <span className="adm-tag" data-tone={ACTION_TONE[u.action]}>{ACTION_LABEL[u.action]}</span>
                     </div>
-                    <div className="text-[10px] text-muted mt-0.5">
+                    <p className="adm-result-line a-num">
                       {u.publicId || "—"}
                       {u.telegramId ? ` · TG:${u.telegramId}` : ""}
                       {u.confirmedPayments > 0 && ` · оплат: ${u.confirmedPayments}`}
-                    </div>
-                    <div className="text-[10px] text-muted mt-0.5 font-mono">
+                    </p>
+                    <p className="adm-result-line a-num">
                       было: {u.oldSubscriptionEnd.slice(0, 16)} → стало: {u.newSubscriptionEnd.slice(0, 16)}
-                    </div>
+                    </p>
                     {u.latestPaidAt && (
-                      <div className="text-[10px] text-muted mt-0.5 font-mono">
-                        посл. платёж: {u.latestPaidAt.slice(0, 16)} · {u.latestPlan} ({u.latestPeriodMonths} мес)
-                      </div>
+                      <p className="adm-result-line a-num">
+                        последний платёж: {u.latestPaidAt.slice(0, 16)} · {u.latestPlan} ({u.latestPeriodMonths} мес)
+                      </p>
                     )}
                     {!result.dryRun && (
-                      <div className="text-[10px] mt-0.5">
-                        {u.dbWritten && <span className="text-success">БД ✓ </span>}
-                        {u.panelPushOk === true && <span className="text-success">панель ✓</span>}
-                        {u.panelPushOk === false && <span className="text-danger">панель ✗ {u.panelPushError || ""}</span>}
-                      </div>
+                      <p className="adm-result-line">
+                        {u.dbWritten && <span data-tone="ok">БД записана </span>}
+                        {u.panelPushOk === true && <span data-tone="ok">· панель обновлена</span>}
+                        {u.panelPushOk === false && <span data-tone="off">· панель: ошибка {u.panelPushError || ""}</span>}
+                      </p>
                     )}
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </details>
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 }
