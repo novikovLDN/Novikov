@@ -60,10 +60,18 @@ export function releaseOverlay(id: OverlayId): void {
   window.setTimeout(next.run, GAP_MS);
 }
 
-/** Согласие уже дано (в этой или прошлой сессии). */
+/**
+ * Выбор по cookie уже сделан В ЭТОМ ВИЗИТЕ.
+ *
+ * Владелец, 11.09.2026: «каждый раз, когда пользователь заходит на
+ * сайт, он должен соглашаться». Поэтому выбор хранится в
+ * sessionStorage — до закрытия браузера (вкладки), а не навсегда:
+ * новый заход — новый вопрос. По страницам внутри визита карточка
+ * не повторяется.
+ */
 export function hasCookieConsent(): boolean {
   try {
-    return localStorage.getItem(CONSENT_KEY) !== null;
+    return sessionStorage.getItem(CONSENT_KEY) !== null;
   } catch {
     // Хранилище недоступно: считаем согласие данным, иначе остальные
     // карточки не покажутся никогда.

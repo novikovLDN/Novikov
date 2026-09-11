@@ -84,6 +84,17 @@ export const metadata: Metadata = {
   },
 };
 
+/* Корпус «Атлас-издание»: класс `.a-js` (или `data-static` при
+   ?static=1) ставится во время разбора HTML, до первой отрисовки —
+   иначе содержимое, скрытое до входа в кадр, мигало бы. Живёт здесь, а
+   не в AtlasShell: layout не перерисовывается при переходах, и React не
+   видит <script> в клиентском рендере. На страницах без `.a` класс
+   ничего не меняет. */
+const ATLAS_BOOT =
+  "(function(){var d=document.documentElement;" +
+  "if(/[?&]static\\b/.test(location.search)){d.setAttribute('data-static','')}" +
+  "else{d.classList.add('a-js')}})();";
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -120,6 +131,7 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${brand.variable} ${displayFace.variable}`} suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
+        <script dangerouslySetInnerHTML={{ __html: ATLAS_BOOT }} />
         {/* Структурированные данные всего сайта: организация, её
             принадлежность группе и сам сайт. Один источник на проект —
             иначе поиск получает несколько расходящихся карточек одной

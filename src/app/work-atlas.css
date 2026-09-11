@@ -495,8 +495,11 @@ html:has(.ak) { scroll-behavior: smooth; }
 .ak-tabbar { display: none; }
 
 @media (max-width: 719px) {
-  .ak { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
-  .ak-bar { display: none; }
+  /* Правила кабинета — только там, где есть вкладки (.ak-tabbar):
+     на мастерах (оплата, новое устройство) пилюли шагов и «Назад»
+     нужны и на телефоне. */
+  .ak:has(.ak-tabbar) { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
+  .ak:has(.ak-tabbar) .ak-bar { display: none; }
   .ak-board { padding: 6px; border-radius: 26px; }
   .ak-board .ak-card { border-radius: 20px; scroll-margin-top: calc(var(--a-head-h) + 12px); }
   .ak-corner { top: -4px; right: -4px; box-shadow: 0 0 0 4px var(--a-g100); }
@@ -506,13 +509,13 @@ html:has(.ak) { scroll-behavior: smooth; }
   .ak-friends { order: 5; } .ak-tg { order: 6; } .ak-set { order: 7; } .ak-net { order: 8; }
 
   /* Шапка кабинета в одну строку: действия — значками. */
-  .ak-top { flex-wrap: nowrap; align-items: center; margin-bottom: 1rem; }
-  .ak-top > div:first-child { min-width: 0; }
+  .ak:has(.ak-tabbar) .ak-top { flex-wrap: nowrap; align-items: center; margin-bottom: 1rem; }
+  .ak:has(.ak-tabbar) .ak-top > div:first-child { min-width: 0; }
   .ak-h1 { font-size: 1.75rem; }
-  .ak-kicker { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ak-tools { flex-wrap: nowrap; }
-  .ak-tools .ak-lbl { display: none; }
-  .ak-tools .a-btn { width: 44px; padding: 0; }
+  .ak:has(.ak-tabbar) .ak-kicker { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ak:has(.ak-tabbar) .ak-tools { flex-wrap: nowrap; }
+  .ak:has(.ak-tabbar) .ak-tools .ak-lbl { display: none; }
+  .ak:has(.ak-tabbar) .ak-tools .a-btn { width: 44px; padding: 0; }
 
   /* Вкладки внизу — тёмная пилюля, как на референсе. */
   .ak-tabbar {
@@ -549,6 +552,13 @@ html:has(.ak) { scroll-behavior: smooth; }
   /* Нижние карточки встают над вкладками; «наверх» не нужен — есть вкладки. */
   body:has(.ak-tabbar) .ov-card { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 76px); }
   body:has(.ak-tabbar) .b-top { display: none; }
+}
+
+/* Оплата: на телефоне и планшете внизу липкая панель с итогом
+   (.asb-dock) — нижние карточки встают над ней, «наверх» не нужен. */
+@media (max-width: 1023px) {
+  body:has(.asb-dock) .ov-card { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 96px); }
+  body:has(.asb-dock) .b-top { display: none; }
 }
 
 @media (max-width: 519px) {

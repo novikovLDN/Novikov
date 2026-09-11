@@ -21,6 +21,13 @@ import {
  *
  * Правовой текст сохранён дословно — он согласован и не является
  * предметом редизайна.
+ *
+ * 11.09.2026 (владелец: «каждый раз, когда пользователь заходит на сайт,
+ * он должен соглашаться; маленькое корректное уведомление»): выбор
+ * хранится в sessionStorage — до закрытия браузера, поэтому новый заход
+ * снова спрашивает. Карточка короче, рядом с «Принять» — «Отклонить»:
+ * сайт работает и так (cookie строго необходимые), отказ тоже закрывает
+ * карточку до конца визита и отпускает очередь.
  */
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
@@ -57,17 +64,20 @@ export default function CookieConsent() {
     };
   }, [details]);
 
-  const accept = () => {
+  // Выбор — до конца визита (sessionStorage), см. hasCookieConsent.
+  const settle = (value: "1" | "0") => {
     try {
-      localStorage.setItem(CONSENT_KEY, "1");
+      sessionStorage.setItem(CONSENT_KEY, value);
     } catch {
-      // Хранилище недоступно: согласие действует до конца визита.
+      // Хранилище недоступно: выбор действует до перезагрузки страницы.
     }
     setDetails(false);
     setVisible(false);
     releaseOverlay("cookie");
     announceConsentSettled();
   };
+  const accept = () => settle("1");
+  const decline = () => settle("0");
 
   if (!visible) return null;
 
@@ -75,13 +85,15 @@ export default function CookieConsent() {
     <>
       <div className="ov-card" role="region" aria-label="Использование cookie" hidden={details}>
         <p className="ov-text">
-          Мы используем минимально необходимые файлы cookie для обеспечения работы сервиса:
-          авторизации и безопасности вашей учётной записи. Мы не используем рекламные или
-          аналитические cookie.
+          Мы используем только необходимые cookie — для входа и защиты аккаунта. Рекламных и
+          аналитических нет.
         </p>
         <div className="ov-actions">
           <button type="button" onClick={accept} className="ov-btn ov-btn-primary">
             Принять
+          </button>
+          <button type="button" onClick={decline} className="ov-btn ov-btn-text">
+            Отклонить
           </button>
           <button ref={moreRef} type="button" onClick={() => setDetails(true)} className="ov-btn ov-btn-text">
             Подробнее
@@ -189,7 +201,7 @@ const COOKIE_TYPES = [
   {
     name: "Согласие на cookie",
     tag: "Локальное",
-    text: "Сохраняется в localStorage вашего браузера для запоминания вашего выбора. Не передаётся на сервер.",
+    text: "Сохраняется в sessionStorage вашего браузера до его закрытия — при следующем визите мы спросим снова. Не передаётся на сервер.",
   },
 ];
 
