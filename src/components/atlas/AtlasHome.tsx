@@ -3,6 +3,7 @@ import AtlasShell from "./AtlasShell";
 import AtlasDefs from "./AtlasDefs";
 import IsoFragment from "./IsoFragment";
 import HeroField from "./HeroField";
+import HeroRelief from "./HeroRelief";
 import PointerDrift from "./PointerDrift";
 import Chart from "./Chart";
 import {
@@ -116,6 +117,7 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
         {/* ── 01 · Обещание ─────────────────────────────────────── */}
         <section className="a-sheet a-cover" data-sheet="01" data-title="Главная" aria-labelledby="a-cover-title">
           <HeroField />
+          <HeroRelief />
           <div className="a-field">
             <h1 id="a-cover-title" className="a-display" aria-label={`${HERO_1} ${HERO_2}`}>
               <span className="a-fit a-fit-1" aria-hidden><Chars text={HERO_1} /></span>

@@ -956,6 +956,25 @@ body:has(.a) {
 .a-hf-dot { fill: var(--a-ink-3); transform-box: fill-box; transform-origin: center; transform: scale(0.42); }
 .a-hf-dot-near { fill: var(--a-cobalt); transform: scale(0.7); }
 
+/* 01 — 3D-рельеф отклика (HeroRelief) поверх плоского поля. Появляется
+   плавно, когда первый кадр сцены готов; плоское поле под ним гаснет.
+   Нет WebGL или слабое устройство — атрибута data-ready нет, и на
+   экране остаётся плоское поле. Край растворён той же маской. */
+.a-relief {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  /* Рельеф живёт в полосе между заголовком и нижним рядом текста:
+     сверху и снизу растворяется, чтобы подступенки не шли под буквы. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, transparent 30%, #000 44%, #000 66%, transparent 84%);
+  mask-image: linear-gradient(to bottom, transparent 0%, transparent 30%, #000 44%, #000 66%, transparent 84%);
+}
+.a-relief canvas { display: block; width: 100%; height: 100%; }
+.a-relief[data-ready] { opacity: 1; }
+.a-cover:has(.a-relief[data-ready]) .a-hf { opacity: 0; }
+
 /* 02 — закреплённая сцена: секция в 2,4 окна, кадр держит sticky,
    прогресс считает шкала секции. Прокрутку никто не перехватывает. */
 .a-why { height: 240svh; padding-block: 0; view-timeline-name: --a-why; }
@@ -1160,6 +1179,9 @@ body:has(.a) {
   animation-delay: calc(80ms + var(--i) * 26ms);
 }
 @keyframes a-char { from { opacity: 0; transform: translateY(0.42em); } }
+
+/* 01 — 3D-рельеф проявляется, плоское поле под ним гаснет. */
+.a-relief, .a-hf { transition: opacity 1.2s var(--m-settle); }
 
 /* 01 — поле за рукой: PointerDrift пишет --px/--py, сглаживает
    переход. Цикла rAF нет. */
