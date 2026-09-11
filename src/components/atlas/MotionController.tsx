@@ -19,6 +19,11 @@ import { useEffect } from "react";
 export default function MotionController() {
   useEffect(() => {
     const root = document.documentElement;
+    // SMIL (пакет на карте) не слушается CSS: останавливаем явно.
+    const still = root.hasAttribute("data-static") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (still) {
+      document.querySelectorAll<SVGSVGElement>(".a svg").forEach((s) => s.pauseAnimations?.());
+    }
     if (root.hasAttribute("data-static")) return;
     root.classList.add("a-js");
 

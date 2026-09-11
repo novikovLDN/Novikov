@@ -32,6 +32,9 @@ export default function Chart() {
   const labelY = project(CLOSEST.lat + rttToKm(outerMs) / 111.2, CLOSEST.lon).y;
   const levels = Array.from({ length: BAND_COUNT }, (_, i) => BAND_COUNT - i);
   const box = `0 0 ${MAP_W} ${MAP_H}`;
+  const route = `M${reader.x} ${reader.y}L${near.x} ${near.y}`;
+  // Города проявляются волной от ближайшего: порядок — по отклику.
+  const order = new Map([...LOCATIONS].sort((a, b) => a.latencyMs - b.latencyMs).map((l, i) => [l.code, i]));
 
   return (
     <figure className="a-chart-fig">
@@ -58,7 +61,13 @@ export default function Chart() {
         <LandLight />
 
         <svg className="a-over" viewBox={box} aria-hidden focusable="false">
-          <path className="a-over-route" d={`M${reader.x} ${reader.y}L${near.x} ${near.y}`} vectorEffect="non-scaling-stroke" />
+          <path className="a-over-route" d={route} vectorEffect="non-scaling-stroke" />
+          {/* Пакет бежит по маршруту до ближайшего сервера. SMIL — без
+              скрипта; при reduced-motion и ?static=1 его останавливает
+              MotionController (pauseAnimations). */}
+          <circle className="a-packet" r="1.6">
+            <animateMotion dur="2.4s" repeatCount="indefinite" path={route} />
+          </circle>
           <text className="a-over-label" x={near.x} y={labelY - 1.5} textAnchor="middle">
             {outerMs} мс
           </text>
@@ -73,7 +82,7 @@ export default function Chart() {
               key={l.code}
               className="a-city"
               data-closest={closest ? "" : undefined}
-              style={{ left: pct(p.x, MAP_W), top: pct(p.y, MAP_H) }}
+              style={{ left: pct(p.x, MAP_W), top: pct(p.y, MAP_H), ["--i" as string]: order.get(l.code) ?? 0 }}
             >
               <summary
                 className={closest ? "a-idle" : undefined}

@@ -401,11 +401,13 @@ body:has(.a) {
 /* k замерены в Chromium 10.09.2026 на MTS Wide: «всё открывается»
    Bold 700 — 10,01; «и не тормозит» Medium 500, трекинг −0,035em — 7,50.
    Меняя текст заголовка — перемерить (scratchpad shots.cjs). */
-.a-fit-1 { --k: 10.01; }
+/* Перемерено 11.09.2026 после разбивки на буквы (inline-block теряет
+   кернинг между знаками): 10,08 и 7,543. */
+.a-fit-1 { --k: 10.08; }
 /* Вторая строка — то же семейство, Medium и кобальт: один материал в
    двух состояниях вместо пары гротеск/антиква. */
 .a-fit-2 {
-  --k: 7.5;
+  --k: 7.543;
   font-weight: 500;
   letter-spacing: -0.035em;
   color: var(--a-cobalt);
@@ -572,7 +574,9 @@ body:has(.a) {
 .a-why .a-p { max-width: 44ch; }
 
 /* ─── Плиты (разделы 02 и 06) ─────────────────────────────────────── */
-.a-plate { background: var(--a-cobalt); color: #FFFFFF; overflow: hidden; }
+/* clip, а не hidden: hidden делает плиту контейнером прокрутки, и
+   закреплённая сцена раздела 02 перестаёт держаться. */
+.a-plate { background: var(--a-cobalt); color: #FFFFFF; overflow: clip; }
 .a-plate .a-no { color: var(--a-shoal-lume); }
 .a-plate .a-p { color: #FFFFFF; }
 .a-isobaths {
@@ -928,6 +932,70 @@ body:has(.a) {
   opacity: 0;
 }
 
+/* ─── Погружение: раскладка слоёв редакции 4 (движение — раздел 6.6) ─ */
+.a-char, .a-word { display: inline-block; }
+
+/* 01 — поле изохрон за заголовком. Край растворён маской: линии не
+   спорят ни с заголовком, ни с текстом внизу. */
+.a-cover > .a-field { position: relative; z-index: 1; }
+.a-hf {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 34%, #000 74%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 34%, #000 74%, transparent 100%);
+}
+.a-hf-move { position: absolute; inset: -4%; }
+.a-hf-svg { display: block; width: 100%; height: 100%; }
+/* Поле крупным планом увеличивает всё вчетверо: штрих суши светлее,
+   точки серверов уменьшены — иначе квадраты по 11 px читаются как
+   мусор на афише, а штриховка спорит с заголовком. */
+.a-hf-land { fill: none; stroke: var(--a-g200); stroke-width: 1; opacity: 0.8; }
+.a-hf-dot { fill: var(--a-ink-3); transform-box: fill-box; transform-origin: center; transform: scale(0.42); }
+.a-hf-dot-near { fill: var(--a-cobalt); transform: scale(0.7); }
+
+/* 02 — закреплённая сцена: секция в 2,4 окна, кадр держит sticky,
+   прогресс считает шкала секции. Прокрутку никто не перехватывает. */
+.a-why { height: 240svh; padding-block: 0; view-timeline-name: --a-why; }
+.a-why-stick {
+  position: sticky;
+  top: var(--a-head-h);
+  min-height: calc(100svh - var(--a-head-h));
+  display: flex;
+  align-items: center;
+  overflow: clip;
+  padding-block: clamp(2rem, 6vh, 4rem);
+}
+.a-why-stick .a-field { width: 100%; }
+@supports not (animation-timeline: view()) {
+  .a-why { height: auto; }
+  .a-why-stick { position: static; }
+}
+
+/* 03 — карта приближается внутри рамки, не выходя за неё. */
+.a-chart-fig { overflow: clip; }
+.a-packet { fill: var(--a-cobalt); }
+
+/* 05 — диагональ через цифры шагов (только там, где шаги лесенкой). */
+.a-steps-wrap { position: relative; }
+.a-steps-line { position: absolute; top: 0; left: 0; width: 100%; height: 320px; pointer-events: none; display: none; }
+@media (min-width: 900px) { .a-steps-line { display: block; } }
+.a-steps-line path { fill: none; stroke: var(--a-cobalt); stroke-opacity: 0.3; stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.a-step { z-index: 1; }
+
+/* 06 — кольцо у главной кнопки финала. */
+.a-btn-invert { position: relative; }
+.a-btn-invert::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid #FFFFFF;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ═══ 5. Лист ∅ ════════════════════════════════════════════════════ */
 .a-void-in { display: grid; gap: 2rem; align-items: center; min-height: 60svh; }
 @media (min-width: 900px) { .a-void-in { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
@@ -1005,7 +1073,7 @@ body:has(.a) {
    Живое по решению владельца, но у каждого блока — слой со смыслом:
    прилив мелей, поток по знаку со скоростью тарифа, вода под плитой,
    живое показание. Вне кадра слой стоит на паузе. */
-.a-band, .a-frag-level, .a-void-ring {
+.a-band, .a-frag-level, .a-hf-level, .a-void-ring {
   animation: a-tide 8s var(--m-tide) infinite alternate;
   animation-delay: calc(var(--l, 1) * -1.6s);
 }
@@ -1081,14 +1149,138 @@ body:has(.a) {
   .a-lead:hover .a-frag-bands { transform: scale(1.14); }
 }
 
+/* ─── 6.6 Погружение (редакция 4, 11.09.2026) ───────────────────────
+   «Больше анимированного погружения» (владелец). Каждый блок — своя
+   сцена. Разовые события — под .a-js, шкалы — под @supports, холостое
+   — .a-idle (на паузе вне кадра). Только transform, opacity,
+   clip-path шторки и stroke-dashoffset одной линии. */
+
+/* 01 — буквы заголовка поднимаются при загрузке. */
+.a-js .a-char {
+  animation: a-char 760ms var(--m-settle) both;
+  animation-delay: calc(80ms + var(--i) * 26ms);
+}
+@keyframes a-char { from { opacity: 0; transform: translateY(0.42em); } }
+
+/* 01 — поле за рукой: PointerDrift пишет --px/--py, сглаживает
+   переход. Цикла rAF нет. */
+.a-hf-move {
+  transform: translate3d(calc(var(--px, 0) * -22px), calc(var(--py, 0) * -14px), 0);
+  transition: transform 1.4s var(--m-settle);
+}
+
+/* 04 — строки тарифов въезжают с разных сторон. */
+.a-js .a-sheet .a-slide {
+  opacity: 0;
+  transform: translateX(calc(var(--dir, -1) * 56px));
+  transition: opacity var(--d-2) var(--m-settle), transform var(--d-3) var(--m-settle);
+  transition-delay: calc(var(--i, 0) * 140ms);
+}
+.a-js .a-sheet[data-seen] .a-slide { opacity: 1; transform: none; }
+
+/* 03 — города проявляются волной от ближайшего. */
+.a-js .a-map .a-city summary span {
+  transform: scale(0);
+  transition: transform var(--d-2) var(--m-settle) calc(400ms + var(--i, 0) * 50ms);
+}
+.a-js .a-map[data-seen] .a-city summary span { transform: none; }
+
+/* 06 — кольцо расходится от главной кнопки. */
+.a-btn-invert::after { animation: a-ring-btn 2.8s var(--m-settle) infinite; }
+@keyframes a-ring-btn {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.14, 1.5); opacity: 0; }
+}
+
+@supports (animation-timeline: view()) {
+  /* Плиты раскрываются шторкой на входе. */
+  .a-plate {
+    animation: a-curtain linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+
+  /* 01 — уход первого экрана: строки разъезжаются, поле ныряет. */
+  .a-cover .a-fit-1 { animation: a-exit-l linear both; animation-timeline: view(); animation-range: exit 0% exit 100%; }
+  .a-cover .a-fit-2 { animation: a-exit-r linear both; animation-timeline: view(); animation-range: exit 0% exit 100%; }
+  .a-hf-svg {
+    transform-origin: 42% 50%;
+    animation: a-dive linear both;
+    animation-timeline: view();
+    animation-range: exit 0% exit 100%;
+  }
+
+  /* 02 — закреплённая сцена: слова, дорожки, распад, вывод — всё по
+     шкале секции. Имя фазы снаружи calc(), проценты внутри. */
+  .a-why .a-word {
+    animation: a-word linear both;
+    animation-timeline: --a-why;
+    animation-range: contain calc(var(--i) * 3.5%) contain calc(var(--i) * 3.5% + 9%);
+  }
+  .a-why .a-lane { animation-timeline: --a-why; animation-range: contain 30% contain 66%; }
+  .a-why .a-mosh { animation-timeline: --a-why; animation-range: contain 58% contain 66%; }
+  .a-why-end {
+    animation: a-word linear both;
+    animation-timeline: --a-why;
+    animation-range: contain 70% contain 82%;
+  }
+  .a-why .a-iso-g {
+    animation: a-iso-deep linear both;
+    animation-timeline: --a-why;
+    animation-range: contain 0% contain 100%;
+  }
+
+  /* 03 — карта входит приближенной к Европе и отдаляется до мира. */
+  .a-chart {
+    transform-origin: 60% 32%;
+    animation: a-zoom linear both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 42%;
+  }
+
+  /* 05 — цифры шагов с разной глубиной, диагональ прочерчивается. */
+  .a-step-n {
+    animation: a-rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 45%;
+  }
+  .a-steps-line path {
+    animation: a-draw linear both;
+    animation-timeline: view();
+    animation-range: entry 20% cover 55%;
+  }
+
+  /* 06 — слова финала проявляются на входе. */
+  .a-final .a-word {
+    animation: a-word linear both;
+    animation-timeline: view();
+    animation-range: entry calc(20% + var(--i) * 6%) entry calc(55% + var(--i) * 6%);
+  }
+}
+@keyframes a-curtain { from { clip-path: inset(0 3.5% 0 3.5%); } }
+@keyframes a-exit-l { to { transform: translateX(-9%); } }
+@keyframes a-exit-r { to { transform: translateX(7%); } }
+@keyframes a-dive { to { transform: scale(1.45); } }
+@keyframes a-word { from { opacity: 0.1; transform: translateY(0.22em); } }
+@keyframes a-iso-deep { from { transform: translateY(50px); } to { transform: translateY(-70px); } }
+@keyframes a-zoom { from { transform: scale(1.85); } }
+@keyframes a-rise { from { transform: translateY(calc(30px + var(--d, 0) * 36px)); opacity: 0.15; } }
+@keyframes a-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
 /* ─── 6.5 Упрощение и стабильный кадр ───────────────────────────────
    Reduced-motion упрощает слой, а не ломает его: конечный кадр, без
    холостого и без событий. `?static=1` — то же для скриншотов. */
 @media (prefers-reduced-motion: reduce) {
   .a *, .a *::before, .a *::after { animation: none !important; transition: none !important; }
-  .a-js .a-sheet .a-settle, .a-js .a-sheet .a-print { opacity: 1; transform: none; }
+  .a-js .a-sheet .a-settle, .a-js .a-sheet .a-print, .a-js .a-sheet .a-slide,
+  .a-js .a-map .a-city summary span { opacity: 1; transform: none; }
   .a-unfold { display: none !important; }
+  /* Закреплённая сцена без движения — просто плита, без лишней высоты. */
+  .a-why { height: auto; }
+  .a-why-stick { position: static; }
 }
+html[data-static] .a-why { height: auto; }
+html[data-static] .a-why-stick { position: static; }
 html[data-static] .a *,
 html[data-static] .a *::before,
 html[data-static] .a *::after { animation: none !important; transition: none !important; }
