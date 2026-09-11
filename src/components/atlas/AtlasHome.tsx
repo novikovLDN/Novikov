@@ -4,6 +4,7 @@ import AtlasDefs from "./AtlasDefs";
 import IsoFragment from "./IsoFragment";
 import HeroField from "./HeroField";
 import HeroReel from "./HeroReel";
+import Reel from "./Reel";
 import PointerDrift from "./PointerDrift";
 import Chart from "./Chart";
 import {
@@ -191,6 +192,12 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
             <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
               Чем ближе сервер, тем быстрее. Нажмите на город — покажем отклик.
             </p>
+
+            {/* Глобус из Blender (сцена «AtlasGlobe»): 19 кобальтовых
+                серверов, от Москвы к каждому бежит импульс — чем ближе
+                сервер, тем чаще. Оформление; смысл продублирован картой
+                и таблицей ниже. */}
+            <Reel className="a-globe" webm="/media/globe.webm" mp4="/media/globe.mp4" poster="/media/globe.jpg" />
 
             <Chart />
 

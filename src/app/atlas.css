@@ -956,10 +956,10 @@ body:has(.a) {
 .a-hf-dot { fill: var(--a-ink-3); transform-box: fill-box; transform-origin: center; transform: scale(0.42); }
 .a-hf-dot-near { fill: var(--a-cobalt); transform: scale(0.7); }
 
-/* 01 — анимация рельефа из Blender (HeroReel). Появляется плавно,
-   когда видео может играть; плоское поле под ним гаснет. Без видео
+/* 01 — объёмные формы из Blender (HeroReel → Reel). Появляются плавно,
+   когда видео может играть; плоское поле под ними гаснет. Без видео
    (reduced-motion, экономия трафика, ?static=1) — неподвижный постер
-   того же рельефа. Край растворён той же маской, что у рельефа WebGL. */
+   того же кадра (--poster пишет Reel). */
 .a-reel {
   position: absolute;
   inset: 0;
@@ -975,7 +975,7 @@ body:has(.a) {
 .a-reel[data-mode="video"] { opacity: 1; }
 .a-reel[data-mode="poster"] {
   opacity: 1;
-  background: url("/media/hero-objects.jpg") center / cover no-repeat;
+  background: var(--poster) center / cover no-repeat;
 }
 .a-reel[data-mode="poster"] .a-reel-video { display: none; }
 .a-cover:has(.a-reel[data-mode]) .a-hf { opacity: 0; }
@@ -995,6 +995,35 @@ body:has(.a) {
   .a-reel-move { inset: 0; }
   .a-reel-video { object-fit: contain; }
   .a-reel[data-mode="poster"] { background-size: contain; }
+}
+
+/* 03 — глобус серверов из Blender (Reel, сцена «AtlasGlobe»). Та же
+   бумага, что у первого экрана: край растворён овальной маской, фон
+   рендера уходит в белый листа. */
+.a-globe {
+  position: relative;
+  aspect-ratio: 1920 / 822;
+  margin: 1.75rem 0 0;
+  overflow: hidden;
+  opacity: 0;
+  /* Две полосы пересечением: каждый край уходит в ноль. Овал оставлял
+     верх и низ кадра полупрозрачными — читался серый прямоугольник. */
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 22%, #000 72%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 22%, #000 72%, transparent 100%),
+    linear-gradient(to right, transparent 0%, #000 16%, #000 84%, transparent 100%);
+  mask-composite: intersect;
+}
+.a-globe .a-reel-move { inset: 0; }
+.a-globe .a-reel-video { object-fit: cover; }
+.a-globe[data-mode] { opacity: 1; }
+.a-globe[data-mode="poster"] { background: var(--poster) center / cover no-repeat; }
+.a-globe[data-mode="poster"] .a-reel-video { display: none; }
+@media (max-width: 720px) {
+  .a-globe { aspect-ratio: 4 / 3; }
 }
 
 /* 02 — закреплённая сцена: секция в 2,4 окна, кадр держит sticky,
@@ -1212,7 +1241,7 @@ body:has(.a) {
 }
 @supports (animation-timeline: view()) {
   /* При уходе первого экрана рельеф приближается — «нырок». */
-  .a-reel-video {
+  .a-reel .a-reel-video {
     transform-origin: 42% 60%;
     animation: a-dive linear both;
     animation-timeline: view();
@@ -1243,6 +1272,14 @@ body:has(.a) {
 }
 .a-js .a-map[data-seen] .a-city summary span { transform: none; }
 
+/* 03 — глобус: проявляется, когда видео может играть; на наведение
+   мягко подходит ближе. Цикл — само видео, вне кадра оно на паузе. */
+.a-globe { transition: opacity 1.2s var(--m-settle); }
+.a-globe .a-reel-move { transform: none; transition: transform 1.4s var(--m-settle); }
+@media (hover: hover) {
+  .a-globe:hover .a-reel-move { transform: scale(1.04); }
+}
+
 /* 06 — кольцо расходится от главной кнопки. */
 .a-btn-invert::after { animation: a-ring-btn 2.8s var(--m-settle) infinite; }
 @keyframes a-ring-btn {
@@ -1267,6 +1304,16 @@ body:has(.a) {
     animation-timeline: view();
     animation-range: exit 0% exit 100%;
   }
+
+  /* 03 — глобус поднимается из-под листа и подходит ближе, пока
+     читатель доходит до карты. */
+  .a-globe .a-reel-video {
+    transform-origin: 50% 70%;
+    animation: a-globe-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 45%;
+  }
+  @keyframes a-globe-in { from { transform: translateY(12%) scale(0.84); } }
 
   /* 02 — закреплённая сцена: слова, дорожки, распад, вывод — всё по
      шкале секции. Имя фазы снаружи calc(), проценты внутри. */
