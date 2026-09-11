@@ -980,6 +980,23 @@ body:has(.a) {
 .a-reel[data-mode="poster"] .a-reel-video { display: none; }
 .a-cover:has(.a-reel[data-mode]) .a-hf { opacity: 0; }
 
+/* Телефон: кадр 16:9 на вертикальном экране обрезался по центру, и
+   огромное размытое кольцо уходило под текст (кадр 11.09.2026). Здесь
+   видео встаёт целиком в пустую полосу между заголовком и текстом —
+   объекты видны полностью и не мешают чтению. */
+@media (max-width: 720px) {
+  .a-reel {
+    top: 16%;
+    bottom: auto;
+    height: 34%;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  }
+  .a-reel-move { inset: 0; }
+  .a-reel-video { object-fit: contain; }
+  .a-reel[data-mode="poster"] { background-size: contain; }
+}
+
 /* 02 — закреплённая сцена: секция в 2,4 окна, кадр держит sticky,
    прогресс считает шкала секции. Прокрутку никто не перехватывает. */
 .a-why { height: 240svh; padding-block: 0; view-timeline-name: --a-why; }
