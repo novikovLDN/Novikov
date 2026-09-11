@@ -22,9 +22,11 @@ type Props = {
   className: string;
   /** Грузить в первое свободное время, не дожидаясь подхода к кадру. */
   eager?: boolean;
+  /** Скорость воспроизведения: меньше 1 — спокойнее, без перерендера. */
+  rate?: number;
 };
 
-export default function Reel({ webm, mp4, poster, className, eager = false }: Props) {
+export default function Reel({ webm, mp4, poster, className, eager = false, rate = 1 }: Props) {
   const box = useRef<HTMLDivElement>(null);
   const vid = useRef<HTMLVideoElement>(null);
 
@@ -56,6 +58,7 @@ export default function Reel({ webm, mp4, poster, className, eager = false }: Pr
       v.load();
     };
     const onReady = () => {
+      v.playbackRate = rate;
       host.setAttribute("data-mode", "video");
       play();
     };
@@ -91,7 +94,7 @@ export default function Reel({ webm, mp4, poster, className, eager = false }: Pr
       }
       v.pause();
     };
-  }, [webm, mp4, eager]);
+  }, [webm, mp4, eager, rate]);
 
   return (
     <div ref={box} className={className} style={{ "--poster": `url("${poster}")` } as CSSProperties} aria-hidden>

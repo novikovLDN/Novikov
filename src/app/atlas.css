@@ -1485,8 +1485,19 @@ body:has(.a) {
   bottom: 0;
   width: min(56vw, 860px);
   pointer-events: none;
-  background: var(--art, none) right center / contain no-repeat;
+  /* Место и размер задаёт слот: объект стоит в свободной части блока,
+     а не поверх заголовка и цен (проверено по кадрам 11.09.2026). */
+  background: var(--art, none) var(--art-pos, right center) / var(--art-size, contain) no-repeat;
 }
+/* Объекты из Blender (сцены AtlasB02…AtlasB08, 11.09.2026). 02 и 08
+   стоят на кобальтовой плите — они светлые, стекло и белое свечение. */
+.a-art[data-art="b02"] { --art: url("/media/home/b02.webp"); --art-pos: right 2vw bottom 6%; --art-size: min(40vw, 580px) auto; }
+.a-art[data-art="b04"] { --art: url("/media/home/b04.webp"); --art-pos: right 1vw bottom 4%; --art-size: min(28vw, 400px) auto; }
+.a-art[data-art="b05"] { --art: url("/media/home/b05.webp"); }
+.a-art[data-art="b06"] { --art: url("/media/home/b06.webp"); --art-pos: right 2vw bottom 7%; --art-size: min(38vw, 540px) auto; }
+.a-art[data-art="b07"] { --art: url("/media/home/b07.webp"); }
+.a-art[data-art="b08"] { --art: url("/media/home/b08.webp"); --art-pos: right 3vw bottom 9%; --art-size: min(34vw, 500px) auto; }
+
 /* Закреплённая сцена 02: объект держится вместе с кадром, не занимая
    места в потоке (липкий слой с отрицательным отступом). */
 .a-why > .a-art {
@@ -1496,8 +1507,13 @@ body:has(.a) {
   margin-bottom: calc(var(--a-head-h) - 100svh);
   margin-left: auto;
 }
+/* Телефон: объект — под текстом во всю силу, а не полупрозрачно за
+   ним; блок получает место внизу. В закреплённой сцене 02 места нет —
+   там объект остаётся бледным слоем за текстом. */
 @media (max-width: 720px) {
-  .a-art { width: 92vw; opacity: 0.5; background-position: right bottom; }
+  .a-art[data-art] { width: 100%; --art-pos: center bottom 2rem; --art-size: min(78vw, 420px) auto; }
+  .a-sheet:has(> .a-art):not(.a-why) { padding-bottom: calc(clamp(4.5rem, 12vh, 9rem) + min(60vw, 320px)); }
+  .a-why > .a-art { opacity: 0.35; }
 }
 @supports (animation-timeline: view()) {
   .a-art {

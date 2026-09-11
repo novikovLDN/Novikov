@@ -204,7 +204,17 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
             {/* Глобус из Blender за текстом. Плоская карта с главной
                 убрана (владелец, 11.09.2026), осталась на /infrastructure.
                 Смысл глобуса — таблицей ниже, для чтеца экрана. */}
-            <Reel className="a-globe a-pin-art" webm="/media/globe.webm" mp4="/media/globe.mp4" poster="/media/globe.jpg" />
+            {/* globe2 (сцена «AtlasGlobe2», 11.09.2026): белая керамика,
+                мягкие точки суши, 19 кобальтовых бусин, две дуги от Москвы
+                со спокойным светом. Петля 12 с на 30 fps; играется на 0,8 —
+                оборот за 15 с, 24 кадра в секунду с размытием движения. */}
+            <Reel
+              className="a-globe a-pin-art"
+              webm="/media/globe2.webm"
+              mp4="/media/globe2.mp4"
+              poster="/media/globe2.jpg"
+              rate={0.8}
+            />
             <div className="a-field a-pin-copy">
               <h2 id="a-map-title" className="a-h2 a-settle">
                 <span className="a-no">03</span>{COUNTRY_COUNT} {COUNTRY_WORD}. выбирайте ближайшую
