@@ -19,6 +19,11 @@ import Icon from "@/components/pixel/Icon";
  * Атрибуты type/inputMode при этом оставлены — они поднимают нужную
  * клавиатуру на телефоне.
  *
+ * ОФОРМЛЕНИЕ. Корпус «Атлас-издание» (business-atlas.css): поля —
+ * общий слой .px-field/.px-input/.px-choice из globals.css, его токены
+ * --px-* переопределены внутри .ab-form на палитру «Лоция». Логика,
+ * тексты полей и контракт запроса не менялись.
+ *
  * КУДА ПОДКЛЮЧИТЬ БЭКЕНД И CRM
  * ────────────────────────────
  * Сейчас заявка уходит в POST /api/contact (src/app/api/contact/route.ts):
@@ -157,12 +162,12 @@ export default function BusinessRequestForm() {
 
   if (sent) {
     return (
-      <div className="px-card px-form-card px-reveal" role="status">
-        <span className="px-form-done-mark" aria-hidden>
+      <div className="ab-form ab-card ab-done" role="status">
+        <span className="ab-done-mark" aria-hidden>
           <Icon name="check" size={22} />
         </span>
-        <h3 className="px-h3 mt-6">Заявка принята</h3>
-        <p className="px-body mt-3">
+        <h3 className="ab-card-h">Заявка принята</h3>
+        <p className="ab-card-p">
           Вернёмся в течение четырёх рабочих часов на указанную почту — с расчётом и
           проектом договора. Если задача срочная, напишите на{" "}
           <a href="mailto:sales@atlas.secure" className="px-link-inline">sales@atlas.secure</a>.
@@ -172,12 +177,13 @@ export default function BusinessRequestForm() {
   }
 
   return (
-    <div className="px-form-grid">
+    <div className="px-form-grid ab-form">
       <form
         ref={formRef}
         onSubmit={handleSubmit}
         noValidate
-        className="px-card px-form-card px-reveal"
+        className="px-form-card ab-card a-settle"
+        style={{ ["--i" as string]: 6 }}
         aria-labelledby="request-title"
       >
         <div className="px-field">
@@ -291,7 +297,7 @@ export default function BusinessRequestForm() {
 
         <div className="px-field">
           <label className="px-label" htmlFor="rq-message">
-            Задача <span className="px-text-4">(необязательно)</span>
+            Задача <span className="ab-optional">(необязательно)</span>
           </label>
           <textarea
             id="rq-message"
@@ -311,7 +317,7 @@ export default function BusinessRequestForm() {
         </p>
 
         <div className="px-form-foot">
-          <button type="submit" className="px-btn px-btn-md px-btn-primary" disabled={sending}>
+          <button type="submit" className="a-btn a-btn-primary ab-submit" disabled={sending}>
             {sending ? "Отправляем…" : "Отправить заявку"}
             {!sending && <Icon name="arrow-right" size={16} />}
           </button>
@@ -322,23 +328,23 @@ export default function BusinessRequestForm() {
         </div>
       </form>
 
-      <aside className="px-form-aside px-reveal">
-        <p className="px-eyebrow">Что дальше</p>
+      <aside className="px-form-aside ab-aside a-settle" style={{ ["--i" as string]: 9 }}>
+        <p className="a-wide ab-aside-h">что дальше</p>
         <ol className="px-form-steps">
           <li>
-            <span className="px-num px-form-step-n">1</span>
+            <span className="a-num px-form-step-n">1</span>
             Читаем заявку и уточняем недостающее письмом — обычно это один вопрос.
           </li>
           <li>
-            <span className="px-num px-form-step-n">2</span>
+            <span className="a-num px-form-step-n">2</span>
             Присылаем расчёт по числу мест и состав подключения.
           </li>
           <li>
-            <span className="px-num px-form-step-n">3</span>
+            <span className="a-num px-form-step-n">3</span>
             Проект договора и счёт. Тестовый доступ на время согласования — по запросу.
           </li>
         </ol>
-        <p className="px-caption mt-8">
+        <p className="px-caption">
           Заявка попадает менеджеру продаж. Срок ответа — четыре рабочих часа, тот же,
           что указан на странице{" "}
           <Link href="/contact" className="px-link-inline">контактов</Link>.

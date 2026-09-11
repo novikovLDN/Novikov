@@ -1,268 +1,294 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import SiteHeader from "@/components/graticule/SiteHeader";
-import SiteFooter from "@/components/graticule/SiteFooter";
-import { COUNTRY_COUNT, CITY_COUNT, CLOSEST, LOCATIONS, plural } from "@/lib/locations";
-import { PLAN_SPEED, DEVICE_LIMIT } from "@/lib/plans";
-import "./infra.css";
+import AtlasShell from "@/components/atlas/AtlasShell";
+import AtlasDefs from "@/components/atlas/AtlasDefs";
+import PointerDrift from "@/components/atlas/PointerDrift";
+import Chart from "@/components/atlas/Chart";
+import { COUNTRY_COUNT, CITY_COUNT, CLOSEST, LOCATIONS } from "@/lib/locations";
+import { PLAN_SPEED, PLAN_CONTENT, DEVICE_LIMIT, type PlanId } from "@/lib/plans";
+import { SERVERS, SERVER_ENTRY_USD, formatUsd } from "@/lib/servers";
+import { plural } from "@/lib/ru-words";
+import "./infra-atlas.css";
 
 /**
- * /infrastructure — путешествие по сети.
+ * /infrastructure — лист 17 «Инфраструктура», корпус «Атлас-издание».
  *
- * ЧТО БЫЛО. Страница перечисляла Equinix FR5, M9, NEXTDC S2, DE-CIX,
- * MSK-IX, PUE 1.3, ISO 27001, 152-ФЗ и ФСТЭК — ни одно из этих
- * утверждений не подтверждено договором или сертификатом
- * (COMPLIANCE-CHECK.md). Чужие товарные знаки требуют права
- * упоминания, а сертификации — самого сертификата. Всё это снято.
+ * Состав: 01 маршрут трафика · 02 карта присутствия (сцена погружения:
+ * карта входит приближенной и отдаляется, города проявляются волной —
+ * общий Chart) · 03 три участка пути · 04 что подтверждено, а что нет ·
+ * 05 финал.
  *
- * ЧТО ВМЕСТО. Четыре главы пути, который проходит трафик: устройство
- * → узел → канал → железо. В каждой — только то, что можно
- * проверить: числа из lib и то, что видно в самом продукте. Плюс
- * отдельная глава о том, чего мы ещё НЕ подтвердили: «названная
- * граница» — позиция бренда, и на этой странице она нужнее всего.
+ * ЧТО СНЯТО С ПРЕЖНЕЙ ВЕРСИИ. «Ключ создаётся на устройстве и не
+ * покидает его», разрез стойки («два независимых ввода питания, две
+ * границы, фильтр трафика»), «запас считался под вечерний час пик» —
+ * ни одно не подтверждено ни кодом, ни COMPLIANCE-CHECK.md. Пункт
+ * «история подключений не хранится» убран из колонки «подтверждено
+ * кодом»: в COMPLIANCE-CHECK.md §4 он стоит как [ПОДТВЕРДИТЬ].
+ * Слово «узел» заменено на «сервер» (поправка владельца 10.09.2026),
+ * «магистраль» — на «ширину канала».
  *
- * ПОЧЕМУ ЗДЕСЬ ПОГРУЖЕНИЕ УМЕСТНО, А НА ДРУГИХ ЭКРАНАХ НЕТ. Читатель
- * приходит сюда с вопросом «как это устроено». На такой вопрос
- * показывают, а не перечисляют. Одиннадцать приёмов каталога, все
- * нативные: ни библиотеки, ни строки клиентского кода.
+ * Весь моушн — infra-atlas.css, раздел «Движение».
  */
+const COUNTRY_WORD = plural(COUNTRY_COUNT, ["страна", "страны", "стран"]);
+const CITY_WORD = plural(CITY_COUNT, ["город", "города", "городов"]);
+
 export const metadata: Metadata = {
   title: "Инфраструктура",
   description:
-    `Путь трафика: устройство, узел, канал, железо. ${COUNTRY_COUNT} стран, ` +
-    `${CITY_COUNT} городов, канал до ${PLAN_SPEED.plus} Гбит/с.`,
+    `Путь трафика: ваше устройство, сервер Atlas, сайт. ${COUNTRY_COUNT} ${COUNTRY_WORD}, ` +
+    `${CITY_COUNT} ${CITY_WORD}, ширина канала до ${PLAN_SPEED.plus} Гбит/с.`,
+  alternates: { canonical: "/infrastructure" },
 };
 
-/** Разрез стойки знаками: фотографий залов у нас нет, а сток запрещён. */
-const RACK = `  ┌─────────────────────────────────────────┐
-  │  U42   коммутатор доступа               │
-  │  U41   коммутатор доступа   ·  резерв   │
-  ├─────────────────────────────────────────┤
-  │  U40   маршрутизатор границы            │
-  │  U39   маршрутизатор границы ·  резерв  │
-  ├─────────────────────────────────────────┤
-  │  U38   фильтр трафика                   │
-  ├─────────────────────────────────────────┤
-  │  U24   узел                             │
-  │  U23   узел                             │
-  │  U22   узел                             │
-  │  U21   узел                             │
-  ├─────────────────────────────────────────┤
-  │  U08   питание  A                       │
-  │  U07   питание  B   ·  независимый ввод │
-  └─────────────────────────────────────────┘`;
-
 const ROUTE = "M 40 150 C 200 40, 340 210, 520 110 S 820 40, 1000 130";
+const STOPS = [
+  { x: 40, y: 150, t: "ваше устройство", align: "start" },
+  { x: 520, y: 110, t: "сервер Atlas", align: "middle" },
+  { x: 1000, y: 130, t: "сайт", align: "end" },
+] as const;
+
+const HERO_1 = "где проходит";
+const HERO_2 = "ваш трафик";
+
+function Chars({ text, start = 0 }: { text: string; start?: number }) {
+  return (
+    <>
+      {[...text].map((ch, i) =>
+        ch === " " ? (
+          " "
+        ) : (
+          <span key={i} className="a-char" style={{ ["--i" as string]: start + i }}>
+            {ch}
+          </span>
+        ),
+      )}
+    </>
+  );
+}
+
+function Words({ text, start = 0 }: { text: string; start?: number }) {
+  const words = text.split(" ");
+  return (
+    <>
+      {words.map((w, i) => (
+        <span key={i}>
+          <span className="a-word" style={{ ["--i" as string]: start + i }}>{w}</span>
+          {i < words.length - 1 ? " " : null}
+        </span>
+      ))}
+    </>
+  );
+}
 
 export default function InfrastructurePage() {
-  const far = [...LOCATIONS].sort((a, b) => b.latencyMs - a.latencyMs)[0];
+  const byLatency = [...LOCATIONS].sort((a, b) => a.latencyMs - b.latencyMs);
+  const far = byLatency[byLatency.length - 1];
 
   return (
-    <div className="g gi">
-      <SiteHeader />
+    <AtlasShell sheetNo="17" sheetTitle="Инфраструктура">
+      <AtlasDefs />
+      <PointerDrift target=".ai-cover" />
+      <main id="main" className="a-main">
+        {/* ── 01 · Маршрут ──────────────────────────────────────── */}
+        <section className="a-sheet ai-cover" data-sheet="17" data-title="Инфраструктура" aria-labelledby="ai-title">
+          <div className="a-field">
+            <h1 id="ai-title" className="ai-display" aria-label={`${HERO_1} ${HERO_2}`}>
+              <span className="ai-line" aria-hidden><Chars text={HERO_1} /></span>
+              <span className="ai-line ai-line-2" aria-hidden><Chars text={HERO_2} start={HERO_1.length} /></span>
+            </h1>
 
-      <main>
-        {/* ── Первый экран: маршрут ───────────────────────────────── */}
-        <section className="gi-shell gi-hero" aria-labelledby="infra-title">
-          <h1 id="infra-title">Где проходит ваш трафик</h1>
-          <p className="gi-lead">
-            Четыре участка пути. На каждом написано, что мы делаем и что можем
-            подтвердить.
-          </p>
-
-          <svg className="gi-route" viewBox="0 0 1040 220" role="img"
-               aria-label="Маршрут трафика: устройство, узел Atlas, магистраль, сайт назначения">
-            <defs>
-              {/* Гуи-фильтр: формы сливаются каплями при сближении.
-                  feGaussianBlur размывает, feColorMatrix возвращает
-                  резкую границу — классический приём, здесь он
-                  изображает слияние потоков в узле. */}
-              <filter id="gi-gooey">
-                <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b" />
-                <feColorMatrix in="b" mode="matrix"
-                  values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9" result="g" />
-                <feComposite in="SourceGraphic" in2="g" operator="atop" />
-              </filter>
-            </defs>
-
-            <path className="gi-route-line" d={ROUTE} />
-            <path className="gi-route-live" d={ROUTE} pathLength={1} />
-
-            {[
-              { x: 40, y: 150, t: "ваше устройство" },
-              { x: 520, y: 110, t: "узел Atlas" },
-              { x: 1000, y: 130, t: "сайт назначения" },
-            ].map((s) => (
-              <g key={s.t}>
-                <circle className="gi-route-stop" cx={s.x} cy={s.y} r={7} />
-                <text className="gi-route-label" x={s.x} y={s.y + 26}
-                      textAnchor={s.x > 900 ? "end" : s.x < 100 ? "start" : "middle"}>
-                  {s.t}
-                </text>
-              </g>
-            ))}
-
-            {/* Пакет идёт по тому же пути: offset-path берёт кривую
-                прямо из разметки, а не повторяет её числами. */}
-            <circle className="gi-packet" r={5} style={{ ["--gi-path" as string]: `path("${ROUTE}")` }} />
-          </svg>
-        </section>
-
-        {/* ── Глава 1: устройство ─────────────────────────────────── */}
-        <section className="gi-chapter" aria-labelledby="ch1">
-          <div className="gi-shell gi-frame">
-            <div>
-              <p className="gi-n">01 — устройство</p>
-              <h2 id="ch1">Шифрование начинается у вас</h2>
-              <p>
-                Ключ создаётся на устройстве и не покидает его. Дальше по сети
-                идёт уже закрытый трафик: провайдер видит, что соединение есть,
-                и не видит, что внутри.
-              </p>
-              <div className="gi-figures">
-                <span className="gi-fig"><b>{DEVICE_LIMIT}</b><span>устройств на подписке</span></span>
-                <span className="gi-fig"><b>0</b><span>записей о том, что вы открывали</span></span>
+            <div className="ai-route" role="img" aria-label="Путь трафика: ваше устройство, сервер Atlas, сайт">
+              <div className="ai-route-move">
+                <svg className="ai-route-svg" viewBox="0 0 1040 220" preserveAspectRatio="none" aria-hidden focusable="false">
+                  <path className="ai-route-line" d={ROUTE} vectorEffect="non-scaling-stroke" />
+                  <path className="ai-route-live" d={ROUTE} pathLength={1} vectorEffect="non-scaling-stroke" />
+                  {/* Пакет бежит по маршруту. SMIL — без скрипта; при
+                      reduced-motion и ?static=1 его останавливает
+                      MotionController (pauseAnimations). */}
+                  <circle className="ai-packet" r="6">
+                    <animateMotion dur="3.2s" repeatCount="indefinite" path={ROUTE} />
+                  </circle>
+                </svg>
+                {STOPS.map((s, i) => (
+                  <span
+                    key={s.t}
+                    className="ai-stop"
+                    data-align={s.align}
+                    style={{ left: `${((s.x / 1040) * 100).toFixed(2)}%`, top: `${((s.y / 220) * 100).toFixed(2)}%`, ["--i" as string]: i }}
+                  >
+                    <i className="a-idle" />
+                    <span className="a-wide">{s.t}</span>
+                  </span>
+                ))}
               </div>
             </div>
-            <div>
-              {/* Полутон: плотность точек показывает, сколько данных
-                  остаётся открытым. Слева всё видно, справа — ничего. */}
-              <div className="gi-halftone" aria-hidden>
-                {Array.from({ length: 96 }, (_, i) => (
-                  <i key={i} style={{ opacity: Math.max(0.06, 1 - (i % 24) / 23) }} />
-                ))}
+
+            <div className="ai-cover-grid">
+              <p className="a-lead">
+                Три участка пути: ваше устройство, сервер Atlas и сайт. На каждом — только то, что мы
+                можем подтвердить.
+              </p>
+              <div className="a-actions">
+                <Link href="#map" className="a-btn a-btn-quiet">Смотреть карту серверов</Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── Глава 2: узел ───────────────────────────────────────── */}
-        <section className="gi-chapter" aria-labelledby="ch2">
-          <div className="gi-shell gi-frame">
-            <div>
-              <p className="gi-n">02 — узел</p>
-              <h2 id="ch2">Точку выбираете вы</h2>
-              <p>
-                {COUNTRY_COUNT} {plural(COUNTRY_COUNT, ["страна", "страны", "стран"])},{" "}
-                {CITY_COUNT} {plural(CITY_COUNT, ["город", "города", "городов"])}. Ближайший
-                узел отвечает за {CLOSEST.latencyMs} мс, самый дальний — за {far.latencyMs}.
-                Задержки — оценки, пока их не подтвердит эксплуатация.
-              </p>
-              <div className="gi-figures">
-                <span className="gi-fig"><b>{COUNTRY_COUNT}</b><span>стран</span></span>
-                <span className="gi-fig"><b>{CITY_COUNT}</b><span>городов</span></span>
-                <span className="gi-fig"><b>{CLOSEST.latencyMs} мс</b><span>ближайший узел</span></span>
-              </div>
-            </div>
-            <div>
-              <svg className="gi-nodes" viewBox="0 0 400 200" role="img"
-                   aria-label="Потоки сливаются в узле и расходятся дальше">
-                <g className="gi-nodes-gooey">
-                  {[38, 74, 110, 146].map((y, i) => (
-                    <circle key={y} className="gi-node-quiet" cx={60 + i * 6} cy={y} r={9} />
+        {/* ── 02 · Карта — сцена погружения ─────────────────────── */}
+        <section className="a-sheet a-map ai-map" id="map" data-sheet="17" data-title="Страны" aria-labelledby="ai-map-title">
+          <div className="a-field">
+            <h2 id="ai-map-title" className="a-h2 a-settle">
+              <span className="a-no">02</span>
+              {COUNTRY_COUNT} {COUNTRY_WORD}, {CITY_COUNT} {CITY_WORD}
+            </h2>
+            <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
+              Страну выбираете вы. Ближайший сервер — {CLOSEST.cities[0]}, примерно {CLOSEST.latencyMs} мс
+              из Москвы; самый дальний — {far.cities[0]}, около {far.latencyMs} мс. Это оценки по
+              расстоянию, а не замеры.
+            </p>
+
+            <Chart />
+
+            <ul className="ai-places" aria-label="Страны и примерный отклик из Москвы">
+              {byLatency.map((l, i) => (
+                <li key={l.code} className="ai-place a-settle" style={{ ["--i" as string]: Math.min(i, 12) }}>
+                  <span className="ai-place-name">{l.country}</span>
+                  <span className="ai-place-city">{l.cities.join(", ")}</span>
+                  <span className="ai-place-ms a-num">≈{l.latencyMs} мс</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* ── 03 · Три участка пути ─────────────────────────────── */}
+        <section className="a-sheet ai-path" data-sheet="17" data-title="Путь трафика" aria-labelledby="ai-path-title">
+          <div className="a-field">
+            <h2 id="ai-path-title" className="a-h2 a-settle">
+              <span className="a-no">03</span>три участка пути
+            </h2>
+            <ol className="ai-stages">
+              <li className="ai-stage a-slide" style={{ ["--i" as string]: 0, ["--dir" as string]: -1 }}>
+                <span className="ai-stage-n" aria-hidden style={{ ["--d" as string]: 0 }}>1</span>
+                <div className="ai-stage-body">
+                  <p className="ai-stage-where a-wide">на устройстве</p>
+                  <h3>Шифрование начинается у вас</h3>
+                  <p>
+                    Приложение шифрует трафик прямо на телефоне или компьютере. Провайдер видит, что
+                    соединение есть, и не видит, что внутри.
+                  </p>
+                </div>
+                <div className="ai-stage-fig">
+                  <b className="a-num">{DEVICE_LIMIT}</b>
+                  <span>{plural(DEVICE_LIMIT, ["устройство", "устройства", "устройств"])} на одной подписке</span>
+                  <span className="a-on a-idle">шифруется</span>
+                </div>
+              </li>
+              <li className="ai-stage a-slide" style={{ ["--i" as string]: 1, ["--dir" as string]: 1 }}>
+                <span className="ai-stage-n" aria-hidden style={{ ["--d" as string]: 1 }}>2</span>
+                <div className="ai-stage-body">
+                  <p className="ai-stage-where a-wide">на сервере</p>
+                  <h3>Страну выбираете вы</h3>
+                  <p>
+                    Сервер в выбранной стране передаёт запрос дальше. Что вы открывали, у нас не
+                    записывается.
+                  </p>
+                </div>
+                <div className="ai-stage-fig">
+                  <b className="a-num">0</b>
+                  <span>записей о том, что вы открывали</span>
+                </div>
+              </li>
+              <li className="ai-stage a-slide" style={{ ["--i" as string]: 2, ["--dir" as string]: -1 }}>
+                <span className="ai-stage-n" aria-hidden style={{ ["--d" as string]: 2 }}>3</span>
+                <div className="ai-stage-body">
+                  <p className="ai-stage-where a-wide">в канале</p>
+                  <h3>Ширина канала, а не обещание</h3>
+                  <p>
+                    Ширина канала — сколько данных проходит одновременно. Чем она шире, тем реже
+                    просадки вечером, когда дома все смотрят видео.
+                  </p>
+                </div>
+                <div className="ai-stage-fig ai-bars">
+                  {(["basic", "plus"] as PlanId[]).map((id) => (
+                    <div
+                      key={id}
+                      className="ai-bar"
+                      style={{
+                        ["--w" as string]: `${Math.max(2, Math.round((PLAN_SPEED[id] / PLAN_SPEED.plus) * 8))}px`,
+                        ["--flow" as string]: `${((2.4 * PLAN_SPEED.plus) / PLAN_SPEED[id]).toFixed(2)}s`,
+                      }}
+                    >
+                      <span className="ai-bar-name">{PLAN_CONTENT[id].name}</span>
+                      <span className="ai-bar-val"><b className="a-num">{PLAN_SPEED[id]}</b> Гбит/с</span>
+                      <span className="ai-bar-sym a-print" aria-hidden>
+                        <span className="ai-bar-flow a-idle" />
+                      </span>
+                    </div>
                   ))}
-                  <circle className="gi-node" cx={210} cy={100} r={13} />
-                  <circle className="gi-node" cx={244} cy={100} r={10} />
-                  {[70, 100, 130].map((y) => (
-                    <circle key={y} className="gi-node-quiet" cx={340} cy={y} r={8} />
-                  ))}
-                </g>
-              </svg>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        {/* ── 04 · Что подтверждено ─────────────────────────────── */}
+        <section className="a-sheet ai-honest" data-sheet="17" data-title="Что подтверждено" aria-labelledby="ai-honest-title">
+          <div className="a-field">
+            <h2 id="ai-honest-title" className="a-h2 a-settle">
+              <span className="a-no">04</span>что подтверждено, а что ещё нет
+            </h2>
+            <div className="ai-honest-cols">
+              <div>
+                <h3 className="ai-honest-h a-settle" style={{ ["--i" as string]: 1 }}>подтверждено кодом</h3>
+                <ul className="ai-honest-list" data-kind="yes">
+                  <li className="a-settle" style={{ ["--i" as string]: 2 }}>
+                    {COUNTRY_COUNT} {COUNTRY_WORD} и {CITY_COUNT} {CITY_WORD} — список в коде, из него же строится карта
+                  </li>
+                  <li className="a-settle" style={{ ["--i" as string]: 3 }}>
+                    Ширина канала {PLAN_SPEED.basic} и {PLAN_SPEED.plus} Гбит/с — из состава тарифов
+                  </li>
+                  <li className="a-settle" style={{ ["--i" as string]: 4 }}>
+                    {DEVICE_LIMIT} {plural(DEVICE_LIMIT, ["устройство", "устройства", "устройств"])} на подписке
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="ai-honest-h a-settle" style={{ ["--i" as string]: 2 }}>
+                  ещё не подтверждено — и мы этого не пишем
+                </h3>
+                <ul className="ai-honest-list" data-kind="ask">
+                  <li className="a-settle" style={{ ["--i" as string]: 3 }}>Названия площадок и точек обмена трафиком — нужно право упоминания</li>
+                  <li className="a-settle" style={{ ["--i" as string]: 4 }}>Сертификаты и аудиты — нужен сам документ</li>
+                  <li className="a-settle" style={{ ["--i" as string]: 5 }}>Время без сбоев — нужен мониторинг с историей</li>
+                  <li className="a-settle" style={{ ["--i" as string]: 6 }}>Отклик по городам — сейчас это оценки, а не замеры</li>
+                </ul>
+              </div>
+            </div>
+            <div className="a-actions a-settle" style={{ ["--i" as string]: 8 }}>
+              <Link href="/security" className="a-btn a-btn-quiet">Что мы знаем о вас</Link>
             </div>
           </div>
         </section>
 
-        {/* ── Глава 3: канал ──────────────────────────────────────── */}
-        <section className="gi-chapter" aria-labelledby="ch3">
-          <div className="gi-shell gi-frame">
-            <div>
-              <p className="gi-n">03 — канал</p>
-              <h2 id="ch3">Ширина трубы, а не обещание</h2>
-              <p>
-                Канал — это то, сколько данных проходит одновременно. Запас
-                считался под вечерний час пик: когда все дома и все смотрят,
-                скорость не должна падать.
-              </p>
-              <div className="gi-figures">
-                <span className="gi-fig"><b>{PLAN_SPEED.basic}</b><span>Гбит/с на Basic</span></span>
-                <span className="gi-fig"><b>{PLAN_SPEED.plus}</b><span>Гбит/с на Plus</span></span>
-              </div>
+        {/* ── 05 · Финал ────────────────────────────────────────── */}
+        <section className="a-sheet a-plate a-final" data-sheet="17" data-title="Выделенные серверы" aria-labelledby="ai-final-title">
+          <div className="a-field">
+            <h2 id="ai-final-title" className="a-h2">
+              <span className="a-no">05</span>
+              <Words text="нужен сервер целиком?" />
+            </h2>
+            <p className="a-p a-settle" style={{ ["--i" as string]: 6 }}>
+              Выделенные серверы — от {formatUsd(SERVER_ENTRY_USD)} в месяц, {SERVERS.length}{" "}
+              {plural(SERVERS.length, ["ступень", "ступени", "ступеней"])} по ширине канала.
+            </p>
+            <div className="a-actions a-settle" style={{ ["--i" as string]: 8 }}>
+              <Link href="/vds" className="a-btn a-btn-invert a-idle">Выделенные серверы</Link>
             </div>
-            <div>
-              {/* Изолинии: ширина канала показана расходящимися
-                  линиями, а не столбиком. Basic тише, Plus громче. */}
-              <div className="gi-iso gi-iso-quiet" aria-hidden>
-                {Array.from({ length: 6 }, (_, i) => (
-                  <span key={i} style={{ width: `${28 + i * 6}%` }} />
-                ))}
-              </div>
-              <div className="gi-iso" style={{ marginTop: "1.25rem" }} aria-hidden>
-                {Array.from({ length: 10 }, (_, i) => (
-                  <span key={i} style={{ width: `${40 + i * 6}%` }} />
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Глава 4: железо ─────────────────────────────────────── */}
-        <section className="gi-chapter" aria-labelledby="ch4">
-          <div className="gi-shell gi-frame">
-            <div>
-              <p className="gi-n">04 — железо</p>
-              <h2 id="ch4">Что стоит в стойке</h2>
-              <p>
-                Два независимых ввода питания, две границы, фильтр трафика перед
-                узлами. Разрез набран знаками, а не снят на камеру: фотографий
-                чужих залов у нас нет, а стоковые мы не ставим.
-              </p>
-            </div>
-            <div>
-              <pre className="gi-rack" aria-label="Схема стойки: коммутаторы доступа, маршрутизаторы границы, фильтр трафика, узлы, два ввода питания">
-                {RACK}
-              </pre>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Честный блок ────────────────────────────────────────── */}
-        <section className="gi-shell gi-honest" aria-labelledby="honest">
-          <h2 id="honest" className="gi-chapter-h2" style={{ margin: 0, fontSize: "var(--g-t-block)", letterSpacing: "-0.02em" }}>
-            Что подтверждено, а что ещё нет
-          </h2>
-          <div className="gi-honest-cols">
-            <div>
-              <h3>Подтверждено кодом продукта</h3>
-              <ul className="gi-col-yes">
-                <li>{COUNTRY_COUNT} стран и {CITY_COUNT} городов — список в коде, из него же строится карта</li>
-                <li>Канал {PLAN_SPEED.basic} и {PLAN_SPEED.plus} Гбит/с — из состава тарифов</li>
-                <li>{DEVICE_LIMIT} устройств на подписке</li>
-                <li>История подключений, посещённых сайтов и DNS-запросов не хранится</li>
-              </ul>
-            </div>
-            <div>
-              <h3>Ещё не подтверждено, и мы этого не пишем</h3>
-              <ul className="gi-col-ask">
-                <li>Названия площадок и точек обмена трафиком — нужно право упоминания</li>
-                <li>Сертификации и аудиты — нужен сам сертификат</li>
-                <li>Показатели времени без сбоев — нужен мониторинг с историей</li>
-                <li>Задержки по городам — сейчас это оценки, а не замеры</li>
-              </ul>
-            </div>
-          </div>
-          <p style={{ marginTop: "1.5rem", fontSize: "var(--g-t-small)", color: "var(--g-ink-3)", maxWidth: "62ch" }}>
-            Раньше на этой странице стояли названия чужих дата-центров, точек
-            обмена и сертификатов. Мы их сняли: писать то, что нельзя показать
-            по требованию, — ровно то, чего мы не делаем.
-          </p>
-          <div className="gh-actions">
-            <Link href="/vds" className="gh-btn gh-btn-primary">Выделенные серверы</Link>
-            <Link href="/security" className="gh-btn gh-btn-quiet">Что мы знаем о вас</Link>
           </div>
         </section>
       </main>
-
-      <SiteFooter />
-    </div>
+    </AtlasShell>
   );
 }

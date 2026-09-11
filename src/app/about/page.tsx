@@ -1,217 +1,293 @@
-"use client";
-
+import type { Metadata } from "next";
 import Link from "next/link";
-import SiteHeader from "@/components/pixel/SiteHeader";
-import SiteFooter from "@/components/pixel/SiteFooter";
-import { CITY_COUNT, COUNTRY_COUNT, plural } from "@/lib/locations";
+import AtlasShell from "@/components/atlas/AtlasShell";
+import PointerDrift from "@/components/atlas/PointerDrift";
+import { CITY_COUNT, COUNTRY_COUNT } from "@/lib/locations";
+import { DEVICE_LIMIT, PLANS, PLAN_CONTENT, PLAN_SPEED, formatRub } from "@/lib/plans";
+import { SERVER_ENTRY_USD, formatUsd } from "@/lib/servers";
+import { TRIAL_DAYS } from "@/lib/brand-facts";
+import { plural } from "@/lib/ru-words";
+import "./about-atlas.css";
 
 /**
- * /about — company page in the v4 light shell.
+ * /about — лист 18 «О нас», корпус «Атлас-издание».
  *
- * Hero → stats → principles → timeline → manifesto → registry →
- * CTA. Content preserved from the old premium-page implementation
- * (in Russian only now that the site is RU-locked). Visual language
- * matches the landing: MTS Wide, light off-white body, white
- * rounded cards, orange for the final CTA.
+ * Состав: 01 обещание · 02 в цифрах · 03 три правила (закреплённая
+ * сцена: слова проявляются по прокрутке) · 04 что мы делаем · 05 финал.
+ *
+ * ЧТО СНЯТО С ПРЕЖНЕЙ ВЕРСИИ И ПОЧЕМУ. Штаб-квартира и год основания,
+ * вехи (миллион пользователей, дата-центры, ISO 27001), реестр
+ * («Military-Grade · NSA Suite B · FIPS 140-3», «ISO/IEC 27001 · SOC 2
+ * Type II», «Аптайм SLA 99,98% гарантированно», «NOC 24/7/365»),
+ * «партнёрская инфраструктура на трёх континентах», «публикуем
+ * результаты внешних аудитов». Всё это в COMPLIANCE-CHECK.md стоит с
+ * пометкой [ПОДТВЕРДИТЬ]: до документа строку показывать нельзя.
+ * Вернуть — вместе с документом, а не осторожной формулировкой.
+ *
+ * Все числа — из src/lib: страны и города (`locations.ts`), устройства
+ * и ширина канала (`plans.ts`), пробный период (`brand-facts.ts`),
+ * цена входа в серверы (`servers.ts`).
+ *
+ * Весь моушн — about-atlas.css, раздел «Движение».
  */
+export const metadata: Metadata = {
+  title: "О нас",
+  description:
+    `Atlas Secure — VPS-ускоритель для телефона и компьютера и выделенные серверы. ` +
+    `${COUNTRY_COUNT} ${plural(COUNTRY_COUNT, ["страна", "страны", "стран"])}, ` +
+    `до ${DEVICE_LIMIT} устройств на подписке. Во что мы верим и что можем подтвердить.`,
+  alternates: { canonical: "/about" },
+};
 
-const PRINCIPLES = [
+const TRIAL = `${TRIAL_DAYS} ${plural(TRIAL_DAYS, ["день", "дня", "дней"])}`;
+
+const HERO_1 = "интернет, который";
+const HERO_2 = "просто работает";
+
+/** Три правила. Тексты — из прежней страницы (принципы и манифест),
+ *  без названий стандартов, которые не подтверждены. */
+const RULES: Array<{ say: string; note: string }> = [
   {
-    n: "01",
-    eyebrow: "Минимализм",
-    t: "Приватность по дизайну",
-    d: "Чего мы не собираем, того не украдут, не запросят повесткой и не утечёт. Каждое поле данных хранится только если технически необходимо для работы сервиса.",
+    say: "Чего мы не собираем, того не украдут.",
+    note: "Храним почту и срок подписки. Посещённые сайты и история подключений не записываются.",
   },
   {
-    n: "02",
-    eyebrow: "Строгость",
-    t: "Криптографическая корректность",
-    d: "Примитивы из NIST, NSA Suite B и академических работ. Никакого самодельного крипто и «экспериментальных» шифров в проде.",
+    say: "Шифрование — не роскошь, а база.",
+    note: "Такая же обычная вещь, как электричество или вода.",
   },
   {
-    n: "03",
-    eyebrow: "Независимость",
-    t: "Юрисдикционное разнообразие",
-    d: "HQ в Гонконге, партнёрская инфраструктура на трёх континентах. Ни одно правительство не может принудить раскрыть всю операцию.",
-  },
-  {
-    n: "04",
-    eyebrow: "Прозрачность",
-    t: "Проверяемые утверждения",
-    d: "Публикуем результаты внешних аудитов. Криптоутверждения — это конкретные алгоритмы и размеры ключей. Маркетинг следует за инженерией, а не наоборот.",
+    say: "Пишем только то, что можем показать.",
+    note: "Страны, скорость и число устройств на этом сайте берутся из того же кода, по которому работает сервис.",
   },
 ];
 
-const TIMELINE = [
-  { d: "Q1 2026", t: "1 миллион пользователей", desc: "Превысили миллион активных пользователей. Расширили NOC до 24/7/365 в две смены." },
-  { d: "Q3 2025", t: "Запуск ДЦ в Сиднее",       desc: "Третья континентальная юрисдикция. APAC-задержка упала ниже 15 мс." },
-  { d: "Q1 2025", t: "Сертификация ISO 27001",   desc: "Сертификация после шестимесячного внешнего аудита. Действует до 2028." },
-  { d: "Q3 2024", t: "Запуск ДЦ в Москве",       desc: "Локализация данных для клиентов РФ. 152-ФЗ комплаенс активирован." },
-  { d: "Q1 2024", t: "Регистрация в Гонконге",   desc: "Оформлено юрлицо и штаб-квартира в Гонконге (SAR)." },
-  { d: "2016",    t: "Начало работы",            desc: "Первые клиенты и первое присутствие во Франкфурте." },
-];
+/** Сквозная нумерация слов: каждое следующее слово проявляется позже. */
+const RULE_STARTS = RULES.reduce<number[]>((acc, r, i) => {
+  acc.push(i === 0 ? 0 : acc[i - 1] + RULES[i - 1].say.split(" ").length);
+  return acc;
+}, []);
+const RULE_WORDS = RULE_STARTS[RULES.length - 1] + RULES[RULES.length - 1].say.split(" ").length;
 
-/**
- * ТРЕБУЕТ ПОДТВЕРЖДЕНИЯ.
- *
- * Часть строк ниже — заявления, которые невозможно проверить по коду:
- * сертификация ISO/IEC 27001, SOC 2 Type II, соответствие FIPS 140-3
- * и NSA Suite B, а также «1 миллион пользователей» и даты запуска
- * дата-центров в блоке TIMELINE. Их нужно либо подтвердить документами,
- * либо снять: публиковать непроверенные сертификации — юридический и
- * репутационный риск.
- *
- * Состав сети не дублируется руками: число стран берётся из
- * src/lib/locations.ts — того же файла, из которого его берут витрина
- * и кабинет. Раньше эта строка расходилась и со страницей локаций, и
- * сама с собой.
- */
-const REGISTRY: Array<[string, string]> = [
-  ["Штаб-квартира",   "Гонконг, КНР (SAR)"],
-  ["Деятельность",    "B2B / B2C · Информационная безопасность"],
-  ["Специализация",   "Защищённые сетевые решения, выделенные серверы VDS, кибербезопасность"],
-  ["Сеть присутствия", `${COUNTRY_COUNT} ${plural(COUNTRY_COUNT, ["страна", "страны", "стран"])} · ${CITY_COUNT} ${plural(CITY_COUNT, ["город", "города", "городов"])}`],
-  ["Класс защиты",    "Military-Grade · NSA Suite B · FIPS 140-3"],
-  ["Стандарты",       "ISO/IEC 27001 · SOC 2 Type II · GDPR · 152-ФЗ"],
-  ["Аптайм SLA",      "99,98% гарантированно"],
-  ["Режим работы",    "NOC 24/7/365"],
-  // Две разные даты, которые раньше подменяли друг друга: сервис
-  // работает с 2016 года, юрлицо в Гонконге оформлено в 2024-м.
-  ["Работаем с",      "2016"],
-  ["Юрлицо",          "Гонконг (SAR), 2024"],
-  ["Контакт безопасности", "security@atlas.secure"],
-];
+/** Меридианы шара на первом экране: полуоси эллипсов. */
+const MERIDIANS = [1, 0.82, 0.6, 0.34, 0.1];
+
+function Chars({ text, start = 0 }: { text: string; start?: number }) {
+  return (
+    <>
+      {[...text].map((ch, i) =>
+        ch === " " ? (
+          " "
+        ) : (
+          <span key={i} className="a-char" style={{ ["--i" as string]: start + i }}>
+            {ch}
+          </span>
+        ),
+      )}
+    </>
+  );
+}
+
+function Words({ text, start = 0 }: { text: string; start?: number }) {
+  const words = text.split(" ");
+  return (
+    <>
+      {words.map((w, i) => (
+        <span key={i}>
+          <span className="a-word" style={{ ["--i" as string]: start + i }}>{w}</span>
+          {i < words.length - 1 ? " " : null}
+        </span>
+      ))}
+    </>
+  );
+}
 
 export default function AboutPage() {
+  const facts: Array<{ v: string; label: string; flow?: boolean }> = [
+    { v: String(COUNTRY_COUNT), label: `${plural(COUNTRY_COUNT, ["страна", "страны", "стран"])} на выбор` },
+    { v: String(CITY_COUNT), label: `${plural(CITY_COUNT, ["город", "города", "городов"])} с серверами` },
+    { v: String(DEVICE_LIMIT), label: `${plural(DEVICE_LIMIT, ["устройство", "устройства", "устройств"])} на одной подписке` },
+    { v: String(PLAN_SPEED.plus), label: `Гбит/с — ширина канала на тарифе ${PLAN_CONTENT.plus.name}`, flow: true },
+    { v: String(TRIAL_DAYS), label: `${plural(TRIAL_DAYS, ["день", "дня", "дней"])} бесплатно, без карты` },
+  ];
+
   return (
-    <div className="px-page">
-      <div className="px-grid-bg" aria-hidden />
-      <SiteHeader />
-      <div className="px-header-spacer" aria-hidden />
-
-      {/* Hero */}
-      <section className="px-5 sm:px-8 pt-16 pb-16 sm:pt-24 sm:pb-24 max-w-[1200px] mx-auto w-full">
-        <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-5">
-          О компании
-        </div>
-        <h1 className="font-mts-wide text-[40px] sm:text-[56px] lg:text-[80px] leading-[1.02] tracking-tight font-bold max-w-[14ch]">
-          Безопасность —<br />не функция,<br />а архитектура
-        </h1>
-        <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.5] text-[color:var(--px-text-3)] mt-8 max-w-[58ch]">
-          Atlas Secure — международная технологическая компания со штаб-квартирой в Гонконге. Мы работаем на пересечении криптографии, сетевой инженерии и операционной безопасности.
-        </p>
-      </section>
-
-      {/* Stats */}
-      <section className="px-5 sm:px-8 pb-16 sm:pb-24 max-w-[1200px] mx-auto w-full">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          {[
-            ["2016", "Работаем с"],
-            [String(COUNTRY_COUNT), "Страны присутствия"],
-            ["24/7", "NOC мониторинг"],
-            ["∞",    "Приватность"],
-          ].map(([v, l]) => (
-            <div key={l} className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-2xl p-5 sm:p-6">
-              <div className="font-mts-wide text-[36px] sm:text-[48px] font-bold leading-none tracking-tight tabular-nums">{v}</div>
-              <div className="font-mts-wide text-[12px] tracking-[0.10em] uppercase text-[color:var(--px-text-4)] mt-3">{l}</div>
+    <AtlasShell sheetNo="18" sheetTitle="О нас">
+      <PointerDrift target=".aa-cover" />
+      <main id="main" className="a-main">
+        {/* ── 01 · Обещание ─────────────────────────────────────── */}
+        <section className="a-sheet aa-cover" data-sheet="18" data-title="О нас" aria-labelledby="aa-title">
+          <div className="aa-globe" aria-hidden>
+            <div className="aa-globe-move">
+              <svg className="aa-globe-svg" viewBox="-110 -110 220 220" focusable="false">
+                <circle r="100" className="aa-globe-rim" />
+                {[-60, -30, 0, 30, 60].map((lat) => (
+                  <ellipse
+                    key={lat}
+                    className="aa-parallel"
+                    cy={Math.round(-Math.sin((lat * Math.PI) / 180) * 100)}
+                    rx={Math.round(Math.cos((lat * Math.PI) / 180) * 100)}
+                    ry={Math.round(Math.cos((lat * Math.PI) / 180) * 16)}
+                  />
+                ))}
+                {MERIDIANS.map((k, i) => (
+                  <ellipse
+                    key={k}
+                    className={`aa-meridian a-idle${i === 0 ? " aa-meridian-lead" : ""}`}
+                    rx={Math.round(k * 100)}
+                    ry="100"
+                    style={{ ["--i" as string]: i }}
+                  />
+                ))}
+              </svg>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Principles */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[1200px] mx-auto w-full">
-        <div className="mb-12 sm:mb-16 max-w-[720px]">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Принципы</div>
-          <h2 className="font-mts-wide text-[32px] sm:text-[44px] lg:text-[56px] leading-[1.02] tracking-tight font-bold">
-            Четыре идеи<br />без компромиссов
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {PRINCIPLES.map((p) => (
-            <div key={p.n} className="px-spot bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-6 sm:p-8 hover:border-[color:var(--px-line-2)] transition-colors">
-              <div className="flex items-center gap-3 mb-6">
-                <span className="font-mts-wide text-[12px] font-semibold text-[color:var(--px-text-4)]">{p.n}</span>
-                <span className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)]">{p.eyebrow}</span>
-              </div>
-              <h3 className="font-mts-wide text-[22px] sm:text-[26px] font-bold leading-[1.2] tracking-tight mb-3">{p.t}</h3>
-              <p className="font-mts-wide text-[14px] sm:text-[15px] leading-[1.55] text-[color:var(--px-text-3)]">{p.d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Timeline */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[900px] mx-auto w-full">
-        <div className="mb-10 sm:mb-14">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Вехи</div>
-          <h2 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.02] tracking-tight font-bold">Путь компании</h2>
-        </div>
-        <ol className="relative border-l border-[color:var(--px-line)] pl-6 sm:pl-8 space-y-8">
-          {TIMELINE.map((e) => (
-            <li key={e.d} className="relative">
-              <span className="absolute -left-[29px] sm:-left-[37px] top-2 w-3 h-3 rounded-full bg-black" />
-              <div className="font-mts-wide text-[12px] tracking-[0.12em] uppercase text-[color:var(--px-text-4)] mb-1">{e.d}</div>
-              <div className="font-mts-wide text-[18px] sm:text-[20px] font-bold leading-tight mb-1.5">{e.t}</div>
-              <div className="font-mts-wide text-[14px] leading-[1.55] text-[color:var(--px-text-3)]">{e.desc}</div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      {/* Manifesto */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[900px] mx-auto w-full">
-        <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl p-8 sm:p-12 text-center">
-          <div className="font-mts-wide text-[11px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-6">Манифест</div>
-          <blockquote className="font-mts-wide text-[22px] sm:text-[28px] lg:text-[32px] leading-[1.35] tracking-tight font-medium">
-            «Шифрование — не роскошь. Это инфраструктура — такая же базовая, как электричество или вода. Мы строим трубы, а не продукты, которые через них идут».
-          </blockquote>
-          <div className="font-mts-wide text-[13px] tracking-[0.06em] text-[color:var(--px-text-4)] mt-6">— Atlas Secure</div>
-        </div>
-      </section>
-
-      {/* Registry */}
-      <section className="px-5 sm:px-8 py-16 sm:py-24 max-w-[900px] mx-auto w-full">
-        <div className="mb-10 sm:mb-14">
-          <div className="font-mts-wide text-[13px] tracking-[0.14em] uppercase text-[color:var(--px-text-4)] mb-4">Реквизиты</div>
-          <h2 className="font-mts-wide text-[32px] sm:text-[44px] leading-[1.02] tracking-tight font-bold">Кто мы — документально</h2>
-        </div>
-        <div className="bg-[color:var(--px-surface)] border border-[color:var(--px-line)] rounded-3xl overflow-hidden">
-          {REGISTRY.map(([k, v], i) => (
-            <div
-              key={k}
-              className={`flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-6 px-5 sm:px-8 py-4 sm:py-5 ${i > 0 ? "border-t border-[color:var(--px-line)]" : ""}`}
-            >
-              <div className="font-mts-wide text-[13px] text-[color:var(--px-text-4)] sm:w-[220px] shrink-0">{k}</div>
-              <div className="font-mts-wide text-[14px] sm:text-[15px] text-[color:var(--px-text)] font-medium">{v}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Final CTA */}
-      <section className="bg-[color:var(--px-accent)] text-[color:var(--px-accent-ink)] px-5 sm:px-8 py-20 sm:py-28 mx-2 sm:mx-3 mt-8 rounded-[28px] sm:rounded-[36px]">
-        <div className="max-w-[900px] mx-auto text-center">
-          <h2 className="font-mts-wide text-[36px] sm:text-[52px] lg:text-[64px] leading-[1.02] tracking-tight font-bold">
-            Построим вместе
-          </h2>
-          <p className="font-mts-wide text-[16px] sm:text-[18px] leading-[1.45] text-[color:var(--px-accent-ink)] mt-6 max-w-[46ch] mx-auto">
-            Бизнес или частный клиент — у нас есть подходящий план.
-          </p>
-          <div className="mt-10 flex flex-wrap justify-center gap-3 sm:gap-4">
-            <Link href="/pricing" className="px-btn px-btn-md px-btn-primary">
-              Тарифы
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-            </Link>
-            <Link href="/contact" className="px-btn px-btn-md px-btn-secondary" style={{ background: "rgba(0,0,0,0.08)", color: "#000" }}>
-              Связаться
-            </Link>
           </div>
-        </div>
-      </section>
 
-      {/* Footer */}
-      <SiteFooter />
-    </div>
+          <div className="a-field">
+            <h1 id="aa-title" className="aa-display" aria-label={`${HERO_1} ${HERO_2}`}>
+              <span className="aa-line" aria-hidden><Chars text={HERO_1} /></span>
+              <span className="aa-line aa-line-2" aria-hidden><Chars text={HERO_2} start={HERO_1.length} /></span>
+            </h1>
+
+            <div className="aa-cover-grid">
+              <p className="a-lead">
+                Atlas Secure — VPS-ускоритель для телефона и компьютера и выделенные серверы.
+                Здесь — во что мы верим и что можем подтвердить.
+              </p>
+              <div>
+                <div className="a-actions">
+                  <Link href="/auth" className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
+                  <Link href="/infrastructure" className="a-btn a-btn-quiet">Как устроена сеть</Link>
+                </div>
+                <p className="a-fine">Без карты. Нужна только почта.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 02 · В цифрах ─────────────────────────────────────── */}
+        <section className="a-sheet aa-facts-sheet" data-sheet="18" data-title="В цифрах" aria-labelledby="aa-facts-title">
+          <div className="a-field">
+            <h2 id="aa-facts-title" className="a-h2 a-settle">
+              <span className="a-no">02</span>atlas в цифрах
+            </h2>
+            <dl className="aa-facts">
+              {facts.map((f, i) => (
+                <div key={f.label} className="aa-fact a-settle" style={{ ["--i" as string]: i + 1 }}>
+                  {/* Линейка и знак канала — внутри dt: в <div> списка
+                      определений допустимы только dt и dd. */}
+                  <dt className="aa-fact-label">
+                    <span className="aa-rule" aria-hidden style={{ ["--i" as string]: i }} />
+                    {f.label}
+                    {f.flow ? (
+                      <span className="aa-flow" aria-hidden>
+                        <span className="aa-flow-run a-idle" />
+                      </span>
+                    ) : null}
+                  </dt>
+                  <dd className="aa-fact-v a-num a-print">{f.v}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="a-fine a-settle" style={{ ["--i" as string]: 7 }}>
+              Эти числа не пишутся руками: сайт берёт их из того же кода, что и сервис.
+            </p>
+          </div>
+        </section>
+
+        {/* ── 03 · Три правила — закреплённая сцена ─────────────── */}
+        <section className="a-sheet aa-why" data-sheet="18" data-title="Три правила" aria-labelledby="aa-why-title">
+          <div className="aa-why-stick">
+            <svg className="aa-lines a-idle" viewBox="0 0 1200 400" preserveAspectRatio="none" aria-hidden focusable="false">
+              {[60, 150, 240, 330].map((y, k) => (
+                <path
+                  key={y}
+                  d={`M0 ${y} C 300 ${y - 26 + k * 6}, 600 ${y + 30}, 900 ${y - 10} S 1150 ${y + 14}, 1200 ${y}`}
+                  vectorEffect="non-scaling-stroke"
+                />
+              ))}
+            </svg>
+            <div className="a-field">
+              <h2 id="aa-why-title" className="a-h2">
+                <span className="a-no">03</span>три правила
+              </h2>
+              <ol className="aa-rules">
+                {RULES.map((r, i) => (
+                  <li key={r.say} className="aa-rulerow">
+                    <span className="aa-rule-n a-wide" aria-hidden>{String(i + 1).padStart(2, "0")}</span>
+                    <p className="aa-say"><Words text={r.say} start={RULE_STARTS[i]} /></p>
+                    <p
+                      className="aa-note"
+                      style={{ ["--at" as string]: `${Math.round(((RULE_STARTS[i] + r.say.split(" ").length) / RULE_WORDS) * 72)}%` }}
+                    >
+                      {r.note}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 04 · Что мы делаем ────────────────────────────────── */}
+        <section className="a-sheet aa-make" data-sheet="18" data-title="Что мы делаем" aria-labelledby="aa-make-title">
+          <div className="a-field">
+            <h2 id="aa-make-title" className="a-h2 a-settle">
+              <span className="a-no">04</span>что мы делаем
+            </h2>
+            <div className="aa-make-list">
+              <div className="a-slide" style={{ ["--i" as string]: 0, ["--dir" as string]: -1 }}>
+                <Link href="/pricing" className="aa-make-row">
+                  <span className="aa-make-name">VPS-ускоритель</span>
+                  <span className="aa-make-what">
+                    Для телефона и компьютера: сайты и приложения снова открываются на полной скорости.
+                  </span>
+                  <span className="aa-make-price">
+                    от <b className="a-num">{formatRub(PLANS.basic[1])} ₽</b> в месяц
+                  </span>
+                  <span className="aa-make-sym a-print" aria-hidden>
+                    <span className="aa-make-flow a-idle" />
+                  </span>
+                </Link>
+              </div>
+              <div className="a-slide" style={{ ["--i" as string]: 1, ["--dir" as string]: 1 }}>
+                <Link href="/vds" className="aa-make-row">
+                  <span className="aa-make-name">Выделенные серверы</span>
+                  <span className="aa-make-what">
+                    Сервер целиком: железо ни с кем не делится, ширину канала выбираете сами.
+                  </span>
+                  <span className="aa-make-price">
+                    от <b className="a-num">{formatUsd(SERVER_ENTRY_USD)}</b> в месяц
+                  </span>
+                  <span className="aa-make-sym aa-make-sym-wide a-print" aria-hidden>
+                    <span className="aa-make-flow a-idle" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+            <p className="aa-more a-settle" style={{ ["--i" as string]: 4 }}>
+              Для команды — <Link href="/business">подключения по договору</Link>. Как мы обращаемся с
+              данными — <Link href="/security">безопасность</Link>.
+            </p>
+          </div>
+        </section>
+
+        {/* ── 05 · Финал ────────────────────────────────────────── */}
+        <section className="a-sheet a-plate a-final" data-sheet="18" data-title="Тарифы" aria-labelledby="aa-final-title">
+          <div className="a-field">
+            <h2 id="aa-final-title" className="a-h2">
+              <span className="a-no">05</span>
+              <Words text="выберите свой тариф" />
+            </h2>
+            <p className="a-p a-settle" style={{ ["--i" as string]: 6 }}>
+              Два тарифа, до {DEVICE_LIMIT} {plural(DEVICE_LIMIT, ["устройства", "устройств", "устройств"])} и
+              все {COUNTRY_COUNT} {plural(COUNTRY_COUNT, ["страна", "страны", "стран"])} в каждом.
+            </p>
+            <div className="a-actions a-settle" style={{ ["--i" as string]: 8 }}>
+              <Link href="/pricing" className="a-btn a-btn-invert a-idle">Посмотреть тарифы</Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    </AtlasShell>
   );
 }
