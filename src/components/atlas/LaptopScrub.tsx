@@ -11,14 +11,26 @@ import { useEffect, useRef, type CSSProperties } from "react";
  * с [data-scrub] закреплён (выше полутора окон) — прокрутка раздела; иначе
  * (телефон) — проход ноутбука через окно.
  *
+ * ПЛАВНОСТЬ (12.09.2026, «прокрутку намного мягче»). Кадр не прыгает за
+ * колесом: показанное открытие догоняет прокрутку по экспоненте, а между
+ * соседними кадрами идёт перетекание (второй кадр поверх с долей), так
+ * что 60 кадров читаются как непрерывное движение. Открытие занимает
+ * середину закрепления (OPEN_FROM…OPEN_TO): сначала заливается заголовок,
+ * в конце — свечение экрана и платформы. Доля открытия пишется в
+ * `--open` (0…1) — от неё в CSS подъём ноутбука и свечение под экраном.
+ *
  * СТОИМОСТЬ. Кадры грузятся за полтора экрана до блока и декодируются
- * заранее (img.decode), холст перерисовывается только при смене кадра и
- * только в rAF. Пока кадры едут, под холстом лежит постер. reduced-motion,
- * экономия трафика и ?static=1 — только постер (открытый ноутбук).
+ * заранее (img.decode); цикл rAF крутится только пока открытие догоняет
+ * прокрутку. reduced-motion, экономия трафика и ?static=1 — только постер
+ * (открытый ноутбук).
  */
 const N = 60;
+const OPEN_FROM = 0.1;
+const OPEN_TO = 0.7;
 const frameSrc = (k: number) => `/media/laptop/f${String(k).padStart(2, "0")}.webp`;
 const POSTER = "/media/laptop/poster.jpg";
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
 
 export default function LaptopScrub({ className }: { className: string }) {
   const box = useRef<HTMLDivElement>(null);
@@ -43,17 +55,20 @@ export default function LaptopScrub({ className }: { className: string }) {
     const frames: (HTMLImageElement | undefined)[] = new Array(N);
     const pin = host.closest<HTMLElement>("[data-scrub]");
     let started = false;
-    let drawn = -1;
+    let shown = -1; // показанная доля открытия; −1 — ещё не рисовали
+    let dirty = true;
     let raf = 0;
+    let last = 0;
 
-    const progress = () => {
+    const target = () => {
       const vh = window.innerHeight;
       if (pin && pin.offsetHeight > vh * 1.5) {
         const r = pin.getBoundingClientRect();
-        return -r.top / Math.max(1, r.height - vh);
+        const p = -r.top / Math.max(1, r.height - vh);
+        return clamp01((p - OPEN_FROM) / (OPEN_TO - OPEN_FROM));
       }
       const r = host.getBoundingClientRect();
-      return (vh * 0.9 - r.top) / (vh * 0.65);
+      return clamp01((vh * 0.9 - r.top) / (vh * 0.65));
     };
     // Ближайший уже загруженный кадр — чтобы на медленной сети не было дыр.
     const nearest = (k: number) => {
@@ -63,25 +78,52 @@ export default function LaptopScrub({ className }: { className: string }) {
       }
       return -1;
     };
-    const draw = () => {
-      raf = 0;
-      const p = Math.min(1, Math.max(0, progress()));
-      const k = nearest(Math.round(p * (N - 1)));
-      if (k < 0 || k === drawn) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(frames[k] as HTMLImageElement, 0, 0, canvas.width, canvas.height);
-      drawn = k;
+    const paint = (p: number) => {
+      const f = p * (N - 1);
+      const a = nearest(Math.floor(f));
+      if (a < 0) return;
+      const b = nearest(Math.min(N - 1, Math.ceil(f)));
+      const mix = f - Math.floor(f);
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.globalAlpha = 1;
+      ctx.drawImage(frames[a] as HTMLImageElement, 0, 0, w, h);
+      if (b >= 0 && b !== a && mix > 0.02) {
+        ctx.globalAlpha = mix;
+        ctx.drawImage(frames[b] as HTMLImageElement, 0, 0, w, h);
+        ctx.globalAlpha = 1;
+      }
+      host.style.setProperty("--open", p.toFixed(4));
       if (!host.hasAttribute("data-mode")) host.setAttribute("data-mode", "scrub");
     };
+    const frame = (now: number) => {
+      raf = 0;
+      const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
+      last = now;
+      const t = target();
+      // Первый кадр — сразу в позицию; дальше догоняем (~0,25 с до 90%).
+      const next = shown < 0 ? t : shown + (t - shown) * (1 - Math.exp(-dt * 9));
+      const settled = Math.abs(t - next) < 0.0015;
+      const p = settled ? t : next;
+      if (p !== shown || dirty) {
+        shown = p;
+        dirty = false;
+        paint(p);
+      }
+      if (!settled) raf = requestAnimationFrame(frame);
+      else last = 0;
+    };
     const tick = () => {
-      if (!raf) raf = requestAnimationFrame(draw);
+      if (!raf) raf = requestAnimationFrame(frame);
     };
     const size = () => {
-      const r = host.getBoundingClientRect();
+      // Размер раскладки, а не getBoundingClientRect: у ноутбука есть
+      // transform (подъём по --open), он не должен менять разрешение холста.
       const d = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.max(1, Math.round(r.width * d));
-      canvas.height = Math.max(1, Math.round(r.height * d));
-      drawn = -1;
+      canvas.width = Math.max(1, Math.round(host.clientWidth * d));
+      canvas.height = Math.max(1, Math.round(host.clientHeight * d));
+      dirty = true;
       tick();
     };
     const load = () => {
@@ -97,7 +139,7 @@ export default function LaptopScrub({ className }: { className: string }) {
           .decode()
           .then(() => {
             frames[k] = img;
-            drawn = -1;
+            dirty = true;
             tick();
           })
           .catch(() => {});

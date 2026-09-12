@@ -2,6 +2,7 @@ import { atlasWide } from "@/app/atlas-fonts";
 import AtlasHeader from "./AtlasHeader";
 import AtlasFooter from "./AtlasFooter";
 import MotionController from "./MotionController";
+import SmoothScroll from "./SmoothScroll";
 import Unfold from "./Unfold";
 import "@/app/atlas.css";
 
@@ -46,6 +47,7 @@ export default function AtlasShell({
       {children}
       <AtlasFooter variant={footer} />
       <MotionController />
+      <SmoothScroll />
     </div>
   );
 }

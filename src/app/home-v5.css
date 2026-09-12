@@ -445,6 +445,31 @@
   mask-composite: intersect;
 }
 .h5-laptop[data-mode="poster"] canvas { display: none; }
+/* Акцент открытия (12.09.2026). `--open` (0…1) пишет LaptopScrub уже
+   сглаженным: ноутбук поднимается навстречу и чуть вырастает, а на
+   «столе» под ним разгорается кобальтовый отсвет экрана. Кадры
+   непрозрачные (белый фон), поэтому отсвет лежит поверх и смешивается
+   умножением — на белом он голубой, на тёмном корпусе не виден.
+   Без скрипта и в постере `--open` = 1: конечный кадр. */
+.h5-laptop {
+  --open: 1;
+  transform: translateY(calc((1 - var(--open)) * 5%)) scale(calc(0.93 + 0.07 * var(--open)));
+  transform-origin: 50% 85%;
+}
+.h5-laptop::after {
+  content: "";
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  bottom: 4%;
+  height: 24%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--a-cobalt) 30%, transparent), transparent);
+  mix-blend-mode: multiply;
+  opacity: calc(var(--open) * var(--open));
+  transform: scaleX(calc(0.45 + 0.55 * var(--open)));
+  pointer-events: none;
+}
 @media (max-width: 899px) {
   .h5-laptop { width: min(100%, 520px); justify-self: center; margin-top: -0.5rem; }
 }
@@ -664,7 +689,10 @@
     animation-timeline: --h5-os;
     animation-range: entry calc(10% + var(--k) * 12%) entry calc(45% + var(--k) * 12%);
   }
-  @keyframes h5-chip { from { opacity: 0.3; transform: translateY(8px); } }
+  @keyframes h5-chip {
+    from { opacity: 0.3; transform: translateY(10px) scale(0.94); }
+    60%  { opacity: 1; transform: translateY(-2px) scale(1.03); }
+  }
   @keyframes h5-in { from { opacity: 0; } }
   @keyframes h5-out { from { opacity: 1; } }
 
@@ -764,8 +792,9 @@
     }
   }
 
-  /* 06 — заливка → ноутбук открывается (LaptopScrub по той же высоте)
-     → платформы загораются. Пустых экранов прокрутки нет. */
+  /* 06 — заливка (0–22%) → ноутбук открывается (LaptopScrub, 10–70%,
+     OPEN_FROM/OPEN_TO) → отсвет экрана → платформы загораются по одной
+     с лёгким подскоком (62–100%). Пустых экранов прокрутки нет. */
   @media (prefers-reduced-motion: no-preference) and (min-width: 900px) and (min-height: 700px) {
     html:not([data-static]) .h5-dev { padding-block: 0; }
     html:not([data-static]) .h5-dev .h5-hold { height: 220svh; view-timeline: --h5-hold block; }
@@ -780,11 +809,11 @@
     }
     html:not([data-static]) .h5-dev :is(.h5-fill, .h5-rule i) {
       animation-timeline: --h5-hold;
-      animation-range: contain 0% contain 30%;
+      animation-range: contain 0% contain 22%;
     }
     html:not([data-static]) .h5-dev :is(.h5-os li, .h5-os li::before) {
       animation-timeline: --h5-hold;
-      animation-range: contain calc(40% + var(--k) * 8%) contain calc(47% + var(--k) * 8%);
+      animation-range: contain calc(62% + var(--k) * 7%) contain calc(70% + var(--k) * 7%);
     }
     html:not([data-static]) .h5-dev .h5-laptop {
       width: min(100%, calc((100svh - var(--a-head-h) - 15rem) * 14 / 9));
