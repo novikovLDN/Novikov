@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import AtlasShell from "@/components/atlas/AtlasShell";
 import DevicesView from "./DevicesView";
 import { DEVICE_LIMIT } from "@/lib/plans";
+import { TRIAL_DAYS } from "@/lib/brand-facts";
+import { plural } from "@/lib/ru-words";
 
 /**
  * /devices — серверная обёртка.
@@ -17,9 +19,10 @@ import { DEVICE_LIMIT } from "@/lib/plans";
  * здесь только тело страницы.
  */
 export const metadata: Metadata = {
-  title: "Устройства и настройка",
+  title: "Как подключить на iPhone, Android, Windows, Mac и ТВ",
   description:
-    `Как подключить Atlas на iPhone, Android, macOS, Windows и Android TV. Одна подписка работает на ${DEVICE_LIMIT} устройствах — приложение бесплатное, ключ и QR-код выдаются в личном кабинете.`,
+    `Настройка за минуту на iPhone, iPad, Android, Mac, Windows и Android TV. Приложение бесплатное, ключ добавляется одной кнопкой или по QR-коду. ` +
+    `Одна подписка — до ${DEVICE_LIMIT} устройств, ${TRIAL_DAYS} ${plural(TRIAL_DAYS, ["день", "дня", "дней"])} бесплатно.`,
   alternates: { canonical: "/devices" },
 };
 

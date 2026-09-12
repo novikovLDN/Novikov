@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AtlasShell from "@/components/atlas/AtlasShell";
 import Icon from "@/components/pixel/Icon";
-import { DEVICE_LIMIT } from "@/lib/plans";
+import { DEVICE_LIMIT, PLANS, formatRub } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { plural } from "@/lib/ru-words";
@@ -28,9 +28,9 @@ import "./support-atlas.css";
  * Весь моушн — support-atlas.css, раздел «Движение».
  */
 export const metadata: Metadata = {
-  title: "Поддержка",
+  title: "Поддержка и помощь с настройкой",
   description:
-    "Поможем с настройкой и оплатой. Быстрее всего — в Telegram. Ответы на частые вопросы: как подключить, сколько устройств, пробный период.",
+    "Не подключается, не открывается сайт, вопрос по оплате — поможем. Быстрее всего в Telegram. Ответы на частые вопросы: как подключить, сколько устройств, пробный период, цены.",
   alternates: { canonical: "/support" },
 };
 
@@ -64,7 +64,21 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
   },
   {
     q: "Можно попробовать бесплатно?",
-    a: <>Да, {TRIAL} без карты. Не понравится — просто не продлевайте.</>,
+    a: (
+      <>
+        Да, {TRIAL} без карты — достаточно <Link href="/auth">войти по почте</Link>. Автосписаний нет:
+        не понравится — просто не продлевайте.
+      </>
+    ),
+  },
+  {
+    q: "Сколько стоит?",
+    a: (
+      <>
+        От {formatRub(PLANS.basic[1])} ₽ в месяц, при оплате за год — дешевле. Оба тарифа и цены за
+        каждый срок — на <Link href="/pricing">странице тарифов</Link>.
+      </>
+    ),
   },
   {
     q: "Сайт всё равно не открывается",

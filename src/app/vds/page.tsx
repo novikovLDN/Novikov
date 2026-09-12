@@ -12,7 +12,7 @@ import {
 } from "@/lib/servers";
 import { PLANS, formatRub } from "@/lib/plans";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
-import { plural, wordsFeminine } from "@/lib/ru-words";
+import { capitalize, plural, wordsFeminine } from "@/lib/ru-words";
 import "./vds-atlas.css";
 
 /**
@@ -33,10 +33,12 @@ import "./vds-atlas.css";
  * Весь моушн — vds-atlas.css, раздел «Движение».
  */
 export const metadata: Metadata = {
-  title: "Выделенные серверы",
+  title: `Выделенные серверы (VDS) от ${formatUsd(SERVER_ENTRY_USD)} в месяц`,
   description:
-    `Четыре конфигурации от ${formatUsd(SERVER_ENTRY_USD)} в месяц. ` +
-    "Полоса порта, память, диски и срок выдачи — числами, до заявки.",
+    `${capitalize(wordsFeminine(SERVERS.length))} ${plural(SERVERS.length, ["конфигурация", "конфигурации", "конфигураций"])} ` +
+    `выделенных серверов от ${formatUsd(SERVER_ENTRY_USD)} в месяц, порт до ${SERVER_MAX_GBPS} Гбит/с. ` +
+    "Сервер целиком ваш. Цена, память, диски и скорость порта указаны на странице, ещё до заявки.",
+  alternates: { canonical: "/vds" },
 };
 
 const HERO_1 = "выделенные серверы";
@@ -121,11 +123,11 @@ export default function VdsPage() {
             <div className="av-cover-grid">
               <div>
                 <p className="a-lead a-settle">
-                  Целый сервер под ваш проект — ни с кем его не делите. Скорость порта, память,
-                  диски и цена написаны заранее, до заявки.
+                  Сервер целиком ваш: процессор, память и порт ни с кем не делятся. Цена, скорость
+                  порта, память и диски написаны ниже — ещё до заявки.
                 </p>
                 <div className="a-actions a-settle" style={v({ "--i": 2 })}>
-                  <Link href="/contact?topic=vds" className="a-btn a-btn-primary">Обсудить конфигурацию</Link>
+                  <Link href="/contact?topic=vds" className="a-btn a-btn-primary">Подобрать сервер</Link>
                   <Link href="/pricing" className="a-btn a-btn-quiet">Тарифы ускорителя</Link>
                 </div>
                 <p className="a-fine a-settle" style={v({ "--i": 3 })}>Отвечает инженер, а не отдел продаж.</p>

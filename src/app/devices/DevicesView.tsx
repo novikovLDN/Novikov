@@ -5,6 +5,7 @@ import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import Icon, { type IconName } from "@/components/pixel/Icon";
 import { DEVICE_LIMIT } from "@/lib/plans";
+import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { plural } from "@/lib/ru-words";
 import "./devices-atlas.css";
 
@@ -169,6 +170,7 @@ const APPS: Record<Platform, AppInfo[]> = {
 };
 
 const DEVICE_WORD = plural(DEVICE_LIMIT, ["устройстве", "устройствах", "устройствах"]);
+const TRIAL = `${TRIAL_DAYS} ${plural(TRIAL_DAYS, ["день", "дня", "дней"])}`;
 
 const H1_A = "подключим";
 const H1_B = "за минуту";
@@ -398,8 +400,8 @@ export default function DevicesView({ hasSession }: { hasSession: boolean }) {
 
           <div className="ad-cover-grid">
             <p className="a-lead a-settle" style={{ ["--i" as string]: 2 }}>
-              Выберите устройство — покажем, что нажать. Одна подписка работает
-              на {DEVICE_LIMIT} {DEVICE_WORD}, приложение бесплатное.
+              Выберите устройство — покажем, что нажать. Приложение бесплатное, одна подписка
+              работает на {DEVICE_LIMIT} {DEVICE_WORD}, первые {TRIAL} — без оплаты.
             </p>
             <div className="a-actions a-settle" style={{ ["--i" as string]: 3 }}>
               <Link href="/dashboard" className="a-btn a-btn-quiet">В личный кабинет</Link>
@@ -523,10 +525,10 @@ export default function DevicesView({ hasSession }: { hasSession: boolean }) {
                 ) : signedIn === false ? (
                   <div className="ad-guest">
                     <p>
-                      Ключ выдаётся после входа — он свой у каждого аккаунта. Остальные шаги
-                      работают и без него.
+                      Ключ появится сразу после входа по почте — вместе с {TRIAL} бесплатно.
+                      Карта не нужна.
                     </p>
-                    <Link href="/auth" className="a-btn a-btn-primary">Войти и получить ключ</Link>
+                    <Link href="/auth" className="a-btn a-btn-primary">Получить ключ бесплатно</Link>
                   </div>
                 ) : signedIn === true ? (
                   <p>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AtlasShell from "@/components/atlas/AtlasShell";
 import PricingView from "./PricingView";
-import { PLANS, formatRub } from "@/lib/plans";
+import { DEVICE_LIMIT, PLANS, formatRub } from "@/lib/plans";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { COUNTRY_COUNT } from "@/lib/locations";
 import { FAQ } from "@/lib/faq";
@@ -16,14 +16,15 @@ import { FAQ } from "@/lib/faq";
  * здесь, на сервере; тело со стейтом срока — клиентский PricingView.
  */
 export const metadata: Metadata = {
-  title: "Тарифы",
+  title: `Тарифы VPS-ускорителя от ${formatRub(PLANS.basic[1])} ₽ в месяц`,
   description:
-    `Два тарифа Atlas: Basic от ${formatRub(PLANS.basic[1])} ₽ и Plus от ${formatRub(PLANS.plus[1])} ₽ в месяц. ` +
-    `Разница одна — ширина канала. ${COUNTRY_COUNT} стран на выбор, ${TRIAL_DAYS} дня бесплатно без карты, отмена в один клик.`,
+    `Basic за ${formatRub(PLANS.basic[1])} ₽ и Plus за ${formatRub(PLANS.plus[1])} ₽ в месяц, за год дешевле. ` +
+    `Отличаются только шириной канала: ${COUNTRY_COUNT} стран и до ${DEVICE_LIMIT} устройств есть в обоих. ` +
+    `${TRIAL_DAYS} дня бесплатно без карты, без автосписаний.`,
   alternates: { canonical: "/pricing" },
   openGraph: {
-    title: "Тарифы — Atlas",
-    description: `Два тарифа, разница одна — ширина канала. ${TRIAL_DAYS} дня бесплатно, без карты.`,
+    title: `Тарифы Atlas — от ${formatRub(PLANS.basic[1])} ₽ в месяц`,
+    description: `Два тарифа, отличаются только шириной канала. ${TRIAL_DAYS} дня бесплатно, без карты и без автосписаний.`,
     type: "website",
     url: "/pricing",
   },

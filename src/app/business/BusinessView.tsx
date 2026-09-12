@@ -168,7 +168,7 @@ export default function BusinessView() {
                 Расскажите про команду: вернёмся с расчётом в течение четырёх рабочих часов.
               </p>
               <div className="a-actions">
-                <a href="#request" className="a-btn a-btn-primary">Оставить заявку</a>
+                <a href="#request" className="a-btn a-btn-primary">Получить расчёт</a>
                 {/* Адрес продаж совпадает с /contact. При смене менять везде. */}
                 <a href="mailto:sales@atlas.secure" className="a-btn a-btn-quiet">sales@atlas.secure</a>
               </div>

@@ -356,7 +356,7 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
       if ((err as Error).name === "NotAllowedError") {
         setPasskeyError("");
       } else {
-        setPasskeyError("Ошибка. Попробуйте другой способ входа.");
+        setPasskeyError("Не получилось войти через Passkey. Войдите по коду из письма.");
       }
     } finally {
       setPasskeyLoading(false);
@@ -496,10 +496,10 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
       if (data.success) {
         router.push("/dashboard");
       } else {
-        setLoginError(data.error || "Ошибка входа");
+        setLoginError(data.error || "Не получилось войти. Проверьте почту и пароль.");
       }
     } catch {
-      setLoginError("Ошибка сервера. Попробуйте позже.");
+      setLoginError("Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.");
     } finally {
       setLoginLoading(false);
     }
@@ -722,7 +722,9 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                 {step === "email" && (
                   <>
                     <h1 id="au-h" className="ak-h1 au-h1">Войдите по почте</h1>
-                    <p className="au-lead">Пришлём код из 6 цифр. Нет аккаунта — создадим его сами.</p>
+                    <p className="au-lead">
+                      Пришлём код из 6 цифр. Нет аккаунта — создадим его сами и сразу включим {trialLabel} бесплатно.
+                    </p>
 
                     <form action={sendAction} className="au-form">
                       {/* Pass referral code through the form */}

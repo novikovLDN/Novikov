@@ -12,6 +12,11 @@
  * файл останется на месте.
  */
 
+import { DEVICE_LIMIT, PLANS, formatRub } from "./plans";
+import { COUNTRY_COUNT } from "./locations";
+import { SERVERS, SERVER_ENTRY_USD, formatUsd } from "./servers";
+import { capitalize, plural, wordsFeminine } from "./ru-words";
+
 export interface NavLink {
   label: string;
   href: string;
@@ -22,14 +27,18 @@ export interface NavLink {
 /** Продукты — то, что продаётся. Показываются в шапке с пояснением. */
 export const PRODUCTS: NavLink[] = [
   {
-    label: "Ускоритель",
+    label: "Тарифы",
     href: "/pricing",
-    note: "Два тарифа, 19 стран, до 14 устройств на подписке",
+    note:
+      `От ${formatRub(PLANS.basic[1])} ₽ в месяц, ${COUNTRY_COUNT} ${plural(COUNTRY_COUNT, ["страна", "страны", "стран"])}, ` +
+      `до ${DEVICE_LIMIT} ${plural(DEVICE_LIMIT, ["устройства", "устройств", "устройств"])} на подписке`,
   },
   {
     label: "Выделенные серверы",
     href: "/vds",
-    note: "Четыре ступени по ширине канала, от $300 в месяц",
+    note:
+      `${capitalize(wordsFeminine(SERVERS.length))} ${plural(SERVERS.length, ["конфигурация", "конфигурации", "конфигураций"])}, ` +
+      `от ${formatUsd(SERVER_ENTRY_USD)} в месяц`,
   },
 ];
 

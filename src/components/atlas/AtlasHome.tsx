@@ -123,7 +123,9 @@ const PROOF: { icon: IconName; t: string; d: string }[] = [
   { icon: "clock", t: `${TRIAL} бесплатно`, d: "без карты и обязательств" },
   { icon: "globe", t: `${COUNTRY_COUNT} ${COUNTRY_WORD}`, d: "смена страны в один тап" },
   { icon: "devices", t: `до ${DEVICE_LIMIT} ${DEVICE_WORD}`, d: "в одной подписке" },
-  { icon: "shield", t: `от ${formatRub(PLANS.basic[1])} ₽ в месяц`, d: "отмена в один клик" },
+  // «Без автосписаний», а не «отмена в один клик»: оплата разовая, кнопки
+  // отмены нет — продлевать нечего (COMPLIANCE-CHECK.md).
+  { icon: "shield", t: `от ${formatRub(PLANS.basic[1])} ₽ в месяц`, d: "без автосписаний" },
 ];
 
 /** 08 — возражения перед финальным призывом. Факты: оплата — экран
@@ -191,7 +193,7 @@ const OS: { icon: IconName; name: string }[] = [
 const VALUES: { icon: IconName; t: string; d: string }[] = [
   { icon: "bolt", t: "Скорость по умолчанию", d: "Сайты, видео и игры открываются сразу, где бы вы ни были." },
   { icon: "check", t: "Простота", d: "Вход по почте, ключ в кабинете, включение одним касанием." },
-  { icon: "clock", t: "Честные условия", d: `${TRIAL} бесплатно без карты, понятные цены и отмена в один клик.` },
+  { icon: "clock", t: "Честные условия", d: `${TRIAL} бесплатно без карты, понятные цены и никаких автосписаний.` },
   { icon: "lock", t: "Приватность", d: "Трафик шифруется на пути от вашего устройства до нашего сервера." },
 ];
 
@@ -454,8 +456,8 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
 
           <div className="a-field h5-plans-after">
             <p className="a-legend-note a-settle" style={{ ["--i" as string]: 4 }}>
-              В каждом тарифе — до {DEVICE_LIMIT} {DEVICE_WORD}, все {COUNTRY_COUNT} {COUNTRY_WORD} и отмена
-              в один клик. За год выходит дешевле, чем помесячно.
+              В каждом тарифе — до {DEVICE_LIMIT} {DEVICE_WORD}, все {COUNTRY_COUNT} {COUNTRY_WORD} и никаких
+              автосписаний — продлеваете, когда сами решите. За год выходит дешевле, чем помесячно.
             </p>
             {/* Выделенные серверы — карточкой с кружком в углу: переход на
                 отдельный продукт. */}

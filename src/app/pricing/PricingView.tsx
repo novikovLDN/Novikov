@@ -162,12 +162,13 @@ export default function PricingView() {
           <div className="ap-cover-grid">
             <div>
               <p className="a-lead a-settle">
-                Всё остальное одинаково: {COUNTRY_COUNT} {COUNTRY_WORD}, до {DEVICE_LIMIT} {DEVICE_WORD} на
-                подписке и отмена в один клик. Первые {TRIAL} — бесплатно, без карты.
+                {PLAN_CONTENT.basic.name} хватает для видео, сайтов и работы, {PLAN_CONTENT.plus.name} — для
+                игр и созвонов. Остальное одинаково: {COUNTRY_COUNT} {COUNTRY_WORD}, до {DEVICE_LIMIT}{" "}
+                {DEVICE_WORD} на подписке. Первые {TRIAL} бесплатно, карта не нужна.
               </p>
               <div className="a-actions a-settle" style={v({ "--i": 2 })}>
                 <Link href="/auth" className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
-                <a href="#plans" className="a-btn a-btn-quiet">Выбрать срок</a>
+                <a href="#plans" className="a-btn a-btn-quiet">Сравнить цены</a>
               </div>
             </div>
 
@@ -198,7 +199,10 @@ export default function PricingView() {
               <h2 id="ap-plans-title" className="a-h2 a-settle">
                 <span className="a-no">02</span>выберите срок
               </h2>
-              <p className="a-p a-settle" style={v({ "--i": 1 })}>Чем дольше срок, тем дешевле месяц.</p>
+              <p className="a-p a-settle" style={v({ "--i": 1 })}>
+                Чем дольше срок, тем дешевле месяц: за год {PLAN_CONTENT.basic.name} выходит{" "}
+                {formatRub(pricePerMonth("basic", 12))} ₽ в месяц вместо {formatRub(PLANS.basic[1])} ₽.
+              </p>
             </div>
 
             <div
@@ -277,7 +281,8 @@ export default function PricingView() {
           </div>
 
           <p className="ap-fine a-settle" style={v({ "--i": 6 })}>
-            Цены в рублях. Оплата сразу за весь срок, цена за месяц — для сравнения. Первые {TRIAL} бесплатно.
+            Цены в рублях. Платите один раз за весь срок, цена за месяц — для сравнения. Автосписаний нет:
+            срок закончился — подписка просто остановится.
           </p>
         </div>
       </section>
@@ -314,8 +319,8 @@ export default function PricingView() {
               `До ${DEVICE_LIMIT} ${DEVICE_WORD} на одной подписке`,
               "Историю подключений не храним",
               "Данные не продаём и не передаём",
-              "Отмена в один клик из личного кабинета",
-              "Оплата через авторизованного оператора",
+              "Без автосписаний — продлеваете, когда сами решите",
+              "Оплата через платёжного оператора, данные карты к нам не попадают",
             ].map((t, i) => (
               <li key={t} className="a-settle" style={v({ "--i": i + 1 })}>
                 <span className="ap-row">{t}</span>
@@ -358,9 +363,11 @@ export default function PricingView() {
             <span className="a-no">05</span>
             <Words text={`попробуйте ${TRIAL} бесплатно`} />
           </h2>
-          <p className="a-p a-settle" style={v({ "--i": 6 })}>Без карты. Не понравится — просто не продлевайте.</p>
+          <p className="a-p a-settle" style={v({ "--i": 6 })}>
+            Нужна только почта. Карту не просим, поэтому ничего не спишется. Понравится — выберете тариф в кабинете.
+          </p>
           <div className="a-actions a-settle" style={v({ "--i": 8 })}>
-            <Link href="/auth" className="a-btn a-btn-invert a-idle">Начать бесплатно</Link>
+            <Link href="/auth" className="a-btn a-btn-invert a-idle">Попробовать бесплатно</Link>
           </div>
         </div>
       </section>

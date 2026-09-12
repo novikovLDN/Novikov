@@ -56,7 +56,7 @@ export const SERVERS: ServerTier[] = [
   {
     id: "meridian",
     name: "Meridian",
-    role: "Один проект: панель, база, узел сети",
+    role: "Один проект: сайт, база данных, панель управления",
     usd: 300,
     portGbps: 1,
     meteredTraffic: false,
@@ -70,7 +70,7 @@ export const SERVERS: ServerTier[] = [
   {
     id: "parallel",
     name: "Parallel",
-    role: "Рабочая нагрузка под трафик",
+    role: "Проект с большим трафиком",
     usd: 550,
     portGbps: 10,
     meteredTraffic: true,
@@ -84,7 +84,7 @@ export const SERVERS: ServerTier[] = [
   {
     id: "azimuth",
     name: "Azimuth",
-    role: "Полоса без оговорок",
+    role: "Полная скорость порта без учёта трафика",
     usd: 900,
     portGbps: 10,
     meteredTraffic: false,
@@ -129,12 +129,12 @@ export function formatUsd(n: number): string {
  */
 export const GUARANTEES = {
   yes: [
-    "Полосу порта — ту, что указана у конфигурации",
+    "Скорость порта — ту, что указана у конфигурации",
     "Объём памяти и дисков",
     "Срок выдачи с момента оплаты",
   ],
   no: [
-    "Скорость до конкретного узла в чужой сети — она за пределами нашей ответственности",
+    "Скорость до чужих сайтов и серверов — она зависит от их сети, а не от нашей",
     "Работу стороннего программного обеспечения, которое вы установите",
   ],
   confirm: [

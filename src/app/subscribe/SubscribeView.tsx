@@ -405,7 +405,7 @@ function SubscribeContent() {
                       <span className="ak-status"><i />Тариф {PLAN_CONTENT[selectedPlan].name}</span>
                     </div>
                     <p className="ak-text asb-lead">
-                      Чем дольше срок — тем ниже цена за месяц. Отмена в один клик из личного кабинета.
+                      Чем дольше срок — тем ниже цена за месяц. Оплата разовая, без автосписаний.
                     </p>
                     <div className="asb-cq">
                       <Choices

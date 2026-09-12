@@ -46,7 +46,7 @@ import Icon from "@/components/pixel/Icon";
  */
 const NEEDS: Array<{ value: string; label: string }> = [
   { value: "access", label: "Подключения для сотрудников" },
-  { value: "servers", label: "Виртуальные или выделенные машины" },
+  { value: "servers", label: "Выделенные серверы" },
   { value: "both", label: "И то, и другое" },
 ];
 
@@ -318,7 +318,7 @@ export default function BusinessRequestForm() {
 
         <div className="px-form-foot">
           <button type="submit" className="a-btn a-btn-primary ab-submit" disabled={sending}>
-            {sending ? "Отправляем…" : "Отправить заявку"}
+            {sending ? "Отправляем…" : "Получить расчёт"}
             {!sending && <Icon name="arrow-right" size={16} />}
           </button>
           <p className="px-caption">

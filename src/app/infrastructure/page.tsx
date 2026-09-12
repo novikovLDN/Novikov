@@ -33,10 +33,11 @@ const COUNTRY_WORD = plural(COUNTRY_COUNT, ["страна", "страны", "с�
 const CITY_WORD = plural(CITY_COUNT, ["город", "города", "городов"]);
 
 export const metadata: Metadata = {
-  title: "Инфраструктура",
+  title: `Серверы в ${COUNTRY_COUNT} ${plural(COUNTRY_COUNT, ["стране", "странах", "странах"])}: где проходит ваш трафик`,
   description:
     `Путь трафика: ваше устройство, сервер Atlas, сайт. ${COUNTRY_COUNT} ${COUNTRY_WORD}, ` +
-    `${CITY_COUNT} ${CITY_WORD}, ширина канала до ${PLAN_SPEED.plus} Гбит/с.`,
+    `${CITY_COUNT} ${CITY_WORD}, ширина канала до ${PLAN_SPEED.plus} Гбит/с. ` +
+    "Страну выбираете сами: чем ближе сервер, тем быстрее открываются сайты.",
   alternates: { canonical: "/infrastructure" },
 };
 
@@ -143,7 +144,7 @@ export default function InfrastructurePage() {
               {COUNTRY_COUNT} {COUNTRY_WORD}, {CITY_COUNT} {CITY_WORD}
             </h2>
             <p className="a-p a-settle" style={{ ["--i" as string]: 2 }}>
-              Страну выбираете вы. Ближайший сервер — {CLOSEST.cities[0]}, примерно {CLOSEST.latencyMs} мс
+              Страну выбираете вы, и чем ближе сервер, тем быстрее открываются сайты. Ближайший — {CLOSEST.cities[0]}, примерно {CLOSEST.latencyMs} мс
               из Москвы; самый дальний — {far.cities[0]}, около {far.latencyMs} мс. Это оценки по
               расстоянию, а не замеры.
             </p>
