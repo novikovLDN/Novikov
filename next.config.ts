@@ -19,6 +19,9 @@ const hostOf = (url?: string) => {
 };
 
 const allowedOrigins = [
+  // Боевой домен сайта (Railway), 12.09.2026.
+  "qodev.dev",
+  "*.qodev.dev",
   "atlassecure.uk",
   "*.atlassecure.uk",
   "atlassecure.ru",

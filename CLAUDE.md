@@ -531,3 +531,25 @@ Lenis; возврат по «Назад» — своя позиция в session
   отзывов, счётчики цифр.
 - Каждый блок анимирован: load / scroll / hover / idle. Без исключений.
 - 3D: WebGPU + fallback, бюджет на сцену, reduced-motion всегда.
+
+## Production и Remnawave (12.09.2026)
+
+- **Боевой сайт — https://qodev.dev** (Railway, деплой из `redesign-2027` /
+  `claude/create-claude-documentation-9WUuP`). `atlassecure.uk` — другой,
+  старый сайт; проверять выкладку по нему нельзя. Новый домен сайта —
+  добавить в `allowedOrigins` в `next.config.ts`, иначе вход по коду падает (E80).
+- **Панель Remnawave 3.4.3** по публичному HTTPS (`REMNAWAVE_API_URL`,
+  по умолчанию `https://rmnw.atlassecure.ru`). Имена env не менять — прод
+  настроен под них. Ссылка подписки — только поле `subscriptionUrl` из
+  ответа панели.
+- **Источник правды — наша БД.** Любое изменение срока — событие в
+  `subscription_events` (UNIQUE(kind, source_id)) через
+  `src/lib/subscription-ledger.ts`; оплата — только `confirmPayment`
+  (`src/lib/payments.ts`). Панель приводится к БД воркером
+  (`sync-worker.ts`): живой — абсолютный PATCH ACTIVE, досрочный отзыв —
+  DISABLED, естественное истечение — ничего (панель истекает сама).
+  Никаких «+24 часа». Связь с панелью снимается только на 404 A025/A063.
+- Пользователи сайта в панели: username `ST` + 8 цифр, теги
+  `SITE_TRIAL/BASIC/PLUS`, `hwidDeviceLimit` = `DEVICE_LIMIT`.
+- Бот: `/api/bot/extend` идемпотентен по `paymentId` (или окно 120 с);
+  контракт — `SYNC_TZ.md`.
