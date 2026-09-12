@@ -1,33 +1,30 @@
 /**
- * Panel-sync audit — the single source of truth for "does this local
- * user match what the Remnawave panel actually holds?"
- *
- * Every problem class we can detect is enumerated in `AuditProblem`
- * so the UI never has to guess what "kind of broken" a user is; the
- * fix flow uses the same problem list to pick which users to touch.
- *
- * Kept in its own module so both the /api/admin/remnawave/audit
- * endpoint and the unit tests can exercise the same logic against a
- * mocked panel client.
+ * Panel-sync audit — "does this local user match what the Remnawave
+ * panel actually holds?" Read-only; the admin endpoint decides whether
+ * to repair (via syncUserToPanel).
  */
 
 import { pool } from "./db";
-import { getUser, tagForPlan, RemnawaveUser } from "./remnawave";
-import type { UserRecord } from "./store";
+import { describeRwError, getUserById, isUserGone, PanelUser, SITE_TAGS, tagForPlan } from "./remnawave";
+import { MIN_REMAINING_MS } from "./subscription-sync";
 
 export type AuditProblem =
-  /** No remnawave_user_uuid on the local row → user was never provisioned. */
+  /** Live subscription but no panel id stored → never provisioned. */
   | "no_uuid"
-  /** uuid points at a panel record that no longer exists (404 from panel). */
+  /** Stored panel id, the panel says the user does not exist (A025/A063). */
   | "missing_in_panel"
-  /** Panel didn't return a subscriptionUrl at all. */
+  /** Panel returned no subscriptionUrl. */
   | "url_missing"
-  /** Local subscription_end and panel expireAt disagree beyond tolerance. */
+  /** Live subscription, local end and panel expireAt disagree beyond tolerance. */
   | "date_drift"
-  /** Local subscription is live but panel status is not ACTIVE. */
+  /** Live subscription, panel status is not ACTIVE. */
   | "status_mismatch"
-  /** Panel tag doesn't match the local plan (e.g. panel still says TRIAL for a paid user). */
-  | "tag_mismatch";
+  /** Panel tag doesn't match the local plan (SITE_TRIAL / SITE_BASIC / SITE_PLUS). */
+  | "tag_mismatch"
+  /** Local subscription ended, the panel still serves the user. */
+  | "active_after_expiry"
+  /** The panel could not be asked (network / auth / 5xx). */
+  | "panel_error";
 
 export interface AuditRow {
   userId: string;
@@ -41,7 +38,6 @@ export interface AuditRow {
   panelStatus: string | null;
   panelSubscriptionUrl: string | null;
   problems: AuditProblem[];
-  /** Only populated when `apply=true` — result of the repair pass. */
   fixApplied?: boolean;
   fixError?: string;
   fixSummary?: string;
@@ -50,9 +46,7 @@ export interface AuditRow {
 export interface AuditReport {
   scanned: number;
   ok: number;
-  /** How many rows had at least one problem. */
   broken: number;
-  /** Applied fixes count (0 when dryRun). */
   fixed: number;
   fixFailed: number;
   byProblem: Record<AuditProblem, number>;
@@ -61,20 +55,15 @@ export interface AuditReport {
 
 /** ±2 minutes on date comparison — covers panel/local clock drift. */
 export const DATE_DRIFT_TOLERANCE_MS = 2 * 60 * 1000;
-
-/** How far back to include already-expired users in the audit. */
 const RECENT_EXPIRY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
-interface UserRow {
-  id: string;
-  email: string;
-  public_id: string | null;
+export interface AuditLocal {
   subscription_end: Date;
   subscription_plan: string | null;
-  remnawave_user_uuid: string | null;
+  panel_user_id: string | number | null;
 }
 
-function emptyByProblem(): Record<AuditProblem, number> {
+export function emptyByProblem(): Record<AuditProblem, number> {
   return {
     no_uuid: 0,
     missing_in_panel: 0,
@@ -82,65 +71,39 @@ function emptyByProblem(): Record<AuditProblem, number> {
     date_drift: 0,
     status_mismatch: 0,
     tag_mismatch: 0,
+    active_after_expiry: 0,
+    panel_error: 0,
   };
 }
 
 /**
- * Compute the audit problems for ONE local user against ONE fresh
- * panel snapshot. Pure — no DB or network access; both are injected.
- * Used by both the bulk audit endpoint and unit tests.
+ * Pure kernel: problems of ONE local user against ONE panel snapshot.
+ * `panelUser` null + `panelError` null means "the panel says: no such user".
  */
 export function diffUser(
-  local: Pick<UserRow, "subscription_end" | "subscription_plan" | "remnawave_user_uuid">,
-  panelUser: RemnawaveUser | null
-): {
-  problems: AuditProblem[];
-  panelExpireAt: string | null;
-  panelTag: string | null;
-  panelStatus: string | null;
-  panelSubscriptionUrl: string | null;
-} {
-  const problems: AuditProblem[] = [];
-
-  if (!local.remnawave_user_uuid) {
-    return {
-      problems: ["no_uuid"],
-      panelExpireAt: null,
-      panelTag: null,
-      panelStatus: null,
-      panelSubscriptionUrl: null,
-    };
-  }
-
-  if (!panelUser) {
-    return {
-      problems: ["missing_in_panel"],
-      panelExpireAt: null,
-      panelTag: null,
-      panelStatus: null,
-      panelSubscriptionUrl: null,
-    };
-  }
-
-  if (!panelUser.subscriptionUrl) {
-    problems.push("url_missing");
-  }
-
+  local: AuditLocal,
+  panelUser: PanelUser | null,
+  panelError: string | null = null,
+  now: number = Date.now()
+): { problems: AuditProblem[]; panelExpireAt: string | null; panelTag: string | null; panelStatus: string | null; panelSubscriptionUrl: string | null } {
+  const empty = { panelExpireAt: null, panelTag: null, panelStatus: null, panelSubscriptionUrl: null };
   const localEndMs = new Date(local.subscription_end).getTime();
-  const panelEndMs = new Date(panelUser.expireAt || 0).getTime();
-  if (Math.abs(localEndMs - panelEndMs) > DATE_DRIFT_TOLERANCE_MS) {
-    problems.push("date_drift");
-  }
+  const live = localEndMs - now > MIN_REMAINING_MS;
 
-  const nowMs = Date.now();
-  const localLive = localEndMs > nowMs;
-  if (localLive && panelUser.status !== "ACTIVE") {
-    problems.push("status_mismatch");
-  }
+  if (!local.panel_user_id) return { problems: live ? ["no_uuid"] : [], ...empty };
+  if (panelError) return { problems: ["panel_error"], ...empty };
+  if (!panelUser) return { problems: live ? ["missing_in_panel"] : [], ...empty };
 
-  const expectedTag = tagForPlan(local.subscription_plan);
-  if (expectedTag && (panelUser.tag ?? null) !== expectedTag) {
-    problems.push("tag_mismatch");
+  const problems: AuditProblem[] = [];
+  const panelEndMs = Date.parse(panelUser.expireAt || "");
+  if (live) {
+    if (!panelUser.subscriptionUrl) problems.push("url_missing");
+    if (!Number.isFinite(panelEndMs) || Math.abs(localEndMs - panelEndMs) > DATE_DRIFT_TOLERANCE_MS) problems.push("date_drift");
+    if (panelUser.status !== "ACTIVE") problems.push("status_mismatch");
+    const expectedTag = tagForPlan(local.subscription_plan) ?? SITE_TAGS.trial;
+    if ((panelUser.tag ?? null) !== expectedTag) problems.push("tag_mismatch");
+  } else if ((panelUser.status === "ACTIVE" || panelUser.status === "LIMITED") && panelEndMs > now) {
+    problems.push("active_after_expiry");
   }
 
   return {
@@ -152,19 +115,31 @@ export function diffUser(
   };
 }
 
-/**
- * Walk every local user with either an active-ish subscription_end
- * (up to 7 days after expiry) or a stored panel uuid, and emit a
- * per-user diff. Read-only.
- */
+/** Fetch one user's panel snapshot for diffUser. */
+export async function fetchPanelSnapshot(panelUserId: string | number | null): Promise<{ user: PanelUser | null; error: string | null }> {
+  if (!panelUserId) return { user: null, error: null };
+  const r = await getUserById(Number(panelUserId));
+  if (r.ok) return { user: r.data, error: null };
+  if (isUserGone(r)) return { user: null, error: null };
+  return { user: null, error: describeRwError(r) };
+}
+
+interface UserRow {
+  id: string;
+  email: string;
+  public_id: string | null;
+  subscription_end: Date;
+  subscription_plan: string | null;
+  panel_user_id: string | null;
+}
+
 export async function auditPanelSync(): Promise<AuditReport> {
   const cutoff = new Date(Date.now() - RECENT_EXPIRY_WINDOW_MS);
   const rows = (
     await pool.query<UserRow>(
-      `SELECT id, email, public_id, subscription_end, subscription_plan, remnawave_user_uuid
+      `SELECT id, email, public_id, subscription_end, subscription_plan, panel_user_id::text AS panel_user_id
        FROM users
-       WHERE remnawave_user_uuid IS NOT NULL
-          OR subscription_end > $1
+       WHERE panel_user_id IS NOT NULL OR subscription_end > $1
        ORDER BY subscription_end DESC`,
       [cutoff]
     )
@@ -176,35 +151,21 @@ export async function auditPanelSync(): Promise<AuditReport> {
   let broken = 0;
 
   for (const row of rows) {
-    let panelUser: RemnawaveUser | null = null;
-    // Per-row try/catch: one bad panel record (dead uuid causing a
-    // malformed URL, a transient 502, a JSON-parse error somewhere)
-    // must never take down the entire audit. Treat any throw here
-    // as "panel unreachable for this row" — the audit still runs to
-    // completion and the row shows up as `missing_in_panel`, which
-    // the fix pass then re-creates cleanly.
-    if (row.remnawave_user_uuid) {
-      try {
-        panelUser = await getUser(row.remnawave_user_uuid);
-      } catch (err) {
-        console.warn(
-          `[AUDIT] getUser threw for ${row.email} (uuid=${row.remnawave_user_uuid.slice(0, 8)}…):`,
-          err instanceof Error ? err.message : String(err)
-        );
-        panelUser = null;
-      }
+    let snap: { user: PanelUser | null; error: string | null };
+    try {
+      snap = await fetchPanelSnapshot(row.panel_user_id);
+    } catch (err) {
+      snap = { user: null, error: err instanceof Error ? err.message : String(err) };
     }
-    const diff = diffUser(row, panelUser);
-
+    const diff = diffUser(row, snap.user, snap.error);
     for (const p of diff.problems) byProblem[p] += 1;
     if (diff.problems.length === 0) ok += 1;
     else broken += 1;
-
     outRows.push({
       userId: row.id,
       email: row.email,
       publicId: row.public_id,
-      panelUuid: row.remnawave_user_uuid,
+      panelUuid: row.panel_user_id,
       localSubscriptionEnd: new Date(row.subscription_end).toISOString(),
       panelExpireAt: diff.panelExpireAt,
       localPlan: row.subscription_plan || "trial",
@@ -212,19 +173,9 @@ export async function auditPanelSync(): Promise<AuditReport> {
       panelStatus: diff.panelStatus,
       panelSubscriptionUrl: diff.panelSubscriptionUrl,
       problems: diff.problems,
+      ...(snap.error ? { fixError: snap.error } : {}),
     });
   }
 
-  return {
-    scanned: rows.length,
-    ok,
-    broken,
-    fixed: 0,
-    fixFailed: 0,
-    byProblem,
-    rows: outRows,
-  };
+  return { scanned: rows.length, ok, broken, fixed: 0, fixFailed: 0, byProblem, rows: outRows };
 }
-
-// Legacy alias so a caller doesn't have to reach for `UserRecord` here.
-export type _UserRecord = UserRecord;

@@ -18,6 +18,17 @@ export const PLANS: Record<PlanId, Record<Period, number>> = {
   plus: { 1: 349, 3: 899, 6: 1499, 12: 2599 },
 };
 
+/**
+ * Сколько дней подписки даёт оплаченный период (месяц = 30 дней) —
+ * единственный источник для обработчика оплаты. Раньше таблица была
+ * скопирована в пять файлов.
+ */
+export const PERIOD_DAYS: Record<Period, number> = { 1: 30, 3: 90, 6: 180, 12: 365 };
+
+export function periodDays(period: number): number | null {
+  return isPeriod(period) ? PERIOD_DAYS[period] : null;
+}
+
 export const PERIOD_LABEL: Record<Period, { full: string; short: string; accusative: string }> = {
   1: { full: "1 месяц", short: "1 мес", accusative: "месяц" },
   3: { full: "3 месяца", short: "3 мес", accusative: "три месяца" },

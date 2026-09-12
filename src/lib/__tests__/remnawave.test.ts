@@ -1,46 +1,28 @@
 /**
- * Contract tests for the Remnawave panel client.
- *
- * These tests document — and pin down — exactly what request bodies
- * we send to the panel, what response envelopes we accept, and how
- * the v3.x-vs-v2.x fallback shims behave. They mock global.fetch so
- * they run without a live panel.
- *
- * Two audiences:
- *   - Us, reviewing changes. If a test breaks, the contract with the
- *     panel changed and we need to think about it.
- *   - The panel side. If they add a field or move a route, the tests
- *     show them what we're actually sending.
- *
- * Every test names the specific v3.0 breaking change it exercises so
- * we can trace back to why the assertion exists.
+ * Contract tests for the Remnawave 3.4.3 client (fetch is mocked).
+ * Fixtures follow @remnawave/backend-contract 3.4.13 — see fixtures.ts.
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
-// Env is set in src/lib/__tests__/setup.ts (referenced from vitest.config.ts).
-
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
-  parseUser,
-  extractUserList,
-  clampExpireAt,
-  isOurPanelUser,
-  getUser,
-  getUserByUsername,
-  getUserByTelegramId,
-  createUserWithExpire,
-  setUserExpire,
-  encryptHappLink,
+  buildCreateUserBody,
+  createUser,
+  DEFAULT_MAINSERVER_SQUAD_UUID,
+  DEFAULT_REMNAWAVE_API_URL,
   deleteUser,
-  tagForPlan,
-  activateUser,
-  disableUser,
+  findUsersByEmail,
+  getUserById,
+  getUserByUsername,
+  isOurPanelUser,
+  isUserGone,
+  parsePanelUser,
   revokeUserSubscription,
-  syntheticTelegramId,
-  PANEL_SYNTHETIC_TG_OFFSET,
+  squadsForPlan,
+  tagForPlan,
+  updateUser,
 } from "../remnawave";
-
-// ─── fetch mock helpers ─────────────────────────────────────────
+import { DEVICE_LIMIT } from "../plans";
+import { contractUser, ERR_USER_NOT_FOUND, ERR_USERNAME_EXISTS, ERR_VALIDATION } from "./fixtures";
 
 interface MockCall {
   url: string;
@@ -50,508 +32,290 @@ interface MockCall {
 }
 
 const calls: MockCall[] = [];
-let nextResponses: Array<{ status: number; body: unknown; text?: string }> = [];
+type Queued = { status: number; body?: unknown } | { networkError: true };
+let queue: Queued[] = [];
 
 beforeEach(() => {
   calls.length = 0;
-  nextResponses = [];
+  queue = [];
   vi.spyOn(global, "fetch").mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === "string" ? input : input.toString();
-    const headers = (init?.headers as Record<string, string>) || {};
-    let parsedBody: unknown = undefined;
-    if (init?.body) {
-      try { parsedBody = JSON.parse(init.body as string); } catch { parsedBody = init.body; }
-    }
-    calls.push({ url, method: init?.method || "GET", headers, body: parsedBody });
-
-    const r = nextResponses.shift();
-    if (!r) throw new Error(`Unexpected fetch call to ${url} — no mock queued`);
-    const bodyText = r.text ?? JSON.stringify(r.body);
-    return new Response(bodyText, {
-      status: r.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    let body: unknown = undefined;
+    if (init?.body) body = JSON.parse(init.body as string);
+    calls.push({ url, method: init?.method || "GET", headers: (init?.headers as Record<string, string>) || {}, body });
+    const next = queue.shift();
+    if (!next) throw new Error(`unexpected fetch to ${url}`);
+    if ("networkError" in next) throw new TypeError("fetch failed");
+    return new Response(next.status === 204 ? null : JSON.stringify(next.body), { status: next.status, headers: { "Content-Type": "application/json" } });
   });
 });
 
-function mockOk(body: unknown) {
-  nextResponses.push({ status: 200, body });
-}
-function mockStatus(status: number, body: unknown = { message: "err" }) {
-  nextResponses.push({ status, body });
-}
+const ok = (body: unknown, status = 200) => queue.push({ status, body });
+const fail = (status: number, body: unknown) => queue.push({ status, body });
+const down = () => queue.push({ networkError: true });
 
-// ─── parseUser — v3 vs v2 envelope shapes ───────────────────────
-
-describe("parseUser (v3.0 renamed uuid→id, dropped internalSquads from body)", () => {
-  it("parses a v3.x { response: user } envelope with `id` instead of `uuid`", () => {
-    const raw = {
-      response: {
-        id: 42,                                   // v3: numeric id, uuid removed
-        shortUuid: "abc123",
-        username: "ST00000180",
-        email: "u@example.com",
-        subscriptionUrl: "https://sub.x/abc123",
-        expireAt: "2027-01-01T00:00:00.000Z",
-        trafficLimitBytes: 0,
-        userTraffic: { usedBytes: 12345 },
-        status: "ACTIVE",
-        vlessUuid: "vless-xyz",
-      },
-    };
-    const u = parseUser(raw);
-    expect(u).not.toBeNull();
-    expect(u!.uuid).toBe("42");                    // opaque handle — v3 id stringified
-    expect(u!.username).toBe("ST00000180");
-    expect(u!.email).toBe("u@example.com");
-    expect(u!.subscriptionUrl).toBe("https://sub.x/abc123");
-    expect(u!.usedTrafficBytes).toBe(12345);       // read from userTraffic.usedBytes
-    expect(u!.shortUuid).toBe("abc123");
-  });
-
-  it("parses a v2.7 { response: {...} } envelope with legacy `uuid`", () => {
-    const raw = {
-      response: {
-        uuid: "old-uuid-string",
-        shortUuid: "short",
-        username: "ST00000001",
-        email: "legacy@example.com",
-        subscriptionUrl: "https://sub.x/short",
-        expireAt: "2026-06-01T00:00:00Z",
-        trafficLimitBytes: 1000,
-        usedTrafficBytes: 500,
-        status: "ACTIVE",
-      },
-    };
-    const u = parseUser(raw);
-    expect(u!.uuid).toBe("old-uuid-string");
-    expect(u!.usedTrafficBytes).toBe(500);
-  });
-
-  it("parses a v2.x { response: { user: {...} } } envelope", () => {
-    const u = parseUser({ response: { user: { uuid: "u1", username: "n1", email: null } } });
-    expect(u!.uuid).toBe("u1");
-    expect(u!.email).toBe(null);
-  });
-
-  it("returns null when neither id nor uuid is present", () => {
-    expect(parseUser({ response: { username: "no-id" } })).toBeNull();
-    expect(parseUser({})).toBeNull();
-    expect(parseUser(null)).toBeNull();
-  });
-});
-
-// ─── extractUserList — v3 { response: { users: [...] } } shape ──
-
-describe("extractUserList (v3 list envelope)", () => {
-  it("finds users under response.users (v3.x list shape)", () => {
-    const raw = { response: { total: 2, users: [{ id: 1, username: "a" }, { id: 2, username: "b" }] } };
-    const list = extractUserList(raw);
-    expect(list).toHaveLength(2);
-    expect(list[0].uuid).toBe("1");
-    expect(list[1].username).toBe("b");
-  });
-
-  it("returns [] for empty response", () => {
-    expect(extractUserList({ response: { users: [] } })).toEqual([]);
-    expect(extractUserList(null)).toEqual([]);
-  });
-});
-
-// ─── clampExpireAt — v3 rejects past dates + our max-13-months ──
-
-describe("clampExpireAt (guards the 10-year ghost-date bug and the 'no past dates' panel validation)", () => {
-  it("returns the input unchanged when it's a legitimate future date", () => {
-    const inTwoMonths = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
-    expect(clampExpireAt(inTwoMonths)).toBe(inTwoMonths);
-  });
-
-  it("clamps past dates up to at least NOW + 30s (panel rejects strictly past)", () => {
-    const past = new Date(Date.now() - 3600_000).toISOString();
-    const clamped = new Date(clampExpireAt(past)).getTime();
-    expect(clamped).toBeGreaterThan(Date.now());
-    expect(clamped).toBeLessThan(Date.now() + 60_000);
-  });
-
-  it("caps far-future ghost dates (e.g. 2036) down to NOW + 400d", () => {
-    const ghost = new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString();
-    const clampedMs = new Date(clampExpireAt(ghost)).getTime();
-    const maxMs = Date.now() + 401 * 24 * 60 * 60 * 1000;
-    expect(clampedMs).toBeLessThan(maxMs);
-  });
-});
-
-// ─── isOurPanelUser — safety gate for the shared panel ──────────
-
-describe("isOurPanelUser (never touch panel users owned by the bot)", () => {
-  it("recognises ST00000NNN usernames as ours", () => {
-    expect(isOurPanelUser({ username: "ST00000001" })).toBe(true);
-    expect(isOurPanelUser({ username: "ST99999999" })).toBe(true);
-  });
-
-  it("refuses hex panel_id, tg_*_premium, empty and null", () => {
-    expect(isOurPanelUser({ username: "d1d1f6d4" })).toBe(false);
-    expect(isOurPanelUser({ username: "tg_12345_premium" })).toBe(false);
-    expect(isOurPanelUser({ username: "" })).toBe(false);
-    expect(isOurPanelUser({ username: null })).toBe(false);
-  });
-});
-
-// ─── getUser: GET /api/users/{id} ───────────────────────────────
-
-describe("getUser (v3 route: GET /api/users/{id})", () => {
-  it("hits /api/users/{id} with bearer auth and parses the response", async () => {
-    mockOk({ response: { id: 42, username: "ST00000180", email: null } });
-    const u = await getUser("42");
-    expect(u!.uuid).toBe("42");
-    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/42");
-    expect(calls[0].method).toBe("GET");
+describe("transport", () => {
+  it("sends Bearer token and the X-Forwarded-* headers the 3.4.3 proxy check requires", async () => {
+    ok({ response: contractUser() });
+    await getUserById(1234);
+    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/1234");
     expect(calls[0].headers.Authorization).toBe("Bearer test-token-abc");
+    expect(calls[0].headers["X-Forwarded-For"]).toBe("127.0.0.1");
+    expect(calls[0].headers["X-Forwarded-Proto"]).toBe("https");
   });
 
-  it("returns null on 404 (user gone from panel)", async () => {
-    mockStatus(404, { message: "not found" });
-    expect(await getUser("gone-uuid")).toBeNull();
-  });
-});
-
-// ─── getUserByUsername: v3 route ────────────────────────────────
-
-describe("getUserByUsername (v3 route: GET /api/users/by-username/{username})", () => {
-  it("hits /api/users/by-username/{u} and returns exact match", async () => {
-    mockOk({ response: { id: 7, username: "ST00000007", email: "a@b" } });
-    const u = await getUserByUsername("ST00000007");
-    expect(u!.username).toBe("ST00000007");
-    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/by-username/ST00000007");
+  it("omits X-Forwarded-* when REMNAWAVE_FORWARDED_HEADERS=false", async () => {
+    process.env.REMNAWAVE_FORWARDED_HEADERS = "false";
+    try {
+      ok({ response: contractUser() });
+      await getUserById(1234);
+      expect(calls[0].headers["X-Forwarded-For"]).toBeUndefined();
+    } finally {
+      delete process.env.REMNAWAVE_FORWARDED_HEADERS;
+    }
   });
 
-  it("falls through 4 path variants when panel returns 404 on first", async () => {
-    mockStatus(404);   // /by-username/ 404
-    mockStatus(404);   // /username/ 404
-    mockStatus(404);   // ?username= 404
-    mockStatus(404);   // ?search= 404
-    expect(await getUserByUsername("nobody")).toBeNull();
-    expect(calls.map((c) => c.url)).toEqual([
-      "https://rmnw.test.example/api/users/by-username/nobody",
-      "https://rmnw.test.example/api/users/username/nobody",
-      "https://rmnw.test.example/api/users?username=nobody",
-      "https://rmnw.test.example/api/users?search=nobody",
-    ]);
+  it("falls back to the production URL / squad defaults when env is unset", async () => {
+    const url = process.env.REMNAWAVE_API_URL;
+    const squad = process.env.REMNAWAVE_MAINSERVER_SQUAD_UUID;
+    delete process.env.REMNAWAVE_API_URL;
+    delete process.env.REMNAWAVE_MAINSERVER_SQUAD_UUID;
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      ok({ response: contractUser() });
+      await getUserById(1);
+      expect(calls[0].url.startsWith(DEFAULT_REMNAWAVE_API_URL)).toBe(true);
+      expect(squadsForPlan("basic")).toEqual([DEFAULT_MAINSERVER_SQUAD_UUID]);
+    } finally {
+      process.env.REMNAWAVE_API_URL = url;
+      process.env.REMNAWAVE_MAINSERVER_SQUAD_UUID = squad;
+      warn.mockRestore();
+    }
   });
 
-  it("refuses to accept a list-response user whose username does NOT exactly match (fuzzy-match guard)", async () => {
-    // Some Remnawave builds ignore the query param and return the full
-    // list. We must never adopt list[0] if it doesn't match — that was
-    // the historical bug where every user got the same panel UUID.
-    mockOk({ response: { users: [{ id: 1, username: "someoneElse" }] } });
-    mockStatus(404);
-    mockStatus(404);
-    mockStatus(404);
-    expect(await getUserByUsername("ST00000007")).toBeNull();
-  });
-});
-
-// ─── createUserWithExpire — v3 POST body shape ──────────────────
-
-describe("createUserWithExpire (v3 dropped `internalSquads`)", () => {
-  it("sends POST /api/users with activeInternalSquads only, NO internalSquads field", async () => {
-    // Adoption lookups → all 404 so we hit CREATE
-    mockStatus(404); mockStatus(404); mockStatus(404); mockStatus(404);
-    mockOk({
-      response: {
-        id: 100,
-        username: "ST00000010",
-        shortUuid: "sh10",
-        email: "u@x",
-        subscriptionUrl: "https://sub/sh10",
-        expireAt: new Date(Date.now() + 30 * 86400000).toISOString(),
-      },
-    });
-
-    const expire = new Date(Date.now() + 30 * 86400000).toISOString();
-    const rw = await createUserWithExpire("u@x", expire, "test", "ST00000010");
-
-    expect(rw!.uuid).toBe("100");
-    // The final call is the POST — find it
-    const post = calls.find((c) => c.method === "POST" && c.url.endsWith("/api/users"));
-    expect(post).toBeDefined();
-    const body = post!.body as Record<string, unknown>;
-    // MUST have activeInternalSquads
-    expect(body.activeInternalSquads).toEqual(["squad-uuid-xyz"]);
-    // MUST NOT have the removed field
-    expect("internalSquads" in body).toBe(false);
-    expect(body.username).toBe("ST00000010");
-    expect(body.email).toBe("u@x");
-    expect(body.trafficLimitStrategy).toBe("NO_RESET");
+  it("returns kind=config and sends nothing without a token", async () => {
+    const token = process.env.REMNAWAVE_API_TOKEN;
+    delete process.env.REMNAWAVE_API_TOKEN;
+    const err = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      const r = await getUserById(1);
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.kind).toBe("config");
+      expect(calls).toHaveLength(0);
+    } finally {
+      process.env.REMNAWAVE_API_TOKEN = token;
+      err.mockRestore();
+    }
   });
 
-  it("adopts an existing panel user with same username instead of duplicating", async () => {
-    mockOk({ response: { id: 55, username: "ST00000055", shortUuid: "s55", email: "e", subscriptionUrl: "u" } });
-    // PATCH for expireAt after adoption
-    mockOk({ response: { id: 55, username: "ST00000055", shortUuid: "s55", email: "e", subscriptionUrl: "u", expireAt: "2027-01-01T00:00:00Z" } });
+  it("retries GET on network errors, then reports unavailable (3 attempts)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    down();
+    down();
+    down();
+    const r = await getUserById(1234);
+    expect(calls).toHaveLength(3);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.kind).toBe("unavailable");
+    expect(isUserGone(r)).toBe(false);
+    warn.mockRestore();
+  });
 
-    const rw = await createUserWithExpire("e@x", new Date(Date.now() + 86400000).toISOString(), "d", "ST00000055");
-    expect(rw!.uuid).toBe("55");
-    // No POST /api/users at all — we adopted
-    expect(calls.filter((c) => c.method === "POST" && c.url.endsWith("/api/users")).length).toBe(0);
+  it("maps 401 to kind=auth (never 'user gone')", async () => {
+    fail(401, { statusCode: 401, message: "Unauthorized" });
+    const r = await getUserById(1234);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.kind).toBe("auth");
+    expect(isUserGone(r)).toBe(false);
   });
 });
 
-// ─── setUserExpire: v3 → v2 fallback ────────────────────────────
-
-describe("setUserExpire (v3.3.0 real contract: PATCH /api/users with {id: number} or {username})", () => {
-  it("sends `{id: <NUMBER>}` when the handle parses as a positive integer", async () => {
-    const expire = new Date(Date.now() + 86400000).toISOString();
-    mockOk({ response: { id: 42, username: "ST00000042", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
-
-    const rw = await setUserExpire("42", expire);
-    expect(rw!.uuid).toBe("42");
-    const patch = calls[0];
-    expect(patch.method).toBe("PATCH");
-    expect(patch.url).toBe("https://rmnw.test.example/api/users");
-    // Critical: id MUST be a number, not a string — panel rejects strings.
-    expect((patch.body as Record<string, unknown>).id).toBe(42);
-    expect(typeof (patch.body as Record<string, unknown>).id).toBe("number");
-    expect((patch.body as Record<string, unknown>).uuid).toBeUndefined();
+describe("parsePanelUser (contract 3.4.13 ExtendedUsersSchema)", () => {
+  it("parses the integer id, link, traffic and squads", () => {
+    const u = parsePanelUser(contractUser());
+    expect(u).not.toBeNull();
+    expect(u!.id).toBe(1234);
+    expect(u!.subscriptionUrl).toBe("https://sub.atlassecure.ru/Xk3pQ9vT2mL8nR4s");
+    expect(u!.usedTrafficBytes).toBe(1048576);
+    expect(u!.hwidDeviceLimit).toBe(14);
+    expect(u!.activeInternalSquads).toEqual([{ uuid: "squad-uuid-xyz", name: "MainServer" }]);
   });
 
-  it("falls back to `{username}` body when `{id}` PATCH returns 400", async () => {
-    const expire = new Date(Date.now() + 86400000).toISOString();
-    mockStatus(400, { message: "Validation failed", errors: [{ path: ["id"], message: "does not exist" }] });
-    mockOk({ response: { id: 55, username: "ST00000055", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
-
-    const rw = await setUserExpire("55", expire, { username: "ST00000055" });
-    expect(rw!.uuid).toBe("55");
-    expect((calls[0].body as Record<string, unknown>).id).toBe(55);
-    expect((calls[1].body as Record<string, unknown>).username).toBe("ST00000055");
-    expect(calls[1].url).toBe("https://rmnw.test.example/api/users");
+  it("rejects objects without an integer id (2.x uuid-only shape)", () => {
+    expect(parsePanelUser({ uuid: "0b5f…", username: "x" })).toBeNull();
   });
+});
 
-  it("uses `{username}` alone when the handle is not numeric (no username fallback needed)", async () => {
-    const expire = new Date(Date.now() + 86400000).toISOString();
-    mockOk({ response: { id: 88, username: "ST00000088", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
-
-    // Handle is non-numeric string like a UUID → we skip `{id}` entirely.
-    const rw = await setUserExpire("cc824ff7-2996-42db-b0c3-7f97162bda46", expire, { username: "ST00000088" });
-    expect(rw!.uuid).toBe("88");
-    expect(calls).toHaveLength(1);
-    expect((calls[0].body as Record<string, unknown>).username).toBe("ST00000088");
-    // id shouldn't be sent at all for non-numeric handles
-    expect((calls[0].body as Record<string, unknown>).id).toBeUndefined();
-  });
-
-  it("returns null and does NOT retry on real errors like 401 unauthorized", async () => {
-    mockStatus(401, { message: "unauthorized" });
-    const rw = await setUserExpire("42", new Date(Date.now() + 86400000).toISOString());
-    expect(rw).toBeNull();
+describe("GET /api/users/{id}", () => {
+  it("404 A025 → not_found and isUserGone", async () => {
+    fail(404, ERR_USER_NOT_FOUND);
+    const r = await getUserById(9999);
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.kind).toBe("not_found");
+      expect(r.errorCode).toBe("A025");
+    }
+    expect(isUserGone(r)).toBe(true);
     expect(calls).toHaveLength(1);
   });
 
-  it("passes plan tag + explicit ACTIVE status to the PATCH body when opts are provided", async () => {
-    const expire = new Date(Date.now() + 30 * 86400000).toISOString();
-    mockOk({ response: { id: 99, username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub", status: "ACTIVE", tag: "PLUS" } });
-
-    const rw = await setUserExpire("99", expire, { status: "ACTIVE", plan: "plus" });
-    expect(rw!.uuid).toBe("99");
-    const body = calls[0].body as Record<string, unknown>;
-    expect(body.id).toBe(99);
-    expect(body.status).toBe("ACTIVE");
-    expect(body.tag).toBe("PLUS");
-  });
-
-  it("omits tag when plan is not provided (renewal without plan change)", async () => {
-    const expire = new Date(Date.now() + 86400000).toISOString();
-    mockOk({ response: { id: 7, username: "u", email: null, expireAt: expire, shortUuid: "s", subscriptionUrl: "sub" } });
-
-    await setUserExpire("7", expire);
-    const body = calls[0].body as Record<string, unknown>;
-    expect("tag" in body).toBe(false);
-    expect("status" in body).toBe(false);
-  });
-
-  it("maps plan slugs to uppercase tags", () => {
-    expect(tagForPlan("trial")).toBe("TRIAL");
-    expect(tagForPlan("basic")).toBe("BASIC");
-    expect(tagForPlan("plus")).toBe("PLUS");
-    expect(tagForPlan(null)).toBeNull();
-    expect(tagForPlan("")).toBeNull();
-    expect(tagForPlan("unknown_plan")).toBeNull();
+  it("404 without an error code (e.g. a proxy page) is NOT 'user gone'", async () => {
+    fail(404, { message: "Cannot GET" });
+    const r = await getUserById(9999);
+    expect(isUserGone(r)).toBe(false);
   });
 });
 
-// ─── createUserWithExpire: plan tag on POST ─────────────────────
-
-describe("createUserWithExpire — plan tag", () => {
-  it("sends the tag field derived from the plan slug on CREATE", async () => {
-    mockStatus(404); mockStatus(404); mockStatus(404); mockStatus(404);
-    mockOk({ response: { id: 200, username: "ST00000200", email: "u@x", shortUuid: "s", subscriptionUrl: "sub", tag: "BASIC" } });
-
-    const expire = new Date(Date.now() + 30 * 86400000).toISOString();
-    await createUserWithExpire("u@x", expire, "test", "ST00000200", "basic");
-
-    const post = calls.find((c) => c.method === "POST" && c.url.endsWith("/api/users"));
-    expect(post).toBeDefined();
-    const body = post!.body as Record<string, unknown>;
-    expect(body.tag).toBe("BASIC");
-    expect(body.status).toBe("ACTIVE");
-    expect(body.trafficLimitBytes).toBe(0);
-    expect(body.trafficLimitStrategy).toBe("NO_RESET");
-    expect(body.activeInternalSquads).toEqual(["squad-uuid-xyz"]);
+describe("lookups", () => {
+  it("getUserByUsername hits /api/users/by-username/{u}", async () => {
+    ok({ response: contractUser() });
+    const r = await getUserByUsername("ST00000042");
+    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/by-username/ST00000042");
+    expect(r.ok && r.data.username).toBe("ST00000042");
   });
 
-  it("omits tag when no plan is passed (legacy call sites)", async () => {
-    mockStatus(404); mockStatus(404); mockStatus(404); mockStatus(404);
-    mockOk({ response: { id: 201, username: "ST00000201", email: "u@x", shortUuid: "s", subscriptionUrl: "sub" } });
-
-    await createUserWithExpire("u@x", new Date(Date.now() + 86400000).toISOString(), "test", "ST00000201");
-    const post = calls.find((c) => c.method === "POST" && c.url.endsWith("/api/users"));
-    const body = post!.body as Record<string, unknown>;
-    expect("tag" in body).toBe(false);
-    // status:ACTIVE is unconditional — new panel users must be active
-    expect(body.status).toBe("ACTIVE");
+  it("findUsersByEmail uses /api/users/stream?email= and keeps exact matches only", async () => {
+    ok({ response: { users: [contractUser(), contractUser({ id: 2, username: "other", email: "x@example.com" })], nextCursor: null, hasMore: false } });
+    const r = await findUsersByEmail("U@Example.com");
+    expect(calls[0].url).toContain("/api/users/stream?email=u%40example.com");
+    expect(r.ok && r.data.map((u) => u.id)).toEqual([1234]);
   });
 });
 
-// ─── syntheticTelegramId + tgId lookup ──────────────────────────
-
-describe("syntheticTelegramId (namespace 9_000_000_000+)", () => {
-  it("maps ST00000000 → 9_000_000_000 (offset floor)", () => {
-    expect(syntheticTelegramId("ST00000000")).toBe(PANEL_SYNTHETIC_TG_OFFSET);
-  });
-  it("maps ST00000123 → 9_000_000_123", () => {
-    expect(syntheticTelegramId("ST00000123")).toBe(9_000_000_123);
-  });
-  it("handles the maximum realistic 8-digit tail", () => {
-    expect(syntheticTelegramId("ST99999999")).toBe(9_099_999_999);
-  });
-  it("returns null on missing / malformed publicId", () => {
-    expect(syntheticTelegramId(null)).toBeNull();
-    expect(syntheticTelegramId(undefined)).toBeNull();
-    expect(syntheticTelegramId("")).toBeNull();
-    expect(syntheticTelegramId("panelhex")).toBeNull();
-    expect(syntheticTelegramId("ST-abc")).toBeNull();
-  });
-  it("stays well above the entire real Telegram user-id range", () => {
-    // Real Telegram ids as of 2026 fit in int64 but empirically top
-    // out around ~8B; our floor at 9B guarantees no collision.
-    expect(PANEL_SYNTHETIC_TG_OFFSET).toBeGreaterThan(8_000_000_000);
-  });
-});
-
-describe("getUserByTelegramId (GET /api/users/by-telegram-id/{tgId})", () => {
-  it("hits the panel endpoint with the tgId and returns the parsed user", async () => {
-    mockOk({ response: [{ id: 42, username: "ST00000042", email: "u@x", shortUuid: "s", subscriptionUrl: "sub", expireAt: "", telegramId: 9_000_000_042 }] });
-    const rw = await getUserByTelegramId(9_000_000_042);
-    expect(rw!.uuid).toBe("42");
-    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/by-telegram-id/9000000042");
+describe("POST /api/users", () => {
+  const body = buildCreateUserBody({
+    publicId: "ST00000042",
+    email: "u@example.com",
+    userId: "11111111-2222-3333-4444-555555555555",
+    expireAt: new Date("2026-10-12T10:00:00.000Z"),
+    plan: "basic",
+    squadUuids: ["squad-uuid-xyz"],
   });
 
-  it("returns null on 404 / no records", async () => {
-    mockStatus(404);
-    expect(await getUserByTelegramId(9_000_000_999)).toBeNull();
-  });
-
-  it("returns the first when the endpoint yields multiple (log-warns but proceeds)", async () => {
-    mockOk({
-      response: [
-        { id: 10, username: "ST00000010", email: null, shortUuid: "s10", subscriptionUrl: "sub10", expireAt: "" },
-        { id: 11, username: "ST00000011", email: null, shortUuid: "s11", subscriptionUrl: "sub11", expireAt: "" },
-      ],
+  it("builds the site body: ST username, SITE_* tag, description, device limit, no telegramId", () => {
+    expect(body).toEqual({
+      username: "ST00000042",
+      status: "ACTIVE",
+      expireAt: "2026-10-12T10:00:00.000Z",
+      email: "u@example.com",
+      description: "atlas-site:11111111-2222-3333-4444-555555555555",
+      tag: "SITE_BASIC",
+      trafficLimitBytes: 0,
+      trafficLimitStrategy: "NO_RESET",
+      hwidDeviceLimit: DEVICE_LIMIT,
+      activeInternalSquads: ["squad-uuid-xyz"],
     });
-    const rw = await getUserByTelegramId(9_000_000_010);
-    expect(rw!.uuid).toBe("10");
-  });
-});
-
-// ─── createUserWithExpire: synthetic tgId on CREATE ─────────────
-
-describe("createUserWithExpire — synthetic tgId", () => {
-  it("sends the derived synthetic telegramId when publicId is ST-prefixed", async () => {
-    mockStatus(404); mockStatus(404); mockStatus(404); mockStatus(404);
-    mockOk({ response: { id: 300, username: "ST00000300", email: "u@x", shortUuid: "s", subscriptionUrl: "sub", telegramId: 9_000_000_300 } });
-
-    await createUserWithExpire("u@x", new Date(Date.now() + 86400000).toISOString(), "test", "ST00000300", "basic");
-    const post = calls.find((c) => c.method === "POST" && c.url.endsWith("/api/users"));
-    expect(post).toBeDefined();
-    const body = post!.body as Record<string, unknown>;
-    expect(body.telegramId).toBe(9_000_000_300);
+    expect(body).not.toHaveProperty("telegramId");
+    expect(body.username).toMatch(/^[a-zA-Z0-9_-]{3,36}$/);
+    expect(body.tag).toMatch(/^[A-Z0-9_]{1,16}$/);
   });
 
-  it("leaves telegramId null when the panelId is a legacy hex form (no ST prefix)", async () => {
-    mockStatus(404); mockStatus(404); mockStatus(404); mockStatus(404);
-    mockOk({ response: { id: 301, username: "legacyhex", email: "u@x", shortUuid: "s", subscriptionUrl: "sub" } });
-
-    await createUserWithExpire("u@x", new Date(Date.now() + 86400000).toISOString(), "test", "legacyhex", "basic");
-    const post = calls.find((c) => c.method === "POST" && c.url.endsWith("/api/users"));
-    const body = post!.body as Record<string, unknown>;
-    expect(body.telegramId).toBeNull();
-  });
-});
-
-// ─── action endpoints: enable / disable / revoke ────────────────
-
-describe("action endpoints", () => {
-  it("activateUser POSTs /api/users/{uuid}/actions/enable and returns parsed user", async () => {
-    mockOk({ response: { id: 10, username: "u", email: null, expireAt: "", shortUuid: "s", subscriptionUrl: "sub", status: "ACTIVE" } });
-    const rw = await activateUser("10");
-    expect(rw!.status).toBe("ACTIVE");
+  it("201 → ok with the created user", async () => {
+    ok({ response: contractUser() }, 201);
+    const r = await createUser(body);
     expect(calls[0].method).toBe("POST");
-    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/10/actions/enable");
+    expect(calls[0].body).toEqual(body);
+    expect(r.ok && r.data.id).toBe(1234);
   });
 
-  it("disableUser POSTs /api/users/{uuid}/actions/disable and returns parsed user", async () => {
-    mockOk({ response: { id: 11, username: "u", email: null, expireAt: "", shortUuid: "s", subscriptionUrl: "sub", status: "DISABLED" } });
-    const rw = await disableUser("11");
-    expect(rw!.status).toBe("DISABLED");
-    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/11/actions/disable");
+  it("400 A019 → conflict", async () => {
+    fail(400, ERR_USERNAME_EXISTS);
+    const r = await createUser(body);
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.kind).toBe("conflict");
+      expect(r.errorCode).toBe("A019");
+    }
   });
 
-  it("revokeUserSubscription POSTs /api/users/{uuid}/actions/revoke", async () => {
-    mockOk({ response: { id: 12, username: "u", email: null, expireAt: "", shortUuid: "new-s", subscriptionUrl: "new-sub" } });
-    const rw = await revokeUserSubscription("12");
-    expect(rw!.subscriptionUrl).toBe("new-sub");
-    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/12/actions/revoke");
-  });
-
-  it("returns null when panel replies with an error", async () => {
-    mockStatus(500);
-    expect(await activateUser("x")).toBeNull();
-  });
-});
-
-// ─── encryptHappLink: v3 removed the endpoint ───────────────────
-
-describe("encryptHappLink (removed in v3.x)", () => {
-  it("returns null silently when the panel replies 404 (endpoint gone in v3)", async () => {
-    mockStatus(404);
-    expect(await encryptHappLink("https://sub/x")).toBeNull();
-  });
-
-  it("returns the deep link when the panel is still on 2.x and responds", async () => {
-    mockOk({ response: { subscriptionCryptoLink: "https://foo/token123" } });
-    const link = await encryptHappLink("https://sub/x");
-    expect(link).toBe("happ://crypto/https://foo/token123");
-  });
-
-  it("normalises a bare token to a full happ:// URL", async () => {
-    mockOk({ response: { subscriptionCryptoLink: "bare-token" } });
-    const link = await encryptHappLink("https://sub/x");
-    expect(link).toBe("happ://crypto/bare-token");
+  it("is NOT retried on a network error (no duplicate creates)", async () => {
+    down();
+    const r = await createUser(body);
+    expect(calls).toHaveLength(1);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.kind).toBe("unavailable");
   });
 });
 
-// ─── deleteUser ─────────────────────────────────────────────────
+describe("PATCH /api/users", () => {
+  it("sends {id, expireAt, status, tag} — absolute values", async () => {
+    ok({ response: contractUser() });
+    await updateUser({ id: 1234, expireAt: "2026-10-12T10:00:00.000Z", status: "ACTIVE", tag: "SITE_PLUS" });
+    expect(calls[0].method).toBe("PATCH");
+    expect(calls[0].url).toBe("https://rmnw.test.example/api/users");
+    expect(calls[0].body).toEqual({ id: 1234, expireAt: "2026-10-12T10:00:00.000Z", status: "ACTIVE", tag: "SITE_PLUS" });
+  });
 
-describe("deleteUser (v3 DELETE /api/users/{id})", () => {
-  it("hits DELETE /api/users/{id} and returns true on 200", async () => {
-    mockOk({ response: { isDeleted: true } });
-    expect(await deleteUser("42")).toBe(true);
+  it("400 validation → kind=validation with the zod details in the message", async () => {
+    fail(400, ERR_VALIDATION);
+    const r = await updateUser({ id: 1234, expireAt: "2020-01-01T00:00:00.000Z" });
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.kind).toBe("validation");
+      expect(r.message).toContain("Expiration date cannot be in the past");
+    }
+  });
+
+  it("retries on 503 and succeeds", async () => {
+    fail(503, { message: "busy" });
+    ok({ response: contractUser() });
+    const r = await updateUser({ id: 1234, status: "DISABLED" });
+    expect(calls).toHaveLength(2);
+    expect(r.ok).toBe(true);
+  });
+
+  it("refuses to send without id or username", async () => {
+    const r = await updateUser({ status: "ACTIVE" });
+    expect(r.ok).toBe(false);
+    expect(calls).toHaveLength(0);
+  });
+});
+
+describe("actions", () => {
+  it("revoke rotates the link (revokeOnlyPasswords=false by default)", async () => {
+    ok({ response: contractUser({ shortUuid: "NEWshortUuid00001", subscriptionUrl: "https://sub.atlassecure.ru/NEWshortUuid00001" }) });
+    const r = await revokeUserSubscription(1234);
+    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/1234/actions/revoke");
+    expect(calls[0].body).toEqual({ revokeOnlyPasswords: false });
+    expect(r.ok && r.data.subscriptionUrl).toContain("NEWshortUuid00001");
+  });
+
+  it("DELETE → 204 is ok", async () => {
+    queue.push({ status: 204 });
+    const r = await deleteUser(1234);
     expect(calls[0].method).toBe("DELETE");
-    expect(calls[0].url).toBe("https://rmnw.test.example/api/users/42");
+    expect(r.ok).toBe(true);
+  });
+});
+
+describe("site conventions", () => {
+  it("maps plans to SITE_* tags", () => {
+    expect(tagForPlan("trial")).toBe("SITE_TRIAL");
+    expect(tagForPlan("basic")).toBe("SITE_BASIC");
+    expect(tagForPlan("PLUS")).toBe("SITE_PLUS");
+    expect(tagForPlan("none")).toBeNull();
   });
 
-  it("returns false on 404", async () => {
-    mockStatus(404);
-    expect(await deleteUser("gone")).toBe(false);
+  it("isOurPanelUser: SITE_* tag or ST username; a legacy tag alone is not proof", () => {
+    expect(isOurPanelUser({ username: "anything", tag: "SITE_PLUS" })).toBe(true);
+    expect(isOurPanelUser({ username: "ST00000042", tag: "BASIC" })).toBe(true);
+    expect(isOurPanelUser({ username: "ST00000042", tag: null })).toBe(true);
+    expect(isOurPanelUser({ username: "tg_12345", tag: "BASIC" })).toBe(false);
+    expect(isOurPanelUser({ username: "a1b2c3d4", tag: null })).toBe(false);
   });
+
+  it("per-plan squads override the main squad only when set", () => {
+    expect(squadsForPlan("plus")).toEqual(["squad-uuid-xyz"]);
+    process.env.REMNAWAVE_SQUAD_PLUS = "plus-1,plus-2";
+    try {
+      expect(squadsForPlan("plus")).toEqual(["plus-1", "plus-2"]);
+      expect(squadsForPlan("basic")).toEqual(["squad-uuid-xyz"]);
+    } finally {
+      delete process.env.REMNAWAVE_SQUAD_PLUS;
+    }
+  });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
 });

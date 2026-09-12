@@ -11,7 +11,9 @@ type AuditProblem =
   | "url_missing"
   | "date_drift"
   | "status_mismatch"
-  | "tag_mismatch";
+  | "tag_mismatch"
+  | "active_after_expiry"
+  | "panel_error";
 
 interface AuditRow {
   userId: string;
@@ -49,6 +51,8 @@ const PROBLEM_LABEL: Record<AuditProblem, string> = {
   date_drift: "дата не совпадает",
   status_mismatch: "статус не ACTIVE",
   tag_mismatch: "тег не равен тарифу",
+  active_after_expiry: "работает после окончания",
+  panel_error: "панель не ответила",
 };
 
 /** Тон класса проблемы: потерянные — красный, расхождения — внимание. */
@@ -59,6 +63,8 @@ const PROBLEM_TONE: Record<AuditProblem, "off" | "warn" | "mute"> = {
   date_drift: "warn",
   status_mismatch: "warn",
   tag_mismatch: "mute",
+  active_after_expiry: "off",
+  panel_error: "warn",
 };
 
 /**

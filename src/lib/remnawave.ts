@@ -1,837 +1,754 @@
-import { TRIAL_DAYS } from "./brand-facts";
 /**
- * Remnawave API client.
+ * Remnawave 3.4.3 API client.
  *
- * Endpoints:
- *   POST   /api/users
- *   GET    /api/users/{uuid}
- *   GET    /api/users (paginated list)
- *   PATCH  /api/users           — v2.x: body carries { uuid, ... }
- *   PATCH  /api/users/{uuid}    — pre-v2.x fallback
- *   DELETE /api/users/{uuid}
- *   POST   /api/system/encrypt-happ-crypto-link
+ * Contract verified against the backend source at tag 3.4.3
+ * (commit f8ad8ad3, contract package @remnawave/backend-contract 3.4.13):
  *
- * Auth: Bearer REMNAWAVE_API_TOKEN.
- * Squad UUID for MainServer: REMNAWAVE_MAINSERVER_SQUAD_UUID.
+ *   - Auth: `Authorization: Bearer <API token>`.
+ *   - Every request must carry `X-Forwarded-For` and
+ *     `X-Forwarded-Proto: https` unless the panel runs with
+ *     NODE_ENV=development — otherwise the panel destroys the socket
+ *     without an HTTP answer (src/common/middlewares/proxy-check.middleware.ts).
+ *     Controlled by REMNAWAVE_FORWARDED_HEADERS (default on).
+ *   - Users are identified by an integer `id`. There is no user `uuid`
+ *     since 3.0.0. All `/api/users/{id}` routes take the number.
+ *   - PATCH /api/users takes `id` (number) or `username`; `status` only
+ *     ACTIVE | DISABLED; `expireAt` must be in the future.
+ *   - Lookups: GET /api/users/by-username/{u}, GET /api/users/stream?email=…
+ *     (`by-email`, `by-telegram-id`, `?search=` do not exist in 3.x).
+ *   - Errors: `{ message, errorCode }` or 400 `{ message: "Validation failed", errors }`.
  *
- * Stable identification: every local user has a unique 8-char hex
- * `panel_id` column. We send it to the panel as `username`. The same
- * panel_id is used for lookups, so a re-run of any provisioning flow
- * adopts the existing panel user instead of creating a duplicate.
+ * Every function returns a typed RwResult — callers must distinguish
+ * "the panel says this user does not exist" (not_found) from "we could
+ * not ask" (unavailable / auth / server). Only the former may ever lead
+ * to wiping a stored panel link.
  */
 
-const API_URL = (process.env.REMNAWAVE_API_URL || "https://rmnw.atlassecure.ru").replace(/\/+$/, "");
-const API_TOKEN = process.env.REMNAWAVE_API_TOKEN || "";
-const MAIN_SQUAD = process.env.REMNAWAVE_MAINSERVER_SQUAD_UUID || "2c8eba36-6e74-45b1-af5e-54ea0e65e19d";
+import { TRIAL_DAYS } from "./brand-facts";
+import { DEVICE_LIMIT } from "./plans";
 
-const REQUEST_TIMEOUT_MS = 10000;
+// ─── Error codes (libs/contract/constants/errors/errors.ts @ 3.4.3) ──
+
+export const PANEL_ERROR = {
+  UNAUTHORIZED: "A003",
+  USERNAME_EXISTS: "A019",
+  SHORT_UUID_EXISTS: "A020",
+  USER_NOT_FOUND: "A025",
+  ALREADY_DISABLED: "A029",
+  ALREADY_ENABLED: "A030",
+  USERS_NOT_FOUND: "A062",
+  USER_NOT_FOUND_BY_PARAMS: "A063",
+  FORBIDDEN: "A068",
+  HWID_LIMIT: "A099",
+  HWID_DEVICE_NOT_FOUND: "A204",
+} as const;
+
+// ─── Types ───────────────────────────────────────────────────────
+
+export type PanelStatus = "ACTIVE" | "DISABLED" | "LIMITED" | "EXPIRED";
+
+export type RwErrorKind =
+  | "not_found"
+  | "conflict"
+  | "validation"
+  | "auth"
+  | "unavailable"
+  | "server"
+  | "config";
+
+export interface RwError {
+  ok: false;
+  kind: RwErrorKind;
+  status: number | null;
+  errorCode: string | null;
+  message: string;
+  method: string;
+  path: string;
+}
+
+export interface RwOk<T> {
+  ok: true;
+  data: T;
+  status: number;
+}
+
+export type RwResult<T> = RwOk<T> | RwError;
+
+export interface PanelUser {
+  id: number;
+  username: string;
+  shortUuid: string;
+  status: PanelStatus | string;
+  expireAt: string;
+  subscriptionUrl: string;
+  email: string | null;
+  telegramId: number | null;
+  description: string | null;
+  tag: string | null;
+  hwidDeviceLimit: number | null;
+  trafficLimitBytes: number;
+  trafficLimitStrategy: string | null;
+  usedTrafficBytes: number;
+  lifetimeUsedTrafficBytes: number;
+  onlineAt: string | null;
+  firstConnectedAt: string | null;
+  subRevokedAt: string | null;
+  createdAt: string | null;
+  activeInternalSquads: Array<{ uuid: string; name: string }>;
+}
+
+export interface CreateUserBody {
+  username: string;
+  status: "ACTIVE";
+  expireAt: string;
+  email: string | null;
+  description: string;
+  tag: string | null;
+  trafficLimitBytes: number;
+  trafficLimitStrategy: "NO_RESET";
+  hwidDeviceLimit: number;
+  activeInternalSquads: string[];
+}
+
+export interface UpdateUserBody {
+  id?: number;
+  username?: string;
+  status?: "ACTIVE" | "DISABLED";
+  expireAt?: string;
+  tag?: string | null;
+  description?: string | null;
+  email?: string | null;
+  hwidDeviceLimit?: number | null;
+  trafficLimitBytes?: number;
+  activeInternalSquads?: string[];
+}
+
+export interface HwidDevice {
+  hwid: string;
+  userId: number;
+  platform: string | null;
+  osVersion: string | null;
+  deviceModel: string | null;
+  userAgent: string | null;
+  requestIp: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
+export interface IpJobResult {
+  isCompleted: boolean;
+  isFailed: boolean;
+  progress: unknown;
+  result: {
+    userId: number | string;
+    nodes: Array<{
+      nodeUuid: string;
+      nodeName: string;
+      countryCode: string | null;
+      ips: Array<{ ip: string; lastSeen: string | null }>;
+    }>;
+  } | null;
+}
+
+export interface PanelNode {
+  uuid: string;
+  name: string;
+  address: string | null;
+  countryCode: string | null;
+  isConnected: boolean;
+  isDisabled: boolean;
+  isConnecting: boolean;
+  lastStatusMessage: string | null;
+  usersOnline: number | null;
+  trafficUsedBytes: number | null;
+  xrayUptime: string | number | null;
+  versions: { xray: string | null; node: string | null } | null;
+}
+
+// ─── Config ──────────────────────────────────────────────────────
+
+/** Production defaults — kept on purpose (owner, 12.09.2026): Railway is configured with these. */
+export const DEFAULT_REMNAWAVE_API_URL = "https://rmnw.atlassecure.ru";
+export const DEFAULT_MAINSERVER_SQUAD_UUID = "2c8eba36-6e74-45b1-af5e-54ea0e65e19d";
+
+export interface RemnawaveConfig {
+  apiUrl: string;
+  token: string;
+  /** Squad(s) every site user gets unless a per-plan override is set. */
+  mainSquadUuids: string[];
+  /** Optional per-plan overrides (REMNAWAVE_SQUAD_TRIAL/BASIC/PLUS). */
+  planSquads: Partial<Record<"trial" | "basic" | "plus", string[]>>;
+  forwardedHeaders: boolean;
+  /** Token present — URL always has a value (env or default). */
+  isConfigured: boolean;
+  /** Names of required env vars that are missing. */
+  missing: string[];
+}
+
+const warnedDefaults = new Set<string>();
+function warnDefaultOnce(name: string, value: string) {
+  if (warnedDefaults.has(name)) return;
+  warnedDefaults.add(name);
+  console.warn(`[REMNAWAVE] ${name} is not set — using default ${value}`);
+}
+
+function csv(v: string | undefined): string[] {
+  return (v || "").split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+/**
+ * Read at call time (not at module load) so tests and hot reloads see
+ * the current env. Env names are the ones production already uses;
+ * defaults are the production values and log a one-time warning.
+ */
+export function getRemnawaveConfig(): RemnawaveConfig {
+  let apiUrl = (process.env.REMNAWAVE_API_URL || "").trim().replace(/\/+$/, "");
+  if (!apiUrl) {
+    apiUrl = DEFAULT_REMNAWAVE_API_URL;
+    warnDefaultOnce("REMNAWAVE_API_URL", apiUrl);
+  }
+  const token = (process.env.REMNAWAVE_API_TOKEN || "").trim();
+  let mainSquadUuids = csv(process.env.REMNAWAVE_MAINSERVER_SQUAD_UUID);
+  if (mainSquadUuids.length === 0) {
+    mainSquadUuids = [DEFAULT_MAINSERVER_SQUAD_UUID];
+    warnDefaultOnce("REMNAWAVE_MAINSERVER_SQUAD_UUID", DEFAULT_MAINSERVER_SQUAD_UUID);
+  }
+  const planSquads: RemnawaveConfig["planSquads"] = {};
+  for (const plan of ["trial", "basic", "plus"] as const) {
+    const list = csv(process.env[`REMNAWAVE_SQUAD_${plan.toUpperCase()}`]);
+    if (list.length > 0) planSquads[plan] = list;
+  }
+  const fh = (process.env.REMNAWAVE_FORWARDED_HEADERS ?? "true").trim().toLowerCase();
+  const forwardedHeaders = !["0", "false", "no", "off"].includes(fh);
+  const missing: string[] = [];
+  if (!token) missing.push("REMNAWAVE_API_TOKEN");
+  return { apiUrl, token, mainSquadUuids, planSquads, forwardedHeaders, isConfigured: missing.length === 0, missing };
+}
+
+/** Squads for a plan: per-plan override if configured, else the main squad. */
+export function squadsForPlan(plan: string | null | undefined, cfg: RemnawaveConfig = getRemnawaveConfig()): string[] {
+  const key = (plan || "trial").toLowerCase() as "trial" | "basic" | "plus";
+  return cfg.planSquads[key] ?? cfg.mainSquadUuids;
+}
+
+/** True when squads differ per plan — then a plan change must move the user between squads. */
+export function hasPerPlanSquads(cfg: RemnawaveConfig = getRemnawaveConfig()): boolean {
+  return Object.keys(cfg.planSquads).length > 0;
+}
+
+let lastConfigErrorLogAt = 0;
+function logConfigError(msg: string) {
+  // Loud but not flooding: at most once per 30 s per process.
+  const now = Date.now();
+  if (now - lastConfigErrorLogAt < 30_000) return;
+  lastConfigErrorLogAt = now;
+  console.error(`[REMNAWAVE] CONFIG ERROR: ${msg}`);
+}
+
+// ─── Transport ───────────────────────────────────────────────────
+
+export const REQUEST_TIMEOUT_MS = 5_000;
 const MAX_RETRIES = 2;
 
-let lastRwError: string | null = null;
-export function getLastRwError(): string | null { return lastRwError; }
+interface RequestOptions<T> {
+  body?: unknown;
+  /** Map the parsed JSON body (null for 204) to the result, or null if the shape is wrong. */
+  parse: (json: unknown) => T | null;
+  /** Default: true for GET/PATCH, false otherwise. */
+  retry?: boolean;
+}
+
+function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function errorKindFor(status: number, errorCode: string | null): RwErrorKind {
+  if (status === 401 || status === 403) return "auth";
+  if (status === 404) return "not_found";
+  if (status === 409) return "conflict";
+  if (
+    errorCode === PANEL_ERROR.USERNAME_EXISTS ||
+    errorCode === PANEL_ERROR.SHORT_UUID_EXISTS ||
+    errorCode === "A021"
+  ) {
+    return "conflict";
+  }
+  if (status === 400 || status === 422) return "validation";
+  return "server";
+}
+
+function extractErrorInfo(json: unknown, fallbackText: string): { errorCode: string | null; message: string } {
+  if (json && typeof json === "object") {
+    const o = json as Record<string, unknown>;
+    const code = typeof o.errorCode === "string" ? o.errorCode : null;
+    let message = typeof o.message === "string" ? o.message : "";
+    if (Array.isArray(o.errors) && o.errors.length > 0) {
+      const details = o.errors
+        .slice(0, 5)
+        .map((e) => {
+          if (e && typeof e === "object") {
+            const eo = e as Record<string, unknown>;
+            const p = Array.isArray(eo.path) ? eo.path.join(".") : "";
+            return `${p ? `${p}: ` : ""}${typeof eo.message === "string" ? eo.message : JSON.stringify(e)}`;
+          }
+          return String(e);
+        })
+        .join("; ");
+      message = message ? `${message} (${details})` : details;
+    }
+    return { errorCode: code, message: message || fallbackText.slice(0, 200) };
+  }
+  return { errorCode: null, message: fallbackText.slice(0, 200) };
+}
+
+async function request<T>(method: string, path: string, opts: RequestOptions<T>): Promise<RwResult<T>> {
+  const cfg = getRemnawaveConfig();
+  if (!cfg.isConfigured) {
+    const message = `missing env: ${cfg.missing.join(", ")}`;
+    logConfigError(`${message} — ${method} ${path} not sent`);
+    return { ok: false, kind: "config", status: null, errorCode: null, message, method, path };
+  }
+
+  const url = `${cfg.apiUrl}${path.startsWith("/") ? path : `/${path}`}`;
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${cfg.token}`,
+    Accept: "application/json",
+  };
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+  if (cfg.forwardedHeaders) {
+    headers["X-Forwarded-For"] = "127.0.0.1";
+    headers["X-Forwarded-Proto"] = "https";
+  }
+
+  const retry = opts.retry ?? (method === "GET" || method === "PATCH");
+  const attempts = retry ? MAX_RETRIES + 1 : 1;
+  let last: RwError = { ok: false, kind: "unavailable", status: null, errorCode: null, message: "not attempted", method, path };
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method,
+        headers,
+        body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+        signal: ctrl.signal,
+      });
+    } catch (err) {
+      clearTimeout(timer);
+      const aborted = err instanceof Error && err.name === "AbortError";
+      last = {
+        ok: false,
+        kind: "unavailable",
+        status: null,
+        errorCode: null,
+        message: aborted ? `timeout after ${REQUEST_TIMEOUT_MS}ms` : `network error: ${err instanceof Error ? err.message : String(err)}`,
+        method,
+        path,
+      };
+      if (attempt < attempts - 1) await sleep(300 * 2 ** attempt);
+      continue;
+    }
+    clearTimeout(timer);
+
+    const text = res.status === 204 ? "" : await res.text().catch(() => "");
+    let json: unknown = null;
+    if (text) {
+      try {
+        json = JSON.parse(text);
+      } catch {
+        json = null;
+      }
+    }
+
+    if (res.ok) {
+      const data = opts.parse(json);
+      if (data === null) {
+        return {
+          ok: false,
+          kind: "server",
+          status: res.status,
+          errorCode: null,
+          message: `unexpected response shape: ${text.slice(0, 200)}`,
+          method,
+          path,
+        };
+      }
+      return { ok: true, data, status: res.status };
+    }
+
+    const { errorCode, message } = extractErrorInfo(json, text);
+    last = { ok: false, kind: errorKindFor(res.status, errorCode), status: res.status, errorCode, message, method, path };
+    // Only server-side failures are worth retrying; a 4xx will not change.
+    if (res.status < 500) return last;
+    if (attempt < attempts - 1) await sleep(300 * 2 ** attempt);
+  }
+
+  if (last.kind === "server" || last.kind === "unavailable") {
+    console.warn(`[REMNAWAVE] ${method} ${path} failed after ${attempts} attempt(s): ${last.kind} ${last.status ?? "-"} ${last.message}`);
+  }
+  return last;
+}
+
+/** Human-readable one-liner for logs and admin UI. */
+export function describeRwError(e: RwError): string {
+  return `${e.method} ${e.path} → ${e.kind}${e.status ? ` ${e.status}` : ""}${e.errorCode ? ` ${e.errorCode}` : ""}: ${e.message}`;
+}
 
 /**
- * Plan → panel tag map.
- *
- * Remnawave 3.x `tag` field is `^[A-Z0-9_]+$`, max 16 chars. Setting
- * it means the admin sees "TRIAL / BASIC / PLUS" in the panel next to
- * every user — no more guessing which local plan a panel record maps
- * to. Only three values so the mapping is exhaustive.
+ * True only when the panel positively said the user does not exist.
+ * This is the ONE condition under which a stored panel link may be
+ * wiped. Network errors, auth errors, 5xx and validation errors never
+ * qualify.
  */
-const PLAN_TAG: Record<string, string> = {
-  trial: "TRIAL",
-  basic: "BASIC",
-  plus: "PLUS",
-};
+export function isUserGone(r: RwResult<unknown>): boolean {
+  return (
+    !r.ok &&
+    r.kind === "not_found" &&
+    (r.errorCode === PANEL_ERROR.USER_NOT_FOUND || r.errorCode === PANEL_ERROR.USER_NOT_FOUND_BY_PARAMS)
+  );
+}
 
-/**
- * Panel-visible status of a user account.
- *
- * The panel manages EXPIRED / LIMITED transitions internally (once
- * expireAt or trafficLimitBytes is crossed) — PATCH /api/users only
- * accepts ACTIVE | DISABLED as an operator-driven state. That's why
- * we use one of those two here.
- */
-export type RemnawaveStatus = "ACTIVE" | "DISABLED" | "LIMITED" | "EXPIRED";
+// ─── Parsing ─────────────────────────────────────────────────────
+
+function str(v: unknown): string | null {
+  return typeof v === "string" ? v : null;
+}
+function num(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string" && v.trim() !== "" && Number.isFinite(Number(v))) return Number(v);
+  return null;
+}
+
+/** Parse one user object (the `response` of any user route, or a stream item). */
+export function parsePanelUser(raw: unknown): PanelUser | null {
+  if (!raw || typeof raw !== "object") return null;
+  const u = raw as Record<string, unknown>;
+  const id = num(u.id);
+  const username = str(u.username);
+  if (id === null || !Number.isSafeInteger(id) || !username) return null;
+  const traffic = (u.userTraffic && typeof u.userTraffic === "object" ? u.userTraffic : {}) as Record<string, unknown>;
+  const squads = Array.isArray(u.activeInternalSquads)
+    ? u.activeInternalSquads
+        .filter((s): s is Record<string, unknown> => !!s && typeof s === "object")
+        .map((s) => ({ uuid: str(s.uuid) || "", name: str(s.name) || "" }))
+    : [];
+  return {
+    id,
+    username,
+    shortUuid: str(u.shortUuid) || "",
+    status: str(u.status) || "",
+    expireAt: str(u.expireAt) || "",
+    subscriptionUrl: str(u.subscriptionUrl) || "",
+    email: str(u.email),
+    telegramId: num(u.telegramId),
+    description: str(u.description),
+    tag: str(u.tag),
+    hwidDeviceLimit: num(u.hwidDeviceLimit),
+    trafficLimitBytes: num(u.trafficLimitBytes) ?? 0,
+    trafficLimitStrategy: str(u.trafficLimitStrategy),
+    usedTrafficBytes: num(traffic.usedTrafficBytes) ?? 0,
+    lifetimeUsedTrafficBytes: num(traffic.lifetimeUsedTrafficBytes) ?? 0,
+    onlineAt: str(traffic.onlineAt),
+    firstConnectedAt: str(traffic.firstConnectedAt),
+    subRevokedAt: str(u.subRevokedAt),
+    createdAt: str(u.createdAt),
+    activeInternalSquads: squads,
+  };
+}
+
+function responseOf(json: unknown): unknown {
+  if (json && typeof json === "object" && "response" in json) return (json as { response: unknown }).response;
+  return undefined;
+}
+
+const parseUserEnvelope = (json: unknown) => parsePanelUser(responseOf(json));
+
+function parseHwidDevice(raw: unknown): HwidDevice | null {
+  if (!raw || typeof raw !== "object") return null;
+  const d = raw as Record<string, unknown>;
+  const hwid = str(d.hwid);
+  if (!hwid) return null;
+  return {
+    hwid,
+    userId: num(d.userId) ?? 0,
+    platform: str(d.platform),
+    osVersion: str(d.osVersion),
+    deviceModel: str(d.deviceModel),
+    userAgent: str(d.userAgent),
+    requestIp: str(d.requestIp),
+    createdAt: str(d.createdAt),
+    updatedAt: str(d.updatedAt),
+  };
+}
+
+function parseHwidList(json: unknown): { total: number; devices: HwidDevice[] } | null {
+  const r = responseOf(json);
+  if (!r || typeof r !== "object") return null;
+  const o = r as Record<string, unknown>;
+  const devices = Array.isArray(o.devices) ? o.devices.map(parseHwidDevice).filter((d): d is HwidDevice => !!d) : [];
+  return { total: num(o.total) ?? devices.length, devices };
+}
+
+function parseNode(raw: unknown): PanelNode | null {
+  if (!raw || typeof raw !== "object") return null;
+  const n = raw as Record<string, unknown>;
+  const uuid = str(n.uuid);
+  if (!uuid) return null;
+  const v = n.versions && typeof n.versions === "object" ? (n.versions as Record<string, unknown>) : null;
+  return {
+    uuid,
+    name: str(n.name) || "",
+    address: str(n.address),
+    countryCode: str(n.countryCode),
+    isConnected: n.isConnected === true,
+    isDisabled: n.isDisabled === true,
+    isConnecting: n.isConnecting === true,
+    lastStatusMessage: str(n.lastStatusMessage),
+    usersOnline: num(n.usersOnline),
+    trafficUsedBytes: num(n.trafficUsedBytes),
+    xrayUptime: (typeof n.xrayUptime === "string" || typeof n.xrayUptime === "number") ? n.xrayUptime : null,
+    versions: v ? { xray: str(v.xray), node: str(v.node) } : null,
+  };
+}
+
+// ─── Site conventions ────────────────────────────────────────────
+
+/** Tags of site-issued panel users (owner decision 12.09.2026). */
+export const SITE_TAGS = {
+  trial: "SITE_TRIAL",
+  basic: "SITE_BASIC",
+  plus: "SITE_PLUS",
+} as const;
+export const ALL_SITE_TAGS: string[] = Object.values(SITE_TAGS);
+
+/** Tags the site wrote before 12.09.2026 — still recognised during migration. */
+export const LEGACY_SITE_TAGS = ["TRIAL", "BASIC", "PLUS"] as const;
 
 export function tagForPlan(plan: string | null | undefined): string | null {
   if (!plan) return null;
-  return PLAN_TAG[plan.toLowerCase()] ?? null;
+  const key = plan.toLowerCase() as keyof typeof SITE_TAGS;
+  return SITE_TAGS[key] ?? null;
 }
 
-/**
- * Synthetic-Telegram-ID namespace.
- *
- * Remnawave 3.x exposes `GET /api/users/by-telegram-id/{tgId}` — a
- * lookup that reliably returns exactly ONE record when the tgId is
- * unique per user. We piggy-back on it: at CREATE time we set
- * `telegramId = 9_000_000_000 + public_id_num` on every panel user
- * the site provisions, so no matter what happens to the panel's
- * `uuid` (integer PK renamed, migration, …) we can always look our
- * user back up by that synthetic id and get the freshest handles.
- *
- * The offset — 9 billion — lives above the entire real Telegram
- * user-id range (~2.1B for legacy int32, well below 9e9 even for
- * modern int64 ids), so a synthetic id will never collide with a
- * real Telegram user's id that a person separately linked. If the
- * real Telegram-bot integration later assigns a genuine tgId to
- * the same panel user, it'll overwrite ours — that's the correct
- * outcome: the real link wins.
- */
-export const PANEL_SYNTHETIC_TG_OFFSET = 9_000_000_000;
+const PANEL_USERNAME_RE = /^[a-zA-Z0-9_-]{3,36}$/;
+const SITE_USERNAME_RE = /^ST\d+$/;
 
 /**
- * Derive the synthetic tgId from our public_id ("ST00000123" → 9_000_000_123).
- * Returns null if the input isn't a well-formed ST-prefixed id.
+ * Strict ownership check. The panel is shared with the Telegram bot
+ * service, so we must never modify or delete panel users that are not
+ * ours. A panel user is ours when it carries a SITE_* tag, or when its
+ * username is our `ST` + digits public id (legacy users, whose tag may
+ * be TRIAL/BASIC/PLUS or empty). A legacy tag alone is NOT proof.
  */
-export function syntheticTelegramId(publicId: string | null | undefined): number | null {
-  if (!publicId) return null;
-  const m = /^ST(\d+)$/.exec(publicId);
-  if (!m) return null;
-  const n = parseInt(m[1], 10);
-  if (!Number.isFinite(n) || n < 0) return null;
-  return PANEL_SYNTHETIC_TG_OFFSET + n;
+export function isOurPanelUser(u: { username?: string | null; tag?: string | null }): boolean {
+  if (typeof u.tag === "string" && ALL_SITE_TAGS.includes(u.tag)) return true;
+  return typeof u.username === "string" && SITE_USERNAME_RE.test(u.username);
 }
 
-export interface RemnawaveUser {
-  /**
-   * Legacy alias — the "handle" we store in `users.remnawave_user_uuid`
-   * and route GET / DELETE calls with. Historically this was the panel's
-   * external UUID string; on v3+ it's an integer PK. Kept as an opaque
-   * string throughout so callers don't have to know which era wrote it.
-   */
-  uuid: string;
-  /**
-   * v3 split the old `uuid` column into `id` (integer PK) and `uuid`
-   * (UUID string). Some 3.x endpoints — notably body-based PATCH —
-   * validate the identifier as UUID-format and reject an integer with
-   * 400. When the panel returns a separate `uuid` field alongside
-   * `id`, we capture it here so PATCH can send the right shape.
-   * Falls back to `null` on 2.x, where there's only the one identifier.
-   */
-  uuidString: string | null;
-  shortUuid: string;
-  username: string;
+function panelSafeEmail(email: string | null | undefined): string | null {
+  if (!email) return null;
+  const e = email.trim().toLowerCase();
+  // The panel validates with z.email(); anything that obviously would
+  // not pass is sent as null rather than failing the whole create.
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? e : null;
+}
+
+/** Pure builder for POST /api/users — exported for tests. */
+export function buildCreateUserBody(input: {
+  publicId: string;
   email: string | null;
-  subscriptionUrl: string;
-  expireAt: string;
-  trafficLimitBytes: number;
-  usedTrafficBytes: number;
-  status: RemnawaveStatus | string;
-  vlessUuid?: string;
-  tag?: string | null;
-  description?: string | null;
-  telegramId?: number | null;
-  hwidDeviceLimit?: number | null;
-}
-
-/** Fetch with timeout + retry + exponential backoff. */
-async function rwFetch(path: string, init: RequestInit = {}): Promise<Response | null> {
-  if (!API_TOKEN) {
-    lastRwError = "REMNAWAVE_API_TOKEN is not set";
-    console.warn("[REMNAWAVE]", lastRwError, "— skipping", path);
-    return null;
-  }
-
-  const url = `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
-  const headers: Record<string, string> = {
-    Authorization: `Bearer ${API_TOKEN}`,
-    "Content-Type": "application/json",
-    ...((init.headers as Record<string, string>) || {}),
-  };
-
-  let lastErr: unknown = null;
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
-    try {
-      const res = await fetch(url, { ...init, headers, signal: ctrl.signal });
-      clearTimeout(timer);
-      if (res.ok || (res.status >= 400 && res.status < 500)) {
-        if (!res.ok) lastRwError = `${init.method || "GET"} ${path} → HTTP ${res.status}`;
-        else lastRwError = null;
-        return res;
-      }
-      lastErr = new Error(`HTTP ${res.status}`);
-    } catch (err) {
-      clearTimeout(timer);
-      lastErr = err;
-    }
-    if (attempt < MAX_RETRIES) {
-      const backoff = 250 * Math.pow(2, attempt);
-      await new Promise((r) => setTimeout(r, backoff));
-    }
-  }
-  lastRwError = `${init.method || "GET"} ${path} failed after ${MAX_RETRIES + 1} attempts: ${lastErr}`;
-  console.warn(`[REMNAWAVE] ${lastRwError}`);
-  return null;
-}
-
-/** @internal exported only for unit tests. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function parseUser(data: any): RemnawaveUser | null {
-  // Remnawave 3.x envelope: { response: ExtendedUsersSchema }.
-  // 2.7.x envelope: { response: { user: {...} } } or { response: {...} }.
-  // Both handled here with a fallback chain.
-  const u = data?.response?.user ?? data?.response ?? data?.user ?? data?.data ?? data;
-  if (!u || typeof u !== "object") return null;
-  // v3 split identity: `id` is the integer PK, `uuid` is a separate
-  // UUID string. Depending on the endpoint one or the other is what
-  // the panel expects on the wire. On 2.x there's only one identifier
-  // (either name); v3.3.0 responses include both.
-  //
-  // Our `.uuid` alias keeps the "handle we store in the DB" contract
-  // stable: prefer `id` (works for GET/DELETE against v3), fall back
-  // to `uuid` (works for everything on 2.x).
-  const rawId = u.id ?? u.uuid;
-  if (rawId == null) return null;
-  const id = String(rawId);
-  // Capture the second identifier separately when both are present.
-  // Body-based PATCH on v3 sometimes needs the UUID string
-  // specifically — an integer id gets rejected as "wrong format".
-  const uuidString: string | null =
-    typeof u.uuid === "string" && u.uuid !== id ? u.uuid : null;
+  userId: string;
+  expireAt: Date;
+  plan: string | null;
+  squadUuids: string[];
+}): CreateUserBody {
   return {
-    // Legacy alias — most of our callers still say `.uuid` and store the
-    // value in `users.remnawave_user_uuid`. Keep them working; the string
-    // stored is now the v3 numeric-ish id, not a UUID, but treated the
-    // same by our code (opaque handle).
-    uuid: id,
-    uuidString,
-    shortUuid: u.shortUuid || u.short_uuid || u.subscriptionUuid || "",
-    username: u.username || "",
-    email: u.email ?? null,
-    subscriptionUrl: u.subscriptionUrl || u.subscription_url || "",
-    expireAt: u.expireAt || u.expire_at || "",
-    trafficLimitBytes: Number(u.trafficLimitBytes || u.traffic_limit_bytes || 0),
-    usedTrafficBytes: Number(
-      u.usedTrafficBytes ||
-        u.used_traffic_bytes ||
-        u.userTraffic?.usedBytes ||
-        u.userTraffic?.used_bytes ||
-        0
-    ),
-    status: u.status || "ACTIVE",
-    vlessUuid: u.vlessUuid || u.vless_uuid,
-    tag: u.tag ?? null,
-    description: u.description ?? null,
-    telegramId: u.telegramId ?? u.telegram_id ?? null,
-    hwidDeviceLimit: u.hwidDeviceLimit ?? u.hwid_device_limit ?? null,
-  };
-}
-
-/** @internal exported only for unit tests. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function extractUserList(data: any): RemnawaveUser[] {
-  if (!data) return [];
-  if (Array.isArray(data)) return data.map(parseUser).filter((u): u is RemnawaveUser => !!u);
-  const candidates = [
-    data.response?.users,
-    data.response,
-    data.users,
-    data.data?.users,
-    data.data,
-    data.items,
-    data.results,
-  ];
-  for (const c of candidates) {
-    if (Array.isArray(c)) return c.map(parseUser).filter((u): u is RemnawaveUser => !!u);
-  }
-  const single = parseUser(data);
-  return single ? [single] : [];
-}
-
-/** GET /api/users/{uuid}. Returns null on 404 or unreachable panel. */
-export async function getUser(uuid: string): Promise<RemnawaveUser | null> {
-  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}`);
-  if (!res || !res.ok) return null;
-  const data = await res.json().catch(() => null);
-  return parseUser(data);
-}
-
-/**
- * Look up by username — STRICT exact match only.
- *
- * Some Remnawave variants treat unknown query params as no-ops and
- * happily return the full user list, which previously caused us to
- * pick `list[0]` and assign every local user the same panel UUID.
- * Now we only adopt when u.username === username exactly. If no exact
- * match is found across all path variants, returns null.
- */
-export async function getUserByUsername(username: string): Promise<RemnawaveUser | null> {
-  for (const path of [
-    `/api/users/by-username/${encodeURIComponent(username)}`,
-    `/api/users/username/${encodeURIComponent(username)}`,
-    `/api/users?username=${encodeURIComponent(username)}`,
-    `/api/users?search=${encodeURIComponent(username)}`,
-  ]) {
-    const res = await rwFetch(path);
-    if (!res?.ok) continue;
-    const data = await res.json().catch(() => null);
-    const list = extractUserList(data);
-    const exact = list.find((u) => u.username === username);
-    if (exact) return exact;
-  }
-  return null;
-}
-
-/** Look up by email — STRICT exact match only. */
-export async function getUserByEmail(email: string): Promise<RemnawaveUser | null> {
-  const target = email.toLowerCase();
-  for (const path of [
-    `/api/users/by-email/${encodeURIComponent(email)}`,
-    `/api/users/email/${encodeURIComponent(email)}`,
-    `/api/users?email=${encodeURIComponent(email)}`,
-    `/api/users?search=${encodeURIComponent(email)}`,
-  ]) {
-    const res = await rwFetch(path);
-    if (!res?.ok) continue;
-    const data = await res.json().catch(() => null);
-    const list = extractUserList(data);
-    const exact = list.find((u) => (u.email || "").toLowerCase() === target);
-    if (exact) return exact;
-  }
-  return null;
-}
-
-/**
- * Look up a user by telegramId — used as an additional fallback in
- * syncSubscriptionToPanel when uuid lookups fail.
- *
- * The panel endpoint is `GET /api/users/by-telegram-id/{tgId}` and
- * documented as returning "an array of users OR 404" — because a
- * real Telegram user can theoretically link multiple panel accounts.
- * For our synthetic tgIds (namespace 9_000_000_000+) that ambiguity
- * should never happen — one panel account per site user — so we
- * pick the first record and log a warning if more than one comes
- * back.
- */
-export async function getUserByTelegramId(telegramId: number): Promise<RemnawaveUser | null> {
-  const res = await rwFetch(`/api/users/by-telegram-id/${telegramId}`);
-  if (!res?.ok) return null;
-  const data = await res.json().catch(() => null);
-  const list = extractUserList(data);
-  if (list.length === 0) return null;
-  if (list.length > 1) {
-    console.warn(
-      `[REMNAWAVE] getUserByTelegramId(${telegramId}) returned ${list.length} records — using the first`
-    );
-  }
-  return list[0];
-}
-
-/** Return ALL panel users with matching email — STRICT exact match. */
-export async function getAllUsersByEmail(email: string): Promise<RemnawaveUser[]> {
-  const target = email.toLowerCase();
-  const found: RemnawaveUser[] = [];
-  const seen = new Set<string>();
-  for (const path of [
-    `/api/users/by-email/${encodeURIComponent(email)}`,
-    `/api/users?email=${encodeURIComponent(email)}`,
-    `/api/users?search=${encodeURIComponent(email)}`,
-  ]) {
-    const res = await rwFetch(path);
-    if (!res?.ok) continue;
-    const data = await res.json().catch(() => null);
-    const list = extractUserList(data);
-    for (const u of list) {
-      if (!u.uuid || seen.has(u.uuid)) continue;
-      if ((u.email || "").toLowerCase() === target) {
-        found.push(u);
-        seen.add(u.uuid);
-      }
-    }
-  }
-  return found;
-}
-
-/**
- * Update a panel user's expireAt.
- *
- * Remnawave 2.x took the uuid out of the URL — the canonical endpoint
- * is `PATCH /api/users` with `{ uuid, expireAt, ... }` in the body.
- * Some older builds still use `PATCH /api/users/{uuid}`. We try the
- * modern shape first and fall back to the legacy one ONLY when the
- * panel says "no such route" (404 / 405). Any other HTTP error (auth,
- * validation, server) is propagated as-is — retrying with a different
- * URL would just hide it.
- *
- * Past-date guard: Remnawave validates expireAt and rejects anything
- * strictly in the past ("Expiration date cannot be in the past").
- * Pushing a date that's already expired locally is still useful as
- * an immediate revoke, so we clamp to `now + 30s` rather than skip —
- * the panel auto-disables once it ticks past.
- */
-export async function setUserExpire(
-  uuid: string,
-  expireAtIso: string,
-  opts?: {
-    /** ACTIVE reactivates a user the panel had auto-transitioned to
-     *  EXPIRED or LIMITED. Send it on every renewal so a user who
-     *  paid AFTER their expiry actually gets their key working again
-     *  — pushing expireAt alone doesn't flip status back on 3.x.
-     *  DISABLED lets an admin freeze an account without deleting. */
-    status?: "ACTIVE" | "DISABLED";
-    /** Plan slug ("trial" | "basic" | "plus"). Maps to a `tag` on the
-     *  panel side so an admin sees which plan each user is on at a
-     *  glance. Pass `null` explicitly to clear. */
-    plan?: string | null;
-    /** Free-text panel description; `null` clears. */
-    description?: string | null;
-    /** The panel's UUID string when it's known to be different from
-     *  the primary handle. v3+ split identity: `id` (integer PK) is
-     *  what we store as `uuid`; the actual UUID-format string sits in
-     *  the panel's `uuid` field. When we know both, we try both as
-     *  body identifiers so PATCH lands whatever shape zod expects. */
-    uuidString?: string | null;
-    /** Backfill the synthetic telegramId on the panel record. Used
-     *  when we sync an existing legacy user who was created before
-     *  the site started assigning synthetic tgIds — one PATCH heals
-     *  the record so all future syncs can use the tgId lookup path. */
-    telegramId?: number | null;
-    /** The panel username — required as a fallback identifier when
-     *  the primary handle isn't numeric (panel v3.3.0 rejects
-     *  `{id: <string>}` outright). Almost always our STxxxxxxxx
-     *  public_id. */
-    username?: string;
-  }
-): Promise<RemnawaveUser | null> {
-  const safeExpireAt = clampExpireAt(expireAtIso);
-  if (safeExpireAt !== expireAtIso) {
-    console.log("[REMNAWAVE] setUserExpire: clamped past expireAt", expireAtIso, "→", safeExpireAt);
-  }
-
-  const extra: Record<string, unknown> = { expireAt: safeExpireAt };
-  if (opts?.status) extra.status = opts.status;
-  if (opts && "plan" in opts) {
-    // `plan` was explicitly passed — set or clear the tag accordingly.
-    const t = tagForPlan(opts.plan);
-    if (t !== null) extra.tag = t;
-    else if (opts.plan === null) extra.tag = null;
-  }
-  if (opts && "description" in opts) extra.description = opts.description;
-  if (opts && "telegramId" in opts) extra.telegramId = opts.telegramId;
-
-  // Try each documented + observed shape in sequence. Every attempt
-  // that ISN'T 200 gets logged verbatim so ops can see exactly what
-  // the panel returned — no more "final HTTP 404" that hides the
-  // real first-attempt response.
-  //
-  // v3.x contract (docs.rw) uses PATCH /api/users with `{uuid,...}`
-  // in the body. Some 3.3.0 builds also accept `{id,...}` because
-  // the panel renamed the column but kept the alias. Older 2.x uses
-  // PATCH /api/users/{uuid}. Beyond that we try PUT variants — some
-  // 3.x forks accept PUT where PATCH is blocked at the proxy layer.
-  // Panel v3.3.0 contract confirmed from real error responses:
-  //   PATCH /api/users
-  //     body must include `id` (NUMBER) OR `username` (STRING).
-  //     `uuid` in the body is ignored — validator returns "At least
-  //     one of username, id must be provided". `id` as a STRING is
-  //     also rejected — "expected number, received string". Legacy
-  //     URL-based PATCH /api/users/{id} returns 404, and PUT is not
-  //     supported at all. Two variants suffice; anything else is
-  //     dead code.
-  const numericId = /^\d+$/.test(uuid) ? parseInt(uuid, 10) : null;
-  const variants: Array<{ label: string; method: string; path: string; body: Record<string, unknown> }> = [];
-
-  if (numericId !== null && Number.isSafeInteger(numericId)) {
-    variants.push({
-      label: "PATCH body{id: <number>}",
-      method: "PATCH",
-      path: "/api/users",
-      body: { id: numericId, ...extra },
-    });
-  }
-  if (opts?.username) {
-    variants.push({
-      label: `PATCH body{username: ${opts.username}}`,
-      method: "PATCH",
-      path: "/api/users",
-      body: { username: opts.username, ...extra },
-    });
-  }
-  // Very last resort — if we somehow have no numeric id and no
-  // username, try the raw handle as-is. Almost certainly won't
-  // work, but leaves a diagnostic trace instead of returning early.
-  if (variants.length === 0) {
-    variants.push({
-      label: "PATCH body{id: <raw handle string>}",
-      method: "PATCH",
-      path: "/api/users",
-      body: { id: uuid, ...extra },
-    });
-  }
-
-  let lastStatus = 0;
-  let lastBodyText = "";
-  const attemptLog: string[] = [];
-
-  for (const variant of variants) {
-    const res = await rwFetch(variant.path, {
-      method: variant.method,
-      body: JSON.stringify(variant.body),
-    });
-    if (!res) {
-      attemptLog.push(`${variant.label}: no response (panel unreachable / no token)`);
-      continue;
-    }
-    if (res.ok) {
-      const data = await res.json().catch(() => null);
-      const parsed = parseUser(data);
-      if (parsed) {
-        console.log(`[REMNAWAVE] setUserExpire succeeded via ${variant.label} for uuid=${uuid.slice(0, 12)}…`);
-        return parsed;
-      }
-      attemptLog.push(`${variant.label}: 200 but empty parse`);
-      continue;
-    }
-    lastStatus = res.status || 0;
-    lastBodyText = await res.text().catch(() => "");
-    attemptLog.push(`${variant.label}: ${res.status} ${lastBodyText.slice(0, 150)}`);
-    // Retry-next on any "route/shape doesn't fit here" class of
-    // error. 404 = wrong route/id, 405 = method not allowed, 400 =
-    // schema rejection, 422 = validation error.
-    if (![404, 405, 400, 422].includes(res.status)) break;
-  }
-
-  lastRwError =
-    `PATCH user ${uuid.slice(0, 12)}… — all ${variants.length} variants failed:\n  ` +
-    attemptLog.join("\n  ");
-  console.warn(
-    `[REMNAWAVE] setUserExpire FAILED for uuid=${uuid.slice(0, 12)}… expireAt=${safeExpireAt}\n` +
-    attemptLog.map((l) => `  ${l}`).join("\n")
-  );
-  return null;
-}
-
-/**
- * Explicit action endpoints — POST /api/users/{uuid}/actions/…
- *
- * PATCH-with-status covers most cases (reactivate on renewal, freeze
- * on operator action). These action endpoints are the belt-and-braces
- * form the panel documents for the same transitions — one-shot POST
- * that returns the full user object.
- *
- * Kept as separate helpers because ops sometimes wants a hard toggle
- * without touching any of the user's other fields.
- */
-export async function activateUser(uuid: string): Promise<RemnawaveUser | null> {
-  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}/actions/enable`, {
-    method: "POST",
-  });
-  if (!res?.ok) return null;
-  const data = await res.json().catch(() => null);
-  return parseUser(data);
-}
-
-export async function disableUser(uuid: string): Promise<RemnawaveUser | null> {
-  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}/actions/disable`, {
-    method: "POST",
-  });
-  if (!res?.ok) return null;
-  const data = await res.json().catch(() => null);
-  return parseUser(data);
-}
-
-/**
- * Revoke a user's subscription — panel rotates the subscription URL /
- * short UUID so any client with the old URL immediately stops working
- * (needed when a device is lost / password reset / suspicious activity).
- */
-export async function revokeUserSubscription(uuid: string): Promise<RemnawaveUser | null> {
-  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}/actions/revoke`, {
-    method: "POST",
-  });
-  if (!res?.ok) return null;
-  const data = await res.json().catch(() => null);
-  return parseUser(data);
-}
-
-/**
- * Clamp expireAt into the band [NOW + 30s, NOW + 400d].
- *
- * Lower bound — Remnawave validates expireAt and rejects strictly-past
- * dates ("Expiration date cannot be in the past"); a 30-second floor
- * lets revoke/expired states still create a profile that the panel
- * disables on its own.
- *
- * Upper bound — last-line defence against the 10-year ghost-date bug
- * that has been overwriting admin-fixed expireAts. If anything still
- * tries to push 2036 to the panel after our higher-level skip in
- * syncSubscriptionToPanel, we cap it at NOW+400d and emit a loud log
- * line so we can chase down the slipping path.
- */
-/** @internal exported only for unit tests. */
-export function clampExpireAt(expireAtIso: string): string {
-  const target = new Date(expireAtIso).getTime();
-  const min = Date.now() + 30_000;
-  const max = Date.now() + 400 * 24 * 60 * 60 * 1000;
-  if (target > max) {
-    console.warn(`[REMNAWAVE] clampExpireAt: requested ${expireAtIso} > NOW+400d, clamping to ${new Date(max).toISOString()}`);
-    return new Date(max).toISOString();
-  }
-  if (target < min) return new Date(min).toISOString();
-  return expireAtIso;
-}
-
-/**
- * Rename a panel user's username.
- *
- * Used to migrate legacy hex panel_id usernames over to the canonical
- * ST00000NNN public_id format so admins can find users in the panel
- * UI by the same identifier shown on the site. Same endpoint shape as
- * setUserExpire (modern PATCH /api/users + legacy fallback).
- *
- * IMPORTANT: Remnawave 2.x's PATCH /api/users accepts a username field
- * but in some builds silently ignores it (returns 200 OK with the user
- * still on the OLD name). We verify the response actually carries the
- * new username before reporting success, so the sync log doesn't lie
- * to admins about renames that never took.
- */
-export async function setUserUsername(uuid: string, username: string): Promise<RemnawaveUser | null> {
-  const variants: Array<{ path: string; body: Record<string, unknown> }> = [
-    { path: "/api/users", body: { uuid, username } },
-    { path: `/api/users/${encodeURIComponent(uuid)}`, body: { username } },
-  ];
-
-  let lastStatus = 0;
-  let lastBodyText = "";
-
-  for (const variant of variants) {
-    const res = await rwFetch(variant.path, {
-      method: "PATCH",
-      body: JSON.stringify(variant.body),
-    });
-    if (!res) continue;
-    if (res.ok) {
-      const data = await res.json().catch(() => null);
-      const parsed = parseUser(data);
-      if (parsed && parsed.username === username) return parsed;
-      // 200 OK but the panel ignored our username — try the next URL
-      // shape rather than declaring victory.
-      lastStatus = 200;
-      lastBodyText = `username unchanged (panel returned "${parsed?.username ?? ""}")`;
-      continue;
-    }
-    lastStatus = res.status;
-    lastBodyText = await res.text().catch(() => "");
-    if (res.status !== 404 && res.status !== 405) break;
-  }
-
-  lastRwError = `PATCH username ${uuid.slice(0, 8)}… → ${lastStatus} ${lastBodyText.slice(0, 200)}`;
-  console.warn("[REMNAWAVE] setUserUsername failed:", lastStatus, lastBodyText.slice(0, 300));
-  return null;
-}
-
-/** Convenience: max(current, now) + days, then setUserExpire. */
-export async function extendUserExpire(uuid: string, days: number): Promise<RemnawaveUser | null> {
-  const current = await getUser(uuid);
-  if (!current) return null;
-  const base = Math.max(new Date(current.expireAt || 0).getTime(), Date.now());
-  return setUserExpire(uuid, new Date(base + days * 24 * 60 * 60 * 1000).toISOString());
-}
-
-/** DELETE /api/users/{uuid}. */
-export async function deleteUser(uuid: string): Promise<boolean> {
-  const res = await rwFetch(`/api/users/${encodeURIComponent(uuid)}`, { method: "DELETE" });
-  return Boolean(res?.ok);
-}
-
-/**
- * POST /api/system/encrypt-happ-crypto-link. Returns the full
- * happ://crypto/<token> URL (Happ's encrypted-subscription deep link).
- *
- * Remnawave 2.7.x wraps the answer in {response: {...}}; older builds
- * return the field at the top level. Some builds prefix the value
- * with "happ://crypto/" themselves, others return just the token —
- * we normalise to a complete happ:// URL.
- *
- * Remnawave 3.x removed this endpoint entirely. On 404 we return null
- * silently; Happ accepts the raw subscription URL just fine, so the
- * user's connection continues to work — they just don't get the
- * shorter one-tap crypto deep link.
- */
-export async function encryptHappLink(subscriptionUrl: string): Promise<string | null> {
-  const res = await rwFetch("/api/system/encrypt-happ-crypto-link", {
-    method: "POST",
-    body: JSON.stringify({ data: subscriptionUrl }),
-  });
-  if (!res) return null;
-  if (res.status === 404) return null;
-  if (!res.ok) return null;
-  const data = await res.json().catch(() => null);
-  if (!data) return null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const d = data as any;
-  const candidates = [
-    d.response?.subscriptionCryptoLink,
-    d.response?.cryptoLink,
-    d.response?.link,
-    d.subscriptionCryptoLink,
-    d.cryptoLink,
-    d.link,
-    d.data?.subscriptionCryptoLink,
-    d.data?.cryptoLink,
-    d.data?.link,
-  ];
-  let raw = candidates.find((v) => typeof v === "string" && v.length > 0) as string | undefined;
-  if (!raw) {
-    console.warn("[REMNAWAVE] encrypt-happ-crypto-link: no link field in response", JSON.stringify(data).slice(0, 300));
-    return null;
-  }
-  // Normalize: if panel returned just the token, prepend the scheme.
-  if (!raw.startsWith("happ://")) raw = `happ://crypto/${raw}`;
-  return raw;
-}
-
-/**
- * Idempotent create-or-adopt keyed by panel_id (username).
- *   1. GET by panel_id → adopt + PATCH expireAt.
- *   2. POST with username=panel_id.
- *   3. On A019 / "already exists": re-lookup by username, then by
- *      email, and adopt.
- */
-export async function createUserWithExpire(
-  email: string,
-  expireAtIso: string,
-  description?: string,
-  panelId?: string | null,
-  plan?: string | null
-): Promise<RemnawaveUser | null> {
-  const username = (panelId && panelId.trim()) || email.replace(/[^a-z0-9_-]/gi, "_").slice(0, 32);
-
-  // Remnawave rejects POST with expireAt in the past — clamp so we
-  // never get stuck unable to create a panel profile for a user whose
-  // subscription_end has already elapsed (the profile lives but is
-  // immediately disabled by the panel, which is the correct state).
-  const safeExpireAt = clampExpireAt(expireAtIso);
-  if (safeExpireAt !== expireAtIso) {
-    console.log("[REMNAWAVE] createUserWithExpire: clamped past expireAt", expireAtIso, "→", safeExpireAt);
-  }
-
-  const existing = await getUserByUsername(username);
-  if (existing?.uuid) {
-    // Adoption path: user already exists in the panel with our
-    // username. Sync BOTH expireAt AND plan-derived tag/status so the
-    // adopted record reflects the current local plan, not whatever
-    // stale state the panel had.
-    const updated = await setUserExpire(existing.uuid, safeExpireAt, {
-      status: "ACTIVE",
-      plan,
-      uuidString: existing.uuidString ?? undefined,
-      username: existing.username || username,
-    });
-    return updated || existing;
-  }
-
-  const tag = tagForPlan(plan);
-  // Every panel user we create gets a synthetic telegramId in the
-  // 9-billion namespace derived from public_id. This gives us a
-  // second identifier we can look the user up by later — useful
-  // when the panel's `uuid` field drifts (v3 migrations, renamings)
-  // and body-based PATCH starts rejecting our cached handle.
-  const syntheticTgId = syntheticTelegramId(panelId ?? username);
-  const body: Record<string, unknown> = {
-    username,
-    email,
-    telegramId: syntheticTgId,
-    expireAt: safeExpireAt,
+    username: input.publicId,
     status: "ACTIVE",
+    expireAt: input.expireAt.toISOString(),
+    email: panelSafeEmail(input.email),
+    description: `atlas-site:${input.userId}`,
+    tag: tagForPlan(input.plan) ?? SITE_TAGS.trial,
     trafficLimitBytes: 0,
     trafficLimitStrategy: "NO_RESET",
-    // v3 dropped `internalSquads` — validator rejects unknown fields
-    // with 400 and the whole create fails, which is why users lost
-    // their keys after the panel upgrade. Only `activeInternalSquads`
-    // is accepted now.
-    activeInternalSquads: [MAIN_SQUAD],
-    description: description || "atlas-secure site",
+    hwidDeviceLimit: DEVICE_LIMIT,
+    activeInternalSquads: input.squadUuids,
   };
-  if (tag !== null) body.tag = tag;
+}
 
-  const res = await rwFetch("/api/users", { method: "POST", body: JSON.stringify(body) });
-  if (!res) return null;
-  if (res.ok) {
-    const data = await res.json().catch(() => null);
-    return parseUser(data);
+// ─── Users ───────────────────────────────────────────────────────
+
+export function getUserById(id: number): Promise<RwResult<PanelUser>> {
+  return request("GET", `/api/users/${id}`, { parse: parseUserEnvelope });
+}
+
+export async function getUserByUsername(username: string): Promise<RwResult<PanelUser>> {
+  if (!PANEL_USERNAME_RE.test(username)) {
+    return { ok: false, kind: "validation", status: null, errorCode: null, message: `invalid username "${username}"`, method: "GET", path: "/api/users/by-username" };
   }
-
-  const bodyText = await res.text().catch(() => "");
-  const alreadyExists =
-    bodyText.includes('"A019"') ||
-    bodyText.toLowerCase().includes("already exists") ||
-    res.status === 409 ||
-    res.status === 422;
-
-  if (alreadyExists) {
-    // SAFETY: race-loser adoption looks up ONLY by username (our own
-    // ST-prefixed public_id). We never adopt by email, because the
-    // panel is shared with another service and an email-match could
-    // be that other service's user — which we must not modify.
-    const raceWinner = await getUserByUsername(username);
-    if (raceWinner?.uuid) {
-      const updated = await setUserExpire(raceWinner.uuid, safeExpireAt, {
-        status: "ACTIVE",
-        plan,
-        uuidString: raceWinner.uuidString ?? undefined,
-      });
-      return updated || raceWinner;
-    }
+  const r = await request("GET", `/api/users/by-username/${encodeURIComponent(username)}`, { parse: parseUserEnvelope });
+  if (r.ok && r.data.username !== username) {
+    return { ok: false, kind: "server", status: r.status, errorCode: null, message: `panel returned username "${r.data.username}" for "${username}"`, method: "GET", path: `/api/users/by-username/${username}` };
   }
+  return r;
+}
 
-  lastRwError = `createUser HTTP ${res.status}: ${bodyText.slice(0, 200)}`;
-  console.warn("[REMNAWAVE] createUser non-ok:", res.status, bodyText.slice(0, 200));
-  return null;
+function parseStream(json: unknown): { users: PanelUser[]; nextCursor: string | null; hasMore: boolean } | null {
+  const r = responseOf(json);
+  if (!r || typeof r !== "object") return null;
+  const o = r as Record<string, unknown>;
+  if (!Array.isArray(o.users)) return null;
+  return {
+    users: o.users.map(parsePanelUser).filter((u): u is PanelUser => !!u),
+    nextCursor: o.nextCursor == null ? null : String(o.nextCursor),
+    hasMore: o.hasMore === true,
+  };
+}
+
+/** GET /api/users/stream?email=… — exact (case-insensitive) matches only. */
+export async function findUsersByEmail(email: string): Promise<RwResult<PanelUser[]>> {
+  const target = email.trim().toLowerCase();
+  const r = await request("GET", `/api/users/stream?email=${encodeURIComponent(target)}&size=1000`, { parse: parseStream });
+  if (!r.ok) return r;
+  return { ok: true, status: r.status, data: r.data.users.filter((u) => (u.email || "").toLowerCase() === target) };
+}
+
+/** Walk /api/users/stream?tag=… with the cursor. Bounded by maxPages × 1000 users. */
+export async function streamUsersByTag(tag: string, maxPages = 50): Promise<RwResult<{ users: PanelUser[]; truncated: boolean }>> {
+  const users: PanelUser[] = [];
+  let cursor: string | null = null;
+  for (let page = 0; page < maxPages; page++) {
+    const q: string = `/api/users/stream?tag=${encodeURIComponent(tag)}&size=1000${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`;
+    const r = await request("GET", q, { parse: parseStream });
+    if (!r.ok) return r;
+    users.push(...r.data.users);
+    if (!r.data.hasMore || !r.data.nextCursor) return { ok: true, status: r.status, data: { users, truncated: false } };
+    cursor = r.data.nextCursor;
+  }
+  return { ok: true, status: 200, data: { users, truncated: true } };
+}
+
+/** POST /api/users. Not retried: a lost response is recovered by the A019 adoption path. */
+export async function createUser(body: CreateUserBody): Promise<RwResult<PanelUser>> {
+  if (body.activeInternalSquads.length === 0) {
+    const message = "no squad configured — refusing to create a panel user without squads";
+    logConfigError(message);
+    return { ok: false, kind: "config", status: null, errorCode: null, message, method: "POST", path: "/api/users" };
+  }
+  return request("POST", "/api/users", { body, parse: parseUserEnvelope, retry: false });
+}
+
+/** PATCH /api/users. Absolute values only — safe to retry. */
+export function updateUser(body: UpdateUserBody): Promise<RwResult<PanelUser>> {
+  if (body.id === undefined && !body.username) {
+    return Promise.resolve({ ok: false, kind: "validation", status: null, errorCode: null, message: "updateUser needs id or username", method: "PATCH", path: "/api/users" });
+  }
+  return request("PATCH", "/api/users", { body, parse: parseUserEnvelope });
+}
+
+export function enableUser(id: number): Promise<RwResult<PanelUser>> {
+  return request("POST", `/api/users/${id}/actions/enable`, { parse: parseUserEnvelope });
+}
+
+export function disableUser(id: number): Promise<RwResult<PanelUser>> {
+  return request("POST", `/api/users/${id}/actions/disable`, { parse: parseUserEnvelope });
 }
 
 /**
- * Trial duration — 3 days, unlimited traffic.
- *
- * Product decision: we want a trial long enough for someone to
- * actually try the service across a weekend and see it work on
- * multiple devices. 24 hours (the previous value) was too short —
- * users would forget they even started and never come back to
- * convert. Three days matches the mainstream trial length in the
- * Russian VPN market (Дядя Ваня VPN's "Ванечка", Amnezia, etc).
+ * POST /api/users/{id}/actions/revoke. Always rotates vlessUuid and
+ * passwords. Without `revokeOnlyPasswords` it also rotates shortUuid,
+ * i.e. the subscription URL changes.
  */
+export function revokeUserSubscription(id: number, opts: { revokeOnlyPasswords?: boolean } = {}): Promise<RwResult<PanelUser>> {
+  return request("POST", `/api/users/${id}/actions/revoke`, {
+    body: { revokeOnlyPasswords: opts.revokeOnlyPasswords === true },
+    parse: parseUserEnvelope,
+  });
+}
+
+/** DELETE /api/users/{id} → 204. */
+export function deleteUser(id: number): Promise<RwResult<true>> {
+  return request("DELETE", `/api/users/${id}`, { parse: () => true });
+}
+
+// ─── HWID devices ────────────────────────────────────────────────
+
+export function listHwidDevices(userId: number): Promise<RwResult<{ total: number; devices: HwidDevice[] }>> {
+  return request("GET", `/api/hwid/devices/${userId}`, { parse: parseHwidList });
+}
+
+export function deleteHwidDevice(userId: number, hwid: string): Promise<RwResult<{ total: number; devices: HwidDevice[] }>> {
+  return request("POST", "/api/hwid/devices/delete", { body: { userId, hwid }, parse: parseHwidList });
+}
+
+export function deleteAllHwidDevices(userId: number): Promise<RwResult<{ total: number; devices: HwidDevice[] }>> {
+  return request("POST", "/api/hwid/devices/delete-all", { body: { userId }, parse: parseHwidList });
+}
+
+// ─── Connections (IP addresses) ──────────────────────────────────
+
+export function startUserIpJob(userId: number): Promise<RwResult<{ jobId: string }>> {
+  return request("POST", `/api/connections/by-user/${userId}`, {
+    parse: (json) => {
+      const r = responseOf(json) as Record<string, unknown> | undefined;
+      const jobId = r && (typeof r.jobId === "string" || typeof r.jobId === "number") ? String(r.jobId) : null;
+      return jobId ? { jobId } : null;
+    },
+  });
+}
+
+export function getUserIpJob(jobId: string): Promise<RwResult<IpJobResult>> {
+  return request("GET", `/api/connections/by-user/${encodeURIComponent(jobId)}`, {
+    parse: (json) => {
+      const r = responseOf(json);
+      if (!r || typeof r !== "object") return null;
+      const o = r as Record<string, unknown>;
+      return {
+        isCompleted: o.isCompleted === true,
+        isFailed: o.isFailed === true,
+        progress: o.progress ?? null,
+        result: (o.result as IpJobResult["result"]) ?? null,
+      };
+    },
+  });
+}
+
+// ─── System / nodes ──────────────────────────────────────────────
+
+const parseAnyResponse = (json: unknown): Record<string, unknown> | null => {
+  const r = responseOf(json);
+  return r && typeof r === "object" ? (r as Record<string, unknown>) : null;
+};
+
+/** GET /api/system/stats — users by status, online stats, nodes online, cpu/mem/uptime. Whole panel, not only site users. */
+export function getSystemStats(): Promise<RwResult<Record<string, unknown>>> {
+  return request("GET", "/api/system/stats", { parse: parseAnyResponse });
+}
+
+export function getBandwidthStats(): Promise<RwResult<Record<string, unknown>>> {
+  return request("GET", "/api/system/stats/bandwidth", { parse: parseAnyResponse });
+}
+
+export function getSystemHealth(): Promise<RwResult<Record<string, unknown>>> {
+  return request("GET", "/api/system/health", { parse: parseAnyResponse });
+}
+
+export function getNodes(): Promise<RwResult<PanelNode[]>> {
+  return request("GET", "/api/nodes", {
+    parse: (json) => {
+      const r = responseOf(json);
+      return Array.isArray(r) ? r.map(parseNode).filter((n): n is PanelNode => !!n) : null;
+    },
+  });
+}
+
+// ─── Trial constants ─────────────────────────────────────────────
+
 /* Значение живёт в src/lib/brand-facts.ts — файле без серверных
    зависимостей, чтобы витрина могла взять то же число, не втягивая в
    браузерный бандл клиент панели. Второй константы с тем же смыслом
    в проекте быть не должно. */
 export const TRIAL_DURATION_DAYS = TRIAL_DAYS;
 export const TRIAL_DURATION_MS = TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000;
-
-/** 3-day unlimited trial wrapper. */
-export async function createTrialUser(email: string, panelId?: string | null): Promise<RemnawaveUser | null> {
-  const expireAt = new Date(Date.now() + TRIAL_DURATION_MS).toISOString();
-  return createUserWithExpire(
-    email,
-    expireAt,
-    `site signup, trial ${TRIAL_DURATION_DAYS}d unlimited`,
-    panelId,
-    "trial"
-  );
-}
-
-export const REMNAWAVE_CONFIG = {
-  apiUrl: API_URL,
-  mainSquadUuid: MAIN_SQUAD,
-  trialDurationMs: TRIAL_DURATION_MS,
-  trialDurationDays: TRIAL_DURATION_DAYS,
-  isConfigured: Boolean(API_TOKEN),
-};
-
-/**
- * Strict ownership check.
- *
- * The Remnawave panel is shared with another service (the Telegram
- * bot). We must NEVER delete or modify panel users that don't belong
- * to us. A panel user is OURS only if its username starts with the
- * "ST" prefix — that's the format syncSubscriptionToPanel assigns to
- * every user it creates from the site (`public_id`).
- *
- * Use this guard before any DELETE or destructive PATCH that targets
- * a panel user the site code didn't itself just create.
- */
-export function isOurPanelUser(u: { username?: string | null }): boolean {
-  return typeof u.username === "string" && /^ST\d+$/.test(u.username);
-}

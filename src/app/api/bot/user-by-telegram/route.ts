@@ -17,9 +17,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
     }
 
-    const now = new Date();
-    const end = new Date(user.subscriptionEnd);
-    const daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    const daysLeft = Math.max(0, Math.ceil((new Date(user.subscriptionEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    const link = daysLeft > 0 ? user.subscriptionUrl : null;
 
     return NextResponse.json({
       success: true,
@@ -30,11 +29,14 @@ export async function GET(request: NextRequest) {
         daysLeft,
         isExpired: daysLeft === 0,
         subscriptionEnd: user.subscriptionEnd,
-        vpnKey: daysLeft > 0 ? user.vpnKey : null,
+        // `vpnKey` kept for the bot: now the Remnawave subscription link.
+        vpnKey: link,
+        subscriptionUrl: link,
         referralCode: user.referralCode,
       },
     });
-  } catch {
+  } catch (err) {
+    console.error("[BOT/USER-BY-TELEGRAM] error:", err);
     return NextResponse.json({ success: false, error: "Internal error" }, { status: 500 });
   }
 }

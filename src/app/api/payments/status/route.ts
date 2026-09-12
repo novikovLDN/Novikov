@@ -1,22 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getUserById,
-  getPaymentById,
-  updatePaymentStatus,
-  extendSubscription,
-  creditReferrerOnPayment,
-  updateUser,
-} from "@/lib/store";
-import { getPaymentStatus, PaymentStatus } from "@/lib/yookassa";
-import { syncUserToRemnawave } from "@/lib/subscription-sync";
-import { pool } from "@/lib/db";
-
-const PERIOD_DAYS: Record<number, number> = { 1: 30, 3: 90, 6: 180, 12: 365 };
+import { getUserById, getPaymentById } from "@/lib/store";
+import { reconcilePaymentWithYooKassa } from "@/lib/payments";
 
 /**
- * Called from the /subscribe page after the YooKassa return-redirect.
- * Reconciles the payment if the webhook hasn't landed yet, then
- * pushes the result to Remnawave via the shared sync helper.
+ * Called from the /subscribe page after the YooKassa return-redirect
+ * (polled every few seconds). For pending AND locally-expired payments
+ * it asks YooKassa; a success goes through the same atomic
+ * confirmPayment as the webhook, so polling and the webhook can never
+ * extend twice.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -40,48 +31,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Платёж не найден" }, { status: 404 });
     }
 
-    if (payment.status === "pending" && payment.transactionId) {
-      if (new Date() > new Date(payment.expiresAt)) {
-        await updatePaymentStatus(payment.id, "expired");
-        return NextResponse.json({ success: true, data: { status: "expired", payment } });
-      }
-
-      try {
-        const ykPayment = await getPaymentStatus(payment.transactionId);
-
-        if (ykPayment.status === PaymentStatus.SUCCEEDED) {
-          const days = PERIOD_DAYS[payment.period] || 30;
-          await extendSubscription(payment.userId, days);
-          await updateUser(payment.userId, { subscriptionPlan: payment.plan });
-
-          const sync = await syncUserToRemnawave(payment.userId);
-          if (sync.ok) {
-            await pool.query("UPDATE payments SET applied_to_remnawave_at = NOW() WHERE id = $1", [payment.id]);
-          }
-
-          await updatePaymentStatus(payment.id, "confirmed", new Date());
-          creditReferrerOnPayment(payment.userId, payment.amount, payment.id).catch(() => null);
-
-          return NextResponse.json({
-            success: true,
-            data: { status: "confirmed", payment: { ...payment, status: "confirmed" } },
-          });
-        }
-
-        if (ykPayment.status === PaymentStatus.CANCELED) {
-          await updatePaymentStatus(payment.id, "canceled");
-          return NextResponse.json({
-            success: true,
-            data: { status: "canceled", payment: { ...payment, status: "canceled" } },
-          });
-        }
-      } catch {
-        // YooKassa API error — return current local status
-      }
+    if (payment.status === "pending" || payment.status === "expired") {
+      const r = await reconcilePaymentWithYooKassa(payment, "status");
+      if (r.outcome === "lookup_failed") console.warn(`[PAYMENTS/STATUS] ${payment.id}: YooKassa lookup failed: ${r.error}`);
     }
 
-    return NextResponse.json({ success: true, data: { status: payment.status, payment } });
-  } catch {
+    const fresh = (await getPaymentById(paymentId)) ?? payment;
+    return NextResponse.json({ success: true, data: { status: fresh.status, payment: fresh } });
+  } catch (err) {
+    console.error("[PAYMENTS/STATUS] error:", err);
     return NextResponse.json(
       { success: false, error: "Внутренняя ошибка сервера" },
       { status: 500 }

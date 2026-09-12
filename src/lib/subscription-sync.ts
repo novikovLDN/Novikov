@@ -1,459 +1,418 @@
 /**
- * Atlas Secure ↔ Remnawave subscription synchronization.
+ * Atlas Secure → Remnawave 3.4.3 synchronisation.
  *
- * ONE function. ONE source of truth: users.subscription_end.
+ * Source of truth: users.subscription_end + users.subscription_plan
+ * (changed only through the ledger, src/lib/subscription-ledger.ts).
+ * This module makes the panel match, and nothing else:
  *
- * Simple rules:
- *   - Every local user has a stable public_id of form "ST00000042".
- *   - We send that public_id to Remnawave as the panel username, so
- *     admins recognize site-issued users at a glance.
- *   - Whenever a local user's subscription_end changes (signup, payment,
- *     admin grant, admin revoke, expiration), call syncSubscriptionToPanel
- *     and the panel reflects the new value.
- *   - If the panel user doesn't exist, we create it. If it exists, we PATCH
- *     its expireAt. There is no third state.
- *   - When subscription_end is in the past, the panel auto-disables the
- *     user — no explicit "delete" needed.
+ *   live   (end > now)  → absolute PATCH {id, expireAt: end, status: ACTIVE, tag}
+ *                         or create the panel user if it does not exist.
+ *   expired (end ≤ now) → push NOTHING; the panel flips the user to
+ *                         EXPIRED by itself within ~30 s. Only if the
+ *                         panel still has the user ACTIVE with a future
+ *                         expireAt (early revoke by admin/bot) do we
+ *                         send status: DISABLED.
  *
- * Every step writes a [SYNC] log line so support can trace what happened
- * for any user from server logs alone.
+ * Never: `now + 24h` grace pushes, wiping the stored link on anything
+ * but a positive 404 (A025/A063), creating a panel user from a request
+ * handler, or touching panel users that are not ours.
+ *
+ * Failures are recorded on the users row (panel_sync_state = 'error',
+ * attempts, next retry with backoff) and retried by the sync worker.
  */
 
 import { pool } from "./db";
-import { getUserById, UserRecord, createAuditLog } from "./store";
+import { withUserSyncLock } from "./locks";
 import {
-  createUserWithExpire,
-  setUserExpire,
-  encryptHappLink,
-  getUser,
+  buildCreateUserBody,
+  createUser,
+  describeRwError,
+  getUserById,
   getUserByUsername,
-  getUserByTelegramId,
-  syntheticTelegramId,
-  getLastRwError,
-  RemnawaveUser,
+  hasPerPlanSquads,
+  isOurPanelUser,
+  isUserGone,
+  PanelUser,
+  RwError,
+  SITE_TAGS,
+  squadsForPlan,
+  tagForPlan,
+  updateUser,
+  UpdateUserBody,
 } from "./remnawave";
-import {
-  isGhostDate,
-  computeGhostRepair,
-  applyGhostRepair,
-} from "./ghost-date-repair";
 
-export type SyncReason =
-  | "user_not_found"
-  | "no_public_id"
-  | "panel_unreachable"
-  | "create_failed"
-  | "patch_failed"
-  | "persist_conflict";
+export type SyncAction = "created" | "adopted" | "patched" | "disabled" | "noop" | "busy" | "failed";
 
 export interface SyncResult {
   ok: boolean;
+  action: SyncAction;
+  reason?: string;
+  panelError?: string;
   publicId: string | null;
+  panelUserId: number | null;
+  /** Legacy name kept for admin UI: the panel id as text. */
   uuid: string | null;
   subscriptionUrl: string | null;
   expireAt: string | null;
-  action: "skip" | "patched" | "created" | "adopted" | "failed";
-  reason?: SyncReason;
-  /** Raw panel error message for the most recent failed call, when known. */
-  panelError?: string;
-  /** Actual username the panel has the user under, after the sync ran. */
   panelUsername?: string | null;
 }
 
-function log(level: "info" | "warn" | "error", userId: string, msg: string, extra?: object) {
-  const tag = `[SYNC ${userId.slice(0, 8)}]`;
-  const line = extra ? `${tag} ${msg} ${JSON.stringify(extra)}` : `${tag} ${msg}`;
+interface SyncUserRow {
+  id: string;
+  email: string;
+  public_id: string | null;
+  panel_id: string | null;
+  panel_username: string | null;
+  panel_user_id: string | number | null;
+  remnawave_user_uuid: string | null;
+  subscription_end: Date;
+  subscription_plan: string | null;
+  subscription_url: string | null;
+  panel_sync_attempts: number | null;
+}
+
+/** Less than this left → treat as expired (the panel rejects past expireAt). */
+export const MIN_REMAINING_MS = 60_000;
+/** Allowed difference between local end and panel expireAt before we re-PATCH. */
+const EXPIRE_EQUAL_TOLERANCE_MS = 1_000;
+const BACKOFF_BASE_MS = 30_000;
+const BACKOFF_MAX_MS = 60 * 60 * 1000;
+
+function log(level: "info" | "warn" | "error", userId: string, msg: string, extra?: Record<string, unknown>) {
+  const line = `[SYNC ${userId.slice(0, 8)}] ${msg}${extra ? ` ${JSON.stringify(extra)}` : ""}`;
   if (level === "error") console.error(line);
   else if (level === "warn") console.warn(line);
   else console.log(line);
 }
 
-/**
- * Ensure the user has a public_id. Generates one inline using the
- * postgres sequence if missing (defensive — startup backfill should
- * have already covered every row).
- */
-async function ensurePublicId(user: UserRecord): Promise<string | null> {
-  if (user.publicId) return user.publicId;
-  log("warn", user.id, "user has no public_id — generating now");
+function parseId(v: string | number | null | undefined): number | null {
+  if (v === null || v === undefined) return null;
+  const s = String(v);
+  if (!/^\d{1,15}$/.test(s)) return null;
+  const n = Number(s);
+  return Number.isSafeInteger(n) && n > 0 ? n : null;
+}
+
+/** Backoff for the n-th consecutive failure (1-based). Exported for tests. */
+export function backoffMs(attempts: number): number {
+  return Math.min(BACKOFF_MAX_MS, BACKOFF_BASE_MS * 2 ** Math.max(0, attempts - 1));
+}
+
+async function loadRow(userId: string): Promise<SyncUserRow | null> {
+  const r = await pool.query<SyncUserRow>(
+    `SELECT id, email, public_id, panel_id, panel_username, panel_user_id, remnawave_user_uuid,
+            subscription_end, subscription_plan, subscription_url, panel_sync_attempts
+     FROM users WHERE id = $1`,
+    [userId]
+  );
+  return r.rows[0] ?? null;
+}
+
+async function ensurePublicId(userId: string): Promise<string | null> {
   const r = await pool.query<{ public_id: string }>(
-    `UPDATE users
-     SET public_id = 'ST' || LPAD(NEXTVAL('user_public_id_seq')::text, 8, '0')
+    `UPDATE users SET public_id = 'ST' || LPAD(NEXTVAL('user_public_id_seq')::text, 8, '0')
      WHERE id = $1 AND public_id IS NULL
      RETURNING public_id`,
-    [user.id]
+    [userId]
   );
   if (r.rows.length > 0) return r.rows[0].public_id;
-  // Lost a race — re-read
-  const refreshed = await getUserById(user.id);
-  return refreshed?.publicId || null;
+  const again = await pool.query<{ public_id: string | null }>("SELECT public_id FROM users WHERE id = $1", [userId]);
+  return again.rows[0]?.public_id ?? null;
 }
 
-/** Cache panel user fields onto users row. */
-async function persistPanelUser(userId: string, rwUser: RemnawaveUser, happLink: string | null) {
+async function clearPanelLink(userId: string, why: string): Promise<void> {
   await pool.query(
     `UPDATE users SET
-       remnawave_user_uuid = $1,
-       remnawave_short_uuid = $2,
-       subscription_url = $3,
-       happ_crypto_link = $4,
-       crypto_link_updated_at = $5,
-       panel_username = $6
-     WHERE id = $7`,
-    [
-      rwUser.uuid,
-      rwUser.shortUuid || null,
-      rwUser.subscriptionUrl,
-      happLink,
-      happLink ? new Date() : null,
-      rwUser.username || null,
-      userId,
-    ]
+       panel_user_id = NULL, remnawave_user_uuid = NULL, remnawave_short_uuid = NULL,
+       subscription_url = NULL, happ_crypto_link = NULL, crypto_link_updated_at = NULL,
+       panel_status = NULL, panel_expire_at = NULL
+     WHERE id = $1`,
+    [userId]
   );
+  log("warn", userId, `panel link cleared: ${why}`);
 }
 
 /**
- * The one and only function for keeping a single user's panel state
- * in sync with their local subscription_end.
- *
- * Idempotent — safe to call as many times as you want.
+ * Store the panel snapshot. The state becomes 'ok' only if the local
+ * subscription did not change while we were talking to the panel —
+ * otherwise it stays 'pending' and the worker runs again.
  */
-export async function syncSubscriptionToPanel(userId: string): Promise<SyncResult> {
-  const t0 = Date.now();
-  log("info", userId, "syncSubscriptionToPanel: start");
-
-  let user = await getUserById(userId);
-  if (!user) {
-    log("error", userId, "user not found");
-    return { ok: false, publicId: null, uuid: null, subscriptionUrl: null, expireAt: null, action: "failed", reason: "user_not_found" };
-  }
-
-  // ─── Public ID ───
-  const publicId = await ensurePublicId(user);
-  if (!publicId) {
-    log("error", userId, "no public_id, cannot sync");
-    return { ok: false, publicId: null, uuid: null, subscriptionUrl: null, expireAt: null, action: "failed", reason: "no_public_id" };
-  }
-  if (user.publicId !== publicId) {
-    const refreshed = await getUserById(userId);
-    if (refreshed) user = refreshed;
-  }
-  log("info", userId, `public_id=${publicId} email=${user.email}`);
-
-  // ─── Auto-repair ghost dates in-line ───
-  // Old code SKIPPED here for fear of overwriting a manual admin fix,
-  // but the side effect was that any user with a ghost subscription_end
-  // (residue of the legacy 10-year bug) got a dashboard showing e.g.
-  // 2032 while the panel still held the original, long-since-expired
-  // date — a broken subscription URL with no self-heal path.
-  //
-  // Instead: detect the ghost, recompute the honest subscription_end
-  // from the user's payment history (same logic as the admin cleanup
-  // endpoint), write it locally, then fall through and PATCH the panel
-  // with the repaired value in the same call.
-  if (isGhostDate(user.subscriptionEnd)) {
-    log(
-      "warn",
-      userId,
-      `ghost date detected local=${user.subscriptionEnd} — computing repair`
-    );
-    let repaired = false;
-    try {
-      const plan = await computeGhostRepair(userId);
-      await applyGhostRepair(userId, plan);
-      log(
-        "info",
-        userId,
-        `ghost repaired: ${user.subscriptionEnd} → ${plan.newEnd.toISOString()} (${plan.action}, payments=${plan.confirmedPayments})`
-      );
-      await createAuditLog(
-        "system.ghost_date_repair",
-        `${user.email}: ${user.subscriptionEnd} → ${plan.newEnd.toISOString()} (${plan.action})`,
-        user.id,
-        user.email
-      ).catch(() => null);
-      const refreshed = await getUserById(userId);
-      if (refreshed) user = refreshed;
-      repaired = true;
-    } catch (err) {
-      log("error", userId, "ghost repair failed", {
-        error: err instanceof Error ? err.message : String(err),
-      });
-      await createAuditLog(
-        "system.ghost_date_repair_failed",
-        `${user.email}: repair threw ${err instanceof Error ? err.message : String(err)} — panel will get a safe fallback`,
-        user.id,
-        user.email
-      ).catch(() => null);
-    }
-
-    // If repair itself blew up, we still refuse to push the ghost
-    // value to the panel. The safe fallback is NOW + 1 day: the panel
-    // stays alive for a short grace period, the user's dashboard now
-    // shows a 24h window rather than the 6-year fiction, and the next
-    // hourly sync (or manual "Обновить подписку") gets another shot at
-    // the real repair. Do NOT return; the panel PATCH below still
-    // needs to run so the user's URL keeps working.
-    if (!repaired) {
-      const grace = new Date(Date.now() + 24 * 60 * 60 * 1000);
-      log(
-        "warn",
-        userId,
-        `repair fallback: clamping local to ${grace.toISOString()} (NOW+1d) so panel and local agree`
-      );
-      try {
-        await pool.query(
-          "UPDATE users SET subscription_end = $1 WHERE id = $2",
-          [grace, userId]
-        );
-        const refreshed = await getUserById(userId);
-        if (refreshed) user = refreshed;
-      } catch (err) {
-        log("error", userId, "fallback clamp write failed", {
-          error: err instanceof Error ? err.message : String(err),
-        });
-      }
-    }
-  }
-
-  // If subscription_end is now in the past (either it was already or
-  // the repair landed us there), push a small grace window to the
-  // panel so the panel-side auto-disable fires cleanly instead of
-  // rejecting the past-date PATCH. clampExpireAt in remnawave.ts also
-  // enforces a NOW+30s floor, but making the grace explicit here means
-  // the panel target reflects our intent instead of a defensive nudge.
-  const localEndMs = new Date(user.subscriptionEnd).getTime();
-  const nowMs = Date.now();
-  const panelTargetMs =
-    localEndMs <= nowMs ? nowMs + 24 * 60 * 60 * 1000 : localEndMs;
-  const expireIso = new Date(panelTargetMs).toISOString();
-  // Explicit ACTIVE reactivates a user the panel had auto-transitioned
-  // to EXPIRED / LIMITED on prior expiry. When local subscription_end
-  // is in the future we WANT the user's key to work — pushing expireAt
-  // alone doesn't flip a panel-side EXPIRED back to ACTIVE on 3.x.
-  const desiredStatus: "ACTIVE" | undefined =
-    localEndMs > nowMs ? "ACTIVE" : undefined;
-  log("info", userId, `target expireAt=${expireIso} plan=${user.subscriptionPlan || "trial"} status=${desiredStatus ?? "(unchanged)"}`);
-
-  // ─── Have a UUID? Try PATCH first ───
-  if (user.remnawaveUserUuid) {
-    log("info", userId, `have uuid=${user.remnawaveUserUuid.slice(0, 8)}…, checking panel`);
-    const live = await getUser(user.remnawaveUserUuid);
-    if (live) {
-      log(
-        "info",
-        userId,
-        `panel user exists (uuidString=${live.uuidString ? live.uuidString.slice(0, 12) + "…" : "—"}, tgId=${live.telegramId ?? "—"}), patching expireAt + plan tag + status`
-      );
-      // Backfill the synthetic tgId only when the panel record has
-      // no telegramId at all — never overwrite a real Telegram
-      // user's id that a person separately linked. Keeps the
-      // synthetic-namespace approach compatible with real Telegram
-      // bot integration if it ever gets added.
-      const backfillTgId = live.telegramId == null ? syntheticTelegramId(publicId) : null;
-      const updated = await setUserExpire(user.remnawaveUserUuid, expireIso, {
-        status: desiredStatus,
-        plan: user.subscriptionPlan || "trial",
-        // Pass v3's UUID-string handle (from live GET) so setUserExpire
-        // can try `{uuid: <UUID>, ...}` — some 3.x builds validate the
-        // body identifier as UUID-format and reject integer PKs.
-        uuidString: live.uuidString ?? undefined,
-        // Panel v3.3.0 accepts `id` (number) OR `username` (string) as
-        // the identifier — send both so whichever the panel binds to
-        // works. `live.username` is the freshest one; `publicId` is
-        // our ST-form.
-        username: live.username || publicId,
-        // Send tgId only when there's a value to backfill. `undefined`
-        // means "don't touch the field", `null` would clear a real one.
-        ...(backfillTgId !== null ? { telegramId: backfillTgId } : {}),
-      });
-      if (updated) {
-        // Refresh cached subscriptionUrl + panel_username in case
-        // either changed since last sync.
-        if (
-          (updated.subscriptionUrl && updated.subscriptionUrl !== user.subscriptionUrl) ||
-          (updated.username && updated.username !== user.panelUsername)
-        ) {
-          await pool.query(
-            `UPDATE users SET
-               subscription_url = COALESCE($1, subscription_url),
-               remnawave_short_uuid = COALESCE($2, remnawave_short_uuid),
-               panel_username = COALESCE($3, panel_username)
-             WHERE id = $4`,
-            [updated.subscriptionUrl || null, updated.shortUuid || null, updated.username || null, userId]
-          );
-          log("info", userId, "refreshed cached panel fields");
-        }
-        // Legacy users had `panel_id` (8-char hex) as their panel
-        // username. Migrate them on the fly to the ST00000NNN form
-        // so admins can find them by the same identifier the site
-        // shows. Best-effort: a failed rename doesn't fail the sync.
-        const finalUser = updated;
-        log("info", userId, `done patched in ${Date.now() - t0}ms`);
-        return {
-          ok: true,
-          publicId,
-          uuid: finalUser.uuid,
-          subscriptionUrl: finalUser.subscriptionUrl,
-          expireAt: finalUser.expireAt,
-          action: "patched",
-          panelUsername: finalUser.username || null,
-        };
-      }
-      // PATCH failed with the cached handle. Before giving up, try
-      // to re-discover the same panel user via the two secondary
-      // lookups — tgId then username. Either returns a fresh
-      // RemnawaveUser with the panel's current `uuid` string, which
-      // may unblock the body-based PATCH (v3.x sometimes rejects a
-      // stale integer identifier).
-      const cachedPatchError = getLastRwError() || undefined;
-      log("warn", userId, "PATCH via cached handle failed — trying tgId / username re-discovery", cachedPatchError ? { cachedPatchError } : undefined);
-
-      let rediscovered: RemnawaveUser | null = null;
-      const tgId = syntheticTelegramId(publicId);
-      if (tgId !== null) {
-        rediscovered = await getUserByTelegramId(tgId);
-        if (rediscovered) log("info", userId, `re-discovered by tgId=${tgId} → uuid=${rediscovered.uuid} uuidString=${rediscovered.uuidString ?? "—"}`);
-      }
-      if (!rediscovered) {
-        rediscovered = await getUserByUsername(publicId);
-        if (rediscovered) log("info", userId, `re-discovered by username=${publicId} → uuid=${rediscovered.uuid} uuidString=${rediscovered.uuidString ?? "—"}`);
-      }
-
-      if (rediscovered) {
-        const retry = await setUserExpire(rediscovered.uuid, expireIso, {
-          status: desiredStatus,
-          plan: user.subscriptionPlan || "trial",
-          uuidString: rediscovered.uuidString ?? undefined,
-          username: rediscovered.username || publicId,
-        });
-        if (retry) {
-          const happLink = await encryptHappLink(retry.subscriptionUrl).catch(() => null);
-          await persistPanelUser(userId, retry, happLink);
-          log("info", userId, `patched via re-discovered handle in ${Date.now() - t0}ms`);
-          return {
-            ok: true,
-            publicId,
-            uuid: retry.uuid,
-            subscriptionUrl: retry.subscriptionUrl,
-            expireAt: retry.expireAt,
-            action: "patched",
-            panelUsername: retry.username || null,
-          };
-        }
-      }
-
-      const panelError = getLastRwError() || cachedPatchError;
-      log("error", userId, "PATCH failed after re-discovery too", panelError ? { panelError } : undefined);
-      return {
-        ok: false,
-        publicId,
-        uuid: user.remnawaveUserUuid,
-        subscriptionUrl: user.subscriptionUrl,
-        expireAt: null,
-        action: "failed",
-        reason: "patch_failed",
-        panelError,
-      };
-    }
-    // UUID is stale — clear and fall through to create
-    log("warn", userId, "uuid is stale (404 from panel), clearing local cache");
+async function persistPanelUser(row: SyncUserRow, panel: PanelUser | null): Promise<void> {
+  if (panel) {
     await pool.query(
       `UPDATE users SET
-         remnawave_user_uuid = NULL,
-         remnawave_short_uuid = NULL,
-         subscription_url = NULL,
+         panel_user_id = $2,
+         remnawave_user_uuid = $3,
+         remnawave_short_uuid = $4,
+         subscription_url = $5,
          happ_crypto_link = NULL,
-         crypto_link_updated_at = NULL
+         crypto_link_updated_at = NULL,
+         panel_username = $6,
+         panel_status = $7,
+         panel_expire_at = $8,
+         panel_sync_state = CASE WHEN subscription_end = $9 AND subscription_plan IS NOT DISTINCT FROM $10 THEN 'ok' ELSE 'pending' END,
+         panel_sync_attempts = 0,
+         panel_sync_error = NULL,
+         panel_next_sync_at = NULL,
+         panel_synced_at = NOW()
        WHERE id = $1`,
-      [userId]
+      [
+        row.id,
+        panel.id,
+        String(panel.id),
+        panel.shortUuid || null,
+        panel.subscriptionUrl || null,
+        panel.username,
+        panel.status || null,
+        panel.expireAt ? new Date(panel.expireAt) : null,
+        row.subscription_end,
+        row.subscription_plan,
+      ]
     );
-    const refreshed = await getUserById(userId);
-    if (refreshed) user = refreshed;
-  }
-
-  // ─── Look up in the panel — try tgId first (fastest single-shot
-  //     endpoint), fall back to username (multi-URL scan) ───
-  const tgIdForLookup = syntheticTelegramId(publicId);
-  let existing: RemnawaveUser | null = null;
-  if (tgIdForLookup !== null) {
-    log("info", userId, `lookup panel by tgId=${tgIdForLookup}`);
-    existing = await getUserByTelegramId(tgIdForLookup);
-  }
-  if (!existing) {
-    log("info", userId, `lookup panel by username=${publicId}`);
-    existing = await getUserByUsername(publicId);
-  }
-  if (existing?.uuid) {
-    log("info", userId, `found existing panel user uuid=${existing.uuid.slice(0, 8)}…, adopting`);
-    // Conflict check
-    const conflict = await pool.query<{ id: string; email: string }>(
-      `SELECT id, email FROM users WHERE remnawave_user_uuid = $1 AND id != $2`,
-      [existing.uuid, userId]
+  } else {
+    await pool.query(
+      `UPDATE users SET
+         panel_sync_state = CASE WHEN subscription_end = $2 AND subscription_plan IS NOT DISTINCT FROM $3 THEN 'ok' ELSE 'pending' END,
+         panel_sync_attempts = 0,
+         panel_sync_error = NULL,
+         panel_next_sync_at = NULL,
+         panel_synced_at = NOW()
+       WHERE id = $1`,
+      [row.id, row.subscription_end, row.subscription_plan]
     );
-    if (conflict.rows.length > 0) {
-      log("error", userId, `uuid ${existing.uuid.slice(0, 8)}… already owned by ${conflict.rows[0].email}`);
-      return { ok: false, publicId, uuid: existing.uuid, subscriptionUrl: existing.subscriptionUrl, expireAt: null, action: "failed", reason: "persist_conflict" };
-    }
-    const patched = await setUserExpire(existing.uuid, expireIso, {
-      status: desiredStatus,
-      plan: user.subscriptionPlan || "trial",
-      uuidString: existing.uuidString ?? undefined,
-      username: existing.username || publicId,
-    });
-    const finalUser = patched || existing;
-    const happLink = await encryptHappLink(finalUser.subscriptionUrl).catch(() => null);
-    await persistPanelUser(userId, finalUser, happLink);
-    log("info", userId, `adopted in ${Date.now() - t0}ms`);
-    return {
-      ok: true,
-      publicId,
-      uuid: finalUser.uuid,
-      subscriptionUrl: finalUser.subscriptionUrl,
-      expireAt: finalUser.expireAt,
-      action: "adopted",
-      panelUsername: finalUser.username || null,
-    };
   }
+}
 
-  // ─── Create fresh ───
-  log("info", userId, `creating new panel user with username=${publicId} plan=${user.subscriptionPlan || "trial"}`);
-  const rwUser = await createUserWithExpire(
-    user.email,
-    expireIso,
-    `atlas-secure site (${publicId})`,
-    publicId,
-    user.subscriptionPlan || "trial"
-  );
-  if (!rwUser) {
-    const panelError = getLastRwError() || undefined;
-    log("error", userId, "createUser failed", panelError ? { panelError } : undefined);
-    return { ok: false, publicId, uuid: null, subscriptionUrl: null, expireAt: null, action: "failed", reason: "create_failed", panelError };
+async function markFailed(row: SyncUserRow, publicId: string | null, reason: string, err?: RwError | string): Promise<SyncResult> {
+  const attempts = (row.panel_sync_attempts ?? 0) + 1;
+  const message = typeof err === "string" ? err : err ? describeRwError(err) : reason;
+  const next = new Date(Date.now() + backoffMs(attempts));
+  try {
+    await pool.query(
+      `UPDATE users SET panel_sync_state = 'error', panel_sync_attempts = $2, panel_sync_error = $3, panel_next_sync_at = $4
+       WHERE id = $1`,
+      [row.id, attempts, `${reason}: ${message}`.slice(0, 500), next]
+    );
+  } catch (dbErr) {
+    log("error", row.id, "could not record sync failure", { error: dbErr instanceof Error ? dbErr.message : String(dbErr) });
   }
-
-  // Conflict check
-  const conflict = await pool.query<{ id: string; email: string }>(
-    `SELECT id, email FROM users WHERE remnawave_user_uuid = $1 AND id != $2`,
-    [rwUser.uuid, userId]
-  );
-  if (conflict.rows.length > 0) {
-    log("error", userId, `uuid conflict: ${rwUser.uuid.slice(0, 8)}… already owned by ${conflict.rows[0].email}`);
-    return { ok: false, publicId, uuid: rwUser.uuid, subscriptionUrl: rwUser.subscriptionUrl, expireAt: null, action: "failed", reason: "persist_conflict" };
-  }
-
-  const happLink = await encryptHappLink(rwUser.subscriptionUrl).catch(() => null);
-  await persistPanelUser(userId, rwUser, happLink);
-  log("info", userId, `created in ${Date.now() - t0}ms uuid=${rwUser.uuid.slice(0, 8)}… url=${rwUser.subscriptionUrl.slice(0, 60)}`);
+  log("error", row.id, `sync failed (${reason})`, { attempts, nextRetry: next.toISOString(), panelError: message });
   return {
-    ok: true,
+    ok: false,
+    action: "failed",
+    reason,
+    panelError: message,
     publicId,
-    uuid: rwUser.uuid,
-    subscriptionUrl: rwUser.subscriptionUrl,
-    expireAt: rwUser.expireAt,
-    action: "created",
-    panelUsername: rwUser.username || null,
+    panelUserId: parseId(row.panel_user_id),
+    uuid: row.remnawave_user_uuid,
+    subscriptionUrl: row.subscription_url,
+    expireAt: null,
   };
 }
 
-// Backwards-compatibility alias for the old name used by other modules.
-export const syncUserToRemnawave = syncSubscriptionToPanel;
+function okResult(action: SyncAction, publicId: string, panel: PanelUser | null): SyncResult {
+  return {
+    ok: true,
+    action,
+    publicId,
+    panelUserId: panel?.id ?? null,
+    uuid: panel ? String(panel.id) : null,
+    subscriptionUrl: panel?.subscriptionUrl || null,
+    expireAt: panel?.expireAt || null,
+    panelUsername: panel?.username ?? null,
+  };
+}
+
+type Discovery = { kind: "found"; user: PanelUser } | { kind: "none" } | { kind: "error"; error: RwError };
+
+/**
+ * Find an existing panel user for a local user that has no (valid)
+ * stored panel id. Candidates, in order: our ST public id, the cached
+ * panel username, the legacy hex panel_id. A candidate is adopted only
+ * if it is provably ours.
+ */
+async function discover(row: SyncUserRow, publicId: string): Promise<Discovery> {
+  const candidates = Array.from(new Set([publicId, row.panel_username, row.panel_id].filter((c): c is string => !!c)));
+  for (const username of candidates) {
+    const r = await getUserByUsername(username);
+    if (r.ok) {
+      const u = r.data;
+      const provablyOurs =
+        isOurPanelUser(u) ||
+        (u.description ?? "").includes(row.id) ||
+        (u.email ?? "").toLowerCase() === row.email.toLowerCase();
+      if (!provablyOurs) {
+        log("warn", row.id, `panel user "${username}" exists but is not provably ours — not adopting`);
+        continue;
+      }
+      return { kind: "found", user: u };
+    }
+    if (r.kind === "not_found" || r.kind === "validation") continue;
+    return { kind: "error", error: r };
+  }
+  return { kind: "none" };
+}
+
+async function ownedByAnotherLocalUser(panelId: number, userId: string): Promise<string | null> {
+  const r = await pool.query<{ email: string }>(
+    "SELECT email FROM users WHERE (panel_user_id = $1 OR remnawave_user_uuid = $2) AND id <> $3 LIMIT 1",
+    [panelId, String(panelId), userId]
+  );
+  return r.rows[0]?.email ?? null;
+}
+
+async function doSync(userId: string): Promise<SyncResult> {
+  const row = await loadRow(userId);
+  if (!row) {
+    return { ok: false, action: "failed", reason: "user_not_found", publicId: null, panelUserId: null, uuid: null, subscriptionUrl: null, expireAt: null };
+  }
+  const publicId = row.public_id ?? (await ensurePublicId(userId));
+  if (!publicId) return markFailed(row, null, "no_public_id");
+
+  const now = Date.now();
+  const endMs = new Date(row.subscription_end).getTime();
+  const live = endMs - now > MIN_REMAINING_MS;
+  const plan = row.subscription_plan || "trial";
+  const tag = tagForPlan(plan) ?? SITE_TAGS.trial;
+
+  // ─── 1. Locate the panel user ───
+  let panel: PanelUser | null = null;
+  let adopted = false;
+  const storedId = parseId(row.panel_user_id) ?? parseId(row.remnawave_user_uuid);
+  if (storedId !== null) {
+    const r = await getUserById(storedId);
+    if (r.ok) panel = r.data;
+    else if (isUserGone(r)) await clearPanelLink(userId, `panel says ${r.errorCode} for id ${storedId}`);
+    else return markFailed(row, publicId, "panel_error", r);
+  }
+  if (!panel) {
+    const d = await discover(row, publicId);
+    if (d.kind === "error") return markFailed(row, publicId, "panel_error", d.error);
+    if (d.kind === "found") {
+      const owner = await ownedByAnotherLocalUser(d.user.id, userId);
+      if (owner) return markFailed(row, publicId, "persist_conflict", `panel user ${d.user.id} is linked to ${owner}`);
+      panel = d.user;
+      adopted = true;
+      log("info", userId, `adopted panel user ${d.user.id} (${d.user.username})`);
+    }
+  }
+
+  // ─── 2. Expired locally: push nothing, except an early revoke ───
+  if (!live) {
+    if (!panel) {
+      await persistPanelUser(row, null);
+      return okResult("noop", publicId, null);
+    }
+    const panelExpMs = Date.parse(panel.expireAt);
+    const panelStillActive = (panel.status === "ACTIVE" || panel.status === "LIMITED") && Number.isFinite(panelExpMs) && panelExpMs > now;
+    if (panelStillActive) {
+      const r = await updateUser({ id: panel.id, status: "DISABLED" });
+      if (!r.ok) return markFailed(row, publicId, "disable_failed", r);
+      await persistPanelUser(row, r.data);
+      log("info", userId, `early revoke → panel user ${panel.id} DISABLED`);
+      return okResult("disabled", publicId, r.data);
+    }
+    await persistPanelUser(row, panel);
+    return okResult(adopted ? "adopted" : "noop", publicId, panel);
+  }
+
+  // ─── 3. Live: create if missing ───
+  const expireAtIso = new Date(endMs).toISOString();
+  if (!panel) {
+    const body = buildCreateUserBody({
+      publicId,
+      email: row.email,
+      userId,
+      expireAt: new Date(endMs),
+      plan,
+      squadUuids: squadsForPlan(plan),
+    });
+    const r = await createUser(body);
+    if (r.ok) {
+      await persistPanelUser(row, r.data);
+      log("info", userId, `created panel user ${r.data.id} (${r.data.username})`);
+      return okResult("created", publicId, r.data);
+    }
+    if (r.kind !== "conflict") return markFailed(row, publicId, "create_failed", r);
+    // A019: the username exists — a previous create whose answer we lost. Adopt it.
+    const again = await getUserByUsername(publicId);
+    if (!again.ok) return markFailed(row, publicId, "create_conflict_lookup_failed", again);
+    if (!isOurPanelUser(again.data)) return markFailed(row, publicId, "create_conflict_not_ours", `username ${publicId} is taken by a non-site panel user`);
+    const owner = await ownedByAnotherLocalUser(again.data.id, userId);
+    if (owner) return markFailed(row, publicId, "persist_conflict", `panel user ${again.data.id} is linked to ${owner}`);
+    panel = again.data;
+    adopted = true;
+  }
+
+  // ─── 4. Live: absolute PATCH when anything differs ───
+  const squads = squadsForPlan(plan);
+  const perPlan = hasPerPlanSquads();
+  const panelSquads = panel.activeInternalSquads.map((s) => s.uuid).sort().join(",");
+  const needsPatch =
+    panel.status !== "ACTIVE" ||
+    Math.abs(Date.parse(panel.expireAt) - endMs) > EXPIRE_EQUAL_TOLERANCE_MS ||
+    panel.tag !== tag ||
+    (perPlan && panelSquads !== [...squads].sort().join(","));
+  if (!needsPatch) {
+    await persistPanelUser(row, panel);
+    return okResult(adopted ? "adopted" : "noop", publicId, panel);
+  }
+  const patch: UpdateUserBody = { id: panel.id, expireAt: expireAtIso, status: "ACTIVE", tag };
+  if (perPlan) patch.activeInternalSquads = squads;
+  const r = await updateUser(patch);
+  if (!r.ok) return markFailed(row, publicId, "patch_failed", r);
+  await persistPanelUser(row, r.data);
+  return okResult(adopted ? "adopted" : "patched", publicId, r.data);
+}
+
+/**
+ * The one function that makes the panel match the local subscription.
+ * Idempotent; safe to call from anywhere. Returns action "busy" when a
+ * sync for this user is already running (the state stays pending and
+ * the worker retries).
+ */
+export async function syncUserToPanel(userId: string): Promise<SyncResult> {
+  try {
+    const locked = await withUserSyncLock(userId, () => doSync(userId));
+    if (!locked.acquired) {
+      return { ok: false, action: "busy", reason: "sync_in_progress", publicId: null, panelUserId: null, uuid: null, subscriptionUrl: null, expireAt: null };
+    }
+    return locked.result;
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    log("error", userId, "sync threw", { error: message });
+    return { ok: false, action: "failed", reason: "exception", panelError: message, publicId: null, panelUserId: null, uuid: null, subscriptionUrl: null, expireAt: null };
+  }
+}
+
+/** Fire-and-forget sync after a committed change; failures are already recorded for the worker. */
+export function requestPanelSync(userId: string, context: string): void {
+  syncUserToPanel(userId)
+    .then((r) => {
+      if (!r.ok && r.action !== "busy") console.warn(`[SYNC] ${context}: ${userId.slice(0, 8)} → ${r.reason} ${r.panelError ?? ""}`);
+    })
+    .catch((err) => console.error(`[SYNC] ${context}: unexpected`, err));
+}
+
+/**
+ * Rotate the user's subscription link in the panel (POST
+ * /actions/revoke without revokeOnlyPasswords → new shortUuid, new
+ * URL, old URL and old keys stop working). Used by the admin
+ * "обновить ключ" action.
+ */
+export async function rotatePanelSubscription(userId: string): Promise<{ ok: true; subscriptionUrl: string } | { ok: false; error: string }> {
+  const row = await loadRow(userId);
+  if (!row) return { ok: false, error: "user_not_found" };
+  const id = parseId(row.panel_user_id) ?? parseId(row.remnawave_user_uuid);
+  if (id === null) return { ok: false, error: "no_panel_user" };
+  const { revokeUserSubscription } = await import("./remnawave");
+  const r = await revokeUserSubscription(id);
+  if (!r.ok) return { ok: false, error: describeRwError(r) };
+  await persistPanelUser(row, r.data);
+  log("info", userId, `subscription link rotated for panel user ${id}`);
+  return { ok: true, subscriptionUrl: r.data.subscriptionUrl };
+}
+
+// Backwards-compatible names used across the codebase.
+export const syncSubscriptionToPanel = syncUserToPanel;
+export const syncUserToRemnawave = syncUserToPanel;

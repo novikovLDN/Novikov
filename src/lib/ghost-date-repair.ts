@@ -36,7 +36,9 @@ import { pool } from "./db";
 export const GHOST_THRESHOLD_MS = 400 * 24 * 60 * 60 * 1000;
 export const PANEL_EXPIRE_GRACE_MS = 1 * 24 * 60 * 60 * 1000;
 
-const PERIOD_DAYS: Record<number, number> = { 1: 30, 3: 90, 6: 180, 12: 365 };
+import { PERIOD_DAYS as PLAN_PERIOD_DAYS } from "./plans";
+
+const PERIOD_DAYS: Record<number, number> = PLAN_PERIOD_DAYS;
 
 export type RepairAction =
   | "expired_no_payment"

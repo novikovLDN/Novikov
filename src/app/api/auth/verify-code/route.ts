@@ -1,68 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyCode, getOrCreateUser, createNotificationForUser, createAuditLog } from "@/lib/store";
-import { xrayAddUser } from "@/lib/xray";
-import { isDisposableEmail } from "@/lib/disposable-emails";
-import { issueTrial } from "@/lib/trial";
+import { completeEmailSignIn } from "@/lib/auth-flow";
 
+/**
+ * JSON variant of the email sign-in. Delegates to the same shared
+ * function as the server action (src/app/actions.ts), so there is one
+ * trial path with one set of anti-abuse checks.
+ */
 export async function POST(request: NextRequest) {
   try {
     const { email, code, referralCode, fingerprint } = await request.json();
 
     if (!email || !code) {
-      return NextResponse.json(
-        { success: false, error: "Email и код обязательны" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Email и код обязательны" }, { status: 400 });
     }
 
-    if (isDisposableEmail(email)) {
-      return NextResponse.json(
-        { success: false, error: "Одноразовые email не поддерживаются." },
-        { status: 400 }
-      );
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null;
+    const result = await completeEmailSignIn({
+      email: String(email),
+      code: String(code),
+      referralCode: referralCode ? String(referralCode) : undefined,
+      fingerprint: fingerprint ? String(fingerprint) : undefined,
+      ip,
+    });
+    if (!result.ok) {
+      return NextResponse.json({ success: false, error: result.error }, { status: 400 });
     }
-
-    const result = verifyCode(email.toLowerCase(), code);
-    if (!result.valid) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 400 }
-      );
-    }
-
-    // Get client IP for trial abuse prevention
-    const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-      || request.headers.get("x-real-ip")
-      || "unknown";
-
-    // Create user with trial period or return existing
-    const user = await getOrCreateUser(email.toLowerCase(), referralCode || undefined, clientIp, fingerprint || undefined);
-
-    // Audit log
-    await createAuditLog(user.isNew ? "user.register" : "user.login", undefined, user.id, user.email, clientIp);
-
-    // Only add to Xray for newly created users (not on repeat login)
-    if (user.isNew && user.xrayUuid) {
-      xrayAddUser(user.xrayUuid).catch(() => {
-        console.error(`[AUTH] Failed to add user to Xray: ${user.email}`);
-      });
-
-      // Issue Remnawave trial: creates a panel user, fetches subscription URL
-      // and Happ crypto link, caches them on users row. Anti-fraud check
-      // (email + IP) is performed inside issueTrial.
-      issueTrial(user.id, user.email, clientIp === "unknown" ? null : clientIp, fingerprint || null)
-        .then((r) => {
-          if (!r.success) console.warn(`[TRIAL] activation skipped for ${user.email}: ${r.reason}`);
-        })
-        .catch((err) => console.error("[TRIAL] activation failed:", err));
-
-      // Send welcome notification about 24h trial
-      createNotificationForUser(
-        user.id,
-        "Добро пожаловать в Atlas Secure!",
-        "Ваш пробный период активирован на 3 дня. В личном кабинете доступен QR-код и кнопки для подключения в Happ и V2RayTun."
-      ).catch(() => {});
-    }
+    const user = result.user;
 
     const response = NextResponse.json({
       success: true,
@@ -70,9 +33,12 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         email: user.email,
         subscriptionEnd: user.subscriptionEnd,
-        vpnKey: user.vpnKey,
-        xrayUuid: user.xrayUuid,
+        // Legacy field names kept for old clients; both carry the panel link.
+        vpnKey: user.subscriptionUrl,
+        subscriptionUrl: user.subscriptionUrl,
+        xrayUuid: null,
         isNew: user.isNew,
+        trialGranted: user.trialGranted,
       },
     });
 
@@ -85,10 +51,8 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error("[AUTH] verify-code failed:", err);
+    return NextResponse.json({ success: false, error: "Внутренняя ошибка сервера" }, { status: 500 });
   }
 }

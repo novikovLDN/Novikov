@@ -1,22 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getPaymentByTransactionId,
-  updatePaymentStatus,
-  extendSubscription,
-  creditReferrerOnPayment,
-  updateUser,
-  getUserById,
-  createNotificationForUser,
-  createAuditLog,
-} from "@/lib/store";
-import { getPaymentStatus as ykGetPayment } from "@/lib/yookassa";
+import { createAuditLog, transitionPaymentStatus } from "@/lib/store";
+import { getPaymentStatus as ykGetPayment, getRefund, PaymentStatus } from "@/lib/yookassa";
 import type { YooKassaNotification } from "@/lib/yookassa";
-import { sendPaymentSucceededEmail, sendRefundAdminAlertEmail } from "@/lib/email";
-import { syncUserToRemnawave } from "@/lib/subscription-sync";
-import { startFlow, endFlow, info, warn, error as logError } from "@/lib/panel-log";
-import { pool } from "@/lib/db";
-
-const PERIOD_DAYS: Record<number, number> = { 1: 30, 3: 90, 6: 180, 12: 365 };
+import { confirmPayment, findLocalPayment, handleRefund } from "@/lib/payments";
 
 const YOOKASSA_IPV4_PREFIXES = [
   "185.71.76.", "185.71.77.",
@@ -28,7 +14,6 @@ const YOOKASSA_IPV6_PREFIXES = [
 
 function isYooKassaIp(ip: string): boolean {
   if (!ip) return false;
-  if (process.env.NODE_ENV !== "production") return true;
   const lower = ip.toLowerCase();
   return (
     YOOKASSA_IPV4_PREFIXES.some((p) => lower.startsWith(p)) ||
@@ -37,167 +22,77 @@ function isYooKassaIp(ip: string): boolean {
 }
 
 /**
- * YooKassa webhook. Simple flow:
+ * YooKassa webhook.
  *
- *   1. Verify payment via YooKassa API (the real auth — IP check is
- *      best-effort).
- *   2. Look up our local payment record.
- *   3. On succeeded: extendSubscription locally, then
- *      syncUserToRemnawave — that one function handles everything
- *      Remnawave-side (create-or-patch).
- *   4. On canceled / refunded: log only.
+ * The notification body is never trusted: every payment / refund is
+ * re-read from the YooKassa API. If that read fails we answer 502 so
+ * YooKassa retries (it does for 24 h) — we no longer fall back to the
+ * body on a "trusted" IP, because X-Forwarded-For can be spoofed.
  *
- * Idempotent: status='confirmed' + paid_at means the extension was
- * already applied. Retry webhooks see this and exit cleanly.
+ *   payment.succeeded → confirmPayment (atomic, idempotent — safe against
+ *                       the /subscribe polling racing this webhook)
+ *   payment.canceled  → mark canceled (only from pending/expired)
+ *   refund.succeeded  → object is a REFUND (object.payment_id); mark the
+ *                       payment refunded, ledger event with 0 days, admin alert
  */
 export async function POST(request: NextRequest) {
+  const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "";
+  if (!isYooKassaIp(clientIp)) console.warn(`[WEBHOOK] notification from non-YooKassa IP ${clientIp || "(empty)"} — verifying via API`);
+
+  let body: YooKassaNotification;
   try {
-    const clientIp =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      "";
-    const ipTrusted = isYooKassaIp(clientIp);
-    if (!ipTrusted) console.warn(`[WEBHOOK] Untrusted IP ${clientIp || "(empty)"} — proceeding with API verification`);
+    body = (await request.json()) as YooKassaNotification;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+  const event = body?.event;
+  const objectId = body?.object?.id;
+  if (!event || !objectId) {
+    return NextResponse.json({ error: "Invalid notification format" }, { status: 400 });
+  }
+  console.log(`[WEBHOOK] ${event}: ${objectId} ip=${clientIp}`);
 
-    const body = (await request.json()) as YooKassaNotification;
-    const event = body.event;
-    const payment = body.object;
-    if (!payment?.id || !event) {
-      return NextResponse.json({ error: "Invalid notification format" }, { status: 400 });
-    }
-
-    console.log(`[WEBHOOK] ${event}: ${payment.id} (${payment.status}) ip=${clientIp}`);
-
-    // Verify via YooKassa API
-    let verifiedStatus: string;
-    try {
-      const verified = await ykGetPayment(payment.id);
-      verifiedStatus = verified.status;
-    } catch (err) {
-      if (!ipTrusted) {
-        console.error("[WEBHOOK] API verification failed for untrusted IP — rejecting:", err);
-        return NextResponse.json({ error: "Verification failed" }, { status: 403 });
+  try {
+    // ── Refunds ──
+    if (event.startsWith("refund.")) {
+      let refund;
+      try {
+        refund = await getRefund(objectId);
+      } catch (err) {
+        console.error(`[WEBHOOK] refund ${objectId}: verification failed — asking YooKassa to retry`, err);
+        return NextResponse.json({ error: "Verification failed" }, { status: 502 });
       }
-      verifiedStatus = payment.status;
+      const outcome = await handleRefund(refund);
+      console.log(`[WEBHOOK] refund ${refund.id} (payment ${refund.payment_id}): ${outcome}`);
+      return NextResponse.json({ ok: true, outcome });
     }
 
-    const paymentRecord = await getPaymentByTransactionId(payment.id);
-    if (!paymentRecord) {
-      console.error(`[WEBHOOK] Payment not found: ${payment.id}`);
+    // ── Payments ──
+    let verified;
+    try {
+      verified = await ykGetPayment(objectId);
+    } catch (err) {
+      console.error(`[WEBHOOK] payment ${objectId}: verification failed — asking YooKassa to retry`, err);
+      return NextResponse.json({ error: "Verification failed" }, { status: 502 });
+    }
+
+    const local = await findLocalPayment(verified.id, verified.metadata?.paymentId);
+    if (!local) {
+      console.error(`[WEBHOOK] payment ${verified.id} (${verified.status}) has no local record — metadata=${JSON.stringify(verified.metadata ?? {})}`);
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
-    // ── SUCCEEDED ──
-    if (verifiedStatus === "succeeded") {
-      const ctx = startFlow("purchase", { userId: paymentRecord.userId });
-      info(ctx, "purchase.webhook", {
-        yookassaId: payment.id,
-        paymentId: paymentRecord.id,
-        plan: paymentRecord.plan,
-        period: paymentRecord.period,
-        amount: paymentRecord.amount,
-      });
-      const alreadyApplied = paymentRecord.status === "confirmed" && !!paymentRecord.paidAt;
-      if (alreadyApplied) {
-        info(ctx, "purchase.already_applied");
-        endFlow(ctx, "skipped", { reason: "already_applied" });
-        return NextResponse.json({ ok: true });
-      }
-
-      const days = PERIOD_DAYS[paymentRecord.period] || 30;
-      info(ctx, "purchase.extend.start", { days });
-
-      // Step 1: extend local subscription
-      try {
-        await extendSubscription(paymentRecord.userId, days);
-        await updateUser(paymentRecord.userId, { subscriptionPlan: paymentRecord.plan });
-        info(ctx, "purchase.extend.ok");
-      } catch (err) {
-        logError(ctx, "purchase.extend.failed", { message: err instanceof Error ? err.message : String(err) });
-        endFlow(ctx, "failed", { reason: "extend_failed" });
-        return NextResponse.json({ error: "Internal error" }, { status: 500 });
-      }
-
-      // Step 2: mirror to Remnawave (ONE function handles everything)
-      info(ctx, "purchase.panel_sync.start");
-      const syncResult = await syncUserToRemnawave(paymentRecord.userId);
-      if (syncResult.ok) {
-        await pool.query("UPDATE payments SET applied_to_remnawave_at = NOW() WHERE id = $1", [paymentRecord.id]);
-        info(ctx, "purchase.panel_sync.ok", {
-          action: syncResult.action,
-          panelUuid: syncResult.uuid,
-          panelUsername: syncResult.panelUsername,
-          subscriptionUrl: syncResult.subscriptionUrl,
-        });
-      } else {
-        warn(ctx, "purchase.panel_sync.failed", {
-          reason: syncResult.reason,
-          panelError: syncResult.panelError,
-        });
-      }
-
-      // Step 3: mark payment confirmed
-      try {
-        await updatePaymentStatus(paymentRecord.id, "confirmed", new Date());
-      } catch (err) {
-        console.error("[WEBHOOK] updatePaymentStatus failed:", err);
-      }
-
-      // Side effects (non-fatal)
-      creditReferrerOnPayment(paymentRecord.userId, paymentRecord.amount, paymentRecord.id).catch(() => null);
-      const planLabel = paymentRecord.plan === "plus" ? "Plus" : "Basic";
-      createNotificationForUser(
-        paymentRecord.userId,
-        "Оплата подтверждена",
-        `Подписка ${planLabel} на ${paymentRecord.period} мес. активирована.`
-      ).catch(() => null);
-
-      const user = await getUserById(paymentRecord.userId);
-      if (user) {
-        const baseUrl = (process.env.SITE_BASE_URL || "https://qodev.dev").replace(/\/+$/, "");
-        sendPaymentSucceededEmail(
-          user.email,
-          `${planLabel} · ${paymentRecord.period} мес.`,
-          new Date(user.subscriptionEnd),
-          `${baseUrl}/dashboard`
-        ).catch((err) => console.warn("[EMAIL] send failed:", err));
-      }
-
-      createAuditLog("payment.success", `${paymentRecord.plan} ${paymentRecord.period}мес, ${paymentRecord.amount}₽`, paymentRecord.userId).catch(() => null);
-      endFlow(ctx, "ok", { days, plan: paymentRecord.plan });
-
-    // ── CANCELED ──
-    } else if (verifiedStatus === "canceled") {
-      await updatePaymentStatus(paymentRecord.id, "canceled");
-      createAuditLog("payment.canceled", `YooKassa ID: ${payment.id}`, paymentRecord.userId).catch(() => null);
-      console.log(`[WEBHOOK] Payment canceled: ${payment.id}`);
-
-    // ── REFUNDED ──
-    } else if (verifiedStatus === "refunded") {
-      await pool.query(
-        "UPDATE payments SET status = 'refunded', refund_logged_at = NOW() WHERE id = $1",
-        [paymentRecord.id]
-      );
-      const user = await getUserById(paymentRecord.userId);
-      const adminEmail = process.env.ADMIN_NOTIFY_EMAIL || process.env.ADMIN_EMAIL;
-      if (adminEmail && user) {
-        sendRefundAdminAlertEmail({
-          adminEmail,
-          orderId: paymentRecord.id,
-          userEmail: user.email,
-          remnawaveUuid: user.remnawaveUserUuid,
-          amountRub: paymentRecord.amount,
-          plan: `${paymentRecord.plan} ${paymentRecord.period}m`,
-          yookassaPaymentId: payment.id,
-          appliedAt: paymentRecord.paidAt ? new Date(paymentRecord.paidAt) : null,
-        }).catch((err) => console.warn("[EMAIL] refund alert failed:", err));
-      }
-      createAuditLog("payment.refunded", `YooKassa ID: ${payment.id}, amount=${paymentRecord.amount}₽`, paymentRecord.userId).catch(() => null);
+    if (verified.status === PaymentStatus.SUCCEEDED) {
+      const r = await confirmPayment(local.id, "webhook");
+      console.log(`[WEBHOOK] payment ${local.id}: ${r.outcome}${r.newEnd ? ` newEnd=${r.newEnd}` : ""}${r.panelSynced === false ? " (panel sync deferred)" : ""}`);
+    } else if (verified.status === PaymentStatus.CANCELED) {
+      const changed = await transitionPaymentStatus(local.id, ["pending", "expired"], "canceled");
+      if (changed) await createAuditLog("payment.canceled", `YooKassa ID: ${verified.id}`, local.userId);
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
-    console.error("[WEBHOOK] Error:", err);
+    console.error(`[WEBHOOK] ${event} ${objectId} failed:`, err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

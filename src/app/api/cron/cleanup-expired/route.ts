@@ -1,31 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cleanupExpiredUsers } from "@/lib/store";
+import crypto from "crypto";
+import { expirePendingPayments } from "@/lib/store";
+import { runPendingPass } from "@/lib/sync-worker";
 
-const CRON_SECRET = process.env.CRON_SECRET || "";
+/**
+ * External cron hook. Expired subscriptions need no cleanup any more —
+ * the panel expires users itself. This marks stale pending payments as
+ * expired and runs one pending panel-sync pass (same lock as the worker).
+ *
+ * Refuses to run without CRON_SECRET: an unset secret used to leave the
+ * endpoint open to anyone.
+ */
+function authorized(request: NextRequest, secret: string): boolean {
+  const header = request.headers.get("authorization") || "";
+  const expected = `Bearer ${secret}`;
+  const a = Buffer.from(header);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
 
 export async function POST(request: NextRequest) {
-  // Protect endpoint with secret (for external cron services like Vercel Cron)
-  if (CRON_SECRET) {
-    const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${CRON_SECRET}`) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+  const secret = process.env.CRON_SECRET || "";
+  if (!secret) {
+    console.error("[CRON] CRON_SECRET is not set — refusing to run");
+    return NextResponse.json({ success: false, error: "Cron is not configured" }, { status: 503 });
+  }
+  if (!authorized(request, secret)) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const result = await cleanupExpiredUsers();
-
-    return NextResponse.json({
-      success: true,
-      data: result,
-    });
-  } catch {
-    return NextResponse.json(
-      { success: false, error: "Cleanup failed" },
-      { status: 500 }
-    );
+    const expiredPayments = await expirePendingPayments();
+    const sync = await runPendingPass();
+    return NextResponse.json({ success: true, data: { expiredPayments, sync } });
+  } catch (err) {
+    console.error("[CRON] cleanup failed:", err);
+    return NextResponse.json({ success: false, error: "Cleanup failed" }, { status: 500 });
   }
 }

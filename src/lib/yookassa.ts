@@ -132,6 +132,32 @@ export async function getPaymentStatus(paymentId: string): Promise<YooKassaPayme
   return res.json();
 }
 
+// ─── Refunds ────────────────────────────────────────────────────
+
+export interface YooKassaRefund {
+  id: string;
+  payment_id: string;
+  status: "pending" | "succeeded" | "canceled";
+  amount: YooKassaAmount;
+  created_at: string;
+  description?: string;
+}
+
+/** GET /v3/refunds/{id} — used to verify a refund.succeeded notification. */
+export async function getRefund(refundId: string): Promise<YooKassaRefund> {
+  ensureConfigured();
+  const res = await fetch(`${YOOKASSA_API_URL}/refunds/${encodeURIComponent(refundId)}`, {
+    method: "GET",
+    headers: { Authorization: getAuthHeader() },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    console.error(`[YOOKASSA] Get refund failed: ${res.status} ${text}`);
+    throw new Error(`Refund status check failed: ${res.status}`);
+  }
+  return res.json();
+}
+
 // ─── Payment Status Constants ───────────────────────────────────
 
 export const PaymentStatus = {
@@ -146,5 +172,6 @@ export const PaymentStatus = {
 export interface YooKassaNotification {
   type: "notification";
   event: "payment.succeeded" | "payment.canceled" | "payment.waiting_for_capture" | "refund.succeeded";
-  object: YooKassaPayment;
+  /** A payment for payment.* events, a refund (with payment_id) for refund.* events. */
+  object: YooKassaPayment | YooKassaRefund;
 }

@@ -1,31 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // Subscription endpoints — publicly accessible for VPN clients
-  if (pathname.startsWith("/api/sub/")) {
-    const response = NextResponse.next();
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    response.headers.set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
-    response.headers.set("Access-Control-Allow-Headers", "*");
-
-    if (request.method === "OPTIONS") {
-      return new NextResponse(null, {
-        status: 200,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-          "Access-Control-Allow-Headers": "*",
-          "Access-Control-Max-Age": "86400",
-        },
-      });
-    }
-
-    return response;
-  }
-
-  // All other routes — add security headers
+  void request;
+  // Security headers for every route. (The legacy Xray /api/sub/* CORS
+  // branch is gone together with the route — subscriptions are served
+  // by the Remnawave panel on its own domain.)
   const response = NextResponse.next();
 
   // Prevent clickjacking
@@ -49,7 +28,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/api/sub/:path*",
     "/((?!_next/static|_next/image|favicon.ico).*)",
   ],
 };

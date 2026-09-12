@@ -1,17 +1,23 @@
 // PostgreSQL-backed store for user data.
 // Verification codes remain in-memory (ephemeral, 10min TTL).
+//
+// Subscription end dates change ONLY through the ledger
+// (src/lib/subscription-ledger.ts) — never by writing subscription_end
+// directly — so every change is idempotent and auditable.
 
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
-import { pool } from "./db";
-import { generateXrayUuid, buildConnectionUri, xrayRemoveUser, generateSubToken, generateSubId, buildSubscriptionUrl } from "./xray";
+import { pool, waitForDb } from "./db";
 import { TRIAL_DURATION_MS } from "./remnawave";
+import { TELEGRAM_BONUS_DAYS } from "./brand-facts";
+import { applySubscriptionEvent, DAY, Queryable, withTransaction } from "./subscription-ledger";
+import { checkTrialEligibility, recordTrialUsage, TrialBlockReason } from "./trial";
+import { generateTelegramLinkToken } from "./tokens";
 
-// Hard ceiling on subscription_end mutations. Anything beyond ~13 months
-// from now is a caller-side bug (10-year "lifetime" datapoints from the
-// bot were silently nuking users' real subscriptions). Every mutator
-// funnels through updateUser, which throws when this is exceeded.
-const MAX_EXTEND_DAYS = 400;
+// Hard ceiling for direct subscription_end writes through updateUser.
+// Ledger events are not subject to it (stacked paid renewals may go
+// past 400 days); the ledger caps a single event instead.
+const MAX_DIRECT_END_DAYS = 400;
 
 // ─── Types ───────────────────────────────────────────────────────
 
@@ -21,6 +27,7 @@ export interface UserRecord {
   passwordHash: string | null;
   createdAt: string;
   subscriptionEnd: string;
+  /** Legacy Xray fields — no longer written; kept so old rows still map. */
   vpnKey: string | null;
   xrayUuid: string | null;
   telegramId: string | null;
@@ -37,15 +44,23 @@ export interface UserRecord {
   telegramLinkToken: string | null;
   registrationIp: string | null;
   balance: number;
+  /** Panel integer id as text (historical column name). */
   remnawaveUserUuid: string | null;
   remnawaveShortUuid: string | null;
   subscriptionUrl: string | null;
+  /** Always null since 3.x (the panel has no crypto-link endpoint). */
   happCryptoLink: string | null;
   cryptoLinkUpdatedAt: string | null;
   trialUsedAt: string | null;
   panelId: string | null;
   publicId: string | null;
   panelUsername: string | null;
+  panelUserId: number | null;
+  panelSyncState: string | null;
+  panelSyncError: string | null;
+  panelStatus: string | null;
+  panelSyncedAt: string | null;
+  telegramBonusGrantedAt: string | null;
 }
 
 export interface CodeRecord {
@@ -57,39 +72,47 @@ export interface CodeRecord {
 
 // ─── Row → UserRecord mapper ────────────────────────────────────
 
+const iso = (v: unknown): string | null => (v ? new Date(v as string).toISOString() : null);
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function rowToUser(row: any): UserRecord {
+export function rowToUser(row: any): UserRecord {
   return {
     id: row.id,
     email: row.email,
-    passwordHash: row.password_hash,
+    passwordHash: row.password_hash ?? null,
     createdAt: new Date(row.created_at).toISOString(),
     subscriptionEnd: new Date(row.subscription_end).toISOString(),
-    vpnKey: row.vpn_key,
-    xrayUuid: row.xray_uuid,
-    telegramId: row.telegram_id,
-    telegramLinked: row.telegram_linked,
+    vpnKey: row.vpn_key ?? null,
+    xrayUuid: row.xray_uuid ?? null,
+    telegramId: row.telegram_id ?? null,
+    telegramLinked: !!row.telegram_linked,
     referralCode: row.referral_code,
-    referredBy: row.referred_by,
-    referrals: row.referrals,
-    paidReferrals: row.paid_referrals,
+    referredBy: row.referred_by ?? null,
+    referrals: row.referrals ?? 0,
+    paidReferrals: row.paid_referrals ?? 0,
     subscriptionPlan: row.subscription_plan || "trial",
-    subToken: row.sub_token,
-    subId: row.sub_id,
+    subToken: row.sub_token ?? null,
+    subId: row.sub_id ?? null,
     keyRegenCount: row.key_regen_count ?? 0,
-    keyRegenWindowStart: row.key_regen_window_start ? new Date(row.key_regen_window_start).toISOString() : null,
-    telegramLinkToken: row.telegram_link_token,
-    registrationIp: row.registration_ip,
+    keyRegenWindowStart: iso(row.key_regen_window_start),
+    telegramLinkToken: row.telegram_link_token ?? null,
+    registrationIp: row.registration_ip ?? null,
     balance: row.balance ?? 0,
     remnawaveUserUuid: row.remnawave_user_uuid ?? null,
     remnawaveShortUuid: row.remnawave_short_uuid ?? null,
     subscriptionUrl: row.subscription_url ?? null,
-    happCryptoLink: row.happ_crypto_link ?? null,
-    cryptoLinkUpdatedAt: row.crypto_link_updated_at ? new Date(row.crypto_link_updated_at).toISOString() : null,
-    trialUsedAt: row.trial_used_at ? new Date(row.trial_used_at).toISOString() : null,
+    happCryptoLink: null,
+    cryptoLinkUpdatedAt: null,
+    trialUsedAt: iso(row.trial_used_at),
     panelId: row.panel_id ?? null,
     publicId: row.public_id ?? null,
     panelUsername: row.panel_username ?? null,
+    panelUserId: row.panel_user_id != null ? Number(row.panel_user_id) : null,
+    panelSyncState: row.panel_sync_state ?? null,
+    panelSyncError: row.panel_sync_error ?? null,
+    panelStatus: row.panel_status ?? null,
+    panelSyncedAt: iso(row.panel_synced_at),
+    telegramBonusGrantedAt: iso(row.telegram_bonus_granted_at),
   };
 }
 
@@ -145,50 +168,82 @@ export function verifyCode(email: string, code: string): { valid: boolean; error
 
 // ─── User Management (PostgreSQL) ───────────────────────────────
 
-export async function getOrCreateUser(email: string, referredByCode?: string, ip?: string, fingerprint?: string): Promise<UserRecord & { isNew: boolean; trialBlocked?: boolean }> {
-  // Check existing user
+export type NewUserResult = UserRecord & {
+  isNew: boolean;
+  /** True when this call created the user AND granted the trial. */
+  trialGranted: boolean;
+  /** Why the trial was not granted to a new user (null when granted or not new). */
+  trialBlockedReason: TrialBlockReason | null;
+};
+
+/**
+ * Find or create a user by email. A NEW user is created with an
+ * already-ended subscription and gets the trial only if the
+ * anti-abuse checks pass — in the same transaction, through the
+ * ledger (kind `trial`, source = user id, so it can never be granted
+ * twice). The panel user is created afterwards by the sync.
+ */
+export async function getOrCreateUser(
+  email: string,
+  referredByCode?: string,
+  ip?: string,
+  fingerprint?: string
+): Promise<NewUserResult> {
+  await waitForDb(); // user creation must not race the startup migrations
   const existing = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
   if (existing.rows.length > 0) {
-    return { ...rowToUser(existing.rows[0]), isNew: false };
+    return { ...rowToUser(existing.rows[0]), isNew: false, trialGranted: false, trialBlockedReason: null };
   }
 
-  // Create new user
-  const now = new Date();
-  // Trial duration comes from remnawave.ts single source of truth so
-  // local subscription_end and the panel-side expireAt agree from the
-  // very first row insert. Previously this was hardcoded 24h while
-  // issueTrial provisioned 3d — a race where local briefly disagreed
-  // with the panel until issueTrial finished writing.
-  const trialEnd = new Date(now.getTime() + TRIAL_DURATION_MS);
-  const xrayUuid = generateXrayUuid();
-  const referralCode = generateReferralCode();
-  const telegramLinkToken = uuidv4().replace(/-/g, "").slice(0, 16);
-  const subToken = generateSubToken();
-  const subId = generateSubId(email);
-  const vpnKey = buildSubscriptionUrl(subToken, subId);
-  const id = uuidv4();
-  const crypto = require("crypto") as typeof import("crypto");
-  const panelId = crypto.randomBytes(4).toString("hex"); // legacy field
-
-  // Use Postgres sequence inline so public_id stays unique even under
-  // concurrent inserts. Format: "ST" + 8-digit zero-padded.
-  const result = await pool.query(
-    `INSERT INTO users (id, email, created_at, subscription_end, vpn_key, xray_uuid, sub_token, sub_id, referral_code, referred_by, telegram_link_token, registration_ip, device_fingerprint, panel_id, public_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14,
-       'ST' || LPAD(NEXTVAL('user_public_id_seq')::text, 8, '0'))
-     RETURNING *`,
-    [id, email, now, trialEnd, vpnKey, xrayUuid, subToken, subId, referralCode, referredByCode || null, telegramLinkToken, ip || null, fingerprint || null, panelId]
-  );
-
-  // Credit referrer: +1 referral count (bonus given when friend pays)
-  if (referredByCode) {
-    await pool.query(
-      `UPDATE users SET referrals = referrals + 1 WHERE referral_code = $1`,
-      [referredByCode]
+  return withTransaction(async (c) => {
+    const id = uuidv4();
+    const now = new Date();
+    const inserted = await c.query(
+      `INSERT INTO users (id, email, created_at, subscription_end, referral_code, referred_by,
+                          telegram_link_token, registration_ip, device_fingerprint, public_id)
+       VALUES ($1, $2, $3, $3, $4, $5, $6, $7, $8, 'ST' || LPAD(NEXTVAL('user_public_id_seq')::text, 8, '0'))
+       ON CONFLICT (email) DO NOTHING
+       RETURNING *`,
+      [
+        id,
+        email,
+        now,
+        generateReferralCode(),
+        referredByCode || null,
+        generateTelegramLinkToken(),
+        ip || null,
+        fingerprint || null,
+      ]
     );
-  }
+    if (inserted.rows.length === 0) {
+      // Lost a race with a concurrent sign-in for the same email.
+      const again = await c.query("SELECT * FROM users WHERE email = $1", [email]);
+      return { ...rowToUser(again.rows[0]), isNew: false, trialGranted: false, trialBlockedReason: null };
+    }
 
-  return { ...rowToUser(result.rows[0]), isNew: true };
+    if (referredByCode) {
+      await c.query(`UPDATE users SET referrals = referrals + 1 WHERE referral_code = $1 AND id <> $2`, [referredByCode, id]);
+    }
+
+    const blocked = await checkTrialEligibility(c, { email, ip, fingerprint });
+    if (!blocked) {
+      await applySubscriptionEvent(c, {
+        userId: id,
+        kind: "trial",
+        sourceId: id,
+        extendMs: TRIAL_DURATION_MS,
+        plan: "trial",
+        actor: "signup",
+      });
+      await c.query("UPDATE users SET trial_used_at = NOW() WHERE id = $1", [id]);
+      await recordTrialUsage(c, { email, ip, fingerprint });
+    } else {
+      console.warn(`[TRIAL] not granted to ${email}: ${blocked}`);
+    }
+
+    const row = await c.query("SELECT * FROM users WHERE id = $1", [id]);
+    return { ...rowToUser(row.rows[0]), isNew: true, trialGranted: !blocked, trialBlockedReason: blocked };
+  });
 }
 
 export async function getUserByEmail(email: string): Promise<UserRecord | null> {
@@ -203,33 +258,23 @@ export async function getUserById(id: string): Promise<UserRecord | null> {
   return rowToUser(result.rows[0]);
 }
 
+/**
+ * Update plain profile fields. Do NOT use it for subscription changes —
+ * those go through the ledger. The subscriptionEnd guard stays as a
+ * last line of defence for any remaining direct writer.
+ */
 export async function updateUser(id: string, updates: Partial<UserRecord>): Promise<UserRecord | null> {
-  // Sanity guard: nothing should ever write a future subscription_end
-  // beyond MAX_EXTEND_DAYS from now. We had a long-running bug where
-  // bot- and Telegram-link flows wrote 2036 dates, silently giving
-  // users 10-year subs. Defense-in-depth — every mutator funnels
-  // through here, so a single guard catches every path.
   if (updates.subscriptionEnd !== undefined && updates.subscriptionEnd !== null) {
     const ts = new Date(updates.subscriptionEnd).getTime();
-    if (Number.isFinite(ts)) {
-      const maxAhead = Date.now() + MAX_EXTEND_DAYS * 24 * 60 * 60 * 1000;
-      if (ts > maxAhead) {
-        throw new Error(
-          `updateUser: subscriptionEnd ${updates.subscriptionEnd} exceeds NOW+${MAX_EXTEND_DAYS}d (caller bug)`
-        );
-      }
+    if (Number.isFinite(ts) && ts > Date.now() + MAX_DIRECT_END_DAYS * DAY) {
+      throw new Error(`updateUser: subscriptionEnd ${updates.subscriptionEnd} exceeds NOW+${MAX_DIRECT_END_DAYS}d — use the ledger`);
     }
   }
 
-  // Map UserRecord fields to DB columns
   const fieldMap: Record<string, string> = {
     email: "email",
     passwordHash: "password_hash",
     subscriptionEnd: "subscription_end",
-    vpnKey: "vpn_key",
-    xrayUuid: "xray_uuid",
-    subToken: "sub_token",
-    subId: "sub_id",
     telegramId: "telegram_id",
     telegramLinked: "telegram_linked",
     referralCode: "referral_code",
@@ -237,8 +282,6 @@ export async function updateUser(id: string, updates: Partial<UserRecord>): Prom
     referrals: "referrals",
     paidReferrals: "paid_referrals",
     subscriptionPlan: "subscription_plan",
-    keyRegenCount: "key_regen_count",
-    keyRegenWindowStart: "key_regen_window_start",
     telegramLinkToken: "telegram_link_token",
     registrationIp: "registration_ip",
     balance: "balance",
@@ -268,65 +311,6 @@ export async function updateUser(id: string, updates: Partial<UserRecord>): Prom
   return rowToUser(result.rows[0]);
 }
 
-const MAX_REGEN_PER_WINDOW = 2;
-const REGEN_WINDOW_MS = 48 * 60 * 60 * 1000; // 48 hours
-
-export async function checkRegenLimit(userId: string): Promise<{ allowed: boolean; remaining: number; resetAt: string | null }> {
-  const user = await getUserById(userId);
-  if (!user) return { allowed: false, remaining: 0, resetAt: null };
-
-  const now = Date.now();
-  const windowStart = user.keyRegenWindowStart ? new Date(user.keyRegenWindowStart).getTime() : 0;
-  const windowExpired = !user.keyRegenWindowStart || (now - windowStart) >= REGEN_WINDOW_MS;
-
-  if (windowExpired) {
-    return { allowed: true, remaining: MAX_REGEN_PER_WINDOW, resetAt: null };
-  }
-
-  const remaining = MAX_REGEN_PER_WINDOW - user.keyRegenCount;
-  const resetAt = new Date(windowStart + REGEN_WINDOW_MS).toISOString();
-  return { allowed: remaining > 0, remaining: Math.max(0, remaining), resetAt };
-}
-
-export async function regenerateUserKey(userId: string): Promise<{ user: UserRecord | null; limitExceeded?: boolean; resetAt?: string }> {
-  const user = await getUserById(userId);
-  if (!user) return { user: null };
-
-  const now = Date.now();
-  const windowStart = user.keyRegenWindowStart ? new Date(user.keyRegenWindowStart).getTime() : 0;
-  const windowExpired = !user.keyRegenWindowStart || (now - windowStart) >= REGEN_WINDOW_MS;
-
-  let newCount: number;
-  let newWindowStart: string;
-
-  if (windowExpired) {
-    newCount = 1;
-    newWindowStart = new Date(now).toISOString();
-  } else {
-    if (user.keyRegenCount >= MAX_REGEN_PER_WINDOW) {
-      const resetAt = new Date(windowStart + REGEN_WINDOW_MS).toISOString();
-      return { user: null, limitExceeded: true, resetAt };
-    }
-    newCount = user.keyRegenCount + 1;
-    newWindowStart = user.keyRegenWindowStart!;
-  }
-
-  const newUuid = generateXrayUuid();
-  const newSubToken = generateSubToken();
-  const subId = user.subId || generateSubId(user.email);
-  const newKey = buildSubscriptionUrl(newSubToken, subId);
-
-  const updated = await updateUser(userId, {
-    xrayUuid: newUuid,
-    vpnKey: newKey,
-    subToken: newSubToken,
-    keyRegenCount: newCount,
-    keyRegenWindowStart: newWindowStart,
-  });
-
-  return { user: updated };
-}
-
 export async function linkTelegram(userId: string, telegramId: string): Promise<UserRecord | null> {
   const user = await getUserById(userId);
   if (!user) return null;
@@ -347,7 +331,7 @@ export async function getUserByTelegramLinkToken(token: string): Promise<UserRec
 }
 
 export async function getUserByTelegramId(telegramId: string): Promise<UserRecord | null> {
-  const result = await pool.query("SELECT * FROM users WHERE telegram_id = $1", [telegramId]);
+  const result = await pool.query("SELECT * FROM users WHERE telegram_id = $1 ORDER BY created_at ASC LIMIT 1", [telegramId]);
   if (result.rows.length === 0) return null;
   return rowToUser(result.rows[0]);
 }
@@ -376,53 +360,161 @@ export async function linkTelegramByToken(token: string, telegramId: string): Pr
   });
 }
 
+/**
+ * +TELEGRAM_BONUS_DAYS for linking Telegram — once per site account AND
+ * once per Telegram id (unlink/relink or moving the Telegram id to
+ * another account never pays twice).
+ */
+export async function grantTelegramBonus(
+  userId: string,
+  telegramId: string
+): Promise<{ granted: boolean; reason?: "telegram_id_already_used" | "account_already_rewarded"; newEnd?: string }> {
+  return withTransaction(async (c) => {
+    const claim = await c.query(
+      `INSERT INTO telegram_bonus_claims (telegram_id, user_id) VALUES ($1, $2)
+       ON CONFLICT (telegram_id) DO NOTHING RETURNING telegram_id`,
+      [telegramId, userId]
+    );
+    if (claim.rows.length === 0) return { granted: false, reason: "telegram_id_already_used" as const };
+
+    const mark = await c.query(
+      `UPDATE users SET telegram_bonus_granted_at = NOW()
+       WHERE id = $1 AND telegram_bonus_granted_at IS NULL RETURNING id`,
+      [userId]
+    );
+    if (mark.rows.length === 0) {
+      // Roll the claim back with the transaction: the Telegram id stays free
+      // for… nobody else either — but an account that already got the
+      // bonus must not consume a new Telegram id's claim.
+      throw new AccountAlreadyRewarded();
+    }
+
+    const led = await applySubscriptionEvent(c, {
+      userId,
+      kind: "telegram_bonus",
+      sourceId: userId,
+      extendMs: TELEGRAM_BONUS_DAYS * DAY,
+      actor: `telegram:${telegramId}`,
+    });
+    return { granted: led.applied, newEnd: led.newEnd.toISOString() };
+  }).catch((err) => {
+    if (err instanceof AccountAlreadyRewarded) return { granted: false, reason: "account_already_rewarded" as const };
+    throw err;
+  });
+}
+
+class AccountAlreadyRewarded extends Error {
+  constructor() {
+    super("account already rewarded");
+  }
+}
+
+/** A bot call without paymentId repeating (days, plan, amount) within this window is a retry. */
+export const BOT_EXTEND_DEDUPE_SECONDS = 120;
+
+export interface BotExtendResult {
+  user: UserRecord;
+  applied: boolean;
+  /** True when the call was recognised as a repeat and nothing was applied. */
+  duplicate: boolean;
+  /** Ledger source id — also the cashback purchase id (one key for both). */
+  sourceId: string;
+  referral: ReferralCredit | null;
+}
+
+/**
+ * Bot-side paid extension + referral cashback, in ONE transaction under
+ * the user row lock.
+ *
+ *   with paymentId / Idempotency-Key → source `bot:<key>`: fully idempotent.
+ *   without → a `bot_extend` event of this user with the same (days, plan,
+ *     amount) in the last 120 s means "retry after a dropped response":
+ *     nothing is applied, `duplicate: true`. Otherwise a new event with a
+ *     source id derived from its own id. No random fallback for the
+ *     cashback purchase id anywhere — it is always the ledger source id.
+ */
 export async function botExtendSubscription(
   telegramId: string,
   days: number,
-  plan?: string
-): Promise<UserRecord | null> {
-  if (typeof days !== "number" || !Number.isFinite(days) || days <= 0 || days > MAX_EXTEND_DAYS) {
-    throw new Error(`botExtendSubscription: days out of range (got ${days}, max ${MAX_EXTEND_DAYS})`);
+  opts: { plan?: string; amount?: number; idempotencyKey?: string } = {}
+): Promise<BotExtendResult | null> {
+  if (typeof days !== "number" || !Number.isFinite(days) || days <= 0 || days > 400) {
+    throw new Error(`botExtendSubscription: days out of range (got ${days}, max 400)`);
   }
   const user = await getUserByTelegramId(telegramId);
   if (!user) return null;
+  const planSlug = opts.plan && ["basic", "plus"].includes(opts.plan) ? opts.plan : null;
+  const amount = typeof opts.amount === "number" && Number.isFinite(opts.amount) && opts.amount > 0 ? opts.amount : null;
+  const key = opts.idempotencyKey?.trim() || null;
 
-  const currentEnd = new Date(user.subscriptionEnd);
-  const now = new Date();
-  const maxBase = new Date(now.getTime() + MAX_EXTEND_DAYS * 24 * 60 * 60 * 1000);
+  const out = await withTransaction(async (c): Promise<Omit<BotExtendResult, "user">> => {
+    await c.query("SELECT id FROM users WHERE id = $1 FOR UPDATE", [user.id]);
 
-  // Same "corrupted ghost date" guard as extendSubscription: if the
-  // record already sits past +400d (legacy bug), reset to NOW so the
-  // user gets exactly the days they paid for and the universal
-  // updateUser guard doesn't throw.
-  let base: Date;
-  if (currentEnd > maxBase) {
-    console.warn(`[BOT-EXTEND] ${user.email}: currentEnd ${currentEnd.toISOString()} is past +${MAX_EXTEND_DAYS}d, resetting base to NOW`);
-    base = now;
-  } else if (currentEnd > now) {
-    base = currentEnd;
-  } else {
-    base = now;
-  }
-  const newEnd = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
+    let sourceId: string;
+    let eventId: string | undefined;
+    if (key) {
+      sourceId = `bot:${key}`;
+    } else {
+      console.warn(JSON.stringify({ lvl: "warn", evt: "bot-extend.no-payment-id", telegramId, userId: user.id, days, plan: planSlug, amount }));
+      const dup = await c.query<{ source_id: string }>(
+        `SELECT source_id FROM subscription_events
+         WHERE user_id = $1 AND kind = 'bot_extend'
+           AND created_at > NOW() - ($2::int * INTERVAL '1 second')
+           AND meta->>'requestedDays' = $3
+           AND plan IS NOT DISTINCT FROM $4
+           AND meta->>'amount' IS NOT DISTINCT FROM $5
+         ORDER BY created_at DESC LIMIT 1`,
+        [user.id, BOT_EXTEND_DEDUPE_SECONDS, String(days), planSlug, amount === null ? null : String(amount)]
+      );
+      if (dup.rows.length > 0) {
+        return { applied: false, duplicate: true, sourceId: dup.rows[0].source_id, referral: null };
+      }
+      eventId = uuidv4();
+      sourceId = `bot:auto:${eventId}`;
+    }
 
-  // If user has no VPN key (expired and cleaned up), regenerate
-  if (!user.xrayUuid) {
-    const { generateXrayUuid: genUuid, generateSubToken: genSubToken, generateSubId: genSubId, buildSubscriptionUrl: buildSubUrl } = await import("./xray");
-    const newUuid = genUuid();
-    const newSubToken = genSubToken();
-    const subId = user.subId || genSubId(user.email);
-    const newKey = buildSubUrl(newSubToken, subId);
-    return updateUser(user.id, {
-      subscriptionEnd: newEnd.toISOString(),
-      xrayUuid: newUuid,
-      vpnKey: newKey,
-      subToken: newSubToken,
-      subId: subId,
+    const led = await applySubscriptionEvent(c, {
+      id: eventId,
+      userId: user.id,
+      kind: "bot_extend",
+      sourceId,
+      extendMs: days * DAY,
+      plan: planSlug,
+      actor: `bot:${telegramId}`,
+      meta: { requestedDays: days, amount, telegramId, idempotencyKey: key },
     });
-  }
+    if (!led.applied) return { applied: false, duplicate: true, sourceId, referral: null };
 
-  return updateUser(user.id, { subscriptionEnd: newEnd.toISOString() });
+    // Cashback must never block the extension: isolate it in a savepoint.
+    let referral: ReferralCredit | null = null;
+    await c.query("SAVEPOINT bot_referral");
+    try {
+      referral = await creditReferrerOnPayment(user.id, amount ?? undefined, sourceId, c);
+      await c.query("RELEASE SAVEPOINT bot_referral");
+    } catch (err) {
+      await c.query("ROLLBACK TO SAVEPOINT bot_referral");
+      console.error(`[BOT-EXTEND] referral credit failed for ${sourceId}:`, err instanceof Error ? err.message : err);
+    }
+    return { applied: true, duplicate: false, sourceId, referral };
+  });
+
+  const fresh = await getUserById(user.id);
+  return fresh ? { ...out, user: fresh } : null;
+}
+
+/** Bot overwrite of the subscription end (action=overwrite_site). */
+export async function botOverwriteSubscription(userId: string, end: Date, plan: string | null, telegramId: string): Promise<UserRecord | null> {
+  await withTransaction((c) =>
+    applySubscriptionEvent(c, {
+      userId,
+      kind: "bot_overwrite",
+      sourceId: `bot:${uuidv4()}`,
+      setEnd: end,
+      plan,
+      actor: `bot:${telegramId}`,
+    })
+  );
+  return getUserById(userId);
 }
 
 // ─── Payment Management ─────────────────────────────────────────
@@ -440,23 +532,29 @@ export interface PaymentRecord {
   expiresAt: string;
   createdAt: string;
   paidAt: string | null;
+  appliedAt: string | null;
+  refundedAt: string | null;
+  refundId: string | null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function rowToPayment(row: any): PaymentRecord {
+export function rowToPayment(row: any): PaymentRecord {
   return {
     id: row.id,
     userId: row.user_id,
-    transactionId: row.transaction_id,
+    transactionId: row.transaction_id ?? null,
     plan: row.plan,
-    period: row.period,
+    period: Number(row.period),
     amount: parseFloat(row.amount),
     currency: row.currency,
     status: row.status,
-    redirectUrl: row.redirect_url,
+    redirectUrl: row.redirect_url ?? null,
     expiresAt: new Date(row.expires_at).toISOString(),
     createdAt: new Date(row.created_at).toISOString(),
-    paidAt: row.paid_at ? new Date(row.paid_at).toISOString() : null,
+    paidAt: iso(row.paid_at),
+    appliedAt: iso(row.applied_at),
+    refundedAt: iso(row.refunded_at),
+    refundId: row.refund_id ?? null,
   };
 }
 
@@ -479,6 +577,13 @@ export async function createPaymentRecord(
   return rowToPayment(result.rows[0]);
 }
 
+export async function setPaymentTransaction(id: string, transactionId: string, redirectUrl: string | null): Promise<void> {
+  await pool.query(
+    "UPDATE payments SET transaction_id = $2, redirect_url = COALESCE($3, redirect_url) WHERE id = $1 AND (transaction_id IS NULL OR transaction_id = $2)",
+    [id, transactionId, redirectUrl]
+  );
+}
+
 export async function getPaymentById(id: string): Promise<PaymentRecord | null> {
   const result = await pool.query("SELECT * FROM payments WHERE id = $1", [id]);
   if (result.rows.length === 0) return null;
@@ -491,47 +596,10 @@ export async function getPaymentByTransactionId(transactionId: string): Promise<
   return rowToPayment(result.rows[0]);
 }
 
-export async function updatePaymentStatus(id: string, status: string, paidAt?: Date): Promise<PaymentRecord | null> {
-  const result = paidAt
-    ? await pool.query(
-        "UPDATE payments SET status = $1, paid_at = $2 WHERE id = $3 RETURNING *",
-        [status, paidAt, id]
-      )
-    : await pool.query(
-        "UPDATE payments SET status = $1 WHERE id = $2 RETURNING *",
-        [status, id]
-      );
-  if (result.rows.length === 0) return null;
-  return rowToPayment(result.rows[0]);
-}
-
-export async function extendSubscription(userId: string, days: number): Promise<UserRecord | null> {
-  if (typeof days !== "number" || !Number.isFinite(days) || days <= 0 || days > MAX_EXTEND_DAYS) {
-    throw new Error(`extendSubscription: days out of range (got ${days}, max ${MAX_EXTEND_DAYS})`);
-  }
-  const user = await getUserById(userId);
-  if (!user) return null;
-
-  const currentEnd = new Date(user.subscriptionEnd);
-  const now = new Date();
-  const maxBase = new Date(now.getTime() + MAX_EXTEND_DAYS * 24 * 60 * 60 * 1000);
-
-  // Treat already-corrupted future dates as expired so legitimate
-  // extensions (paid renewals) reset from NOW instead of piling +30d
-  // on top of a 10-year ghost date. Without this, the universal
-  // updateUser guard would throw and webhook would 500.
-  let base: Date;
-  if (currentEnd > maxBase) {
-    console.warn(`[EXTEND] ${user.email}: currentEnd ${currentEnd.toISOString()} is past +${MAX_EXTEND_DAYS}d, resetting base to NOW (was a corrupted record)`);
-    base = now;
-  } else if (currentEnd > now) {
-    base = currentEnd;
-  } else {
-    base = now;
-  }
-  const newEnd = new Date(base.getTime() + days * 24 * 60 * 60 * 1000);
-
-  return updateUser(userId, { subscriptionEnd: newEnd.toISOString() });
+/** Conditional status change: only from one of `from`. Returns the row if it changed. */
+export async function transitionPaymentStatus(id: string, from: string[], to: string): Promise<PaymentRecord | null> {
+  const result = await pool.query("UPDATE payments SET status = $2 WHERE id = $1 AND status = ANY($3) RETURNING *", [id, to, from]);
+  return result.rows.length ? rowToPayment(result.rows[0]) : null;
 }
 
 // ─── Loyalty Tiers & Cashback ───────────────────────────────────
@@ -577,20 +645,16 @@ export async function increaseBalance(
   relatedUserId?: string,
   syncedToBot: boolean = true
 ): Promise<number> {
-  const id = uuidv4();
-  const result = await pool.query(
-    `UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING balance`,
-    [amountKopecks, userId]
-  );
-  if (result.rows.length === 0) return 0;
-
-  await pool.query(
-    `INSERT INTO balance_transactions (id, user_id, amount, type, source, description, related_user_id, synced_to_bot)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-    [id, userId, amountKopecks, type, source, description, relatedUserId || null, syncedToBot]
-  );
-
-  return result.rows[0].balance;
+  return withTransaction(async (c) => {
+    const result = await c.query(`UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING balance`, [amountKopecks, userId]);
+    if (result.rows.length === 0) return 0;
+    await c.query(
+      `INSERT INTO balance_transactions (id, user_id, amount, type, source, description, related_user_id, synced_to_bot)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [uuidv4(), userId, amountKopecks, type, source, description, relatedUserId || null, syncedToBot]
+    );
+    return result.rows[0].balance;
+  });
 }
 
 /** Get user balance in kopecks */
@@ -634,85 +698,86 @@ export async function markCashbackSynced(transactionIds: string[]): Promise<void
 
 // ─── Referral Cashback System ───────────────────────────────────
 
+export interface ReferralCredit {
+  referrerId: string;
+  percent: number;
+  rewardRubles: number;
+}
+
 /**
- * Credit referrer with cashback on a referral's payment.
+ * Credit the referrer on a referee's payment — atomic and idempotent.
  *
- * @param userId - the buyer (referred user) who made a payment
- * @param purchaseAmountRubles - payment amount in rubles
- * @param purchaseId - unique payment ID for idempotency
- * @returns cashback info or null if no referrer
+ *   - cashback: one reward per (buyer, purchase) — the referral_rewards
+ *     row is inserted FIRST and gates the balance change;
+ *   - paid_referrals counts UNIQUE referees: it grows only the first
+ *     time a given buyer pays (users.referral_paid_counted_at on the buyer).
+ *
+ * Pass `client` to run inside the caller's transaction (payment
+ * confirmation does); otherwise a transaction is opened here.
  */
 export async function creditReferrerOnPayment(
   userId: string,
   purchaseAmountRubles?: number,
-  purchaseId?: string
-): Promise<{ referrerId: string; percent: number; rewardRubles: number } | null> {
-  const user = await getUserById(userId);
-  if (!user || !user.referredBy) return null;
+  purchaseId?: string,
+  client?: Queryable
+): Promise<ReferralCredit | null> {
+  const run = async (c: Queryable): Promise<ReferralCredit | null> => {
+    const buyer = await c.query<{ referred_by: string | null; email: string }>("SELECT referred_by, email FROM users WHERE id = $1", [userId]);
+    const code = buyer.rows[0]?.referred_by;
+    if (!code) return null;
 
-  // Find referrer by referral code
-  const referrerResult = await pool.query(
-    "SELECT * FROM users WHERE referral_code = $1",
-    [user.referredBy]
-  );
-  if (referrerResult.rows.length === 0) return null;
-  const referrer = rowToUser(referrerResult.rows[0]);
-
-  // Self-referral protection
-  if (referrer.id === userId) return null;
-
-  // If no amount provided, just increment paidReferrals (legacy compat)
-  if (!purchaseAmountRubles || purchaseAmountRubles <= 0) {
-    await pool.query(
-      `UPDATE users SET paid_referrals = paid_referrals + 1 WHERE id = $1`,
-      [referrer.id]
+    const refRes = await c.query<{ id: string; email: string; paid_referrals: number }>(
+      "SELECT id, email, paid_referrals FROM users WHERE referral_code = $1 FOR UPDATE",
+      [code]
     );
-    console.log(`[REFERRAL] Incremented paidReferrals for ${referrer.email} (no amount provided)`);
-    return null;
-  }
+    const referrer = refRes.rows[0];
+    if (!referrer || referrer.id === userId) return null;
 
-  // Idempotency check: don't double-credit same purchase
-  if (purchaseId) {
-    const existing = await pool.query(
-      "SELECT id FROM referral_rewards WHERE buyer_id = $1 AND purchase_id = $2",
-      [userId, purchaseId]
-    );
-    if (existing.rows.length > 0) {
-      console.log(`[REFERRAL] Already credited for purchase ${purchaseId}, skipping`);
-      return null;
+    const hasAmount = typeof purchaseAmountRubles === "number" && Number.isFinite(purchaseAmountRubles) && purchaseAmountRubles > 0;
+    let rewardKopecks = 0;
+    let percent = 0;
+    if (hasAmount) {
+      percent = getCashbackPercent(referrer.paid_referrals);
+      rewardKopecks = Math.round((purchaseAmountRubles! * percent) / 100 * 100);
+      const purchaseKopecks = Math.round(purchaseAmountRubles! * 100);
+      const ins = await c.query(
+        `INSERT INTO referral_rewards (id, referrer_id, buyer_id, purchase_id, purchase_amount, percent, reward_amount)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         ON CONFLICT (buyer_id, purchase_id) DO NOTHING
+         RETURNING id`,
+        [uuidv4(), referrer.id, userId, purchaseId || uuidv4(), purchaseKopecks, percent, rewardKopecks]
+      );
+      if (ins.rows.length === 0) {
+        console.log(`[REFERRAL] purchase ${purchaseId} already credited — skipping`);
+        return null;
+      }
     }
-  }
 
-  // Calculate cashback
-  const percent = getCashbackPercent(referrer.paidReferrals);
-  const rewardKopecks = Math.round(purchaseAmountRubles * percent / 100 * 100);
-  const rewardRubles = rewardKopecks / 100;
-  const purchaseKopecks = Math.round(purchaseAmountRubles * 100);
+    const counted = await c.query(
+      "UPDATE users SET referral_paid_counted_at = NOW() WHERE id = $1 AND referral_paid_counted_at IS NULL RETURNING id",
+      [userId]
+    );
+    const increment = counted.rows.length > 0 ? 1 : 0;
 
-  // Credit referrer balance + increment paidReferrals
-  await pool.query(
-    `UPDATE users SET balance = balance + $1, paid_referrals = paid_referrals + 1 WHERE id = $2`,
-    [rewardKopecks, referrer.id]
-  );
-
-  // Record balance transaction (synced_to_bot = false — bot will pick up on next sync)
-  const txId = uuidv4();
-  await pool.query(
-    `INSERT INTO balance_transactions (id, user_id, amount, type, source, description, related_user_id, synced_to_bot)
-     VALUES ($1, $2, $3, 'cashback', 'referral', $4, $5, FALSE)`,
-    [txId, referrer.id, rewardKopecks, `Кешбэк ${percent}% от покупки ${purchaseAmountRubles}₽`, userId]
-  );
-
-  // Record referral reward
-  const rewardId = uuidv4();
-  await pool.query(
-    `INSERT INTO referral_rewards (id, referrer_id, buyer_id, purchase_id, purchase_amount, percent, reward_amount)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [rewardId, referrer.id, userId, purchaseId || uuidv4(), purchaseKopecks, percent, rewardKopecks]
-  );
-
-  console.log(`[REFERRAL] Credited ${referrer.email}: ${rewardRubles}₽ (${percent}% of ${purchaseAmountRubles}₽) from ${user.email}`);
-  return { referrerId: referrer.id, percent, rewardRubles };
+    if (rewardKopecks > 0 || increment > 0) {
+      await c.query("UPDATE users SET balance = balance + $1, paid_referrals = paid_referrals + $2 WHERE id = $3", [
+        rewardKopecks,
+        increment,
+        referrer.id,
+      ]);
+    }
+    if (rewardKopecks > 0) {
+      await c.query(
+        `INSERT INTO balance_transactions (id, user_id, amount, type, source, description, related_user_id, synced_to_bot)
+         VALUES ($1, $2, $3, 'cashback', 'referral', $4, $5, FALSE)`,
+        [uuidv4(), referrer.id, rewardKopecks, `Кешбэк ${percent}% от покупки ${purchaseAmountRubles}₽`, userId]
+      );
+      console.log(`[REFERRAL] Credited ${referrer.email}: ${rewardKopecks / 100}₽ (${percent}%) from ${buyer.rows[0].email}`);
+      return { referrerId: referrer.id, percent, rewardRubles: rewardKopecks / 100 };
+    }
+    return null;
+  };
+  return client ? run(client) : withTransaction(run);
 }
 
 export async function expirePendingPayments(): Promise<number> {
@@ -761,97 +826,6 @@ export async function userHasPassword(email: string): Promise<boolean> {
   return result.rows.length > 0 && !!result.rows[0].password_hash;
 }
 
-// ─── Expired Subscription Cleanup ───────────────────────────────
-
-export async function getExpiredUsersWithKeys(): Promise<UserRecord[]> {
-  // Pick anyone whose subscription_end is in the past AND who still has
-  // an active key in either backend (Xray or Remnawave). Both backends
-  // are cleaned up in the same loop below.
-  const result = await pool.query(
-    `SELECT * FROM users
-     WHERE subscription_end <= NOW()
-       AND (xray_uuid IS NOT NULL OR remnawave_user_uuid IS NOT NULL)`
-  );
-  return result.rows.map(rowToUser);
-}
-
-export async function cleanupExpiredUsers(): Promise<{ cleaned: number; errors: number }> {
-  const expired = await getExpiredUsersWithKeys();
-  let cleaned = 0;
-  let errors = 0;
-
-  // Lazy import to avoid Remnawave being loaded into every db.ts consumer.
-  const { setUserExpire } = await import("./remnawave");
-
-  for (const user of expired) {
-    try {
-      // ── Xray legacy ──
-      if (user.xrayUuid) {
-        const removed = await xrayRemoveUser(user.xrayUuid);
-        if (!removed) {
-          console.error(`[CLEANUP] Failed to remove Xray user: ${user.xrayUuid} (${user.email})`);
-          // continue anyway — Remnawave side may still need cleanup
-        }
-      }
-
-      // ── Remnawave: force panel expireAt = local subscription_end ──
-      // The panel auto-disables when expireAt is in the past, so this
-      // guarantees the user can no longer use the subscription. We keep
-      // the panel user (and remnawave_user_uuid locally) so a renewal
-      // can re-enable instantly via setUserExpire to a future date.
-      if (user.remnawaveUserUuid) {
-        const pushed = await setUserExpire(user.remnawaveUserUuid, new Date(user.subscriptionEnd).toISOString());
-        if (!pushed) {
-          console.warn(`[CLEANUP] Remnawave setUserExpire failed for ${user.email} (uuid=${user.remnawaveUserUuid.slice(0, 8)}…); panel may be stale`);
-        }
-      }
-
-      // Clear legacy Xray cache on the user row. Remnawave fields stay
-      // populated so renewals can re-enable without re-creating.
-      await updateUser(user.id, { xrayUuid: null, vpnKey: null });
-      console.log(`[CLEANUP] Deactivated expired keys for ${user.email}`);
-      cleaned++;
-    } catch (error) {
-      console.error(`[CLEANUP] Error cleaning up user ${user.email}:`, error);
-      errors++;
-    }
-  }
-
-  if (cleaned > 0 || errors > 0) {
-    console.log(`[CLEANUP] Done: ${cleaned} cleaned, ${errors} errors, ${expired.length} total expired`);
-  }
-
-  return { cleaned, errors };
-}
-
-// ─── Auto-Cleanup Scheduler ─────────────────────────────────────
-
-const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
-let cleanupTimer: ReturnType<typeof setInterval> | null = null;
-
-export function startCleanupScheduler(): void {
-  if (cleanupTimer) return;
-  console.log("[CLEANUP] Scheduler started (interval: 1h)");
-  cleanupTimer = setInterval(async () => {
-    try {
-      await cleanupExpiredUsers();
-    } catch (error) {
-      console.error("[CLEANUP] Scheduler error:", error);
-    }
-  }, CLEANUP_INTERVAL_MS);
-  if (cleanupTimer && typeof cleanupTimer === "object" && "unref" in cleanupTimer) {
-    cleanupTimer.unref();
-  }
-}
-
-export function stopCleanupScheduler(): void {
-  if (cleanupTimer) {
-    clearInterval(cleanupTimer);
-    cleanupTimer = null;
-    console.log("[CLEANUP] Scheduler stopped");
-  }
-}
-
 // ─── Notifications ────────────────────────────────────────────
 
 export async function createNotificationForUser(userId: string, title: string, message: string): Promise<void> {
@@ -862,10 +836,9 @@ export async function createNotificationForUser(userId: string, title: string, m
       [id, title, message, userId]
     );
 
-    // Send push notification (async, don't block)
-    import("./push").then(({ sendPushToUser }) => {
-      sendPushToUser(userId, title, message).catch(() => {});
-    }).catch(() => {});
+    import("./push")
+      .then(({ sendPushToUser }) => sendPushToUser(userId, title, message))
+      .catch((err) => console.warn("[STORE] push failed:", err instanceof Error ? err.message : err));
   } catch (err) {
     console.error("[STORE] Failed to create notification:", err);
   }
@@ -915,12 +888,10 @@ export async function getAuditLogs(limit = 100, offset = 0): Promise<Array<{
   }));
 }
 
-// Auto-start scheduler on module load (server-side only)
-if (typeof window === "undefined") {
-  startCleanupScheduler();
-  // Background Remnawave reconciliation worker — re-pushes
-  // subscription_end → panel expireAt for every active user once an
-  // hour, catching any drift introduced by missed webhooks or panel
-  // restarts.
-  import("./sync-worker").then((m) => m.startSyncWorker()).catch(() => null);
+// Background panel sync worker (pending every 60 s, reconcile hourly,
+// both under advisory locks). Server-side only; not in tests.
+if (typeof window === "undefined" && process.env.NODE_ENV !== "test" && !process.env.VITEST) {
+  import("./sync-worker")
+    .then((m) => m.startSyncWorker())
+    .catch((err) => console.error("[SYNC-WORKER] failed to start:", err));
 }

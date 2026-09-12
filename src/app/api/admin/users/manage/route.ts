@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, updateUser, createNotificationForUser, createAuditLog, regenerateUserKey } from "@/lib/store";
-import { xrayRemoveUser, xrayAddUser } from "@/lib/xray";
+import { v4 as uuidv4 } from "uuid";
+import { getUserById, createNotificationForUser, createAuditLog } from "@/lib/store";
 import { verifyAdmin } from "../../middleware";
-import { syncUserToRemnawave } from "@/lib/subscription-sync";
-import { startFlow, endFlow, info, warn } from "@/lib/panel-log";
+import { rotatePanelSubscription, syncUserToPanel } from "@/lib/subscription-sync";
+import { applySubscriptionEvent, withTransaction } from "@/lib/subscription-ledger";
 
 // Duration presets in minutes
 const DURATION_MAP: Record<string, number> = {
@@ -42,131 +42,82 @@ export async function POST(request: NextRequest) {
       if (!plan || !duration) {
         return NextResponse.json({ success: false, error: "Укажите тариф и срок" }, { status: 400 });
       }
-
       const minutes = DURATION_MAP[duration];
       if (!minutes) {
         return NextResponse.json({ success: false, error: "Неверный срок" }, { status: 400 });
       }
-
       if (!["basic", "plus"].includes(plan)) {
         return NextResponse.json({ success: false, error: "Неверный тариф" }, { status: 400 });
       }
 
-      // Extend subscription from now or from current end (whichever is later).
-      // Defensive: if currentEnd is corrupted (legacy 10y bug),
-      // reset to NOW so the admin grant gives exactly the chosen
-      // duration and the universal updateUser guard doesn't throw.
-      const now = new Date();
-      const currentEnd = new Date(user.subscriptionEnd);
-      const MAX_AHEAD_MS = 400 * 24 * 60 * 60 * 1000;
-      let base: Date;
-      if (currentEnd.getTime() > now.getTime() + MAX_AHEAD_MS) {
-        console.warn(`[ADMIN-GRANT] ${user.email}: currentEnd ${currentEnd.toISOString()} corrupted, resetting base to NOW`);
-        base = now;
-      } else if (currentEnd > now) {
-        base = currentEnd;
-      } else {
-        base = now;
-      }
-      const newEnd = new Date(base.getTime() + minutes * 60 * 1000);
+      // Ledger: extend from max(now, current end); each grant is its own event.
+      const led = await withTransaction((c) =>
+        applySubscriptionEvent(c, {
+          userId,
+          kind: "admin_grant",
+          sourceId: uuidv4(),
+          extendMs: minutes * 60 * 1000,
+          plan,
+          actor: "admin",
+          meta: { duration },
+        })
+      );
+      const sync = await syncUserToPanel(userId);
+      if (!sync.ok) console.warn(`[ADMIN-GRANT] ${user.email}: panel sync deferred — ${sync.reason} ${sync.panelError ?? ""}`);
 
-      const ctx = startFlow("admin-grant", { userId, email: user.email });
-      info(ctx, "admin-grant.received", { plan, duration, minutes, newEnd: newEnd.toISOString() });
-
-      // Write the new subscription end locally
-      await updateUser(userId, {
-        subscriptionEnd: newEnd.toISOString(),
-        subscriptionPlan: plan,
-      });
-      info(ctx, "admin-grant.local_write.ok");
-
-      // Mirror to Remnawave (one call handles create-or-patch)
-      info(ctx, "admin-grant.panel_sync.start");
-      const sync = await syncUserToRemnawave(userId);
-      if (sync.ok) {
-        info(ctx, "admin-grant.panel_sync.ok", {
-          action: sync.action,
-          panelUuid: sync.uuid,
-          subscriptionUrl: sync.subscriptionUrl,
-        });
-      } else {
-        warn(ctx, "admin-grant.panel_sync.failed", { reason: sync.reason, panelError: sync.panelError });
-      }
-      endFlow(ctx, sync.ok ? "ok" : "failed", { plan });
-
-      // Send notification to user
       const planLabel = plan === "plus" ? "Plus" : "Basic";
       await createNotificationForUser(
         userId,
         "Подписка активирована",
         `Вам выдана подписка ${planLabel} на ${formatDuration(duration)}. Приятного пользования!`
       );
-
       await createAuditLog("admin.grant", `${planLabel} на ${formatDuration(duration)}`, userId, user.email);
 
-      return NextResponse.json({ success: true, data: { newEnd: newEnd.toISOString(), plan } });
+      return NextResponse.json({
+        success: true,
+        data: { newEnd: led.newEnd.toISOString(), plan, panelSynced: sync.ok, panelError: sync.ok ? undefined : sync.panelError },
+      });
     }
 
     if (action === "revoke-subscription") {
-      // Remove from Xray server (legacy)
-      if (user.xrayUuid) {
-        try { await xrayRemoveUser(user.xrayUuid); } catch (err) {
-          console.error(`[ADMIN] xrayRemoveUser failed for ${user.email}`, err);
-        }
-      }
-
-      // Set subscription to now (expired) locally — this is the source
-      // of truth. Then sync to Remnawave to push the expired date and
-      // disable the panel user. The panel record itself is kept so a
-      // future grant can re-enable instantly.
-      const ctx = startFlow("admin-revoke", { userId, email: user.email });
-      info(ctx, "admin-revoke.received");
-      await updateUser(userId, {
-        subscriptionEnd: new Date().toISOString(),
-        subscriptionPlan: "trial",
-        xrayUuid: null,
-        vpnKey: null,
-      });
-      info(ctx, "admin-revoke.panel_sync.start");
-      const sync = await syncUserToRemnawave(userId);
-      if (sync.ok) {
-        info(ctx, "admin-revoke.panel_sync.ok", { action: sync.action });
-      } else {
-        warn(ctx, "admin-revoke.panel_sync.failed", { reason: sync.reason, panelError: sync.panelError });
-      }
+      // Local end = now through the ledger; the sync then DISABLES the
+      // panel user (its expireAt is still in the future). No grace period.
+      await withTransaction((c) =>
+        applySubscriptionEvent(c, {
+          userId,
+          kind: "admin_revoke",
+          sourceId: uuidv4(),
+          setEnd: new Date(),
+          plan: "trial",
+          actor: "admin",
+        })
+      );
+      const sync = await syncUserToPanel(userId);
+      if (!sync.ok) console.warn(`[ADMIN-REVOKE] ${user.email}: panel disable deferred — ${sync.reason} ${sync.panelError ?? ""}`);
 
       await createNotificationForUser(
         userId,
         "Подписка деактивирована",
         "Ваша подписка была деактивирована администратором. Ключ удалён."
       );
-
-      await createAuditLog("admin.revoke", "Подписка отозвана", userId, user.email);
-      endFlow(ctx, sync.ok ? "ok" : "failed");
-      return NextResponse.json({ success: true });
+      await createAuditLog("admin.revoke", `Подписка отозвана (panel: ${sync.action})`, userId, user.email);
+      return NextResponse.json({ success: true, data: { panelAction: sync.action, panelSynced: sync.ok, panelError: sync.ok ? undefined : sync.panelError } });
     }
 
     if (action === "regen-key") {
-      const result = await regenerateUserKey(userId);
-      if (result.limitExceeded) {
-        return NextResponse.json({ success: false, error: `Лимит обновлений. Сброс: ${result.resetAt}` }, { status: 429 });
+      // New subscription link in the panel: old URL and old keys stop working.
+      const r = await rotatePanelSubscription(userId);
+      if (!r.ok) {
+        return NextResponse.json({ success: false, error: `Не удалось обновить ключ: ${r.error}` }, { status: 502 });
       }
-      if (!result.user) {
-        return NextResponse.json({ success: false, error: "Не удалось обновить ключ" }, { status: 500 });
-      }
-      // Add new UUID to Xray
-      if (result.user.xrayUuid) {
-        await xrayAddUser(result.user.xrayUuid);
-      }
-      await createAuditLog("admin.regen", "Ключ обновлён администратором", userId, user.email);
-      return NextResponse.json({ success: true, data: { vpnKey: result.user.vpnKey } });
+      await createAuditLog("admin.regen", "Ссылка подписки перевыпущена администратором", userId, user.email);
+      return NextResponse.json({ success: true, data: { vpnKey: r.subscriptionUrl, subscriptionUrl: r.subscriptionUrl } });
     }
 
     if (action === "send-notification") {
       if (!title?.trim() || !message?.trim()) {
         return NextResponse.json({ success: false, error: "Укажите заголовок и сообщение" }, { status: 400 });
       }
-
       await createNotificationForUser(userId, title.trim(), message.trim());
       return NextResponse.json({ success: true });
     }
@@ -177,9 +128,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Внутренняя ошибка" }, { status: 500 });
   }
 }
-
-// Reference pool is no longer used directly here — kept as a comment
-// in case future actions need raw SQL again.
 
 function formatDuration(key: string): string {
   const map: Record<string, string> = {

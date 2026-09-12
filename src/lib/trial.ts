@@ -1,155 +1,79 @@
 /**
- * Trial activation flow: anti-fraud check, Remnawave user creation,
- * Happ crypto link generation, local cache persistence.
+ * Trial eligibility (anti-abuse). Pure DB checks — no panel calls.
+ *
+ * The trial itself is granted inside user creation
+ * (store.getOrCreateUser → ledger event `trial`); the panel user is
+ * created afterwards by the sync. There is exactly one trial path for
+ * the site UI, the legacy /api/auth/verify-code route and the bot.
  */
 
-import { pool } from "./db";
 import { normalizeEmail } from "./email-normalize";
-import { createTrialUser, encryptHappLink, TRIAL_DURATION_MS, TRIAL_DURATION_DAYS } from "./remnawave";
-import { getUserById } from "./store";
-import { startFlow, endFlow, info, warn } from "./panel-log";
+import type { Queryable } from "./subscription-ledger";
 
-export interface TrialActivationResult {
-  success: boolean;
-  reason?: "already_used_email" | "ip_limit" | "remnawave_unavailable";
-  subscriptionUrl?: string;
-  happCryptoLink?: string | null;
-  remnawaveUuid?: string;
-  expireAt?: string;
-}
+export type TrialBlockReason = "already_used_email" | "ip_limit" | "fingerprint_limit";
 
-const TRIALS_PER_IP_LIMIT = 3;
-const TRIALS_PER_IP_WINDOW_DAYS = 30;
+/** Distinct emails that may start a trial from one IP within the window. */
+export const TRIALS_PER_IP_LIMIT = 3;
+/** Distinct emails that may start a trial from one device fingerprint within the window. */
+export const TRIALS_PER_FINGERPRINT_LIMIT = 2;
+export const TRIAL_WINDOW_DAYS = 30;
 
-/**
- * Check whether the trial can be issued for this (email, ip) combo.
- * Returns null if allowed, or a reason string if blocked.
- */
-export async function checkTrialEligibility(
-  email: string,
-  ip: string | null
-): Promise<"already_used_email" | "ip_limit" | null> {
-  const normalized = normalizeEmail(email);
+const IPV4 = /^(\d{1,3}\.){3}\d{1,3}$/;
+const IPV6 = /^[0-9a-f:]+$/i;
 
-  const emailRow = await pool.query(
-    "SELECT 1 FROM trial_blocklist WHERE email_normalized = $1",
-    [normalized]
-  );
-  if (emailRow.rows.length > 0) return "already_used_email";
-
-  if (ip && ip !== "unknown") {
-    const ipCount = await pool.query<{ c: string }>(
-      `SELECT COUNT(DISTINCT email_normalized)::text AS c
-       FROM trial_blocklist
-       WHERE ip = $1 AND first_seen_at > NOW() - ($2::int * INTERVAL '1 day')`,
-      [ip, TRIALS_PER_IP_WINDOW_DAYS]
-    );
-    const c = parseInt(ipCount.rows[0]?.c || "0", 10);
-    if (c >= TRIALS_PER_IP_LIMIT) return "ip_limit";
-  }
-
+/** Only real addresses count for the IP limit ("unknown", "telegram-bot" do not). */
+export function realIp(ip: string | null | undefined): string | null {
+  if (!ip) return null;
+  const v = ip.trim();
+  if (IPV4.test(v) || (v.includes(":") && IPV6.test(v))) return v;
   return null;
 }
 
-/**
- * Record a trial as used in the blocklist (idempotent — increments trial_count
- * if email already exists).
- */
-export async function recordTrialUsage(email: string, ip: string | null, fingerprint?: string | null): Promise<void> {
-  const normalized = normalizeEmail(email);
-  await pool.query(
-    `INSERT INTO trial_blocklist (email_normalized, ip, device_fingerprint, trial_count, first_seen_at)
-     VALUES ($1, $2, $3, 1, NOW())
-     ON CONFLICT (email_normalized) DO UPDATE
-       SET trial_count = trial_blocklist.trial_count + 1`,
-    [normalized, ip, fingerprint || null]
-  );
+function cleanFingerprint(fp: string | null | undefined): string | null {
+  if (!fp) return null;
+  const v = fp.trim();
+  return v.length >= 8 && v.length <= 200 ? v : null;
 }
 
-/**
- * Issue a Remnawave trial for the given local user (by id + email).
- * On success: persists remnawave_user_uuid, remnawave_short_uuid,
- * subscription_url, happ_crypto_link, trial_used_at on the users row, and
- * records the email in trial_blocklist.
- *
- * On Remnawave failure: returns success=false with reason="remnawave_unavailable".
- * The user row is left untouched so the next dashboard visit can retry.
- */
-export async function issueTrial(
-  userId: string,
-  email: string,
-  ip: string | null,
-  fingerprint?: string | null
-): Promise<TrialActivationResult> {
-  const ctx = startFlow("trial", { userId, email });
-  const block = await checkTrialEligibility(email, ip);
-  if (block) {
-    endFlow(ctx, "skipped", { reason: block });
-    return { success: false, reason: block };
+export async function checkTrialEligibility(
+  db: Queryable,
+  input: { email: string; ip?: string | null; fingerprint?: string | null }
+): Promise<TrialBlockReason | null> {
+  const normalized = normalizeEmail(input.email);
+  const byEmail = await db.query("SELECT 1 FROM trial_blocklist WHERE email_normalized = $1", [normalized]);
+  if (byEmail.rows.length > 0) return "already_used_email";
+
+  const ip = realIp(input.ip);
+  if (ip) {
+    const r = await db.query<{ c: string }>(
+      `SELECT COUNT(DISTINCT email_normalized)::text AS c FROM trial_blocklist
+       WHERE ip = $1 AND first_seen_at > NOW() - ($2::int * INTERVAL '1 day')`,
+      [ip, TRIAL_WINDOW_DAYS]
+    );
+    if (parseInt(r.rows[0]?.c || "0", 10) >= TRIALS_PER_IP_LIMIT) return "ip_limit";
   }
 
-  const local = await getUserById(userId);
-  const panelId = local?.publicId || local?.panelId || null;
-  info(ctx, "trial.panel_create.start", { panelId });
-  // Use public_id (ST00000NNN) as the panel username — that's what
-  // admins copy from the dashboard and search for. The legacy
-  // panel_id (8-char hex) is kept as a column for backwards compat
-  // but is NOT a useful identifier in the Remnawave UI.
-  const rwUser = await createTrialUser(email, panelId);
-  if (!rwUser) {
-    warn(ctx, "trial.panel_create.failed", { reason: "remnawave_unavailable" });
-    endFlow(ctx, "failed", { reason: "remnawave_unavailable" });
-    return { success: false, reason: "remnawave_unavailable" };
+  const fp = cleanFingerprint(input.fingerprint);
+  if (fp) {
+    const r = await db.query<{ c: string }>(
+      `SELECT COUNT(DISTINCT email_normalized)::text AS c FROM trial_blocklist
+       WHERE device_fingerprint = $1 AND first_seen_at > NOW() - ($2::int * INTERVAL '1 day')`,
+      [fp, TRIAL_WINDOW_DAYS]
+    );
+    if (parseInt(r.rows[0]?.c || "0", 10) >= TRIALS_PER_FINGERPRINT_LIMIT) return "fingerprint_limit";
   }
-  info(ctx, "trial.panel_create.ok", {
-    panelUuid: rwUser.uuid,
-    shortUuid: rwUser.shortUuid,
-    subscriptionUrl: rwUser.subscriptionUrl,
-  });
+  return null;
+}
 
-  const happLink = await encryptHappLink(rwUser.subscriptionUrl);
-  info(ctx, "trial.happ_link", { present: Boolean(happLink) });
-
-  // Trial duration is OUR contract — TRIAL_DURATION_DAYS from now.
-  // Don't trust the panel echo for this field; some Remnawave templates
-  // / squads override expireAt to far-future values and we'd silently
-  // grant multi-year "trials" otherwise. TRIAL_DURATION_MS is the single
-  // source of truth for how long a trial runs — bump it in remnawave.ts
-  // and both server (this write) and panel (createTrialUser) stay in sync.
-  const trialEnd = new Date(Date.now() + TRIAL_DURATION_MS);
-  void TRIAL_DURATION_DAYS;
-
-  await pool.query(
-    `UPDATE users SET
-       remnawave_user_uuid = $1,
-       remnawave_short_uuid = $2,
-       subscription_url = $3,
-       happ_crypto_link = $4,
-       crypto_link_updated_at = $5,
-       trial_used_at = NOW(),
-       subscription_end = $6,
-       panel_username = $7
-     WHERE id = $8 AND remnawave_user_uuid IS NULL`,
-    [
-      rwUser.uuid,
-      rwUser.shortUuid || null,
-      rwUser.subscriptionUrl,
-      happLink,
-      happLink ? new Date() : null,
-      trialEnd,
-      rwUser.username || null,
-      userId,
-    ]
+/** Record a granted trial (idempotent per normalized email). */
+export async function recordTrialUsage(
+  db: Queryable,
+  input: { email: string; ip?: string | null; fingerprint?: string | null }
+): Promise<void> {
+  await db.query(
+    `INSERT INTO trial_blocklist (email_normalized, ip, device_fingerprint, trial_count, first_seen_at)
+     VALUES ($1, $2, $3, 1, NOW())
+     ON CONFLICT (email_normalized) DO UPDATE SET trial_count = trial_blocklist.trial_count + 1`,
+    [normalizeEmail(input.email), realIp(input.ip), cleanFingerprint(input.fingerprint)]
   );
-
-  await recordTrialUsage(email, ip, fingerprint);
-  endFlow(ctx, "ok", { trialEnd: trialEnd.toISOString(), panelUuid: rwUser.uuid });
-
-  return {
-    success: true,
-    subscriptionUrl: rwUser.subscriptionUrl,
-    happCryptoLink: happLink,
-    remnawaveUuid: rwUser.uuid,
-    expireAt: rwUser.expireAt,
-  };
 }

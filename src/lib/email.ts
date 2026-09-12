@@ -1,11 +1,14 @@
+import { randomInt } from "crypto";
 import { Resend } from "resend";
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY || "");
 }
 
+/** Код входа из письма — криптостойкий генератор: Math.random()
+ *  предсказуем, а код даёт доступ к аккаунту. */
 export function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 1000000).toString();
 }
 
 export async function sendVerificationEmail(

@@ -1,47 +1,22 @@
 /**
- * Atlas Secure ↔ Remnawave reconciliation worker.
+ * Local ↔ Remnawave reconciliation: compare, and repair only what differs.
  *
- * Pass-by-pass verifier *and* fixer. Walks every user in our DB that
- * might need a working VPN profile (active or recently-expired
- * subscription, or telegram-linked) and confirms three things:
+ * Scope: users whose subscription is live or ended in the last 8 days,
+ * plus anyone the panel was last seen holding ACTIVE/LIMITED (to catch
+ * users who kept access after expiry under the old +24h behaviour).
  *
- *   1. A panel profile exists for them.
- *   2. The panel's expireAt matches users.subscription_end.
- *   3. We have a subscription_url cached locally.
- *
- * For any user that is already consistent: do nothing.
- * For any user that isn't: call syncSubscriptionToPanel (idempotent;
- * only create or PATCH, never DELETE). Then re-classify so the report
- * shows what was repaired.
- *
- * Non-destructive by design: this worker never deletes a panel user,
- * never wipes a subscription, never lowers subscription_end. The only
- * side effects are
- *   - create missing panel profile,
- *   - PATCH expireAt up or down to match local subscription_end (which
- *     is our source of truth — admins edit that, not the panel),
- *   - cache panel uuid / subscription_url locally if they were missing.
- *
- * Background to the bug this catches: when a user already has a
- * Telegram-bot subscription and then links Telegram to a freshly
- * created site account, the link flow updates telegram_id but never
- * triggers a panel sync, so the site shows a broken key until the
- * hourly sync-worker catches up. This pass runs the same fix on
- * demand and produces a per-user audit trail so support can verify.
+ * Repair = syncUserToPanel (create / absolute PATCH / DISABLE on early
+ * revoke). Never deletes a panel user, never pushes a grace period.
+ * A panel that cannot be asked is reported as an error, not "fixed".
  */
 
 import { pool } from "./db";
-import { getUser } from "./remnawave";
-import { syncSubscriptionToPanel } from "./subscription-sync";
+import { describeRwError, getUserById, isUserGone, SITE_TAGS, tagForPlan } from "./remnawave";
+import { MIN_REMAINING_MS, syncUserToPanel } from "./subscription-sync";
 
-const SCAN_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
 const EXPIRE_TOLERANCE_MS = 2 * 60 * 1000;
 
-export type IssueKind =
-  | "missing_panel_user"
-  | "stale_uuid"
-  | "expire_drift"
-  | "no_sub_url";
+export type IssueKind = "missing_panel_user" | "stale_uuid" | "expire_drift" | "no_sub_url";
 
 export interface UserIssue {
   userId: string;
@@ -65,6 +40,8 @@ export interface ReconciliationReport {
   failed: number;
   by_kind: Record<IssueKind, number>;
   issues: UserIssue[];
+  /** Users the panel could not be asked about (network/auth/5xx). */
+  errors: Array<{ userId: string; email: string; error: string }>;
   durationMs: number;
 }
 
@@ -74,65 +51,48 @@ interface UserRow {
   public_id: string | null;
   telegram_id: string | null;
   subscription_end: Date;
-  remnawave_user_uuid: string | null;
+  subscription_plan: string | null;
+  panel_user_id: string | null;
   subscription_url: string | null;
 }
 
-interface ClassifyVerdict {
-  kind: IssueKind;
-  panelEnd: string | null;
-  panelUsername?: string | null;
+type Verdict = { kind: IssueKind; panelEnd: string | null; panelUsername?: string | null } | { error: string } | null;
+
+async function classify(row: UserRow): Promise<Verdict> {
+  const now = Date.now();
+  const localMs = new Date(row.subscription_end).getTime();
+  const live = localMs - now > MIN_REMAINING_MS;
+  const id = row.panel_user_id ? Number(row.panel_user_id) : null;
+
+  if (!id) return live ? { kind: "missing_panel_user", panelEnd: null } : null;
+
+  const r = await getUserById(id);
+  if (!r.ok) {
+    if (isUserGone(r)) return live ? { kind: "stale_uuid", panelEnd: null } : null;
+    return { error: describeRwError(r) };
+  }
+  const p = r.data;
+  const panelMs = Date.parse(p.expireAt);
+
+  if (!live) {
+    const stillActive = (p.status === "ACTIVE" || p.status === "LIMITED") && panelMs > now;
+    return stillActive ? { kind: "expire_drift", panelEnd: p.expireAt, panelUsername: p.username } : null;
+  }
+  if (!p.subscriptionUrl || !row.subscription_url || p.subscriptionUrl !== row.subscription_url) {
+    return { kind: "no_sub_url", panelEnd: p.expireAt || null, panelUsername: p.username };
+  }
+  const expectedTag = tagForPlan(row.subscription_plan) ?? SITE_TAGS.trial;
+  if (Math.abs(localMs - panelMs) > EXPIRE_TOLERANCE_MS || p.status !== "ACTIVE" || p.tag !== expectedTag) {
+    return { kind: "expire_drift", panelEnd: p.expireAt || null, panelUsername: p.username };
+  }
+  return null;
 }
 
 let running = false;
 
-/**
- * Classify a single user's panel state before any fix is attempted.
- * Returns null if everything is in order.
- *
- * Already-expired users (subscription_end in the past) are deliberately
- * skipped — Remnawave auto-disables on expireAt, so once both sides
- * are past there's nothing to reconcile and any PATCH would just hit
- * the panel's "Expiration date cannot be in the past" validator.
- */
-async function classify(row: UserRow): Promise<ClassifyVerdict | null> {
-  const now = Date.now();
-  const localMs = new Date(row.subscription_end).getTime();
-  const localExpired = localMs <= now;
-
-  if (!row.remnawave_user_uuid) {
-    if (localExpired) return null;
-    return { kind: "missing_panel_user", panelEnd: null };
-  }
-  const panel = await getUser(row.remnawave_user_uuid);
-  if (!panel) {
-    if (localExpired) return null;
-    return { kind: "stale_uuid", panelEnd: null };
-  }
-  if (!panel.subscriptionUrl || !row.subscription_url) {
-    return { kind: "no_sub_url", panelEnd: panel.expireAt || null, panelUsername: panel.username || null };
-  }
-  const panelMs = panel.expireAt ? new Date(panel.expireAt).getTime() : 0;
-  if (localExpired && panelMs <= now) return null;
-  if (Math.abs(localMs - panelMs) > EXPIRE_TOLERANCE_MS) {
-    return { kind: "expire_drift", panelEnd: panel.expireAt || null, panelUsername: panel.username || null };
-  }
-  // panel.username may legitimately differ from public_id for legacy
-  // users — Remnawave's PATCH silently ignores the username field, so
-  // those users live in the panel under the old hex panel_id forever.
-  // We cache panel.username and show it in the admin profile card
-  // instead of treating this as something to "fix".
-  return null;
-}
-
-/**
- * Run one full reconciliation pass. Safe to call concurrently — extra
- * calls return immediately with an empty report instead of stacking
- * panel requests.
- */
 export async function runReconciliation(): Promise<ReconciliationReport> {
   const t0 = Date.now();
-  const empty: ReconciliationReport = {
+  const report: ReconciliationReport = {
     scanned: 0,
     ok: 0,
     needed_fix: 0,
@@ -140,39 +100,46 @@ export async function runReconciliation(): Promise<ReconciliationReport> {
     failed: 0,
     by_kind: { missing_panel_user: 0, stale_uuid: 0, expire_drift: 0, no_sub_url: 0 },
     issues: [],
+    errors: [],
     durationMs: 0,
   };
-
   if (running) {
     console.log("[RECONCILE] previous pass in flight, skipping");
-    return empty;
+    return report;
   }
   running = true;
-
   try {
     const rows = (
       await pool.query<UserRow>(
-        `SELECT id, email, public_id, telegram_id, subscription_end,
-                remnawave_user_uuid, subscription_url
+        `SELECT id, email, public_id, telegram_id, subscription_end, subscription_plan,
+                panel_user_id::text AS panel_user_id, subscription_url
          FROM users
-         WHERE subscription_end > NOW() - INTERVAL '${SCAN_GRACE_MS} milliseconds'
-            OR telegram_linked = TRUE
+         WHERE subscription_end > NOW() - INTERVAL '8 days'
+            OR panel_status IN ('ACTIVE', 'LIMITED')
          ORDER BY subscription_end DESC`
       )
     ).rows;
-
-    const report: ReconciliationReport = { ...empty, scanned: rows.length };
+    report.scanned = rows.length;
 
     for (const row of rows) {
-      const verdict = await classify(row);
-      if (!verdict) {
+      let verdict: Verdict;
+      try {
+        verdict = await classify(row);
+      } catch (err) {
+        verdict = { error: err instanceof Error ? err.message : String(err) };
+      }
+      if (verdict === null) {
         report.ok += 1;
+        continue;
+      }
+      if ("error" in verdict) {
+        report.failed += 1;
+        report.errors.push({ userId: row.id, email: row.email, error: verdict.error });
         continue;
       }
 
       report.needed_fix += 1;
       report.by_kind[verdict.kind] += 1;
-
       const issue: UserIssue = {
         userId: row.id,
         email: row.email,
@@ -185,38 +152,24 @@ export async function runReconciliation(): Promise<ReconciliationReport> {
         fixed: false,
         fixAction: null,
       };
-
-      try {
-        const result = await syncSubscriptionToPanel(row.id);
-        issue.fixAction = result.action;
-        issue.fixed = result.ok && result.action !== "failed";
-        if (issue.fixed) report.fixed += 1;
-        else {
-          report.failed += 1;
-          issue.fixError = result.panelError
-            ? `${result.reason || "unknown"}: ${result.panelError}`
-            : result.reason || "unknown";
-        }
-      } catch (err) {
+      const res = await syncUserToPanel(row.id);
+      const action = res.action;
+      issue.fixAction =
+        action === "created" || action === "adopted" || action === "patched" ? action : action === "disabled" ? "patched" : action === "noop" ? "skip" : "failed";
+      issue.fixed = res.ok;
+      if (res.ok) report.fixed += 1;
+      else {
         report.failed += 1;
-        issue.fixAction = "failed";
-        issue.fixError = err instanceof Error ? err.message : String(err);
-        console.error(`[RECONCILE] sync threw for ${row.email}:`, err);
+        issue.fixError = res.panelError ? `${res.reason ?? "unknown"}: ${res.panelError}` : res.reason ?? "unknown";
       }
-
       report.issues.push(issue);
     }
 
     report.durationMs = Date.now() - t0;
     console.log(
-      `[RECONCILE] pass complete — scanned=${report.scanned} ok=${report.ok} ` +
-        `needed_fix=${report.needed_fix} fixed=${report.fixed} failed=${report.failed} ` +
-        `(${report.durationMs}ms)`
+      `[RECONCILE] scanned=${report.scanned} ok=${report.ok} needed_fix=${report.needed_fix} fixed=${report.fixed} failed=${report.failed} (${report.durationMs}ms)`
     );
     return report;
-  } catch (err) {
-    console.error("[RECONCILE] pass error:", err);
-    return { ...empty, durationMs: Date.now() - t0 };
   } finally {
     running = false;
   }

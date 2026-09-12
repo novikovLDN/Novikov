@@ -48,10 +48,14 @@ export interface SubscriptionData {
   cashbackPercent: number;
   loyaltyTier: string;
   isAdmin?: boolean;
-  // Remnawave-issued subscription
+  // Remnawave-issued subscription (vpnKey carries the same link)
   subscriptionUrl?: string | null;
+  /** Always null since Remnawave 3.x — kept for compatibility. */
   happCryptoLink?: string | null;
   trialUsedAt?: string | null;
+  /** "panel_sync_pending" | "panel_sync_error" while a live subscription has no link yet. */
+  provisioningError?: string | null;
+  panelSyncState?: string | null;
 }
 
 export interface DeviceInfo {

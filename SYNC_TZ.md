@@ -213,14 +213,22 @@ if response["pendingCashback"]:
 | `days`       | number | Да           | Количество дней продления                                   |
 | `plan`       | string | Нет          | "basic" или "plus"                                          |
 | `amount`     | number | Нет          | Сумма покупки в **рублях** (для расчёта кешбэка рефереру)   |
-| `paymentId`  | string | Нет          | Уникальный ID платежа (для идемпотентности кешбэка)         |
+| `paymentId`  | string | **Рекомендуется (станет обязательным)** | Уникальный ID платежа — ключ идемпотентности продления и кешбэка |
+
+Вместо `paymentId` можно передать заголовок `Idempotency-Key: <id платежа>` — эффект тот же.
+
+**Идемпотентность (с 12.09.2026):**
+- С `paymentId` (или `Idempotency-Key`) вызов полностью идемпотентен: повтор с тем же ключом не продлевает подписку и не начисляет кешбэк повторно, ответ приходит с `duplicate: true`.
+- Без `paymentId` сайт считает повтором вызов для того же пользователя с теми же `days`, `plan` и `amount` в течение **120 секунд** после предыдущего: ничего не применяется, ответ `duplicate: true`. Настоящую вторую покупку с теми же параметрами в течение 120 секунд без `paymentId` отличить нельзя — поэтому передавайте `paymentId` всегда. Каждый вызов без него пишется в лог сайта как `bot-extend.no-payment-id`.
 
 **Логика сайта:**
-1. Продляет подписку (от текущего конца или от now, если истекла)
-2. Если VPN-ключ был удалён (подписка истекала) — генерирует новый `xrayUuid`, `vpnKey`, `subToken`
-3. Обновляет `subscriptionPlan`
-4. Если передан `amount` — начисляет кешбэк рефереру (`synced_to_bot = false`)
+1. Продляет подписку от max(сейчас, текущий конец) — через журнал событий, в одной транзакции с кешбэком
+2. Обновляет `subscriptionPlan` (только `basic` / `plus`)
+3. Если передан `amount` — начисляет кешбэк рефереру (`synced_to_bot = false`), один раз на покупку
+4. Сразу переносит новую дату в панель Remnawave
 5. Создаёт уведомление пользователю на сайте
+
+Собственных VPN-ключей (Xray) у сайта больше нет: доступ выдаёт панель Remnawave.
 
 **Response (200):**
 ```json
@@ -231,8 +239,10 @@ if response["pendingCashback"]:
     "email": "user@mail.com",
     "daysLeft": 30,
     "subscriptionEnd": "2026-05-11T12:00:00.000Z",
-    "vpnKey": "https://...",
+    "vpnKey": "https://sub.example/AbCdEf0123456789",
+    "subscriptionUrl": "https://sub.example/AbCdEf0123456789",
     "subscriptionPlan": "basic",
+    "duplicate": false,
     "referralReward": {
       "referrerId": "referrer-uuid",
       "percent": 10,
@@ -242,7 +252,9 @@ if response["pendingCashback"]:
 }
 ```
 
-`referralReward` = `null` если у покупателя нет реферера, или если `amount` не передан.
+`referralReward` = `null` если у покупателя нет реферера, если `amount` не передан, или если вызов распознан как повтор (`duplicate: true`).
+
+**Ссылка подписки (изменено 12.09.2026):** `vpnKey` теперь содержит ссылку подписки Remnawave — ту же, что новое поле `subscriptionUrl` (оба поля сохранены для совместимости; переходите на `subscriptionUrl`). `xrayUuid` во всех ответах сайта теперь всегда `null`. Это касается `/api/bot/extend`, `/status`, `/link`, `/register`, `/user`, `/user-by-telegram`.
 
 **Важно:** кешбэк, начисленный здесь, появится в `pendingCashback` при следующем вызове `POST /api/bot/sync-balance`. Бот должен забрать его оттуда.
 
@@ -296,8 +308,9 @@ if response["pendingCashback"]:
     "hasActiveSubscription": true,
     "subscriptionEnd": "2026-05-11T12:00:00.000Z",
     "subscriptionPlan": "basic",
-    "vpnKey": "https://...",
-    "xrayUuid": "uuid",
+    "vpnKey": "https://sub.example/AbCdEf0123456789",
+    "subscriptionUrl": "https://sub.example/AbCdEf0123456789",
+    "xrayUuid": null,
     "referralCode": "SITE1234",
     "referrals": 15,
     "paidReferrals": 5,
@@ -309,7 +322,7 @@ if response["pendingCashback"]:
 }
 ```
 
-Если подписка истекла — `vpnKey` и `xrayUuid` = `null`.
+`vpnKey` и `subscriptionUrl` — ссылка подписки Remnawave (одно и то же значение). Если подписка истекла или ссылка ещё не выдана панелью — оба `null`. `xrayUuid` всегда `null`.
 
 ---
 
@@ -317,7 +330,7 @@ if response["pendingCashback"]:
 
 | Данные                             | Причина                          |
 |------------------------------------|----------------------------------|
-| **VPN-ключи** (vpnKey, xrayUuid)  | Каждая сторона хранит свои       |
+| **VPN-ключи**                      | Своих ключей у сайта нет; `vpnKey`/`subscriptionUrl` — ссылка Remnawave, выдаёт панель |
 | **Пароль**                         | Только на сайте                  |
 | **Оплата с баланса на сайте**      | Не реализована, только через бот |
 

@@ -1,14 +1,5 @@
 import { Pool } from "pg";
-
-/** Simple string hash to generate stable numeric ID from email */
-function hashCode(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash + char) | 0;
-  }
-  return Math.abs(hash);
-}
+import { backfillTelegramLinkTokens } from "./tokens";
 
 const globalPool = globalThis as unknown as { __pgPool?: Pool };
 
@@ -26,7 +17,7 @@ if (!globalPool.__pgPool) {
 
 export const pool = globalPool.__pgPool;
 
-/** Initialize database tables */
+/** Initialize database tables. Every statement is additive and idempotent. */
 export async function initDb(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -192,7 +183,8 @@ export async function initDb(): Promise<void> {
     );
   `);
 
-  // ─── Migrations: add columns that may be missing on older DBs ───
+  // ─── Migrations: additive + idempotent. A failure is logged with the
+  //     statement and reported at the end — never swallowed. ───
   const migrations = [
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS key_regen_count INTEGER NOT NULL DEFAULT 0",
@@ -206,6 +198,7 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS balance INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE balance_transactions ADD COLUMN IF NOT EXISTS synced_to_bot BOOLEAN NOT NULL DEFAULT TRUE",
     // ── Remnawave integration ──
+    // Historical name: holds the panel's integer user id as text (3.x has no user uuid).
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS remnawave_user_uuid TEXT UNIQUE",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS remnawave_short_uuid TEXT",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_url TEXT",
@@ -214,127 +207,191 @@ export async function initDb(): Promise<void> {
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used_at TIMESTAMPTZ",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ",
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ",
-    // Stable 8-char hex ID used as Remnawave username. One per local user,
-    // generated at insert time. Lets us look up the panel user by a key
-    // we control on both sides without depending on email format quirks.
+    // Legacy 8-char hex id; some old panel users carry it as username.
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_id TEXT UNIQUE",
-    // Cache of the Remnawave panel's current `username` field for
-    // this user. Lets admins see — without an extra panel hit — which
-    // identifier to type into the Remnawave UI search. For new users
-    // this equals public_id (ST00000NNN); for legacy users it may be
-    // the older hex panel_id since the panel ignores rename PATCHes.
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_username TEXT",
-    // Human-readable Remnawave username: "ST" + 8-digit sequence number.
-    // Stable per user, never reused. Visible to admin so they can spot
-    // a site-issued user in the panel at a glance.
+    // "ST" + 8-digit sequence — the panel username of site users.
     "ALTER TABLE users ADD COLUMN IF NOT EXISTS public_id TEXT UNIQUE",
     "CREATE SEQUENCE IF NOT EXISTS user_public_id_seq START 1",
-    // ── Orders: extend payments table with Remnawave/YooKassa lifecycle fields ──
+    // ── Payments lifecycle ──
     "ALTER TABLE payments ADD COLUMN IF NOT EXISTS applied_to_remnawave_at TIMESTAMPTZ",
     "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_logged_at TIMESTAMPTZ",
     "ALTER TABLE payments ADD COLUMN IF NOT EXISTS amount_kopeks INTEGER",
     "ALTER TABLE payments ADD COLUMN IF NOT EXISTS plan_code TEXT",
+    // ── Phase 1 (12.09.2026): panel sync state, ledger, bonuses ──
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_user_id BIGINT",
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_panel_user_id ON users(panel_user_id) WHERE panel_user_id IS NOT NULL",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_sync_state TEXT NOT NULL DEFAULT 'pending'",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_sync_attempts INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_next_sync_at TIMESTAMPTZ",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_sync_error TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_synced_at TIMESTAMPTZ",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_status TEXT",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS panel_expire_at TIMESTAMPTZ",
+    "CREATE INDEX IF NOT EXISTS idx_users_panel_sync ON users(panel_sync_state, panel_next_sync_at)",
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_bonus_granted_at TIMESTAMPTZ",
+    // Set on the BUYER the first time a paid purchase counts toward the
+    // referrer's paid_referrals — makes that counter "unique referees".
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_paid_counted_at TIMESTAMPTZ",
+    "ALTER TABLE payments ADD COLUMN IF NOT EXISTS applied_at TIMESTAMPTZ",
+    "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMPTZ",
+    "ALTER TABLE payments ADD COLUMN IF NOT EXISTS refund_id TEXT",
+    `CREATE TABLE IF NOT EXISTS subscription_events (
+       id TEXT PRIMARY KEY,
+       user_id TEXT NOT NULL REFERENCES users(id),
+       kind TEXT NOT NULL,
+       source_id TEXT NOT NULL,
+       days NUMERIC(12,4),
+       old_end TIMESTAMPTZ,
+       new_end TIMESTAMPTZ,
+       plan TEXT,
+       actor TEXT,
+       meta JSONB,
+       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+       UNIQUE (kind, source_id)
+     )`,
+    "CREATE INDEX IF NOT EXISTS idx_sub_events_user ON subscription_events(user_id, created_at DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_sub_events_kind_created ON subscription_events(kind, created_at DESC)",
+    `CREATE TABLE IF NOT EXISTS telegram_bonus_claims (
+       telegram_id TEXT PRIMARY KEY,
+       user_id TEXT NOT NULL REFERENCES users(id),
+       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+     )`,
+    `CREATE TABLE IF NOT EXISTS panel_webhook_events (
+       dedupe_key TEXT PRIMARY KEY,
+       event TEXT NOT NULL,
+       received_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+     )`,
+    "CREATE INDEX IF NOT EXISTS idx_trial_blocklist_fp ON trial_blocklist(device_fingerprint, first_seen_at)",
   ];
 
+  const failed: string[] = [];
   for (const sql of migrations) {
     try {
       await pool.query(sql);
-    } catch {
-      // Column may already exist — ignore
+    } catch (err) {
+      failed.push(sql.split("\n")[0]);
+      console.error("[DB] migration failed", { sql: sql.split("\n")[0], error: err instanceof Error ? err.message : String(err) });
     }
   }
 
-  // Generate telegram_link_token for existing users who don't have one
-  try {
-    const usersWithoutToken = await pool.query(
-      "SELECT id FROM users WHERE telegram_link_token IS NULL"
+  // Backfills are batched/set-based so a first deploy on a big table does
+  // not do one round trip per row. Secret values (link tokens) are
+  // generated in Node with crypto.randomBytes, 1000 rows per UPDATE —
+  // never with SQL random(). Only non-secret values use SQL generation.
+  await backfill("telegram_link_token", () => backfillTelegramLinkTokens((sql, params) => pool.query(sql, params)));
+
+  // public_id is not a secret; the sequence keeps it unique.
+  await backfill("public_id", async () => {
+    const r = await pool.query(
+      `UPDATE users SET public_id = 'ST' || LPAD(NEXTVAL('user_public_id_seq')::text, 8, '0')
+       WHERE public_id IS NULL`
     );
-    for (const row of usersWithoutToken.rows) {
-      const token = require("crypto").randomBytes(8).toString("hex");
-      await pool.query(
-        "UPDATE users SET telegram_link_token = $1 WHERE id = $2",
-        [token, row.id]
-      );
-    }
-    if (usersWithoutToken.rows.length > 0) {
-      console.log(`[DB] Generated telegram_link_token for ${usersWithoutToken.rows.length} existing users`);
-    }
-  } catch (err) {
-    console.error("[DB] Failed to generate tokens:", err);
-  }
+    return r.rowCount ?? 0;
+  });
 
-  // Generate panel_id for existing users who don't have one (legacy field).
-  try {
-    const crypto = require("crypto");
-    const usersWithoutPanel = await pool.query(
-      "SELECT id FROM users WHERE panel_id IS NULL"
+  // Panel integer id: the old column already holds it as text for users
+  // provisioned on 3.x. Non-numeric (2.x UUID) values are left alone —
+  // the sync re-discovers those by username.
+  await backfill("panel_user_id", async () => {
+    const r = await pool.query(
+      `UPDATE users SET panel_user_id = remnawave_user_uuid::bigint
+       WHERE panel_user_id IS NULL AND remnawave_user_uuid ~ '^[0-9]{1,18}$'`
     );
-    for (const row of usersWithoutPanel.rows) {
-      for (let attempt = 0; attempt < 5; attempt++) {
-        const pid = crypto.randomBytes(4).toString("hex");
-        try {
-          await pool.query("UPDATE users SET panel_id = $1 WHERE id = $2", [pid, row.id]);
-          break;
-        } catch {
-          if (attempt === 4) throw new Error(`panel_id collision for ${row.id}`);
-        }
-      }
-    }
-    if (usersWithoutPanel.rows.length > 0) {
-      console.log(`[DB] Backfilled panel_id for ${usersWithoutPanel.rows.length} existing users`);
-    }
-  } catch (err) {
-    console.error("[DB] Failed to backfill panel_id:", err);
-  }
+    return r.rowCount ?? 0;
+  });
 
-  // Generate public_id (ST + 8-digit sequence) for users who don't
-  // have one. Format: "ST00000001". Deterministic per insert order
-  // — admin can use it as a stable reference.
-  try {
-    const usersWithoutPublicId = await pool.query<{ id: string }>(
-      "SELECT id FROM users WHERE public_id IS NULL ORDER BY created_at ASC"
+  await backfill("payments.applied_at", async () => {
+    const r = await pool.query(
+      `UPDATE payments SET applied_at = COALESCE(paid_at, created_at)
+       WHERE applied_at IS NULL AND status = 'confirmed'`
     );
-    for (const row of usersWithoutPublicId.rows) {
-      await pool.query(
-        `UPDATE users SET public_id = 'ST' || LPAD(NEXTVAL('user_public_id_seq')::text, 8, '0')
-         WHERE id = $1 AND public_id IS NULL`,
-        [row.id]
-      );
-    }
-    if (usersWithoutPublicId.rows.length > 0) {
-      console.log(`[DB] Backfilled public_id (ST...) for ${usersWithoutPublicId.rows.length} existing users`);
-    }
-  } catch (err) {
-    console.error("[DB] Failed to backfill public_id:", err);
-  }
+    return r.rowCount ?? 0;
+  });
 
-  // Generate sub_token and sub_id for existing users who don't have them
-  try {
-    const usersWithoutSub = await pool.query(
-      "SELECT id, email FROM users WHERE sub_token IS NULL"
+  await backfill("referral_paid_counted_at", async () => {
+    const r = await pool.query(
+      `UPDATE users u SET referral_paid_counted_at = rr.first_at
+       FROM (SELECT buyer_id, MIN(created_at) AS first_at FROM referral_rewards GROUP BY buyer_id) rr
+       WHERE u.id = rr.buyer_id AND u.referral_paid_counted_at IS NULL`
     );
-    const crypto = require("crypto");
-    for (const row of usersWithoutSub.rows) {
-      const subToken = crypto.randomBytes(24).toString("base64url");
-      const subId = String(Math.abs(hashCode(row.email))).slice(0, 10).padEnd(10, "0");
-      await pool.query(
-        "UPDATE users SET sub_token = $1, sub_id = $2 WHERE id = $3",
-        [subToken, subId, row.id]
-      );
-    }
-    if (usersWithoutSub.rows.length > 0) {
-      console.log(`[DB] Generated sub_token/sub_id for ${usersWithoutSub.rows.length} existing users`);
-    }
-  } catch (err) {
-    console.error("[DB] Failed to generate sub tokens:", err);
-  }
+    return r.rowCount ?? 0;
+  });
 
+  // Unique indexes that would fail on existing duplicates: check first,
+  // log the duplicates for manual cleanup, never delete data.
+  await uniqueIndexIfClean(
+    "idx_payments_transaction_id_unique",
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_transaction_id_unique ON payments(transaction_id) WHERE transaction_id IS NOT NULL",
+    `SELECT transaction_id AS key, COUNT(*)::int AS n FROM payments
+     WHERE transaction_id IS NOT NULL GROUP BY transaction_id HAVING COUNT(*) > 1 LIMIT 50`
+  );
+  await uniqueIndexIfClean(
+    "idx_users_telegram_id_unique",
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_telegram_id_unique ON users(telegram_id) WHERE telegram_id IS NOT NULL",
+    `SELECT telegram_id AS key, COUNT(*)::int AS n FROM users
+     WHERE telegram_id IS NOT NULL GROUP BY telegram_id HAVING COUNT(*) > 1 LIMIT 50`
+  );
+
+  if (failed.length > 0) {
+    throw new Error(`[DB] ${failed.length} migration(s) failed: ${failed.join(" | ")}`);
+  }
   console.log("[DB] Tables initialized");
 }
 
-// Auto-init on first import (server-side only)
-if (typeof window === "undefined") {
-  initDb().catch((err) => {
-    console.error("[DB] Failed to initialize:", err);
-  });
+async function backfill(name: string, fn: () => Promise<number>): Promise<void> {
+  try {
+    const n = await fn();
+    if (n > 0) console.log(`[DB] backfill ${name}: ${n} row(s)`);
+  } catch (err) {
+    console.error(`[DB] backfill ${name} failed`, err instanceof Error ? err.message : String(err));
+  }
+}
+
+async function uniqueIndexIfClean(name: string, createSql: string, dupSql: string): Promise<void> {
+  try {
+    const exists = await pool.query("SELECT 1 FROM pg_indexes WHERE indexname = $1", [name]);
+    if (exists.rows.length > 0) return;
+    const dups = await pool.query<{ key: string; n: number }>(dupSql);
+    if (dups.rows.length > 0) {
+      console.error(`[DB] ${name} NOT created — duplicates must be resolved manually:`, JSON.stringify(dups.rows));
+      return;
+    }
+    await pool.query(createSql);
+    console.log(`[DB] created ${name}`);
+  } catch (err) {
+    console.error(`[DB] ${name} failed`, err instanceof Error ? err.message : String(err));
+  }
+}
+
+/**
+ * Schema readiness — initDb() runs once per process (memoized).
+ *
+ *   dbReady     rejects if any migration failed. The sync worker awaits
+ *               it strictly and stays stopped on a half-migrated schema.
+ *   waitForDb() waits for migrations to FINISH (success or failure) —
+ *               for request paths (payments, sign-in, webhooks), which
+ *               must not race the migrations but also must not refuse
+ *               every login because one optional statement failed; a
+ *               genuinely missing table still fails the query itself.
+ */
+const globalReady = globalThis as unknown as { __atlasDbReady?: Promise<void> };
+
+export function ensureDb(): Promise<void> {
+  if (!globalReady.__atlasDbReady) {
+    globalReady.__atlasDbReady = initDb();
+    globalReady.__atlasDbReady.catch((err) => {
+      console.error("[DB] INITIALIZATION FAILED — panel sync worker will not start:", err);
+    });
+  }
+  return globalReady.__atlasDbReady;
+}
+
+export const dbReady: Promise<void> = typeof window === "undefined" ? ensureDb() : Promise.resolve();
+
+export function waitForDb(): Promise<void> {
+  return dbReady.then(
+    () => undefined,
+    () => undefined
+  );
 }

@@ -1,17 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { botExtendSubscription, getUserByTelegramId, creditReferrerOnPayment, updateUser, createNotificationForUser } from "@/lib/store";
-import { xrayAddUser } from "@/lib/xray";
+import { botExtendSubscription, createNotificationForUser } from "@/lib/store";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
 import { botSyncDisabledResponse } from "../sync-guard";
-import { syncUserToRemnawave } from "@/lib/subscription-sync";
+import { syncUserToPanel } from "@/lib/subscription-sync";
 import { startFlow, endFlow, info, warn } from "@/lib/panel-log";
 
-// Hard cap: anything beyond ~13 months is almost certainly a bug on the
-// caller side (10-year "lifetime" tariffs were silently nuking trial
-// users' subscriptions). Reject loudly so we see who's sending bad data.
+// Hard cap per call: anything beyond ~13 months is a caller-side bug.
 const MAX_DAYS = 400;
 
-// POST /api/bot/extend — bot extends subscription after payment
+/**
+ * POST /api/bot/extend — the bot extends a subscription after a payment
+ * in the bot (contract: SYNC_TZ.md §3).
+ *
+ * Idempotency: `paymentId` in the body (or an `Idempotency-Key` header)
+ * makes the call fully idempotent — extension and cashback happen once
+ * per key. Without it, a repeat of the same (days, plan, amount) for the
+ * same user within 120 s is treated as a retry and applies nothing
+ * (`duplicate: true`). paymentId stays optional: we do not control the bot.
+ */
 export async function POST(request: NextRequest) {
   if (!verifyBotApiKey(request)) return unauthorizedResponse();
   const disabled = await botSyncDisabledResponse();
@@ -21,12 +27,8 @@ export async function POST(request: NextRequest) {
     const { telegramId, days, plan, amount, paymentId } = await request.json();
 
     if (!telegramId || !days) {
-      return NextResponse.json(
-        { success: false, error: "telegramId and days required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "telegramId and days required" }, { status: 400 });
     }
-
     if (typeof days !== "number" || days <= 0 || days > MAX_DAYS) {
       warn(null, "bot-purchase.rejected", { telegramId, days, max: MAX_DAYS });
       return NextResponse.json(
@@ -35,73 +37,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const beforeUser = await getUserByTelegramId(String(telegramId));
-    const ctx = startFlow("bot-purchase", { userId: beforeUser?.id, email: beforeUser?.email });
-    info(ctx, "bot-purchase.received", { telegramId, days, plan, amount, paymentId });
-    const hadKey = !!beforeUser?.xrayUuid;
+    const idempotencyKey = paymentId ? String(paymentId) : request.headers.get("idempotency-key")?.trim() || undefined;
+    const ctx = startFlow("bot-purchase");
+    info(ctx, "bot-purchase.received", { telegramId, days, plan, amount, paymentId, idempotencyKey: idempotencyKey ?? null });
 
-    const user = await botExtendSubscription(String(telegramId), days, plan);
-    if (!user) {
+    const res = await botExtendSubscription(String(telegramId), days, {
+      plan,
+      amount: typeof amount === "number" ? amount : undefined,
+      idempotencyKey,
+    });
+    if (!res) {
       warn(ctx, "bot-purchase.user_not_linked", { telegramId });
       endFlow(ctx, "failed", { reason: "user_not_linked" });
-      return NextResponse.json(
-        { success: false, error: "User not found. Link Telegram first." },
-        { status: 404 }
+      return NextResponse.json({ success: false, error: "User not found. Link Telegram first." }, { status: 404 });
+    }
+
+    let user = res.user;
+    if (res.applied) {
+      const sync = await syncUserToPanel(user.id);
+      if (sync.ok) info(ctx, "bot-purchase.panel_sync.ok", { action: sync.action });
+      else warn(ctx, "bot-purchase.panel_sync.deferred", { reason: sync.reason, panelError: sync.panelError });
+      if (sync.ok && sync.subscriptionUrl) user = { ...user, subscriptionUrl: sync.subscriptionUrl };
+
+      const planLabel = plan === "plus" ? "Plus" : plan === "basic" ? "Basic" : "";
+      await createNotificationForUser(
+        user.id,
+        "Подписка обновлена",
+        `Подписка${planLabel ? ` ${planLabel}` : ""} продлена на ${days} дн. через Telegram.`
       );
-    }
-    info(ctx, "bot-purchase.extend.ok", { newEnd: user.subscriptionEnd });
-
-    // If key was regenerated (user had no key before), add to Xray
-    if (!hadKey && user.xrayUuid) {
-      xrayAddUser(user.xrayUuid).catch(() => {
-        console.error(`[BOT] Failed to add user to Xray: ${user.email}`);
-      });
-    }
-
-    // Sync subscription plan
-    if (plan && ["basic", "plus"].includes(plan)) {
-      await updateUser(user.id, { subscriptionPlan: plan });
-    }
-
-    // CRITICAL: push the new expireAt to Remnawave right now. Without
-    // this the panel stays on the old date until the hourly worker
-    // catches up — that's why bot-purchased users saw their VPN key
-    // stop working immediately after payment.
-    info(ctx, "bot-purchase.panel_sync.start");
-    const syncResult = await syncUserToRemnawave(user.id);
-    if (syncResult.ok) {
-      info(ctx, "bot-purchase.panel_sync.ok", {
-        action: syncResult.action,
-        panelUuid: syncResult.uuid,
-        subscriptionUrl: syncResult.subscriptionUrl,
-      });
     } else {
-      warn(ctx, "bot-purchase.panel_sync.failed", {
-        reason: syncResult.reason,
-        panelError: syncResult.panelError,
-      });
+      info(ctx, "bot-purchase.duplicate", { sourceId: res.sourceId });
     }
 
-    // Credit referrer with cashback
-    const cashbackResult = await creditReferrerOnPayment(
-      user.id,
-      typeof amount === "number" ? amount : undefined,
-      paymentId ? String(paymentId) : undefined
-    );
-
-    // Notify user on site about subscription change
-    const planLabel = plan === "plus" ? "Plus" : plan === "basic" ? "Basic" : "";
-    await createNotificationForUser(
-      user.id,
-      "Подписка обновлена",
-      `Подписка${planLabel ? ` ${planLabel}` : ""} продлена на ${days} дн. через Telegram.`
-    ).catch(() => {});
-
-    const now = new Date();
     const end = new Date(user.subscriptionEnd);
-    const daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-
-    endFlow(ctx, "ok", { days, plan: plan || null, cashback: cashbackResult ? cashbackResult.rewardRubles : 0 });
+    const daysLeft = Math.max(0, Math.ceil((end.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    endFlow(ctx, "ok", { days, applied: res.applied, sourceId: res.sourceId, cashback: res.referral ? res.referral.rewardRubles : 0 });
 
     return NextResponse.json({
       success: true,
@@ -110,16 +80,18 @@ export async function POST(request: NextRequest) {
         email: user.email,
         daysLeft,
         subscriptionEnd: user.subscriptionEnd,
-        vpnKey: user.vpnKey,
-        subscriptionPlan: plan || user.subscriptionPlan,
-        referralReward: cashbackResult ? {
-          referrerId: cashbackResult.referrerId,
-          percent: cashbackResult.percent,
-          rewardAmount: cashbackResult.rewardRubles,
-        } : null,
+        // `vpnKey` kept for the bot: now carries the Remnawave subscription link.
+        vpnKey: user.subscriptionUrl,
+        subscriptionUrl: user.subscriptionUrl,
+        subscriptionPlan: user.subscriptionPlan,
+        duplicate: res.duplicate,
+        referralReward: res.referral
+          ? { referrerId: res.referral.referrerId, percent: res.referral.percent, rewardAmount: res.referral.rewardRubles }
+          : null,
       },
     });
-  } catch {
+  } catch (err) {
+    console.error("[BOT/EXTEND] error:", err);
     return NextResponse.json({ success: false, error: "Internal error" }, { status: 500 });
   }
 }

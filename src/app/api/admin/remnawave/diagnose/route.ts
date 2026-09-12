@@ -1,21 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 import { verifyAdmin } from "../../middleware";
-
-const API_URL = (process.env.REMNAWAVE_API_URL || "https://rmnw.atlassecure.ru").replace(/\/+$/, "");
-const API_TOKEN = process.env.REMNAWAVE_API_TOKEN || "";
+import { findUsersByEmail, getRemnawaveConfig, getSystemHealth, getUserById, getUserByUsername, RwResult } from "@/lib/remnawave";
 
 /**
- * Diagnostic: probe Remnawave with raw GET requests and report the
- * exact status + body the panel returns. Lets us see WHY parseUser
- * isn't extracting subscriptionUrl for a given user.
+ * Diagnostic: what does the panel say about a user?
  *
- * Query params:
- *   ?email=foo@bar.com    — find local user by email, probe their
- *                           remnawave_user_uuid + panel_id
- *   ?uuid=<rw-uuid>       — probe arbitrary panel UUID
- *   ?username=<panel-id>  — probe arbitrary username
- *   (no params)           — probe panel reachability via GET /api/users
+ *   ?email=foo@bar.com — local user by email; probes their panel id,
+ *                        ST username and the panel's email stream
+ *   ?id=<panel id>     — probe one panel id
+ *   ?username=<name>   — probe one panel username
+ *   (no params)        — panel reachability (GET /api/system/health)
  */
 export async function GET(request: NextRequest) {
   const auth = await verifyAdmin();
@@ -23,68 +18,53 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: auth.error }, { status: 403 });
   }
 
-  const url = new URL(request.url);
-  const email = url.searchParams.get("email");
-  const uuidParam = url.searchParams.get("uuid");
-  const usernameParam = url.searchParams.get("username");
+  try {
+    const url = new URL(request.url);
+    const email = url.searchParams.get("email");
+    const idParam = url.searchParams.get("id") || url.searchParams.get("uuid");
+    const usernameParam = url.searchParams.get("username");
 
-  type Probe = { path: string; status: number | null; body: unknown; error?: string };
-  const probes: Probe[] = [];
+    type Probe = { path: string; status: number | null; body: unknown; error?: string };
+    const probes: Probe[] = [];
+    const push = (path: string, r: RwResult<unknown>) =>
+      probes.push(r.ok ? { path, status: r.status, body: r.data } : { path, status: r.status, body: { kind: r.kind, errorCode: r.errorCode }, error: r.message });
 
-  async function probe(path: string) {
-    const fullUrl = `${API_URL}${path}`;
-    try {
-      const res = await fetch(fullUrl, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${API_TOKEN}`, "Content-Type": "application/json" },
-        signal: AbortSignal.timeout(8000),
-      });
-      const text = await res.text();
-      let body: unknown = text;
-      try { body = JSON.parse(text); } catch { /* keep as text */ }
-      probes.push({ path, status: res.status, body });
-    } catch (err) {
-      probes.push({ path, status: null, body: null, error: (err as Error).message });
+    let localUser: { id: string; email: string; public_id: string | null; panel_user_id: string | null; subscription_url: string | null; panel_sync_state: string | null; panel_sync_error: string | null } | null = null;
+    let id = idParam && /^\d+$/.test(idParam) ? Number(idParam) : null;
+    let username = usernameParam;
+
+    if (email) {
+      const r = await pool.query(
+        "SELECT id, email, public_id, panel_user_id::text AS panel_user_id, subscription_url, panel_sync_state, panel_sync_error FROM users WHERE email = $1",
+        [email.toLowerCase()]
+      );
+      localUser = r.rows[0] || null;
+      if (localUser) {
+        id = id ?? (localUser.panel_user_id ? Number(localUser.panel_user_id) : null);
+        username = username || localUser.public_id;
+      }
     }
-  }
 
-  let localUser: { id: string; email: string; panel_id: string | null; remnawave_user_uuid: string | null; subscription_url: string | null } | null = null;
-  let uuid = uuidParam;
-  let username = usernameParam;
+    if (id) push(`/api/users/${id}`, await getUserById(id));
+    if (username) push(`/api/users/by-username/${username}`, await getUserByUsername(username));
+    if (email) push(`/api/users/stream?email=${email}`, await findUsersByEmail(email));
+    if (!id && !username && !email) push("/api/system/health", await getSystemHealth());
 
-  if (email) {
-    const r = await pool.query<{ id: string; email: string; panel_id: string | null; remnawave_user_uuid: string | null; subscription_url: string | null }>(
-      "SELECT id, email, panel_id, remnawave_user_uuid, subscription_url FROM users WHERE email = $1",
-      [email.toLowerCase()]
-    );
-    localUser = r.rows[0] || null;
-    if (localUser) {
-      uuid = uuid || localUser.remnawave_user_uuid;
-      username = username || localUser.panel_id;
-    }
+    const cfg = getRemnawaveConfig();
+    return NextResponse.json({
+      success: true,
+      data: {
+        apiUrl: cfg.apiUrl,
+        tokenSet: Boolean(cfg.token),
+        forwardedHeaders: cfg.forwardedHeaders,
+        mainSquads: cfg.mainSquadUuids,
+        perPlanSquads: cfg.planSquads,
+        localUser,
+        probes,
+      },
+    });
+  } catch (err) {
+    console.error("[ADMIN/DIAGNOSE] error:", err);
+    return NextResponse.json({ success: false, error: "Внутренняя ошибка" }, { status: 500 });
   }
-
-  if (uuid) await probe(`/api/users/${encodeURIComponent(uuid)}`);
-  if (username) {
-    await probe(`/api/users/by-username/${encodeURIComponent(username)}`);
-    await probe(`/api/users/username/${encodeURIComponent(username)}`);
-    await probe(`/api/users?username=${encodeURIComponent(username)}`);
-    await probe(`/api/users?search=${encodeURIComponent(username)}`);
-  }
-  if (email) {
-    await probe(`/api/users/by-email/${encodeURIComponent(email)}`);
-    await probe(`/api/users?email=${encodeURIComponent(email)}`);
-  }
-  if (!uuid && !username && !email) await probe("/api/users?limit=1");
-
-  return NextResponse.json({
-    success: true,
-    data: {
-      apiUrl: API_URL,
-      tokenSet: Boolean(API_TOKEN),
-      tokenLen: API_TOKEN.length,
-      localUser,
-      probes,
-    },
-  });
 }
