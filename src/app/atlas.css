@@ -1080,27 +1080,39 @@ body:has(.a) {
 .a-reel[data-mode="poster"] .a-reel-video { display: none; }
 .a-cover:has(.a-reel[data-mode]) .a-hf { opacity: 0; }
 
-/* Телефон: кадр 16:9 на вертикальном экране обрезался по центру, и
-   огромное размытое кольцо уходило под текст (кадр 11.09.2026). Здесь
-   видео встаёт целиком в пустую полосу между заголовком и текстом —
-   объекты видны полностью и не мешают чтению. */
-/* 12.09.2026: заголовок — имя в две строки во всю ширину, его высота
-   считается от ширины экрана: 0,554 × колонка (0,84 × (1/2,641 +
-   1/3,738) + нижний отступ «secure»). Сцена встаёт сразу под ним, а
-   заголовок оставляет под сцену место (margin), чтобы текст не заехал
-   на объекты. Колонка = 100vw − 2 × 16px (поле на телефоне). */
+/* Телефон (владелец, 12.09.2026: «сцена отдельной полосой под именем
+   выглядит убого — наложить текст на анимацию»). Имя лежит ПОВЕРХ
+   сцены: сцена начинается у верха заголовка и выходит под него на
+   ~26vw, кадр заполняет полосу (cover — объекты крупнее), края
+   растворены в белом. Высота имени считается от ширины экрана:
+   0,554 × колонка (0,84 × (1/2,641 + 1/3,738) + отступ «secure»),
+   колонка = 100vw − 2 × 16px. «secure» на объектах получает белую
+   полупрозрачную заливку внутри кобальтового контура — иначе тонкий
+   контур терялся на бликах. */
 @media (max-width: 719px) {
-  .a-display-wm { margin-bottom: calc(52vw + 0.5rem); }
+  .a-display-wm { margin-bottom: 26vw; }
   .a-reel {
-    top: calc(clamp(1.25rem, 4vh, 3rem) + (100vw - 32px) * 0.554 + 0.5rem);
+    top: calc(clamp(1.25rem, 4vh, 3rem) - 2vw);
     bottom: auto;
-    height: 52vw;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
+    height: calc((100vw - 32px) * 0.554 + 34vw);
+    -webkit-mask-image:
+      linear-gradient(to bottom, transparent 0%, #000 12%, #000 76%, transparent 100%),
+      linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      linear-gradient(to bottom, transparent 0%, #000 12%, #000 76%, transparent 100%),
+      linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%);
+    mask-composite: intersect;
   }
   .a-reel-move { inset: 0; }
-  .a-reel-video { object-fit: contain; }
-  .a-reel[data-mode="poster"] { background-size: contain; }
+  .a-reel-video { object-fit: cover; object-position: 50% 55%; }
+  .a-reel[data-mode="poster"] { background-size: cover; background-position: 50% 55%; }
+  @supports (-webkit-text-stroke: 1px #000) {
+    .a-display-wm .a-fit-2 {
+      color: rgba(255, 255, 255, 0.82);
+      -webkit-text-stroke-width: 1.5px;
+    }
+  }
 }
 
 /* 03 — глобус серверов из Blender (Reel, сцена «AtlasGlobe»). Та же
