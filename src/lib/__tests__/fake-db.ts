@@ -184,6 +184,25 @@ export class FakeDb {
         .sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
       return res(hit.slice(0, 1).map((e) => ({ source_id: e.source_id })));
     }
+    // ── admin history ──
+    if (s.startsWith("SELECT id, status, amount, currency, plan, period, transaction_id, created_at, paid_at, applied_at, refunded_at, refund_id FROM payments WHERE user_id = $1")) {
+      return res(
+        [...this.payments.values()]
+          .filter((x) => x.user_id === p[0])
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .slice(0, Number(p[1]))
+          .map((x) => ({ ...x }))
+      );
+    }
+    if (s.startsWith("SELECT id, kind, days, old_end, new_end, plan, actor, source_id, meta, created_at FROM subscription_events WHERE user_id = $1")) {
+      return res(
+        this.events
+          .filter((e) => e.user_id === p[0])
+          .sort((a, b) => b.created_at.getTime() - a.created_at.getTime())
+          .slice(0, Number(p[1]))
+          .map((e) => ({ ...e }))
+      );
+    }
     if (s === "SELECT id FROM users WHERE id = $1 FOR UPDATE") {
       const u = this.users.get(p[0]);
       return res(u ? [{ id: u.id }] : []);

@@ -25,6 +25,7 @@ export type LedgerKind =
   | "payment"
   | "admin_grant"
   | "admin_revoke"
+  | "admin_set_plan"
   | "telegram_bonus"
   | "bot_extend"
   | "bot_overwrite"

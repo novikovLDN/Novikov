@@ -37,7 +37,7 @@ export async function POST(
     const { userId } = await params;
     const beforeUser = await getUserById(userId);
     if (!beforeUser) {
-      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 });
+      return NextResponse.json({ success: false, error: "Пользователь не найден" }, { status: 404 });
     }
 
     const syncResult = await syncUserToPanel(userId);

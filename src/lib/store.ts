@@ -13,6 +13,7 @@ import { TELEGRAM_BONUS_DAYS } from "./brand-facts";
 import { applySubscriptionEvent, DAY, Queryable, withTransaction } from "./subscription-ledger";
 import { checkTrialEligibility, recordTrialUsage, TrialBlockReason } from "./trial";
 import { generateTelegramLinkToken } from "./tokens";
+import { auditLevelFor } from "./audit-level";
 
 // Hard ceiling for direct subscription_end writes through updateUser.
 // Ledger events are not subject to it (stacked paid renewals may go
@@ -854,10 +855,11 @@ export async function createAuditLog(
   ip?: string
 ): Promise<void> {
   try {
+    await waitForDb(); // the level column is added at startup
     const id = uuidv4();
     await pool.query(
-      "INSERT INTO audit_logs (id, user_id, user_email, action, details, ip) VALUES ($1, $2, $3, $4, $5, $6)",
-      [id, userId || null, userEmail || null, action, details || null, ip || null]
+      "INSERT INTO audit_logs (id, user_id, user_email, action, details, ip, level) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [id, userId || null, userEmail || null, action, details || null, ip || null, auditLevelFor(action)]
     );
   } catch (err) {
     console.error("[AUDIT] Failed to create log:", err);

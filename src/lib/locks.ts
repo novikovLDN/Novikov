@@ -20,6 +20,7 @@ export const LOCK_KEYS = {
   SYNC_PENDING: 1,
   RECONCILE: 2,
   CRON_CLEANUP: 3,
+  HEALTH_SAMPLE: 4,
 } as const;
 
 export type LockResult<T> = { acquired: true; result: T } | { acquired: false };

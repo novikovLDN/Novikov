@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { backfillTelegramLinkTokens } from "./tokens";
+import { WARN_ACTIONS } from "./audit-level";
 
 const globalPool = globalThis as unknown as { __pgPool?: Pool };
 
@@ -263,6 +264,30 @@ export async function initDb(): Promise<void> {
        received_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
      )`,
     "CREATE INDEX IF NOT EXISTS idx_trial_blocklist_fp ON trial_blocklist(device_fingerprint, first_seen_at)",
+    // ── Phase 2 (admin): journal level, series indexes, health, worker state ──
+    "ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS level TEXT NOT NULL DEFAULT 'info'",
+    "CREATE INDEX IF NOT EXISTS idx_audit_logs_level_created ON audit_logs(level, created_at DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_audit_logs_user_created ON audit_logs(user_id, created_at DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_payments_paid_at ON payments(paid_at)",
+    "CREATE INDEX IF NOT EXISTS idx_payments_refunded_at ON payments(refunded_at) WHERE refunded_at IS NOT NULL",
+    "CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at)",
+    "CREATE INDEX IF NOT EXISTS idx_users_trial_used_at ON users(trial_used_at) WHERE trial_used_at IS NOT NULL",
+    "CREATE INDEX IF NOT EXISTS idx_sub_events_new_end ON subscription_events(new_end)",
+    `CREATE TABLE IF NOT EXISTS health_samples (
+       ts TIMESTAMPTZ PRIMARY KEY DEFAULT NOW(),
+       panel_ms INTEGER,
+       panel_ok BOOLEAN NOT NULL,
+       db_ms INTEGER,
+       nodes_online INTEGER,
+       nodes_total INTEGER,
+       queue_pending INTEGER NOT NULL DEFAULT 0,
+       queue_error INTEGER NOT NULL DEFAULT 0
+     )`,
+    `CREATE TABLE IF NOT EXISTS worker_state (
+       key TEXT PRIMARY KEY,
+       value JSONB,
+       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+     )`,
   ];
 
   const failed: string[] = [];
@@ -305,6 +330,17 @@ export async function initDb(): Promise<void> {
     const r = await pool.query(
       `UPDATE payments SET applied_at = COALESCE(paid_at, created_at)
        WHERE applied_at IS NULL AND status = 'confirmed'`
+    );
+    return r.rowCount ?? 0;
+  });
+
+  // Journal levels for rows written before the column existed (set-based,
+  // not a secret; idempotent — only rows still at the default are touched).
+  await backfill("audit_logs.level", async () => {
+    const r = await pool.query(
+      `UPDATE audit_logs SET level = CASE WHEN action ~* '(fail|error)' THEN 'error' ELSE 'warn' END
+       WHERE level = 'info' AND (action ~* '(fail|error)' OR action = ANY($1))`,
+      [WARN_ACTIONS]
     );
     return r.rowCount ?? 0;
   });

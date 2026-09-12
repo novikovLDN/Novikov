@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   }
   const body = await request.json().catch(() => null);
   if (!body || typeof body.enabled !== "boolean") {
-    return NextResponse.json({ success: false, error: "enabled (boolean) required" }, { status: 400 });
+    return NextResponse.json({ success: false, error: "Нужно поле enabled: true или false" }, { status: 400 });
   }
 
   const cookieStore = await cookies();

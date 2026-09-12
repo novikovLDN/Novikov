@@ -4,22 +4,35 @@ import { getUserById, createNotificationForUser, createAuditLog } from "@/lib/st
 import { verifyAdmin } from "../../middleware";
 import { rotatePanelSubscription, syncUserToPanel } from "@/lib/subscription-sync";
 import { applySubscriptionEvent, withTransaction } from "@/lib/subscription-ledger";
+import { adminGrant, adminSetPlan } from "@/lib/admin-actions";
 
-// Duration presets in minutes
-const DURATION_MAP: Record<string, number> = {
-  "30m": 30,
-  "1h": 60,
-  "12h": 720,
-  "24h": 1440,
-  "3d": 4320,
-  "7d": 10080,
-  "14d": 20160,
-  "30d": 43200,
-  "60d": 86400,
-  "180d": 259200,
-  "365d": 525600,
-};
+const PLAN_NAME: Record<string, string> = { trial: "Пробный", basic: "Basic", plus: "Plus" };
 
+function formatDuration(key: string): string {
+  const map: Record<string, string> = {
+    "30m": "30 минут",
+    "1h": "1 час",
+    "12h": "12 часов",
+    "24h": "24 часа",
+    "3d": "3 дня",
+    "7d": "7 дней",
+    "14d": "14 дней",
+    "30d": "30 дней",
+    "60d": "60 дней",
+    "180d": "180 дней",
+    "365d": "365 дней",
+  };
+  return map[key] || key;
+}
+
+/**
+ * POST /api/admin/users/manage — { action, userId, … }
+ *   grant-subscription  { plan: basic|plus, duration: preset | days: 1–400 }
+ *   set-plan            { plan: trial|basic|plus } — plan change without extension
+ *   revoke-subscription
+ *   regen-key
+ *   send-notification   { title, message }
+ */
 export async function POST(request: NextRequest) {
   const auth = await verifyAdmin();
   if (!auth.authorized) {
@@ -27,55 +40,47 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { action, userId, plan, duration, title, message } = await request.json();
+    const { action, userId, plan, duration, days, title, message } = await request.json();
 
     if (!userId) {
       return NextResponse.json({ success: false, error: "userId обязателен" }, { status: 400 });
     }
-
     const user = await getUserById(userId);
     if (!user) {
       return NextResponse.json({ success: false, error: "Пользователь не найден" }, { status: 404 });
     }
 
     if (action === "grant-subscription") {
-      if (!plan || !duration) {
-        return NextResponse.json({ success: false, error: "Укажите тариф и срок" }, { status: 400 });
-      }
-      const minutes = DURATION_MAP[duration];
-      if (!minutes) {
-        return NextResponse.json({ success: false, error: "Неверный срок" }, { status: 400 });
-      }
-      if (!["basic", "plus"].includes(plan)) {
-        return NextResponse.json({ success: false, error: "Неверный тариф" }, { status: 400 });
-      }
+      const g = await adminGrant(userId, { plan, duration, days });
+      if (!g.ok) return NextResponse.json({ success: false, error: g.error }, { status: g.status });
 
-      // Ledger: extend from max(now, current end); each grant is its own event.
-      const led = await withTransaction((c) =>
-        applySubscriptionEvent(c, {
-          userId,
-          kind: "admin_grant",
-          sourceId: uuidv4(),
-          extendMs: minutes * 60 * 1000,
-          plan,
-          actor: "admin",
-          meta: { duration },
-        })
-      );
       const sync = await syncUserToPanel(userId);
       if (!sync.ok) console.warn(`[ADMIN-GRANT] ${user.email}: panel sync deferred — ${sync.reason} ${sync.panelError ?? ""}`);
 
-      const planLabel = plan === "plus" ? "Plus" : "Basic";
-      await createNotificationForUser(
-        userId,
-        "Подписка активирована",
-        `Вам выдана подписка ${planLabel} на ${formatDuration(duration)}. Приятного пользования!`
-      );
-      await createAuditLog("admin.grant", `${planLabel} на ${formatDuration(duration)}`, userId, user.email);
+      const planLabel = PLAN_NAME[g.plan] ?? g.plan;
+      const human = days ? g.label : formatDuration(g.label);
+      await createNotificationForUser(userId, "Подписка активирована", `Вам выдана подписка ${planLabel} на ${human}. Приятного пользования!`);
+      await createAuditLog("admin.grant", `${planLabel} на ${human}`, userId, user.email);
 
       return NextResponse.json({
         success: true,
-        data: { newEnd: led.newEnd.toISOString(), plan, panelSynced: sync.ok, panelError: sync.ok ? undefined : sync.panelError },
+        data: { newEnd: g.newEnd, plan: g.plan, panelSynced: sync.ok, panelError: sync.ok ? undefined : sync.panelError },
+      });
+    }
+
+    if (action === "set-plan") {
+      const r = await adminSetPlan(userId, plan);
+      if (!r.ok) return NextResponse.json({ success: false, error: r.error }, { status: r.status });
+      if (!r.changed) {
+        return NextResponse.json({ success: true, data: { plan: r.plan, changed: false, subscriptionEnd: r.subscriptionEnd, panelSynced: true } });
+      }
+      const sync = await syncUserToPanel(userId);
+      if (!sync.ok) console.warn(`[ADMIN-SET-PLAN] ${user.email}: panel sync deferred — ${sync.reason} ${sync.panelError ?? ""}`);
+      await createAuditLog("admin.set_plan", `${PLAN_NAME[user.subscriptionPlan] ?? user.subscriptionPlan} → ${PLAN_NAME[r.plan] ?? r.plan}`, userId, user.email);
+      await createNotificationForUser(userId, "Тариф изменён", `Ваш тариф теперь ${PLAN_NAME[r.plan] ?? r.plan}. Срок подписки не изменился.`);
+      return NextResponse.json({
+        success: true,
+        data: { plan: r.plan, changed: true, subscriptionEnd: r.subscriptionEnd, panelSynced: sync.ok, panelError: sync.ok ? undefined : sync.panelError },
       });
     }
 
@@ -83,23 +88,11 @@ export async function POST(request: NextRequest) {
       // Local end = now through the ledger; the sync then DISABLES the
       // panel user (its expireAt is still in the future). No grace period.
       await withTransaction((c) =>
-        applySubscriptionEvent(c, {
-          userId,
-          kind: "admin_revoke",
-          sourceId: uuidv4(),
-          setEnd: new Date(),
-          plan: "trial",
-          actor: "admin",
-        })
+        applySubscriptionEvent(c, { userId, kind: "admin_revoke", sourceId: uuidv4(), setEnd: new Date(), plan: "trial", actor: "admin" })
       );
       const sync = await syncUserToPanel(userId);
       if (!sync.ok) console.warn(`[ADMIN-REVOKE] ${user.email}: panel disable deferred — ${sync.reason} ${sync.panelError ?? ""}`);
-
-      await createNotificationForUser(
-        userId,
-        "Подписка деактивирована",
-        "Ваша подписка была деактивирована администратором. Ключ удалён."
-      );
+      await createNotificationForUser(userId, "Подписка деактивирована", "Ваша подписка была деактивирована администратором. Ключ удалён.");
       await createAuditLog("admin.revoke", `Подписка отозвана (panel: ${sync.action})`, userId, user.email);
       return NextResponse.json({ success: true, data: { panelAction: sync.action, panelSynced: sync.ok, panelError: sync.ok ? undefined : sync.panelError } });
     }
@@ -127,21 +120,4 @@ export async function POST(request: NextRequest) {
     console.error("[ADMIN] Manage user error:", err);
     return NextResponse.json({ success: false, error: "Внутренняя ошибка" }, { status: 500 });
   }
-}
-
-function formatDuration(key: string): string {
-  const map: Record<string, string> = {
-    "30m": "30 минут",
-    "1h": "1 час",
-    "12h": "12 часов",
-    "24h": "24 часа",
-    "3d": "3 дня",
-    "7d": "7 дней",
-    "14d": "14 дней",
-    "30d": "30 дней",
-    "60d": "60 дней",
-    "180d": "180 дней",
-    "365d": "365 дней",
-  };
-  return map[key] || key;
 }
