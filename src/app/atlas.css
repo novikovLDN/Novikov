@@ -220,6 +220,35 @@ body:has(.a) {
   text-decoration: none;
   flex: none;
 }
+/* Пробный период в шапке витрины — единственная залитая кнопка шапки. */
+.a-head-try {
+  display: none;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 1.05rem;
+  border-radius: 999px;
+  background: linear-gradient(var(--a-cobalt-deep), var(--a-cobalt-deep)) no-repeat left / 0 100%, var(--a-cobalt);
+  color: #FFFFFF;
+  font-family: var(--a-wide);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  flex: none;
+  transition: background-size var(--d-2) var(--m-settle);
+}
+@media (min-width: 640px) { .a-head-try { display: inline-flex; } }
+/* 1100–1359: меню, пилюля и «Войти» заняли строку — подпись раздела
+   обрезалась, а пункты меню переносились в две строки (кадр 1100,
+   12.09.2026). Подпись уходит, пилюля встаёт вправо. */
+.a-nav a { white-space: nowrap; }
+@media (min-width: 1100px) and (max-width: 1359px) {
+  .a-head-inner:has(.a-head-try) .a-head-sheet { display: none; }
+  .a-head-inner:has(.a-head-try) .a-head-try { margin-left: auto; }
+}
+@media (hover: hover) { .a-head-try:hover { background-size: 100% 100%; } }
+.a-head-try:focus-visible { outline: 2px solid var(--a-cobalt); outline-offset: 3px; }
 .a-index { flex: none; }
 @media (min-width: 1100px) { .a-index { display: none; } }
 .a-index summary {

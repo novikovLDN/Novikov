@@ -57,6 +57,12 @@ export default function AtlasHeader({
           <em data-sheet-title>{sheetTitle}</em>
         </p>
 
+        {/* Витрина (в шапке «Войти»): главное действие всегда под рукой —
+            пробный период кобальтовой пилюлей (разбор продажника
+            12.09.2026). На телефоне оно в меню, в шапке нет места. */}
+        {cta?.href === "/auth" ? (
+          <Link href="/auth" className="a-head-try">{TRIAL} бесплатно</Link>
+        ) : null}
         {cta ? <Link href={cta.href} className="a-head-cta">{cta.label}</Link> : null}
 
         <details className="a-index">

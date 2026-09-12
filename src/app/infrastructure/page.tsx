@@ -8,7 +8,10 @@ import { COUNTRY_COUNT, CITY_COUNT, CLOSEST, LOCATIONS } from "@/lib/locations";
 import { PLAN_SPEED, PLAN_CONTENT, DEVICE_LIMIT, type PlanId } from "@/lib/plans";
 import { SERVERS, SERVER_ENTRY_USD, formatUsd } from "@/lib/servers";
 import { plural } from "@/lib/ru-words";
+import { TRIAL_DAYS } from "@/lib/brand-facts";
 import "./infra-atlas.css";
+
+const TRIAL = `${TRIAL_DAYS} ${plural(TRIAL_DAYS, ["день", "дня", "дней"])}`;
 
 /**
  * /infrastructure — лист 17 «Инфраструктура», корпус «Атлас-издание».
@@ -129,7 +132,10 @@ export default function InfrastructurePage() {
                 Три участка пути: ваше устройство, сервер Atlas и сайт. На каждом — только то, что мы
                 можем подтвердить.
               </p>
+              {/* Страницу читают сомневающиеся покупатели ускорителя —
+                  пробный период прямо на первом экране (разбор 12.09.2026). */}
               <div className="a-actions">
+                <Link href="/auth" className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
                 <Link href="#map" className="a-btn a-btn-quiet">Смотреть карту серверов</Link>
               </div>
             </div>
@@ -286,6 +292,7 @@ export default function InfrastructurePage() {
             </p>
             <div className="a-actions a-settle" style={{ ["--i" as string]: 8 }}>
               <Link href="/vds" className="a-btn a-btn-invert a-idle">Выделенные серверы</Link>
+              <Link href="/auth" className="a-btn a-btn-line">Попробовать ускоритель бесплатно</Link>
             </div>
           </div>
         </section>

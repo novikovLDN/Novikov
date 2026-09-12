@@ -404,7 +404,16 @@ export default function DevicesView({ hasSession }: { hasSession: boolean }) {
               работает на {DEVICE_LIMIT} {DEVICE_WORD}, первые {TRIAL} — без оплаты.
             </p>
             <div className="a-actions a-settle" style={{ ["--i" as string]: 3 }}>
-              <Link href="/dashboard" className="a-btn a-btn-quiet">В личный кабинет</Link>
+              {/* Гостю «В личный кабинет» ничего не даёт — ему нужен ключ,
+                  а ключ выдаётся с пробным периодом (разбор 12.09.2026). */}
+              {hasSession ? (
+                <Link href="/dashboard" className="a-btn a-btn-quiet">В личный кабинет</Link>
+              ) : (
+                <>
+                  <Link href="/auth" className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
+                  <Link href="/auth" className="a-btn a-btn-quiet">Войти</Link>
+                </>
+              )}
             </div>
           </div>
 
