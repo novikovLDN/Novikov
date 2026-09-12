@@ -1,7 +1,7 @@
 # Atlas Secure — VPN Service Website
 
 ## Project Overview
-Atlas Secure is a VPN selling website built with Next.js. Features: email-based auth with OTP codes, automatic VPN key generation via Xray UUID, 3-day free trial, multi-device support, referral program (+20 days), and Telegram integration (+7 days bonus).
+Atlas Secure is a VPN selling website built with Next.js. Features: email-based auth with OTP codes, automatic VPN key generation via Xray UUID, 3-day free trial, multi-device support, referral program (cashback to balance, 10/25/45%), and Telegram integration (+7 days bonus).
 
 ## Tech Stack
 - **Framework**: Next.js 16 (App Router)
@@ -490,7 +490,11 @@ Lenis; возврат по «Назад» — своя позиция в session
   нельзя — только «без автосписаний» / «продлеваете, когда сами решите»
   (разбор продажника 12.09.2026, COMPLIANCE-CHECK.md).
 - Trial: **3 дня** (`TRIAL_DURATION_DAYS` в `src/lib/remnawave.ts`)
-- Referral: **+20 дней** за оплаченного приглашённого
+- Referral: **только кешбэк** на баланс с оплат приглашённых — 10%, с 25
+  оплативших — 25%, с 50 — 45% (`getLoyaltyTier`, `src/lib/store.ts`).
+  «+20 дней» не обещать — снято владельцем 12.09.2026.
+- Возвраты денег — вручную через поддержку; сайт по `refund.succeeded`
+  только помечает платёж и уведомляет админа, дни не снимает.
 - Telegram bonus: **+7 дней**
 - Никогда не коммитить `.env` — только `.env.example`
 - Иконки — только собственный набор `src/components/pixel/Icon.tsx`.

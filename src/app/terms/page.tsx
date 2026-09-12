@@ -53,7 +53,7 @@ const SECTIONS: LegalSection[] = [
         <ul className="al-list">
           <li><strong>Trial</strong> — 3 дня бесплатно, без оплаты</li>
           <li><strong>Telegram бонус</strong> — +7 дней</li>
-          <li><strong>Реферальный бонус</strong> — +20 дней за оплаченного реферала</li>
+          <li><strong>Реферальная программа</strong> — кешбэк на баланс с каждой оплаты приглашённого: 10%, с 25 оплативших друзей — 25%, с 50 — 45%</li>
         </ul>
       </>
     ),
