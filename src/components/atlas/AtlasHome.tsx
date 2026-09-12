@@ -117,6 +117,45 @@ function FillTitle({ id, no, children }: { id: string; no: string; children: Rea
   );
 }
 
+/** 01 — четыре доказательства под действием: снимают вопросы «сколько
+ *  стоит», «где работает», «на скольких устройствах», «чем рискую». */
+const PROOF: { icon: IconName; t: string; d: string }[] = [
+  { icon: "clock", t: `${TRIAL} бесплатно`, d: "без карты и обязательств" },
+  { icon: "globe", t: `${COUNTRY_COUNT} ${COUNTRY_WORD}`, d: "смена страны в один тап" },
+  { icon: "devices", t: `до ${DEVICE_LIMIT} ${DEVICE_WORD}`, d: "в одной подписке" },
+  { icon: "shield", t: `от ${formatRub(PLANS.basic[1])} ₽ в месяц`, d: "отмена в один клик" },
+];
+
+/** 08 — возражения перед финальным призывом. Факты: оплата — экран
+ *  /subscribe (Visa, Mastercard, МИР, СБП); устройства и «не храним
+ *  историю» — src/lib/faq.ts; пробный без карты — /auth. */
+const HOME_FAQ: { q: string; a: string }[] = [
+  {
+    q: "Это сложно настроить?",
+    a: "Нет. Войдите по почте, поставьте приложение и отсканируйте QR-код из личного кабинета — вручную ничего настраивать не нужно. Для каждого устройства есть пошаговая инструкция.",
+  },
+  {
+    q: "Что будет, когда пробные дни закончатся?",
+    a: `Ничего не спишется: карту для пробного периода мы не просим. Понравится — выберите тариф от ${formatRub(PLANS.basic[1])} ₽ в месяц, нет — просто не продлевайте.`,
+  },
+  {
+    q: "Это безопасно?",
+    a: "Да. Трафик шифруется на пути от вашего устройства до нашего сервера, а история посещений не записывается и не хранится.",
+  },
+  {
+    q: "Заработает на моём устройстве?",
+    a: `iPhone и iPad, Android, Windows, macOS и Android TV. Одна подписка — до ${DEVICE_LIMIT} ${DEVICE_WORD}, их можно менять в любой момент.`,
+  },
+  {
+    q: "Как оплатить?",
+    a: "Картой Visa, Mastercard, МИР или через СБП. Подписка включается сразу после оплаты.",
+  },
+  {
+    q: "Можно выбрать страну?",
+    a: `Да, все ${COUNTRY_COUNT} ${COUNTRY_WORD} входят в любой тариф. Страна меняется в приложении в один тап: чем ближе сервер, тем быстрее.`,
+  },
+];
+
 /** 02 — что меняется, когда Atlas включён. Без чисел: только польза. */
 const DIFF: { what: string; was: string; now: string }[] = [
   { what: "Видео", was: "долго грузится и встаёт на паузу", now: "запускается сразу и идёт без пауз" },
@@ -196,34 +235,66 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
         <section className="a-sheet a-cover" data-sheet="01" data-title="Главная" aria-labelledby="a-cover-title">
           <HeroField />
           <HeroReel />
-          <div className="a-field">
-            <h1 id="a-cover-title" className="a-display a-display-wm">
-              <span className="sr-only">Atlas Secure — VPS-ускоритель: всё открывается и не тормозит</span>
-              <span className="a-fit a-fit-1" aria-hidden><Chars text={HERO_1} /></span>{" "}
-              <span className="a-fit a-fit-2" aria-hidden><Chars text={HERO_2} start={HERO_1.length + 1} /></span>
-            </h1>
+          {/* Вуаль под нижним текстом (широкий экран): объекты уходят в
+              белый к низу, обещание и пояснение не лежат на бликах. */}
+          <div className="a-cover-veil" aria-hidden />
 
-            <div className="a-cover-grid">
-              {/* В строке — переключатель, который щёлкает при загрузке: сама
-                  фраза «включаете Atlas» показана жестом (владелец,
-                  11.09.2026: прежний фрагмент карты читался как мусор). */}
-              <p className="a-lead">
-                VPS-ускоритель для телефона и компьютера. Включаете{" "}
-                <span style={{ whiteSpace: "nowrap" }}>
-                  Atlas <span className="a-switch" aria-hidden><i /></span>
-                </span>{" "}
-                — и сайты, видео и приложения
-                открываются сразу и на полной скорости.
+          {/* Лицо сайта (разбор продажника, 12.09.2026): за пять секунд
+              человек должен понять, что это, зачем ему, сколько стоит и
+              что делать. Сверху вниз: что это (плашка) → имя → обещание
+              пользы → как работает → действие → четыре доказательства. */}
+          <div className="a-field">
+            <div className="a-cover-top">
+              <p className="a-cover-kicker a-settle">
+                <span className="a-cover-pulse a-idle" aria-hidden />
+                <span>
+                  VPS-ускоритель интернета<span className="a-cover-kicker-more"> для телефона, компьютера и ТВ</span>
+                </span>
               </p>
-              <div>
-                <div className="a-actions">
-                  <Link href={enter} className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
-                  <Link href="#tariffs" className="a-btn a-btn-quiet">Смотреть тарифы</Link>
+              <h1 id="a-cover-title" className="a-display a-display-wm">
+                <span className="sr-only">Atlas Secure — VPS-ускоритель: видео, сайты и игры без тормозов</span>
+                <span className="a-fit a-fit-1" aria-hidden><Chars text={HERO_1} /></span>{" "}
+                <span className="a-fit a-fit-2" aria-hidden><Chars text={HERO_2} start={HERO_1.length + 1} /></span>
+              </h1>
+            </div>
+
+            <div className="a-cover-bottom">
+              <div className="a-cover-grid">
+                <div>
+                  <p className="a-cover-promise a-settle" style={{ ["--i" as string]: 2 }}>
+                    Видео, сайты и игры — <em>без&nbsp;тормозов</em>
+                  </p>
+                  {/* В строке — переключатель, который щёлкает при загрузке:
+                      «включаете Atlas» показано жестом. */}
+                  <p className="a-lead a-settle" style={{ ["--i" as string]: 3 }}>
+                    Включаете{" "}
+                    <span style={{ whiteSpace: "nowrap" }}>
+                      Atlas <span className="a-switch" aria-hidden><i /></span>
+                    </span>{" "}
+                    — и всё открывается сразу и на полной скорости. Трафик зашифрован, а страну можно
+                    сменить в один тап.
+                  </p>
                 </div>
-                <p className="a-fine">
-                  Без карты. До {DEVICE_LIMIT} {DEVICE_WORD} в одной подписке. Потом — от {formatRub(PLANS.basic[1])} ₽ в месяц.
-                </p>
+                <div>
+                  <div className="a-actions a-settle" style={{ ["--i" as string]: 4 }}>
+                    <Link href={enter} className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
+                    <Link href="#tariffs" className="a-btn a-btn-quiet">Тарифы от {formatRub(PLANS.basic[1])} ₽</Link>
+                  </div>
+                  <p className="a-fine a-settle" style={{ ["--i" as string]: 5 }}>
+                    Карта не нужна — после пробных дней ничего не спишется.
+                  </p>
+                </div>
               </div>
+
+              <ul className="a-cover-proof" aria-label="Коротко об Atlas">
+                {PROOF.map((p, k) => (
+                  <li key={p.t} className="a-settle" style={{ ["--i" as string]: 6 + k }}>
+                    <span className="a-cover-proof-ico" aria-hidden><Icon name={p.icon} size={18} /></span>
+                    <b>{p.t}</b>
+                    <span>{p.d}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
         </section>
@@ -514,12 +585,46 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
           </div>
         </section>
 
-        {/* ── 08 · Попробовать ──────────────────────────────────── */}
-        <section className="a-sheet a-plate a-final" data-sheet="08" data-title="Попробовать" aria-labelledby="a-final-title">
+        {/* ── 08 · Коротко о главном — возражения ───────────────── */}
+        {/* Разбор продажника 12.09.2026: на главной не было ответов на
+            «сложно ли», «что после пробного», «безопасно ли», «как
+            оплатить» — человек уходил искать их или не возвращался.
+            Раскрывающиеся ответы: первый открыт, строки поднимаются по
+            прокрутке лесенкой (home-v5.css). */}
+        <section className="a-sheet h5-faq" data-sheet="08" data-title="Вопросы" aria-labelledby="h5-faq-title">
+          <div className="a-field h5-faq-grid">
+            <div className="h5-faq-head">
+              <h2 id="h5-faq-title" className="a-h2 a-settle">
+                <span className="a-no">08</span>коротко о главном
+              </h2>
+              <p className="a-p a-settle" style={{ ["--i" as string]: 1 }}>
+                Ответы на то, что обычно спрашивают перед подключением.
+              </p>
+              <div className="a-actions a-settle" style={{ ["--i" as string]: 2 }}>
+                <Link href={enter} className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
+                <Link href="/support" className="a-btn a-btn-quiet">Все вопросы</Link>
+              </div>
+            </div>
+            <div className="h5-faq-list">
+              {HOME_FAQ.map((f, k) => (
+                <details key={f.q} className="h5-q" name="h5-faq" open={k === 0} style={{ ["--k" as string]: k }}>
+                  <summary>
+                    <span>{f.q}</span>
+                    <span className="h5-q-ico" aria-hidden><Icon name="arrow-right" size={16} /></span>
+                  </summary>
+                  <p>{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── 09 · Попробовать ──────────────────────────────────── */}
+        <section className="a-sheet a-plate a-final" data-sheet="09" data-title="Попробовать" aria-labelledby="a-final-title">
           <Isobaths />
           <div className="a-field">
             <h2 id="a-final-title" className="a-h2">
-              <span className="a-no">08</span>
+              <span className="a-no">09</span>
               <Words text={`попробуйте ${TRIAL} бесплатно`} />
             </h2>
             <p className="a-p a-settle" style={{ ["--i" as string]: 6 }}>
