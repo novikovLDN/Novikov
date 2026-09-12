@@ -538,6 +538,56 @@ body:has(.a) {
   padding-bottom: 0.08em;
 }
 
+/* Имя вместо фразы (12.09.2026): «atlas secure» тем же набором, что в
+   подвале — MTS Wide Bold, трекинг −0,04em, строчные. «atlas» —
+   сплошной краской, «secure» — кобальтовым контуром: пара «залитое +
+   контурное», контур толще в крупном кегле (0,012em). На широком — одна
+   строка во всю колонку (k всей строки), на телефоне — два слова друг
+   под другом, каждое во всю ширину (свой k). k замерены в Chromium на
+   разбитом по буквам наборе — scratchpad wm-k.cjs; меняя текст или
+   трекинг — перемерить. */
+/* Кегль ставится словам, а не заголовку: `100cqw` в свойстве самого
+   h1 считается от контейнера ВЫШЕ него (всей обложки), и строка
+   вылезала за колонку (замер 12.09.2026: 1429 при колонке 1376). Пробел
+   между словами — отступом в em слова, у самого h1 кегль 0.
+   Замер на разбитом по буквам наборе: «atlas» — 2,641 кегля,
+   «secure» — 3,738, отступ 0,25 → вся строка 6,63. */
+/* Потолок по высоте окна (`min(100cqw, 100svh)` ниже) был для двух
+   строк; одна строка имени в любое окно встаёт во всю колонку.
+   Специфичность 0,2,0 — перебить `.a-fit-1/.a-fit-2 { --k }` прежнего
+   заголовка и потолок в медиазапросе. */
+.a-display.a-display-wm {
+  --fit-w: 100cqw;
+  font-size: 0;
+  line-height: 0.86;
+  white-space: nowrap;
+}
+.a-display-wm .sr-only { font-size: 1rem; }
+.a-display-wm .a-fit {
+  --k: 6.63;
+  display: inline-block;
+  font-size: calc(var(--fit-w) / var(--k));
+  letter-spacing: -0.04em;
+}
+.a-display-wm .a-fit-2 {
+  margin-left: 0.25em;
+  font-weight: 700;
+  color: var(--a-cobalt);
+  padding-bottom: 0.04em;
+}
+@supports (-webkit-text-stroke: 1px #000) {
+  .a-display-wm .a-fit-2 {
+    color: transparent;
+    -webkit-text-stroke: max(1.25px, 0.012em) var(--a-cobalt);
+  }
+}
+@media (max-width: 719px) {
+  .a-display-wm { line-height: 0.84; }
+  .a-display-wm .a-fit { display: block; width: fit-content; }
+  .a-display-wm .a-fit-1 { --k: 2.641; }
+  .a-display-wm .a-fit-2 { --k: 3.738; margin-left: 0; }
+}
+
 .a-cover-grid {
   display: grid;
   gap: 2rem;
@@ -1034,11 +1084,17 @@ body:has(.a) {
    огромное размытое кольцо уходило под текст (кадр 11.09.2026). Здесь
    видео встаёт целиком в пустую полосу между заголовком и текстом —
    объекты видны полностью и не мешают чтению. */
-@media (max-width: 720px) {
+/* 12.09.2026: заголовок — имя в две строки во всю ширину, его высота
+   считается от ширины экрана: 0,554 × колонка (0,84 × (1/2,641 +
+   1/3,738) + нижний отступ «secure»). Сцена встаёт сразу под ним, а
+   заголовок оставляет под сцену место (margin), чтобы текст не заехал
+   на объекты. Колонка = 100vw − 2 × 16px (поле на телефоне). */
+@media (max-width: 719px) {
+  .a-display-wm { margin-bottom: calc(52vw + 0.5rem); }
   .a-reel {
-    top: 16%;
+    top: calc(clamp(1.25rem, 4vh, 3rem) + (100vw - 32px) * 0.554 + 0.5rem);
     bottom: auto;
-    height: 34%;
+    height: 52vw;
     -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
     mask-image: linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%);
   }
@@ -1404,7 +1460,7 @@ body:has(.a) {
    холостое имя перебивает загрузочное. */
 .a-js .a-fit-2 .a-char {
   animation: a-char 760ms var(--m-settle) both, a-wave 6s var(--m-tide) infinite;
-  animation-delay: calc(80ms + var(--i) * 26ms), calc(1.6s + (var(--i) - 15) * 70ms);
+  animation-delay: calc(80ms + var(--i) * 26ms), calc(1.6s + (var(--i) - 6) * 70ms);
 }
 @keyframes a-wave {
   0%, 12%, 100% { transform: none; }

@@ -1,9 +1,12 @@
 /* Мягкая прокрутка (SmoothScroll.tsx) — правила из lenis/dist/lenis.css.
-   `scroll-behavior: smooth` из globals.css с Lenis спорит: браузер
-   начинал бы свою анимацию поверх каждого шага библиотеки. */
+   `scroll-behavior: smooth` из globals.css с Lenis спорит: любая родная
+   прокрутка (scrollIntoView, сброс наверх при переходе, якорь) начинала
+   собственную анимацию браузера, и Lenis тянул страницу в другую
+   сторону. Класс `lenis-smooth` в Lenis 1.3 больше не ставится, поэтому
+   правило — на `html.lenis`. */
+html.lenis { scroll-behavior: auto !important; }
 html.lenis,
 html.lenis body { height: auto; }
-html.lenis.lenis-smooth { scroll-behavior: auto !important; }
 .lenis:not(.lenis-autoToggle).lenis-stopped { overflow: clip; }
 .lenis [data-lenis-prevent] { overscroll-behavior: contain; }
-.lenis.lenis-smooth iframe { pointer-events: none; }
+.lenis.lenis-scrolling iframe { pointer-events: none; }

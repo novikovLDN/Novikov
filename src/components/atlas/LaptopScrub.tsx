@@ -102,8 +102,9 @@ export default function LaptopScrub({ className }: { className: string }) {
       const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
       last = now;
       const t = target();
-      // Первый кадр — сразу в позицию; дальше догоняем (~0,25 с до 90%).
-      const next = shown < 0 ? t : shown + (t - shown) * (1 - Math.exp(-dt * 9));
+      // Первый кадр — сразу в позицию; дальше догоняем (~0,16 с до 90%):
+      // колесо уже сглажено Lenis, вторая доводка — лёгкая, для сенсора.
+      const next = shown < 0 ? t : shown + (t - shown) * (1 - Math.exp(-dt * 14));
       const settled = Math.abs(t - next) < 0.0015;
       const p = settled ? t : next;
       if (p !== shown || dirty) {

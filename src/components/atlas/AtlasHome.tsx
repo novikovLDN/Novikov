@@ -50,8 +50,11 @@ const TRIAL = `${TRIAL_DAYS} ${plural(TRIAL_DAYS, ["день", "дня", "дне
 const COUNTRY_WORD = plural(COUNTRY_COUNT, ["страна", "страны", "стран"]);
 const DEVICE_WORD = plural(DEVICE_LIMIT, ["устройство", "устройства", "устройств"]);
 
-const HERO_1 = "всё открывается";
-const HERO_2 = "и не тормозит";
+/* Владелец, 12.09.2026: вместо «всё открывается и не тормозит» — имя
+   большим набором, как в подвале. Смысл фразы остаётся в лиде и в
+   скрытой части заголовка для читалок и поиска. */
+const HERO_1 = "atlas";
+const HERO_2 = "secure";
 
 /** Изобаты под плитой: линии глубины, светлее плиты. */
 const ISOBATHS = Array.from({ length: 7 }, (_, k) => {
@@ -194,9 +197,10 @@ export default function AtlasHome({ referralCode }: { referralCode?: string }) {
           <HeroField />
           <HeroReel />
           <div className="a-field">
-            <h1 id="a-cover-title" className="a-display" aria-label={`${HERO_1} ${HERO_2}`}>
-              <span className="a-fit a-fit-1" aria-hidden><Chars text={HERO_1} /></span>
-              <span className="a-fit a-fit-2" aria-hidden><Chars text={HERO_2} start={HERO_1.length} /></span>
+            <h1 id="a-cover-title" className="a-display a-display-wm">
+              <span className="sr-only">Atlas Secure — VPS-ускоритель: всё открывается и не тормозит</span>
+              <span className="a-fit a-fit-1" aria-hidden><Chars text={HERO_1} /></span>{" "}
+              <span className="a-fit a-fit-2" aria-hidden><Chars text={HERO_2} start={HERO_1.length + 1} /></span>
             </h1>
 
             <div className="a-cover-grid">
