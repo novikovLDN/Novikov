@@ -1,42 +1,70 @@
 /* ═══════════════════════════════════════════════════════════════════
-   АДМИНКА — /admin на корпусе «Атлас-издание» (11.09.2026).
+   АДМИНКА — /admin на корпусе «Атлас» (редизайн 12.09.2026).
 
-   Рабочий экран в стиле кабинета: доска, белые панели, пилюли-вкладки.
-   Классы кабинета (ak-*) — src/app/work-atlas.css, здесь только то,
-   чего в кабинете нет: вкладки, таблицы-строки, поля, сегменты, плитки
-   результатов операций. Префикс adm-.
+   Рабочий экран в языке кабинета: доска, белые панели на сером поле,
+   одна тёмная плита на раздел, пилюли разделов. Классы кабинета (ak-*)
+   — src/app/work-atlas.css; здесь только своё, префикс adm-.
+   (На /devices префикс ad- — пересечений нет.)
 
-   Порядок: раскладка → панели → детали → ДВИЖЕНИЕ.
+   Цвет — только у измеренного: кобальт у живых показаний и главного
+   действия, янтарь — предупреждение, красный — сбой. Зелёного нет.
+
+   Порядок: раскладка → разделы → детали → ДВИЖЕНИЕ.
    Выше раздела «Движение» анимация не объявляется.
    ═══════════════════════════════════════════════════════════════════ */
+
+.adm {
+  --adm-warn-fill: #C98316;   /* янтарь для графики: 3,1:1 на белом */
+  --adm-lume-warn: #F2B45B;
+  --adm-lume-off:  #FF9C95;
+}
 
 /* ─── Раскладка ─────────────────────────────────────────────────── */
 .adm-skels { display: grid; gap: 8px; }
 .adm-skel-top { min-height: 120px; }
 
-.adm-panel { margin-top: 8px; }
-@media (min-width: 1100px) { .adm-panel { margin-top: 10px; } }
+.adm-panel { margin-top: 0; }
 
 .adm-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.adm-span-all { grid-column: 1 / -1; }
+
+@media (min-width: 720px) {
+  .adm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adm-verdict, .adm-h-nodes, .adm-h-sync,
+  .adm-rev, .adm-plans,
+  .adm-s-sync, .adm-s-cast, .adm-s-log { grid-column: 1 / -1; }
+}
 @media (min-width: 1100px) {
   .adm-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 10px; }
-  .adm-bot, .adm-ghost, .adm-compose { grid-column: span 5; }
-  .adm-recent, .adm-audit, .adm-sent { grid-column: span 7; }
-  .adm-remna { grid-column: 1 / -1; }
-  /* Аудит слева, очистка справа: крупный отчёт — в широкой колонке. */
-  .adm-audit { order: 1; }
-  .adm-ghost { order: 2; }
-  .adm-remna { order: 3; }
+  /* Состояние: вердикт, панель, база — первый ряд, без прокрутки на 1440. */
+  .adm-verdict, .adm-h-panel, .adm-h-db { grid-column: span 4; }
+  .adm-h-nodes { grid-column: span 8; }
+  .adm-h-sync { grid-column: span 4; }
+  .adm-h-traffic, .adm-h-site { grid-column: span 6; }
+  /* Бизнес. */
+  .adm-rev { grid-column: span 5; }
+  .adm-pace { grid-column: span 7; }
+  /* Тарифы — длинный список: справа от него столбиком воронка и аудитория. */
+  .adm-plans { grid-column: span 7; grid-row: span 2; }
+  .adm-funnel, .adm-aud { grid-column: span 5; }
+  .adm-ledger { grid-column: 1 / -1; }
+  .adm-h-panel .adm-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Сервис. */
+  .adm-s-sync { grid-column: span 7; }
+  .adm-s-pay { grid-column: span 5; }
+  .adm-s-bot, .adm-s-ghost, .adm-s-diag { grid-column: span 4; }
+  .adm-s-cast { grid-column: span 5; }
+  .adm-s-log { grid-column: span 7; }
 }
 
-/* Пользователи: на широком экране — список слева, карточка справа.
+/* Пользователи: широкий экран — список слева, карточка справа.
    Карточка в разметке стоит ПЕРВОЙ: на телефоне она над списком. */
 .adm-users { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-items: start; }
 @media (min-width: 1100px) {
   .adm-users[data-split] { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 10px; }
-  .adm-users[data-split] .adm-detail-slot { grid-column: 2; grid-row: 1; position: sticky; top: calc(var(--a-head-h) + 12px); }
+  .adm-users[data-split] .adm-detail-slot { grid-column: 2; grid-row: 1; position: sticky; top: calc(var(--a-head-h) + 84px); }
   .adm-users[data-split] .adm-list-card { grid-column: 1; grid-row: 1; }
-  .adm-detail { max-height: calc(100svh - var(--a-head-h) - 24px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+  .adm-detail { max-height: calc(100svh - var(--a-head-h) - 96px); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
 }
 .adm-detail-slot { min-width: 0; scroll-margin-top: calc(var(--a-head-h) + 12px); }
 
@@ -44,9 +72,30 @@
    поля ввода и таблица, а не витринная карточка. */
 .a-js .adm .adm-still.ak-card[data-seen]:hover, .adm .adm-still.ak-card:hover { transform: none; }
 
-/* ─── Вкладки ───────────────────────────────────────────────────── */
+/* ─── Верх и вкладки ────────────────────────────────────────────── */
 .adm .ak-avatar { background: var(--a-cobalt); }
-.adm-pill { border: 0; background: transparent; font: inherit; font-family: var(--a-wide); font-size: 0.8125rem; cursor: pointer; gap: 0.45rem; }
+.adm-top-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 0.9rem;
+  border-radius: 999px;
+  background: var(--a-paper);
+  border: 1px solid var(--a-g200);
+  font-family: var(--a-wide);
+  font-size: 0.75rem;
+  color: var(--a-ink-2);
+}
+.adm-top-time { color: var(--a-ink-3); }
+@media (max-width: 719px) {
+  .adm-top-state { padding: 0 0.7rem; }
+  .adm-top-copy { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .adm-top-state { width: 44px; justify-content: center; }
+}
+
+.adm-pill { border: 0; background: transparent; font: inherit; font-family: var(--a-wide); font-size: 0.8125rem; cursor: pointer; gap: 0.5rem; }
 .adm-pill[aria-selected="true"] { background: var(--a-ink); color: #FFFFFF; }
 .adm-pill:focus-visible { outline: 2px solid var(--a-cobalt); outline-offset: -2px; }
 .adm-pill-n {
@@ -61,33 +110,44 @@
   font-size: 0.6875rem;
 }
 .adm-pill[aria-selected="true"] .adm-pill-n { background: rgba(255, 255, 255, 0.16); color: #FFFFFF; }
+.adm-bar-state { gap: 0.55rem; }
 
-/* Нижняя панель разделов (телефон). Раскладку и цвета даёт .ak-tab из
-   work-atlas.css — он написан для ссылки, здесь сброс кнопки. Активное
-   состояние (белая пилюля) не перебиваем: фон сбрасываем только у
-   неактивных. */
+/* Нижняя панель разделов (телефон): .ak-tab написан для ссылки — сброс кнопки. */
 .adm-tab { border: 0; font: inherit; font-family: var(--a-wide); font-size: 0.6875rem; cursor: pointer; padding: 0 4px; }
 .adm-tab:not([aria-current="true"]) { background: transparent; }
 .adm-tab-lbl { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.adm-tab-ico { position: relative; display: inline-grid; }
+.adm-tab-flag { position: absolute; top: -3px; right: -5px; width: 8px; height: 8px; border-radius: 50%; background: var(--adm-lume-warn); box-shadow: 0 0 0 2px var(--a-ink); }
+.adm-tab-flag[data-tone="off"] { background: var(--adm-lume-off); }
+.adm-tab[aria-current="true"] .adm-tab-flag { box-shadow: 0 0 0 2px #FFFFFF; }
 
-/* ─── Сводка ────────────────────────────────────────────────────── */
-.adm-summary { margin-bottom: 0; }
-.adm-stats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
-@media (min-width: 720px) { .adm-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (min-width: 1100px) { .adm-stats { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
-.adm .adm-stats .ak-stat { border-radius: 16px; padding: 0.85rem 0.95rem; min-width: 0; }
-.adm-stats .ak-stat b { font-size: clamp(1.4rem, 2.6vw, 1.85rem); line-height: 1.1; margin-top: 0.3rem; }
-.adm-stats .ak-stat[data-tone="off"] b { color: var(--ak-rock); }
-.adm-stats .ak-stat[data-tone="warn"] b { color: var(--ak-warn); }
-.adm-stats .ak-stat small { display: block; margin-top: 0.3rem; font-size: 0.6875rem; color: var(--a-ink-3); }
-/* Доля активных — измеренное значение, поэтому кобальт. */
-.adm-share { display: block; height: 4px; margin-top: 0.55rem; border-radius: 999px; background: var(--a-g200); overflow: hidden; }
-.adm-share i { display: block; height: 100%; background: var(--a-cobalt); transform-origin: left; transform: scaleX(var(--p, 0)); }
+/* ─── Точки, метки, статусы ─────────────────────────────────────── */
+.adm-dot { position: relative; display: inline-block; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--a-g300); }
+.adm-dot[data-tone="ok"] { background: var(--a-cobalt); }
+.adm-dot[data-tone="warn"] { background: var(--adm-warn-fill); }
+.adm-dot[data-tone="off"] { background: var(--ak-rock); }
+.adm-dot[data-tone="ok"]::after, .adm-dot[data-tone="off"]::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 1.5px solid currentColor; color: inherit; opacity: 0;
+}
+.adm-dot[data-tone="ok"]::after { border-color: var(--a-cobalt); }
+.adm-dot[data-tone="off"]::after { border-color: var(--ak-rock); }
+/* На тёмном: светлые тона. */
+.ak-dark .adm-dot[data-tone="ok"], .ak-bar-plan .adm-dot[data-tone="ok"], .ak-tabbar .adm-dot[data-tone="ok"] { background: var(--a-shoal-lume); }
+.ak-dark .adm-dot[data-tone="ok"]::after, .ak-bar-plan .adm-dot[data-tone="ok"]::after { border-color: var(--a-shoal-lume); }
+.ak-dark .adm-dot[data-tone="warn"], .ak-bar-plan .adm-dot[data-tone="warn"] { background: var(--adm-lume-warn); }
+.ak-dark .adm-dot[data-tone="off"], .ak-bar-plan .adm-dot[data-tone="off"] { background: var(--adm-lume-off); }
+.ak-dark .adm-dot[data-tone="off"]::after, .ak-bar-plan .adm-dot[data-tone="off"]::after { border-color: var(--adm-lume-off); }
+.ak-dark .adm-dot[data-tone="idle"], .ak-bar-plan .adm-dot[data-tone="idle"] { background: rgba(255, 255, 255, 0.4); }
+.adm-pill[aria-selected="true"] .adm-dot[data-tone="ok"] { background: var(--a-shoal-lume); }
+.adm-pill[aria-selected="true"] .adm-dot[data-tone="idle"] { background: rgba(255, 255, 255, 0.4); }
 
-/* ─── Метки ─────────────────────────────────────────────────────── */
+.ak-status[data-tone="mute"] { background: var(--a-g100); color: var(--a-ink-2); }
+.ak .ak-dark .ak-status[data-tone="mute"] { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.8); }
+
 .adm-tag {
   display: inline-flex;
   align-items: center;
+  gap: 0.3rem;
   min-height: 24px;
   padding: 0 0.6rem;
   border-radius: 999px;
@@ -106,12 +166,215 @@
 .adm-muted { color: var(--a-ink-3); }
 .adm-break { overflow-wrap: anywhere; word-break: break-word; }
 .adm-pre { white-space: pre-line; }
-.adm [data-tone="ok"]:is(p, span) { color: var(--a-cobalt); }
+.adm [data-tone="ok"]:is(p, span, dd) { color: var(--a-cobalt); }
+.adm dd[data-tone="warn"] { color: var(--ak-warn); }
+.adm dd[data-tone="off"] { color: var(--ak-rock); }
+.adm-lead { margin-top: 0; }
+.adm-tagrow { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.5rem 0 0; }
+.adm-gap { margin-top: 0.75rem; }
+
+/* ─── Графика ───────────────────────────────────────────────────── */
+.adm-live-v { font-size: clamp(1.75rem, 2.8vw, 2.35rem); }
+
+.adm-spark { position: relative; width: 100%; margin-top: 0.8rem; }
+.adm-spark svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.adm-spark-area { fill: var(--a-shoal); opacity: 0.75; }
+.adm-spark-line { fill: none; stroke: var(--a-cobalt); stroke-width: 1.75; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.adm-spark-dot { position: absolute; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--a-cobalt); box-shadow: 0 0 0 3px var(--a-paper); }
+.adm-spark-empty { margin: 0.8rem 0 0; padding: 0.75rem 0.85rem; border-radius: 12px; background: var(--a-g50); border: 1px dashed var(--a-g200); font-size: 0.75rem; color: var(--a-ink-3); }
+
+.adm-meter { position: relative; display: block; height: 8px; margin-top: 0.8rem; border-radius: 999px; background: var(--a-g100); overflow: hidden; }
+.adm-meter i { position: absolute; inset: 0; border-radius: inherit; background: var(--a-cobalt); transform-origin: left; transform: scaleX(var(--p, 0)); overflow: hidden; }
+
+.adm-stack { display: flex; height: 10px; margin-top: 0.9rem; border-radius: 999px; background: var(--a-g100); overflow: hidden; transform-origin: left; }
+.adm-stack i { flex: var(--p) 1 0; min-width: 3px; background: var(--a-cobalt); }
+.adm-stack i + i { box-shadow: -2px 0 0 var(--a-paper); }
+.adm-stack i[data-tone="ink"] { background: var(--a-ink); }
+.adm-stack i[data-tone="warn"] { background: var(--adm-warn-fill); }
+.adm-stack i[data-tone="off"] { background: var(--ak-rock); }
+.adm-stack i[data-tone="mute"] { background: var(--a-g300); }
+
+.adm-legend, .adm-split-cap { display: flex; flex-wrap: wrap; gap: 0.35rem 1rem; margin: 0.6rem 0 0; padding: 0; list-style: none; font-size: 0.75rem; color: var(--a-ink-2); }
+.adm-legend i, .adm-split-cap i { display: inline-block; width: 8px; height: 8px; margin-right: 0.4rem; border-radius: 2px; background: var(--a-g300); vertical-align: 0.05em; }
+.adm-legend b { font-family: var(--a-wide); font-weight: 500; color: var(--a-ink); margin-left: 0.2rem; }
+.adm-legend [data-tone="ok"] i, .adm-split-cap [data-tone="ok"] i { background: var(--a-cobalt); }
+.adm-legend [data-tone="warn"] i { background: var(--adm-warn-fill); }
+.adm-legend [data-tone="off"] i { background: var(--ak-rock); }
+.adm-split-cap [data-tone="ink"] i { background: var(--a-ink); }
+.adm .adm-split-cap span[data-tone], .adm .adm-legend li[data-tone] { color: var(--a-ink-2); }
+
+.adm-bars { list-style: none; margin: 0.9rem 0 0; padding: 0; display: grid; gap: 0.75rem; }
+.adm-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.3rem 0.75rem; align-items: baseline; }
+.adm-bar-label { min-width: 0; font-size: 0.8125rem; color: var(--a-ink-2); overflow-wrap: anywhere; }
+.adm-bar-val { font-family: var(--a-wide); font-size: 0.9375rem; color: var(--a-ink); white-space: nowrap; }
+.adm-bar-track { grid-column: 1 / -1; position: relative; height: 8px; border-radius: 999px; background: var(--a-g100); overflow: hidden; }
+.adm-bar-track i { position: absolute; inset: 0; border-radius: inherit; background: var(--a-cobalt); transform-origin: left; transform: scaleX(var(--p, 0)); overflow: hidden; }
+.adm-bar[data-tone="warn"] .adm-bar-track i { background: var(--adm-warn-fill); }
+.adm-bar[data-tone="off"] .adm-bar-track i { background: var(--ak-rock); }
+.adm-bar-note { grid-column: 1 / -1; font-size: 0.6875rem; color: var(--a-ink-3); }
+
+.adm-tiles { list-style: none; margin: 0.9rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); gap: 0.4rem; }
+.adm-tiles-row { grid-template-columns: repeat(auto-fit, minmax(6.75rem, 1fr)); }
+.adm-tiles-sm { grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); }
+.adm-tile { padding: 0.7rem 0.8rem; border-radius: 14px; background: var(--a-g50); min-width: 0; }
+.adm-tile span { display: block; font-size: 0.6875rem; line-height: 1.35; color: var(--a-ink-3); }
+.adm-tile b { display: block; margin-top: 0.2rem; font-family: var(--a-wide); font-size: 1.2rem; line-height: 1.15; color: var(--a-ink); overflow-wrap: anywhere; }
+.adm-tiles-sm .adm-tile b { font-size: 1rem; }
+.adm-tile small { display: block; margin-top: 0.2rem; font-size: 0.6875rem; color: var(--a-ink-3); }
+.adm-tile[data-tone="ok"] b { color: var(--a-cobalt); }
+.adm-tile[data-tone="warn"] { background: var(--ak-warn-bg); }
+.adm-tile[data-tone="warn"] b, .adm-tile[data-tone="warn"] small { color: var(--ak-warn); }
+.adm-tile[data-tone="off"] { background: var(--ak-rock-bg); }
+.adm-tile[data-tone="off"] b, .adm-tile[data-tone="off"] small { color: var(--ak-rock); }
+.adm-tile[data-tone="mute"] b { color: var(--a-ink-2); }
+
+.adm-skel { display: grid; gap: 8px; }
+.adm-skel i { display: block; height: 44px; border-radius: 12px; background: linear-gradient(90deg, var(--a-g50) 0%, var(--a-g100) 50%, var(--a-g50) 100%) 0 0 / 200% 100%; }
+.adm-skel i:first-child { height: 56px; width: 60%; }
+.ak-dark .adm-skel i { background: linear-gradient(90deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.06) 100%) 0 0 / 200% 100%; }
+
+.adm-note { margin: 0.75rem 0 0; padding: 0.7rem 0.85rem; border-radius: 12px; font-size: 0.8125rem; line-height: 1.5; background: var(--a-shoal); color: var(--a-cobalt); }
+.adm-note[data-tone="warn"] { background: var(--ak-warn-bg); color: var(--ak-warn); }
+.adm-note[data-tone="off"] { background: var(--ak-rock-bg); color: var(--ak-rock); }
+.adm-block-err { display: grid; gap: 0.2rem; }
+.adm-block-err b { font-family: var(--a-wide); font-weight: 500; }
+.adm-block-err span { font-size: 0.75rem; opacity: 0.9; }
+.ak-dark .adm-note[data-tone="off"] { background: rgba(255, 156, 149, 0.14); color: #FFC7C2; }
+
+/* ─── Состояние ─────────────────────────────────────────────────── */
+.adm-verdict-v { font-size: clamp(1.6rem, 2.5vw, 2.15rem); }
+.adm-verdict-err { margin: 0.5rem 0 0; font-size: 0.75rem; line-height: 1.45; color: #FFC7C2; }
+.adm-signals { list-style: none; margin: 1.1rem 0 0; padding: 0; display: grid; gap: 4px; }
+.adm-signal {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
+  font-family: var(--a-wide);
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+.adm-signal-name { flex: 1; min-width: 0; }
+.adm-signal-v { color: rgba(255, 255, 255, 0.82); font-size: 0.75rem; white-space: nowrap; }
+.adm-signal:focus-visible { outline: 2px solid #FFFFFF; outline-offset: 2px; }
+
+.adm-verdict-kpi { list-style: none; margin: 0.9rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.adm-verdict-kpi li { min-width: 0; padding: 0.65rem 0.75rem; border-radius: 14px; background: rgba(255, 255, 255, 0.06); }
+.adm-verdict-kpi span { display: block; font-size: 0.6875rem; line-height: 1.3; color: rgba(255, 255, 255, 0.68); }
+.adm-verdict-kpi b { display: block; margin-top: 0.2rem; font-family: var(--a-wide); font-size: clamp(0.9375rem, 1.3vw, 1.1rem); color: #FFFFFF; white-space: nowrap; }
+/* Узко: три числа строками «подпись — значение», сумма не переносится. */
+@media (max-width: 559px) {
+  .adm-verdict-kpi { grid-template-columns: minmax(0, 1fr); }
+  .adm-verdict-kpi li { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; padding-block: 0.55rem; }
+  .adm-verdict-kpi b { margin-top: 0; }
+}
+/* Между 1100 и 1280 треть сетки узка для суммы в три колонки. */
+@media (min-width: 1100px) and (max-width: 1299px) {
+  .adm-verdict .adm-verdict-kpi b { font-size: 0.875rem; }
+}
+
+.adm-auto { display: flex; align-items: center; gap: 0.6rem; margin-top: auto; padding-top: 1rem; }
+.adm-verdict .adm-verdict-kpi { margin-bottom: 1rem; }
+.adm-auto { border-top: 1px solid rgba(255, 255, 255, 0.12); }
+.adm-auto-copy { flex: 1; min-width: 0; font-size: 0.75rem; line-height: 1.4; color: rgba(255, 255, 255, 0.85); }
+.adm-auto-copy small { display: block; font-size: 0.6875rem; color: rgba(255, 255, 255, 0.6); }
+.ak-dark .ak-switch { background: rgba(255, 255, 255, 0.22); }
+.ak-dark .ak-switch[aria-checked="true"] { background: var(--a-shoal-lume); }
+.ak-dark .ak-switch[aria-checked="true"]::before { background: var(--a-ink); }
+.ak-dark .ak-switch:focus-visible { outline-color: #FFFFFF; }
+.adm-ring { display: inline-grid; width: 20px; height: 20px; flex: none; }
+.adm-ring svg { width: 20px; height: 20px; transform: rotate(-90deg); }
+.adm-ring circle { fill: none; stroke: var(--a-shoal-lume); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 50.27; stroke-dashoffset: 0; }
+.adm-ring::before { content: ""; grid-area: 1 / 1; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.14); }
+.adm-ring svg { grid-area: 1 / 1; }
+.ak-dark .adm-auto-now { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.22); color: #FFFFFF; flex: none; }
+.ak-dark .adm-auto-now:focus-visible { outline-color: #FFFFFF; }
+.ak-dark .adm-spin { color: #FFFFFF; }
+
+/* Ноды. */
+.adm-nodes { list-style: none; margin: 0.9rem 0 0; padding: 0; display: grid; gap: 4px; max-height: 26rem; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.adm-node {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1rem;
+  min-height: 52px;
+  padding: 0.55rem 0.85rem;
+  border-radius: 14px;
+  background: var(--a-g50);
+}
+.adm-node-name { flex: 1 1 11rem; min-width: 0; display: flex; align-items: center; gap: 0.5rem; }
+.adm-node-name b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--a-wide); font-weight: 500; font-size: 0.875rem; color: var(--a-ink); }
+.adm-node-m { font-size: 0.8125rem; color: var(--a-ink); white-space: nowrap; }
+.adm-node-m i { font-style: normal; margin-right: 0.35rem; font-size: 0.6875rem; color: var(--a-ink-3); }
+.adm-node-msg { flex: 1 1 100%; font-size: 0.75rem; color: var(--ak-rock); }
+.adm-node[data-tone="off"] { background: var(--ak-rock-bg); }
+.adm-node[data-tone="idle"] .adm-node-name b { color: var(--a-ink-3); }
+
+/* Очередь: ошибки. */
+.adm-errs { list-style: none; margin: 0.25rem 0 0; padding: 0; display: grid; gap: 4px; max-height: 20rem; overflow-y: auto; overscroll-behavior: contain; }
+.adm-err-row {
+  position: relative;
+  display: grid;
+  gap: 0.2rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 2.4rem 0.6rem 0.75rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--a-g50);
+  color: var(--a-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.adm-err-who { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.2rem 0.6rem; min-width: 0; }
+.adm-err-who b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--a-wide); font-weight: 500; font-size: 0.8125rem; }
+.adm-err-who span { font-size: 0.6875rem; color: var(--a-ink-3); }
+.adm-err-text { font-size: 0.75rem; line-height: 1.45; color: var(--ak-rock); }
+.adm-err-next { font-size: 0.6875rem; color: var(--a-ink-3); }
+.adm-err-arrow { position: absolute; right: 0.75rem; top: 50%; margin-top: -8px; color: var(--a-ink-3); }
+
+/* Трафик. */
+.adm-bw { list-style: none; margin: 0.25rem 0 0; padding: 0; display: grid; }
+.adm-bw li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.15rem 0.75rem; padding-block: 0.7rem; }
+.adm-bw li + li { border-top: 1px solid var(--a-g100); }
+.adm-bw-l { flex: 0 0 6.5rem; font-size: 0.8125rem; color: var(--a-ink-3); }
+.adm-bw b { flex: 1 1 auto; font-family: var(--a-wide); font-weight: 500; font-size: 1.05rem; color: var(--a-ink); }
+.adm-bw-d { font-family: var(--a-wide); font-size: 0.75rem; color: var(--a-ink-3); }
+.adm-bw-d[data-dir="up"] { color: var(--a-cobalt); }
+.adm-bw-p { flex: 1 1 100%; padding-left: calc(6.5rem + 0.75rem); font-size: 0.6875rem; color: var(--a-ink-3); }
+@media (max-width: 419px) { .adm-bw-l { flex-basis: 5.25rem; } .adm-bw-p { padding-left: calc(5.25rem + 0.75rem); } }
+
+/* Клиенты сайта по тегам. */
+.adm-tags { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.adm-tags li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.2rem 0.75rem; align-items: baseline; padding: 0.75rem 0.85rem; border-radius: 14px; background: var(--a-g50); }
+.adm-tags-h { display: flex; align-items: baseline; gap: 0.5rem; min-width: 0; }
+.adm-tags-h b { font-family: var(--a-wide); font-size: 0.9375rem; color: var(--a-ink); }
+.adm-tags-h span { font-size: 0.6875rem; }
+.adm-tags-n { font-family: var(--a-wide); font-size: 1.35rem; color: var(--a-ink); }
+.adm-tags-n small { font-size: 0.8rem; color: var(--a-ink-3); }
+.adm-tags .adm-stack { grid-column: 1 / -1; margin-top: 0.35rem; height: 8px; }
+.adm-tags-m { grid-column: 1 / -1; font-size: 0.75rem; color: var(--a-ink-2); }
+.adm-on { display: inline-flex; align-items: center; gap: 0.35rem; }
+.adm-on .adm-dot { width: 7px; height: 7px; }
+.adm-tags-err { grid-column: 1 / -1; font-size: 0.75rem; color: var(--ak-rock); }
+
+/* ─── Бизнес ────────────────────────────────────────────────────── */
+.adm-rev-v { font-size: clamp(2rem, 3.6vw, 3rem); }
+.adm-rev-net { margin: 0.6rem 0 0; font-size: 0.8125rem; color: rgba(255, 255, 255, 0.72); }
+.adm-rev .adm-verdict-kpi { margin-top: auto; padding-top: 1.25rem; }
+.adm-split { margin-top: 0.1rem; }
+.adm-funnel .ak-value, .adm-aud .ak-value { font-size: clamp(1.75rem, 2.8vw, 2.35rem); }
 
 /* ─── Поля, сегменты, чипы ──────────────────────────────────────── */
 .adm-f { display: grid; gap: 0.35rem; margin-top: 0.9rem; }
 .adm-f:first-of-type { margin-top: 0; }
-.adm-block .adm-f:first-of-type { margin-top: 0.9rem; }
+.adm-block .adm-f:first-of-type, .adm-fold .adm-f:first-of-type { margin-top: 0.9rem; }
 .adm-f-label { margin: 0; font-family: var(--a-wide); font-size: 0.8125rem; color: var(--a-ink-3); }
 .adm-input {
   width: 100%;
@@ -129,13 +392,32 @@
 @media (min-width: 720px) { .adm-input { font-size: 0.9375rem; } }
 .adm-input::placeholder { color: var(--a-ink-3); }
 .adm-input:focus { outline: 2px solid var(--a-cobalt); outline-offset: -1px; border-color: var(--a-cobalt); }
-.adm-area { min-height: 7rem; resize: vertical; }
+.adm-area { min-height: 6rem; resize: vertical; }
 .adm-select { cursor: pointer; }
 
-.adm-find { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.9rem; }
+.adm-find { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.6rem; }
 .adm-search { flex: 1 1 240px; min-width: 0; }
+.adm-sort { flex: 0 1 13rem; min-width: 0; }
+@media (max-width: 519px) { .adm-sort { flex: 1 1 100%; } }
+.adm-diag-form .a-btn { flex: none; }
+@media (max-width: 519px) { .adm-diag-form .a-btn { flex: 1 1 100%; } }
 
-.adm-seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px; background: var(--a-g50); border: 1px solid var(--a-g200); max-width: 100%; }
+.adm-filters { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.9rem; }
+@media (max-width: 719px) {
+  .adm-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: -2px;
+    padding: 2px;
+    -webkit-mask-image: linear-gradient(to right, #000 85%, transparent);
+    mask-image: linear-gradient(to right, #000 85%, transparent);
+  }
+  .adm-filters::-webkit-scrollbar { display: none; }
+  .adm-filter { flex: none; }
+}
+
+.adm-seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 999px; background: var(--a-paper); border: 1px solid var(--a-g200); max-width: 100%; }
 .adm-seg-btn {
   min-height: 44px;
   padding: 0 1rem;
@@ -152,24 +434,32 @@
 .adm-seg-plan { margin-top: 0.9rem; }
 .adm-seg-plan .adm-seg-btn { min-width: 6rem; }
 
-.adm-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.75rem; }
+.adm-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem; }
 .adm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   min-width: 44px;
   min-height: 44px;
   padding: 0 0.8rem;
   border: 1px solid var(--a-g200);
-  border-radius: var(--a-radius);
+  border-radius: 999px;
   background: var(--a-paper);
   color: var(--a-ink);
   font: inherit;
   font-family: var(--a-wide);
   font-size: 0.8125rem;
+  white-space: nowrap;
   cursor: pointer;
 }
 .adm-chip[aria-pressed="true"] { background: var(--a-ink); border-color: var(--a-ink); color: #FFFFFF; }
-.adm-seg-btn:focus-visible, .adm-chip:focus-visible, .adm-row:focus-visible, .adm-recent-row:focus-visible,
+.adm-chip-n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--a-g100); color: var(--a-ink-2); font-size: 0.6875rem; }
+.adm-chip[aria-pressed="true"] .adm-chip-n { background: rgba(255, 255, 255, 0.18); color: #FFFFFF; }
+
+.adm-seg-btn:focus-visible, .adm-chip:focus-visible, .adm-row:focus-visible, .adm-log:focus-visible,
 .adm-link:focus-visible, .adm-chipbtn:focus-visible, .adm-toggle:focus-visible, .adm-details summary:focus-visible,
-.adm-log-pre:focus-visible {
+.adm-fold summary:focus-visible, .adm-log-pre:focus-visible, .adm-err-row:focus-visible, .adm-issue-btn:focus-visible,
+.adm-toast-x:focus-visible {
   outline: 2px solid var(--a-cobalt);
   outline-offset: 2px;
 }
@@ -189,68 +479,18 @@
   text-decoration: none;
   cursor: pointer;
 }
-.adm-head-ico { color: var(--a-cobalt); }
 
-/* ─── Панель доступа ────────────────────────────────────────────── */
+/* ─── Нет доступа ───────────────────────────────────────────────── */
 .adm-denied { max-width: 560px; margin-inline: auto; }
 .adm-denied-ico { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: var(--ak-rock-bg); color: var(--ak-rock); margin-bottom: 1rem; }
 .adm-denied-h { font-size: clamp(1.6rem, 4vw, 2.25rem); }
-
-/* ─── Последние регистрации ─────────────────────────────────────── */
-/* Колонка minmax(0, 1fr) у всех списков-сеток: без неё длинный email
-   (white-space: nowrap) распирает неявную колонку шире панели. */
-.adm-recent-list, .adm-issues, .adm-probes, .adm-sent-list { grid-template-columns: minmax(0, 1fr); }
-.adm-recent-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; }
-.adm-recent-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  min-height: 52px;
-  padding: 0 0.9rem;
-  border: 1px solid var(--a-g100);
-  border-radius: 16px;
-  background: var(--a-g50);
-  color: var(--a-ink);
-  font: inherit;
-  font-family: var(--a-wide);
-  font-size: 0.875rem;
-  text-align: left;
-  cursor: pointer;
-}
-.adm-recent-mail { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.adm-recent-date { font-size: 0.75rem; color: var(--a-ink-3); flex: none; }
-.adm-recent-arrow { color: var(--a-ink-3); flex: none; }
-
-/* ─── Переключатель синхронизации ───────────────────────────────── */
-.adm-toggle {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-  min-height: 64px;
-  padding: 0.8rem 1rem;
-  border: 1px solid var(--a-g200);
-  border-radius: 16px;
-  background: var(--a-g50);
-  color: var(--a-ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.adm-toggle:disabled { cursor: default; opacity: 0.7; }
-.adm-toggle-copy { flex: 1; min-width: 0; display: grid; gap: 0.2rem; }
-.adm-toggle-state { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.8125rem; color: var(--a-ink-3); }
-.adm-toggle .ak-switch { display: inline-block; }
-.adm-toggle[aria-checked="true"] .ak-switch { background: var(--a-cobalt); }
-.adm-toggle[aria-checked="true"] .ak-switch::before { transform: translateX(20px); }
-.adm-bot .ak-fine { margin-top: 0.9rem; }
 
 /* ─── Таблица-строки: пользователи и журнал ─────────────────────────
    Одна разметка на все ширины. Контейнер уже 760px — строка-карточка;
    шире — строка таблицы с шапкой. Меряется ширина колонки, а не окна:
    при открытой карточке пользователя список сужается сам. */
 .adm-list-card { min-width: 0; }
+.adm-rows-skel { min-height: 320px; }
 .adm-rows-box {
   container-type: inline-size;
   max-height: min(72svh, 880px);
@@ -261,11 +501,12 @@
   background: var(--a-paper);
   scrollbar-width: thin;
 }
+.adm-rows-short { max-height: min(62svh, 640px); }
 .adm-rows { list-style: none; margin: 0; padding: 0; }
 .adm-rows > li + li { border-top: 1px solid var(--a-g100); }
 .adm-rows-head, .adm-log-head { display: none; }
 
-.adm-row {
+.adm-row, .adm-log {
   position: relative;
   display: flex;
   flex-wrap: wrap;
@@ -280,8 +521,9 @@
   font: inherit;
   font-size: 0.75rem;
   text-align: left;
-  cursor: pointer;
 }
+.adm-row, button.adm-log { cursor: pointer; }
+.adm-log { min-height: 52px; }
 .adm-row::before {
   content: "";
   position: absolute;
@@ -292,7 +534,6 @@
   border-radius: 0 3px 3px 0;
   background: var(--a-cobalt);
   transform: scaleY(0);
-  transform-origin: center;
 }
 .adm-row[aria-pressed="true"] { background: var(--a-shoal); }
 .adm-row[aria-pressed="true"]::before { transform: scaleY(1); }
@@ -300,6 +541,8 @@
 .adm-c-plan { order: 1; flex: none; }
 .adm-c-id { order: 2; font-family: var(--a-wide); color: var(--a-cobalt); }
 .adm-c-end, .adm-c-ref, .adm-c-tg, .adm-c-ip { order: 3; display: inline-flex; align-items: center; gap: 0.25rem; }
+.adm-c-end small { margin-left: 0.3rem; font-size: 0.6875rem; color: var(--a-ink-3); }
+.adm-c-end[data-tone="warn"], .adm-c-end[data-tone="warn"] small { color: var(--ak-warn); }
 .adm-c-tg { color: var(--a-cobalt); }
 .adm-c-ip { min-width: 0; }
 .adm-c-ip .adm-ip { overflow-wrap: anywhere; }
@@ -308,14 +551,11 @@
 .adm-k { font-style: normal; color: var(--a-ink-3); }
 .adm-c-tg .adm-k { color: inherit; }
 
-.adm-log { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.75rem; min-height: 52px; padding: 0.75rem 0.9rem 0.75rem 1.1rem; font-size: 0.75rem; color: var(--a-ink-2); }
 .adm-l-act { order: 0; flex: 1 1 auto; }
 .adm-l-time { order: 1; color: var(--a-ink-3); }
 .adm-l-user { order: 2; flex: 1 1 100%; min-width: 0; overflow-wrap: anywhere; font-family: var(--a-wide); font-size: 0.8125rem; color: var(--a-ink); }
 .adm-l-det { order: 3; flex: 1 1 100%; overflow-wrap: anywhere; }
 .adm-l-ip { order: 4; color: var(--a-ink-3); overflow-wrap: anywhere; }
-/* Карточка-строка: пустые ячейки не рисуют строку из одного тире.
-   В таблице (ниже, @container) они возвращаются — держат колонку. */
 .adm-log > [data-empty] { display: none; }
 
 @container (min-width: 760px) {
@@ -335,14 +575,12 @@
     letter-spacing: 0.02em;
     color: var(--a-ink-3);
   }
-  .adm-rows-head, .adm-row { grid-template-columns: 5.5rem minmax(0, 2fr) 5.5rem 6.5rem 3rem 2.25rem minmax(0, 1.3fr); }
+  .adm-rows-head, .adm-row { grid-template-columns: 5.5rem minmax(0, 2fr) 5.5rem 8rem 3rem 2.25rem minmax(0, 1.3fr); }
   .adm-row { display: grid; min-height: 52px; padding-block: 0.4rem; }
   .adm-row > span { order: 0; }
   .adm-c-id { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .adm-c-ip { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .adm-c-ip .adm-ip { overflow-wrap: normal; }
-  /* Подписи ячеек в таблице читает только скринридер — видимую роль
-     берёт шапка. */
   .adm-k { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
   .adm-log-head, .adm-log { grid-template-columns: 9.5rem minmax(0, 1.3fr) minmax(0, 2fr) 8rem 6.5rem; }
@@ -353,35 +591,65 @@
   .adm-l-time { text-align: right; }
 }
 
+.adm-more { padding: 0.6rem; border-top: 1px solid var(--a-g100); text-align: center; }
 .adm-empty { margin: 0; padding: 2rem 1rem; border-radius: 16px; background: var(--a-g50); text-align: center; font-size: 0.875rem; color: var(--a-ink-3); }
 
 /* ─── Карточка пользователя ─────────────────────────────────────── */
 .adm-detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
 .adm-detail-who { min-width: 0; }
-.adm-detail-head .ak-icon { flex: none; }   /* длинный email не сжимает кнопку закрытия ниже 44px */
+.adm-detail-head .ak-icon { flex: none; }
 .adm-detail-mail { margin-top: 0.35rem; overflow-wrap: anywhere; font-size: clamp(1.1rem, 2vw, 1.35rem); }
-.adm-detail-who .ak-fine { margin-top: 0.3rem; }
+
+.adm-u-sub { margin-top: 1rem; padding: 1.1rem; border-radius: 18px; }
+.adm-u-sub-t { margin: 0; font-family: var(--a-wide); font-weight: 500; font-size: 0.8125rem; color: rgba(255, 255, 255, 0.68); }
+.adm-u-left { margin-top: 0.6rem; font-size: clamp(1.6rem, 3vw, 2.1rem); }
+.adm-u-sub .ak-days { max-width: none; }
+.adm-u-sub .ak-days-cap { flex-wrap: wrap; gap: 0.2rem 1rem; max-width: none; }
+.adm-u-facts { list-style: none; margin: 0.9rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.adm-u-facts li { min-width: 0; padding: 0.55rem 0.7rem; border-radius: 12px; background: rgba(255, 255, 255, 0.07); }
+.adm-u-facts span { display: block; font-size: 0.6875rem; color: rgba(255, 255, 255, 0.68); }
+.adm-u-facts b { display: block; margin-top: 0.15rem; font-family: var(--a-wide); font-size: 0.9375rem; color: #FFFFFF; }
 
 .adm-block { margin-top: 0.75rem; padding: 1rem; border-radius: 16px; background: var(--a-g50); min-width: 0; }
 .adm-block-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 0.75rem; }
+.adm-block-aside { display: inline-flex; align-items: center; gap: 0.4rem; }
 .adm-block-title { display: inline-flex; align-items: center; gap: 0.5rem; margin: 0; font-family: var(--a-wide); font-weight: 700; font-size: 0.9375rem; color: var(--a-ink); }
 .adm-block-title svg { color: var(--a-cobalt); flex: none; }
-.adm-left { margin: 0.6rem 0 0; font-family: var(--a-wide); font-weight: 700; font-size: clamp(1.6rem, 3vw, 2.1rem); line-height: 1.1; letter-spacing: -0.02em; color: var(--a-ink); }
-.adm-block-sub[data-off] .adm-left { color: var(--ak-rock); }
-.adm-facts { list-style: none; margin: 0.9rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; }
-.adm-facts li { padding: 0.6rem 0.7rem; border-radius: 12px; background: var(--a-paper); min-width: 0; }
-.adm-facts span { display: block; font-size: 0.6875rem; color: var(--a-ink-3); }
-.adm-facts b { display: block; margin-top: 0.15rem; font-family: var(--a-wide); font-size: 0.9375rem; color: var(--a-ink); }
-.adm-ipline { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.6rem 0 0; padding: 0.55rem 0.75rem; border-radius: 12px; background: var(--a-paper); font-size: 0.8125rem; color: var(--a-ink-2); }
-.adm-ipline .adm-ip { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; font-family: var(--a-wide); }
+.adm-fold > summary { display: flex; min-height: 44px; margin: -0.5rem 0; cursor: pointer; list-style: none; }
+.adm-fold > summary::-webkit-details-marker { display: none; }
+.adm-fold > summary::after { content: ""; width: 8px; height: 8px; margin-left: auto; border-right: 1.9px solid var(--a-ink-3); border-bottom: 1.9px solid var(--a-ink-3); transform: rotate(45deg); }
+.adm-fold[open] > summary { margin-bottom: 0; }
+.adm-fold[open] > summary::after { transform: rotate(-135deg); }
+
+.adm-devs { list-style: none; margin: 0.75rem 0 0; padding: 0; display: grid; gap: 4px; }
+.adm-dev { display: flex; align-items: center; gap: 0.7rem; min-height: 52px; padding: 0.55rem 0.7rem; border-radius: 12px; background: var(--a-paper); }
+.adm-dev-ico { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 10px; background: var(--a-shoal); color: var(--a-cobalt); }
+.adm-dev-copy { flex: 1; min-width: 0; display: grid; gap: 0.1rem; }
+.adm-dev-copy b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--a-wide); font-weight: 500; font-size: 0.8125rem; color: var(--a-ink); }
+.adm-dev-copy span { font-size: 0.6875rem; color: var(--a-ink-3); overflow-wrap: anywhere; }
+.adm-dev-time { flex: none; font-size: 0.6875rem; color: var(--a-ink-3); }
+
+.adm-ipline { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.6rem 0 0; padding: 0.55rem 0.75rem; border-radius: 12px; background: var(--a-paper); font-size: 0.75rem; color: var(--a-ink-3); }
+.adm-ipline .adm-ip { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; font-family: var(--a-wide); font-size: 0.8125rem; color: var(--a-ink); }
 .adm-ipline[data-tone="warn"] { background: var(--ak-warn-bg); color: var(--ak-warn); }
 .adm-ipline[data-tone="off"] { background: var(--ak-rock-bg); color: var(--ak-rock); }
+.adm-ipnodes { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 4px; }
+.adm-ipnodes > li { padding: 0.6rem 0.75rem; border-radius: 12px; background: var(--a-paper); }
+.adm-ips { list-style: none; margin: 0.35rem 0 0; padding: 0; display: grid; gap: 2px; }
+.adm-ips li { display: flex; justify-content: space-between; gap: 0.75rem; font-size: 0.75rem; }
+.adm-ips .adm-ip { min-width: 0; overflow-wrap: anywhere; font-family: var(--a-wide); color: var(--a-ink); }
+
+.adm-hist { list-style: none; margin: 0.6rem 0 0; padding: 0; display: grid; gap: 4px; }
+.adm-hist li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; padding: 0.5rem 0.65rem; border-radius: 10px; background: var(--a-paper); font-size: 0.75rem; }
+.adm-hist-d { flex: 1 1 8rem; min-width: 0; color: var(--a-ink-2); }
+.adm-hist-t { color: var(--a-ink-3); }
 
 .adm-dl { margin: 0.6rem 0 0; display: grid; }
 .adm-dl > div { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; min-height: 44px; padding-block: 0.3rem; }
 .adm-dl > div + div { border-top: 1px solid var(--a-g200); }
 .adm-dl dt { font-size: 0.8125rem; color: var(--a-ink-3); flex: none; }
 .adm-dl dd { margin: 0; min-width: 0; text-align: right; font-family: var(--a-wide); font-size: 0.8125rem; color: var(--a-ink); }
+.ak-card > .adm-dl > div + div, .adm-report .adm-dl > div + div { border-top-color: var(--a-g100); }
 .adm-strong { font-weight: 700; color: var(--a-cobalt) !important; letter-spacing: 0.02em; }
 .adm-chipbtn {
   display: inline-flex;
@@ -403,7 +671,7 @@
 .adm-chipbtn[data-tone="warn"] { background: var(--ak-warn-bg); border-color: var(--ak-warn-bg); color: var(--ak-warn); }
 
 .adm-url { margin-top: 0.75rem; }
-.adm-url-row { display: flex; align-items: stretch; gap: 0.5rem; margin-top: 0.35rem; }
+.adm-url-row { display: flex; align-items: stretch; gap: 0.5rem; }
 .adm-code {
   flex: 1;
   min-width: 0;
@@ -420,17 +688,15 @@
 .adm-copy { flex: none; }
 .adm-copy[data-state="ok"], .adm .a-btn[data-state="ok"] { border-color: var(--a-cobalt); color: var(--a-cobalt); background: var(--a-shoal); }
 
-.adm-note { margin: 0.75rem 0 0; padding: 0.7rem 0.85rem; border-radius: 12px; font-size: 0.8125rem; line-height: 1.5; background: var(--a-shoal); color: var(--a-cobalt); }
-.adm-note[data-tone="warn"] { background: var(--ak-warn-bg); color: var(--ak-warn); }
-
 .adm-sub-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 .adm-sub-actions .a-btn { flex: 0 1 auto; }
 @media (max-width: 479px) { .adm-sub-actions .a-btn { flex: 1 1 100%; } }
 
 .adm-result { margin-top: 0.9rem; padding: 0.85rem; border-radius: 12px; background: var(--a-paper); }
+.ak-card > .adm-result { background: var(--a-g50); }
 .adm-result-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin: 0; font-family: var(--a-wide); font-size: 0.8125rem; color: var(--a-ink); min-width: 0; }
 .adm-result-row > :first-child { min-width: 0; }
-.adm-result-line { margin: 0.35rem 0 0; font-size: 0.75rem; line-height: 1.45; color: var(--a-ink-3); }
+.adm-result-line { display: block; margin: 0.35rem 0 0; font-size: 0.75rem; line-height: 1.45; color: var(--a-ink-3); }
 .adm-result-line[data-tone="off"], .adm-result-line [data-tone="off"] { color: var(--ak-rock); }
 .adm-result-line b { color: var(--a-cobalt); }
 .adm-result-line b[data-tone="warn"] { color: var(--ak-warn); }
@@ -457,21 +723,40 @@
   transform: rotate(-45deg);
   flex: none;
 }
-.adm-details[open] summary::before { transform: rotate(45deg); }
-.adm-probes, .adm-issues { list-style: none; margin: 0.25rem 0 0; padding: 0; display: grid; gap: 0.4rem; }
-.adm-issues { max-height: 20rem; overflow-y: auto; overscroll-behavior: contain; }
+.adm-details[open] > summary::before { transform: rotate(45deg); }
+.adm-details-sm { margin-top: 0.1rem; }
+.adm-details-sm summary { font-size: 0.75rem; overflow-wrap: anywhere; }
+.adm-probes, .adm-issues { list-style: none; margin: 0.25rem 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.4rem; }
+.adm-issues { max-height: 22rem; overflow-y: auto; overscroll-behavior: contain; }
 .adm-probes li, .adm-issues li { padding: 0.6rem 0.75rem; border-radius: 12px; background: var(--a-g50); min-width: 0; }
 .adm-block .adm-probes li { background: var(--a-g50); }
+.adm-issues li:has(> .adm-issue-btn) { padding: 0; background: none; }
+.adm-issue-btn {
+  display: grid;
+  gap: 0.3rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.75rem;
+  border: 0;
+  border-radius: 12px;
+  background: var(--a-g50);
+  color: var(--a-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
 .adm-issue-mail { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.adm-tagrow { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+.adm-pre-sm { max-height: 14rem; min-height: 0 !important; margin-top: 0.25rem !important; }
 
 .adm-danger { background: var(--ak-rock-bg); }
 .adm-danger .adm-block-title { color: var(--ak-rock); }
 .adm-danger .ak-fine { color: var(--a-ink-2); }
 
-/* ─── Уведомления ───────────────────────────────────────────────── */
-.adm-compose .ak-actions { padding-top: 1.1rem; }
-.adm-sent-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.4rem; max-height: min(70svh, 760px); overflow-y: auto; overscroll-behavior: contain; }
+.adm-icon-sm { width: 44px; height: 44px; }
+
+/* ─── Сервис ────────────────────────────────────────────────────── */
+.adm-cast-form { margin-bottom: 0.25rem; }
+.adm-sent-list { list-style: none; margin: 0.25rem 0 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.4rem; max-height: min(60svh, 640px); overflow-y: auto; overscroll-behavior: contain; }
 .adm-sent-row { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.85rem 0.9rem; border-radius: 16px; background: var(--a-g50); }
 .adm-sent-copy { flex: 1; min-width: 0; }
 .adm-sent-title { margin: 0; font-family: var(--a-wide); font-weight: 700; font-size: 0.875rem; color: var(--a-ink); overflow-wrap: anywhere; }
@@ -480,36 +765,36 @@
 .adm-sent-meta .adm-tag { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .adm-del { color: var(--ak-rock); flex: none; }
 
-/* ─── Операции: плитки результатов ──────────────────────────────── */
-.adm-audit .ak-text, .adm-ghost .ak-text { margin-top: 0; }
+.adm-toggle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  min-height: 64px;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--a-g200);
+  border-radius: 16px;
+  background: var(--a-g50);
+  color: var(--a-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.adm-toggle:disabled { cursor: default; opacity: 0.7; }
+.adm-toggle-copy { flex: 1; min-width: 0; display: grid; gap: 0.2rem; }
+.adm-toggle-state { display: inline-flex; align-items: center; gap: 0.45rem; font-size: 0.8125rem; color: var(--a-ink-3); }
+.adm-toggle .ak-switch { display: inline-block; }
+.adm-toggle[aria-checked="true"] .ak-switch { background: var(--a-cobalt); }
+.adm-toggle[aria-checked="true"] .ak-switch::before { transform: translateX(20px); }
+.adm-s-bot .ak-fine { margin-top: 0.9rem; }
+
 .adm-report { margin-top: 1rem; }
-.adm-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr)); gap: 0.4rem; }
-.adm-tiles-sm { margin-top: 0.4rem; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); }
-.adm-tile { padding: 0.65rem 0.75rem; border-radius: 12px; background: var(--a-g50); min-width: 0; }
-.adm-tile span { display: block; font-size: 0.6875rem; line-height: 1.35; color: var(--a-ink-3); }
-.adm-tile b { display: block; margin-top: 0.2rem; font-family: var(--a-wide); font-size: 1.25rem; color: var(--a-ink); }
-.adm-tiles-sm .adm-tile b { font-size: 1rem; }
-.adm-tile b small { font-size: 0.75rem; color: var(--ak-rock); }
-.adm-tile[data-tone="ok"] b { color: var(--a-cobalt); }
-.adm-tile[data-tone="warn"] { background: var(--ak-warn-bg); }
-.adm-tile[data-tone="warn"] b { color: var(--ak-warn); }
-.adm-tile[data-tone="off"] { background: var(--ak-rock-bg); }
-.adm-tile[data-tone="off"] b { color: var(--ak-rock); }
-.adm-tile[data-tone="mute"] b { color: var(--a-ink-2); }
-.adm-gap { margin-top: 0.9rem; margin-bottom: 0.4rem; }
-
 .adm-progress-box { margin-top: 1rem; }
-.adm-progress { height: 6px; margin-top: 0.45rem; border-radius: 999px; background: var(--a-g100); overflow: hidden; }
-.adm-progress i { display: block; height: 100%; background: var(--a-cobalt); transform-origin: left; transform: scaleX(var(--p, 0)); }
+.adm-progress { position: relative; height: 6px; margin-top: 0.6rem; border-radius: 999px; background: var(--a-g100); overflow: hidden; }
+.adm-progress i { position: absolute; inset: 0; background: var(--a-cobalt); transform-origin: left; transform: scaleX(var(--p, 0)); }
+.adm-progress-run i { width: 40%; transform: none; border-radius: inherit; }
 
-.adm-ops { display: grid; gap: 1.25rem; }
-@media (min-width: 900px) { .adm-ops { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; } }
-.adm-op { min-width: 0; }
-.adm-op + .adm-op { padding-top: 1.25rem; border-top: 1px solid var(--a-g100); }
-@media (min-width: 900px) { .adm-op + .adm-op { padding-top: 0; padding-left: 1.5rem; border-top: 0; border-left: 1px solid var(--a-g100); } }
-.adm-op .ak-text { margin-top: 0.5rem; }
-
-/* ─── Модальное окно лога ───────────────────────────────────────── */
+/* ─── Лог, диалог, тосты ────────────────────────────────────────── */
 .adm-modal { max-width: 720px; max-height: calc(100svh - 2rem); display: flex; flex-direction: column; }
 .adm-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
 .adm-modal-head .ak-fine { margin-top: 0.3rem; }
@@ -530,74 +815,157 @@
 }
 .adm-dialog .ak-dialog-card { max-height: calc(100svh - 2rem); overflow-y: auto; }
 
+.adm-toasts {
+  position: fixed;
+  z-index: 95;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  gap: 8px;
+  width: min(400px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.adm-toast {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.35rem 0.35rem 0.35rem 1rem;
+  border-radius: 18px;
+  background: var(--a-ink);
+  color: #FFFFFF;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  pointer-events: auto;
+}
+.adm-toast > i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--a-shoal-lume); }
+.adm-toast[data-tone="warn"] > i { background: var(--adm-lume-warn); }
+.adm-toast[data-tone="off"] > i { background: var(--adm-lume-off); }
+.adm-toast > span { flex: 1; min-width: 0; padding-block: 0.45rem; overflow-wrap: anywhere; }
+.adm-toast-x { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border: 0; border-radius: 14px; background: transparent; color: rgba(255, 255, 255, 0.72); cursor: pointer; }
+.adm-toast-x:focus-visible { outline-color: #FFFFFF; }
+@media (max-width: 719px) {
+  .adm-toasts { left: 12px; right: 12px; width: auto; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 76px); }
+}
+
 /* Кольцо загрузки в кнопке. */
 .adm-spin { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; flex: none; }
 
 /* ═══ ДВИЖЕНИЕ ═══════════════════════════════════════════════════════
-   Сдержанно: рабочий экран. Появление панелей даёт work-atlas.css
-   (.ak-card, data-seen от MotionController) — здесь только своё.
-   Только transform, opacity и переменные. Скрытое до входа — под .a-js.
-   Холостого почти нет: пульс точки статуса (work-atlas) и кольцо
-   загрузки, которое крутится только пока идёт запрос. */
+   Появление панелей даёт work-atlas.css (.ak-card, data-seen от
+   MotionController) — здесь только своё. Только transform, opacity,
+   clip-path и переменные. Скрытое до входа — под .a-js (без скрипта и
+   при ?static=1 экран в конечном виде). Холостое на паузе вне кадра
+   (.ak-card:not([data-inview]) * — правило кабинета).
 
-/* Сводка: плитки ложатся по очереди, доля активных дотягивается. */
-.adm-stats .ak-stat { transition: opacity var(--d-2) var(--m-settle), transform var(--d-2) var(--m-settle), background-color var(--d-1) var(--m-turn); }
-.adm-stats .ak-stat:nth-child(1) { transition-delay: 120ms; }
-.adm-stats .ak-stat:nth-child(2) { transition-delay: 170ms; }
-.adm-stats .ak-stat:nth-child(3) { transition-delay: 220ms; }
-.adm-stats .ak-stat:nth-child(4) { transition-delay: 270ms; }
-.adm-stats .ak-stat:nth-child(5) { transition-delay: 320ms; }
-.adm-stats .ak-stat:nth-child(6) { transition-delay: 370ms; }
-.a-js .adm-summary:not([data-seen]) .ak-stat { opacity: 0; transform: translateY(10px); }
-.adm-share i { transition: transform var(--d-3) var(--m-settle) 420ms; }
-.a-js .adm-summary:not([data-seen]) .adm-share i { transform: scaleX(0); }
+   Раздел      появление                 наведение            холостое
+   вердикт     сигналы по очереди        сигнал светлеет      точки пульсируют, кольцо отсчёта
+   панель, БД  линия прорисовывается     плитка — в мель      точка на конце линии дышит
+   ноды        строки по очереди         строка — в мель      точки нод пульсируют
+   очередь     полоса растёт слева       ошибка сдвигает →    пульс статуса
+   трафик      строки по очереди         —                    —  (пульс статуса у заголовка нет:
+                                                                  блик идёт по полосам тегов)
+   бизнес      полосы растут слева       полоса темнеет       блик по полосам и по сумме
+   пользователи строка выбора растёт     строка — в мель      тёмная плита: сегодняшний день мигает
+   сервис      —                         чип, кнопка          пульс статусов */
 
-/* Прогресс починки — сдвигом, а не шириной. */
-.adm-progress i { transition: transform var(--d-2) var(--m-settle); }
+/* Вердикт: сигналы ложатся по очереди. */
+.adm-signals li { transition: opacity var(--d-2) var(--m-settle), transform var(--d-2) var(--m-settle); transition-delay: calc(200ms + var(--k, 0) * 70ms); }
+.a-js .adm-verdict:not([data-seen]) .adm-signals li { opacity: 0; transform: translateX(-10px); }
+.adm-signal { transition: background-color var(--d-1) var(--m-turn); }
+
+/* Полосы растут слева, по очереди. */
+.adm-bar-track i, .adm-meter i { transition: transform var(--d-3) var(--m-settle); transition-delay: calc(260ms + var(--k, 0) * 70ms); }
+.a-js .ak-card:not([data-seen]) .adm-bar-track i, .a-js .ak-card:not([data-seen]) .adm-meter i { transform: scaleX(0); }
+.adm-stack { transition: transform var(--d-3) var(--m-settle) 240ms; }
+.a-js .ak-card:not([data-seen]) .adm-stack { transform: scaleX(0); }
+.adm-tags li .adm-stack { transition-delay: calc(300ms + var(--k, 0) * 90ms); }
+
+/* Спарклайн прорисовывается слева направо. */
+.adm-spark svg { clip-path: inset(0 0 0 0); transition: clip-path var(--d-3) var(--m-settle) 260ms; }
+.a-js .ak-card:not([data-seen]) .adm-spark svg { clip-path: inset(0 100% 0 0); }
+
+/* Строки нод, трафика, устройств — по очереди. */
+.adm-node, .adm-bw li, .adm-dev { transition: opacity var(--d-2) var(--m-settle), transform var(--d-2) var(--m-settle), background-color var(--d-1) var(--m-turn); transition-delay: calc(180ms + var(--k, 0) * 50ms); }
+.a-js .ak-card:not([data-seen]) :is(.adm-node, .adm-bw li, .adm-dev) { opacity: 0; transform: translateY(8px); }
 
 /* Выбранная строка: полоса слева вырастает из середины. */
 .adm-row::before { transition: transform var(--d-1) var(--m-settle); }
-.adm-row, .adm-recent-row, .adm-seg-btn, .adm-chip, .adm-pill-n, .adm-chipbtn, .adm-toggle, .adm-tile {
+.adm-row, .adm-log, .adm-seg-btn, .adm-chip, .adm-chip-n, .adm-pill-n, .adm-chipbtn, .adm-toggle, .adm-tile, .adm-err-row, .adm-issue-btn, .adm-toast-x {
   transition: background-color var(--d-1) var(--m-turn), color var(--d-1) var(--m-turn), border-color var(--d-1) var(--m-turn),
               transform var(--d-1) var(--m-settle);
 }
-.adm-recent-arrow, .adm-link svg, .adm-details summary::before { transition: transform var(--d-1) var(--m-settle), color var(--d-1) var(--m-turn); }
+.adm-err-arrow, .adm-link svg, .adm-details summary::before, .adm-fold > summary::after { transition: transform var(--d-1) var(--m-settle), color var(--d-1) var(--m-turn); }
+.adm-progress i { transition: transform var(--d-2) var(--m-settle); }
 
 /* Наведение переворачивает материал: строка — в мель, чип — в чернила. */
 @media (hover: hover) {
-  .adm-row:hover { background: var(--a-g50); }
+  .adm-signal:hover { background: rgba(255, 255, 255, 0.13); }
+  .adm-row:hover, button.adm-log:hover { background: var(--a-g50); }
   .adm-row[aria-pressed="true"]:hover { background: var(--a-shoal); }
-  .adm-row:hover .adm-c-mail { color: var(--a-cobalt); }
-  .adm-recent-row:hover { background: var(--a-shoal); border-color: var(--a-shoal); }
-  .adm-recent-row:hover .adm-recent-arrow { transform: translateX(4px); color: var(--a-cobalt); }
+  .adm-row:hover .adm-c-mail, button.adm-log:hover .adm-l-user { color: var(--a-cobalt); }
+  .adm-node:hover { background: var(--a-shoal); }
+  .adm-node[data-tone="off"]:hover { background: #F7DCDC; }
+  .adm-err-row:hover, .adm-issue-btn:hover { background: var(--a-shoal); }
+  .adm-err-row:hover .adm-err-arrow { transform: translateX(4px); color: var(--a-cobalt); }
+  .adm-tile:hover { background: var(--a-shoal); }
+  .adm-tile[data-tone="warn"]:hover, .adm-tile[data-tone="off"]:hover { transform: translateY(-1px); }
+  .adm-bar:hover .adm-bar-track i { background: var(--a-cobalt-deep); }
   .adm-link:hover svg { transform: translateX(3px); }
-  .adm-seg-btn:not([aria-pressed="true"]):hover { background: var(--a-paper); color: var(--a-ink); }
+  .adm-seg-btn:not([aria-pressed="true"]):hover { background: var(--a-g50); color: var(--a-ink); }
   .adm-chip:not([aria-pressed="true"]):hover { border-color: var(--a-cobalt); color: var(--a-cobalt); }
   .adm-chipbtn:hover { border-color: currentColor; }
   .adm-toggle:not(:disabled):hover { border-color: var(--a-cobalt); }
   .adm-pill:not([aria-selected="true"]):hover .adm-pill-n { background: rgba(255, 255, 255, 0.16); color: #FFFFFF; }
   .adm-del:not(:disabled):hover { background: var(--ak-rock-bg); border-color: var(--ak-rock); color: var(--ak-rock); }
   .adm .ak-btn-danger:not(:disabled):hover { background: #8E1D17; }
-  .adm-stats .ak-stat:hover { background: var(--a-shoal); }
+  .adm-toast-x:hover { background: rgba(255, 255, 255, 0.1); color: #FFFFFF; }
+  .ak-dark .adm-auto-now:not(:disabled):hover { border-color: #FFFFFF; color: #FFFFFF; }
 }
-.adm-chip:active, .adm-seg-btn:active, .adm-row:active, .adm-recent-row:active { transform: scale(0.985); }
+.adm-chip:active, .adm-seg-btn:active, .adm-row:active, .adm-err-row:active, .adm-issue-btn:active { transform: scale(0.985); }
 
-/* Диалог: подложка проявляется, карточка подходит снизу. */
+/* Холостое. */
+.adm-dot[data-tone="ok"]::after { animation: ak-ping 2.4s var(--m-tide) infinite; }
+.adm-dot[data-tone="off"] { animation: ak-blink 1.2s var(--m-tide) infinite; }
+.adm-spark-dot { animation: adm-breathe 2.4s var(--m-tide) infinite; }
+.adm-ring circle { animation: adm-count var(--dur, 60s) linear both; }
+.adm-skel i { animation: ak-sweep-bg 1.4s linear infinite; }
+.adm-bar-track i::after, .adm-meter i::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent) 0 0 / 35% 100% no-repeat;
+  animation: ak-sweep 4.8s var(--m-tide) infinite; animation-delay: calc(1.2s + var(--k, 0) * 400ms);
+}
+.adm-top-state .adm-dot[data-tone="ok"]::after { animation-duration: 3.2s; }
+/* Холостое точек в шапке и полосе разделов — вне .ak-card, пауза не нужна: одна точка. */
+
+/* Отклик: тосты подходят снизу, диалог — подложка и карточка. */
+.adm-toast { animation: adm-rise var(--d-2) var(--m-settle) both; }
 .a-js .adm-dialog .ak-dialog-veil { animation: adm-fade var(--d-1) var(--m-settle) both; }
 .a-js .adm-dialog .ak-dialog-card { animation: adm-rise var(--d-2) var(--m-settle) both; }
-
-/* Кольцо загрузки. */
+.adm-progress-run i { animation: adm-slide 1.3s var(--m-tide) infinite; }
 .adm-spin { animation: adm-turn 0.8s linear infinite; }
+
+/* Смена раздела: панель раздела проявляется. */
+.a-js .adm-panel { animation: adm-in var(--d-2) var(--m-settle) both; }
 
 @keyframes adm-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes adm-rise { from { opacity: 0; transform: translateY(12px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes adm-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes adm-turn { to { transform: rotate(360deg); } }
+@keyframes adm-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.35); } }
+@keyframes adm-count { from { stroke-dashoffset: 50.27; } to { stroke-dashoffset: 0; } }
+@keyframes adm-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 
 /* Упрощение: конечный кадр. */
 @media (prefers-reduced-motion: reduce) {
   .adm *, .adm *::before, .adm *::after { animation: none !important; transition: none !important; }
-  .a-js .adm-summary .ak-stat { opacity: 1; transform: none; }
-  .a-js .adm-summary .adm-share i { transform: scaleX(var(--p, 0)); }
+  .a-js .adm .adm-signals li, .a-js .adm :is(.adm-node, .adm-bw li, .adm-dev) { opacity: 1; transform: none; }
+  .a-js .adm .ak-card .adm-bar-track i, .a-js .adm .ak-card .adm-meter i { transform: scaleX(var(--p, 0)); }
+  .a-js .adm .ak-card .adm-stack { transform: none; }
+  .a-js .adm .ak-card .adm-spark svg { clip-path: none; }
+  .adm-ring { display: none; }
+  .adm-progress-run i { width: 100%; opacity: 0.5; }
   .adm-spin { border-right-color: currentColor; opacity: 0.5; }
 }
 html[data-static] .adm *, html[data-static] .adm *::before, html[data-static] .adm *::after { animation: none !important; transition: none !important; }
+html[data-static] .adm-ring { display: none; }
