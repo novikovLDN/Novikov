@@ -1,3 +1,4 @@
+import Chars from "@/components/atlas/Chars";
 import type { Metadata } from "next";
 import Link from "next/link";
 import AtlasShell from "@/components/atlas/AtlasShell";
@@ -54,21 +55,6 @@ const STOPS = [
 const HERO_1 = "где проходит";
 const HERO_2 = "ваш трафик";
 
-function Chars({ text, start = 0 }: { text: string; start?: number }) {
-  return (
-    <>
-      {[...text].map((ch, i) =>
-        ch === " " ? (
-          " "
-        ) : (
-          <span key={i} className="a-char" style={{ ["--i" as string]: start + i }}>
-            {ch}
-          </span>
-        ),
-      )}
-    </>
-  );
-}
 
 function Words({ text, start = 0 }: { text: string; start?: number }) {
   const words = text.split(" ");

@@ -1,3 +1,4 @@
+import Chars from "@/components/atlas/Chars";
 import type { Metadata } from "next";
 import Link from "next/link";
 import AtlasShell from "@/components/atlas/AtlasShell";
@@ -71,21 +72,6 @@ const RULE_WORDS = RULE_STARTS[RULES.length - 1] + RULES[RULES.length - 1].say.s
 /** Меридианы шара на первом экране: полуоси эллипсов. */
 const MERIDIANS = [1, 0.82, 0.6, 0.34, 0.1];
 
-function Chars({ text, start = 0 }: { text: string; start?: number }) {
-  return (
-    <>
-      {[...text].map((ch, i) =>
-        ch === " " ? (
-          " "
-        ) : (
-          <span key={i} className="a-char" style={{ ["--i" as string]: start + i }}>
-            {ch}
-          </span>
-        ),
-      )}
-    </>
-  );
-}
 
 function Words({ text, start = 0 }: { text: string; start?: number }) {
   const words = text.split(" ");

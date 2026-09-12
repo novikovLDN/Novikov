@@ -49,6 +49,27 @@
   animation: ov-in 480ms cubic-bezier(0.2, 0, 0, 1) both;
 }
 .ov-card[hidden] { display: none; }
+/* Телефон: карточка cookie — компактная и у верхнего края под шапкой.
+   Внизу она закрывала главное действие первого экрана (QA 12.09.2026,
+   375: карточка 557–764, кнопка «Попробовать» 660–714). Сверху под
+   ней только плашка и имя — ничего, что нужно нажать. Селектор с
+   запасом специфичности: правила кабинета и оплаты задают .ov-card
+   `bottom`, а с `top` карточка растянулась бы на весь экран. */
+@media (max-width: 559px) {
+  html body .ov-card.ov-card-cookie {
+    top: calc(var(--a-head-h, 64px) + 8px);
+    bottom: auto;
+    padding: 0.75rem 0.85rem 0.6rem;
+  }
+  .ov-card-cookie .ov-text { font-size: 0.75rem; line-height: 1.45; }
+  .ov-card-cookie .ov-actions { gap: 0.25rem 0.75rem; margin-top: 0.5rem; }
+  .ov-card-cookie .ov-btn-primary { padding-inline: 0.9rem; }
+  .ov-card-cookie .ov-btn-text { padding-inline: 0.15rem; }
+}
+@media (max-width: 559px) and (prefers-reduced-motion: no-preference) {
+  html body .ov-card.ov-card-cookie { animation-name: ov-in-top; }
+}
+@keyframes ov-in-top { from { opacity: 0; transform: translateY(-12px); } }
 
 .ov-row { display: flex; align-items: flex-start; gap: 0.75rem; }
 .ov-mark {

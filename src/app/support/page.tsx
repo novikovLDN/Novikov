@@ -1,3 +1,4 @@
+import Chars from "@/components/atlas/Chars";
 import type { Metadata } from "next";
 import Link from "next/link";
 import AtlasShell from "@/components/atlas/AtlasShell";
@@ -103,24 +104,6 @@ const FAQ: { q: string; a: React.ReactNode }[] = [
     ),
   },
 ];
-
-/** Разбивка по буквам: разметка приезжает разобранной, чтец экрана
- *  получает строку целиком из aria-label заголовка. */
-function Chars({ text, start = 0 }: { text: string; start?: number }) {
-  return (
-    <>
-      {[...text].map((ch, i) =>
-        ch === " " ? (
-          " "
-        ) : (
-          <span key={i} className="a-char" style={{ ["--i" as string]: start + i }}>
-            {ch}
-          </span>
-        ),
-      )}
-    </>
-  );
-}
 
 function Words({ text }: { text: string }) {
   const words = text.split(" ");

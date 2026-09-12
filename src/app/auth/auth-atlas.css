@@ -279,3 +279,10 @@
   .au-code:focus-within .au-cell[data-active]:not([data-filled])::after { opacity: 1; }
 }
 html[data-static] .au *, html[data-static] .au *::before, html[data-static] .au *::after { animation: none !important; transition: none !important; }
+
+/* Широкий экран: ядро лежало на слове «сразу» в заголовке плиты
+   (QA 12.09.2026, 1024–1920). Заголовок уже — справа место под ядро. */
+@media (min-width: 900px) {
+  .au .au-perks-card .ak-dark-title { max-width: calc(100% - 170px); }
+  .au .au-perks-card .ak-orb { --orb-s: 180px; top: 40px; right: -8px; }
+}

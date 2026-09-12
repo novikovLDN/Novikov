@@ -1,5 +1,6 @@
 "use client";
 
+import Chars from "@/components/atlas/Chars";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
@@ -178,23 +179,6 @@ const H1_B = "за минуту";
 /** Подпись кнопки магазина: «Скачать с сайта» уже глагол, остальные — «Открыть App Store». */
 function storeAction(label: string): string {
   return /^скачать/i.test(label) ? label : `Открыть ${label}`;
-}
-
-/** Разбивка по буквам для заголовка первого экрана (как на главной). */
-function Chars({ text, start = 0 }: { text: string; start?: number }) {
-  return (
-    <>
-      {[...text].map((ch, i) =>
-        ch === " " ? (
-          " "
-        ) : (
-          <span key={i} className="a-char" style={{ ["--i" as string]: start + i }}>
-            {ch}
-          </span>
-        ),
-      )}
-    </>
-  );
 }
 
 /** Разбивка по словам для финала: слова проявляются на входе плиты. */

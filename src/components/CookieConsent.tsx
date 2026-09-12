@@ -83,7 +83,7 @@ export default function CookieConsent() {
 
   return (
     <>
-      <div className="ov-card" role="region" aria-label="Использование cookie" hidden={details}>
+      <div className="ov-card ov-card-cookie" role="region" aria-label="Использование cookie" hidden={details}>
         <p className="ov-text">
           Мы используем только необходимые cookie — для входа и защиты аккаунта. Рекламных и
           аналитических нет.

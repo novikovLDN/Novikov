@@ -239,11 +239,11 @@ body:has(.a) {
   transition: background-size var(--d-2) var(--m-settle);
 }
 @media (min-width: 640px) { .a-head-try { display: inline-flex; } }
-/* 1100–1359: меню, пилюля и «Войти» заняли строку — подпись раздела
-   обрезалась, а пункты меню переносились в две строки (кадр 1100,
-   12.09.2026). Подпись уходит, пилюля встаёт вправо. */
+/* 1100–1439: меню, пилюля и «Войти» заняли строку — подпись раздела
+   обрезалась («Выделенные серв…» на 1280), а пункты меню переносились
+   в две строки (кадр 1100, 12.09.2026). Подпись уходит, пилюля — вправо. */
 .a-nav a { white-space: nowrap; }
-@media (min-width: 1100px) and (max-width: 1359px) {
+@media (min-width: 1100px) and (max-width: 1439px) {
   .a-head-inner:has(.a-head-try) .a-head-sheet { display: none; }
   .a-head-inner:has(.a-head-try) .a-head-try { margin-left: auto; }
 }
@@ -452,6 +452,9 @@ body:has(.a) {
   color: var(--a-ink-3);
 }
 .a-foot-compact .a-foot-legal a { color: var(--a-ink-2); }
+/* Кнопка «наверх» (фиксированная, справа внизу) ложилась на
+   «Приватность» и строку реквизитов (QA 12.09.2026) — место под неё. */
+.a-foot-base { padding-right: 64px; }
 
 /* ═══ 4. Листы главной ═════════════════════════════════════════════ */
 .a-main { position: relative; }
@@ -1330,8 +1333,12 @@ body:has(.a) {
   /* Телефон: текст сверху, глобус целиком ниже, подложка — сверху вниз. */
   .a-pin-stage { align-items: flex-start; padding-top: 1.5rem; }
   .a-pin-stage::before { background: linear-gradient(180deg, var(--a-paper) 0%, rgba(255, 255, 255, 0.9) 34%, rgba(255, 255, 255, 0) 52%); }
-  /* Глобус крупно — заполняет низ сцены, края срезаны маской. */
-  .a-pin .a-pin-art { top: 34%; }
+  /* Глобус крупно — заполняет низ сцены, края срезаны маской. Ниже,
+     чем было (34%): при приближении сфера заходила на конец абзаца; и
+     сцена короче — после ухода глобуса оставалась пустая полоса ~330px
+     перед разделом 04 (QA 12.09.2026, 375). */
+  .a-pin .a-pin-art { top: 42%; }
+  .a-pin { height: 190svh; }
 }
 
 /* 03 — карта приближается внутри рамки, не выходя за неё. */
@@ -1723,6 +1730,25 @@ body:has(.a) {
     16%  { transform: none; opacity: 1; }
     78%  { transform: none; opacity: 1; }
     100% { transform: translate3d(0, -48px, 0); opacity: 0; }
+  }
+  /* Телефон: финал «глобус растворился, текст ушёл» совпадал с концом
+     закрепления — после него сцена уезжала вверх пустой, целый экран
+     белого перед разделом 04 (QA 12.09.2026, 375). Здесь глобус только
+     чуть подходит и остаётся видимым, текст остаётся на месте: сцена
+     уходит с содержимым, 04 въезжает сразу за ней. */
+  @media (max-width: 720px) {
+    .a-pin .a-pin-art canvas { animation-name: a-pin-zoom-m; }
+    .a-pin-copy { animation-name: a-pin-copy-m; }
+  }
+  @keyframes a-pin-zoom-m {
+    0%   { transform: scale(0.7); opacity: 0.4; }
+    34%  { transform: scale(1); opacity: 1; }
+    70%  { transform: scale(1.04); opacity: 1; }
+    100% { transform: scale(1.14); opacity: 0.7; }
+  }
+  @keyframes a-pin-copy-m {
+    0%   { transform: translate3d(0, 48px, 0); opacity: 0; }
+    16%, 100% { transform: none; opacity: 1; }
   }
 }
 /* Упрощение: обычный раздел — глобус за текстом, без закрепления. */

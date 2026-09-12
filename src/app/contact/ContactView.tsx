@@ -1,5 +1,6 @@
 "use client";
 
+import Chars from "@/components/atlas/Chars";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import Icon from "@/components/pixel/Icon";
@@ -76,21 +77,6 @@ const CONTOURS = Array.from({ length: 6 }, (_, k) => {
 const H1_A = "напишите";
 const H1_B = "нам";
 
-function Chars({ text, start = 0 }: { text: string; start?: number }) {
-  return (
-    <>
-      {[...text].map((ch, i) =>
-        ch === " " ? (
-          " "
-        ) : (
-          <span key={i} className="a-char" style={{ ["--i" as string]: start + i }}>
-            {ch}
-          </span>
-        ),
-      )}
-    </>
-  );
-}
 
 function Words({ text }: { text: string }) {
   const words = text.split(" ");

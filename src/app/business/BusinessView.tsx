@@ -1,3 +1,4 @@
+import Chars from "@/components/atlas/Chars";
 import Link from "next/link";
 import AtlasShell from "@/components/atlas/AtlasShell";
 import PointerDrift from "@/components/atlas/PointerDrift";
@@ -106,21 +107,6 @@ const TILES = Array.from({ length: 10 }, (_, i) => {
 const HERO_1 = "интернет и серверы";
 const HERO_2 = "для команды";
 
-function Chars({ text, start = 0 }: { text: string; start?: number }) {
-  return (
-    <>
-      {[...text].map((ch, i) =>
-        ch === " " ? (
-          " "
-        ) : (
-          <span key={i} className="a-char" style={{ ["--i" as string]: start + i }}>
-            {ch}
-          </span>
-        ),
-      )}
-    </>
-  );
-}
 
 function Words({ text, start = 0 }: { text: string; start?: number }) {
   const words = text.split(" ");

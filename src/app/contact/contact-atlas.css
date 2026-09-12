@@ -258,3 +258,7 @@ html[data-static] .ac-h1-line,
 html[data-static] .ac-chart svg,
 html[data-static] .ac-contours,
 html[data-static] .ac-point-ring { animation: none !important; }
+
+/* 320–360: адрес не влезал в колонку, и anywhere отрывал последнюю
+   букву («security@atlas.secur / e», QA 12.09.2026). */
+@media (max-width: 360px) { .ac-ch-value { font-size: 0.95rem; } }

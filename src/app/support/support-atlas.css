@@ -192,3 +192,7 @@ html[data-static] .as-qa[open] .as-qa-a,
 html[data-static] .as-h1-line,
 html[data-static] .as-qa-no,
 html[data-static] .as-dot::after { animation: none !important; }
+
+/* 320–360: адрес не влезал в колонку, и anywhere отрывал последнюю
+   букву («vk.com/atlassecur / e», QA 12.09.2026). */
+@media (max-width: 360px) { .as-ch-value { font-size: 0.95rem; } }

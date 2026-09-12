@@ -8,6 +8,7 @@ import MissionGL from "./MissionGL";
 import PointerDrift from "./PointerDrift";
 import LaptopScrub from "./LaptopScrub";
 import Corner from "./Corner";
+import Chars from "./Chars";
 import Icon, { type IconName } from "@/components/pixel/Icon";
 import type { ReactNode } from "react";
 import "@/app/home-v5.css";
@@ -79,26 +80,6 @@ function Isobaths() {
   );
 }
 
-/**
- * Разбивка по буквам делается сервером: разметка приезжает разобранной,
- * до скрипта ничего не мигает. Чтец экрана получает строку целиком из
- * aria-label заголовка; буквы от него спрятаны.
- */
-function Chars({ text, start = 0 }: { text: string; start?: number }) {
-  return (
-    <>
-      {[...text].map((ch, i) =>
-        ch === " " ? (
-          " "
-        ) : (
-          <span key={i} className="a-char" style={{ ["--i" as string]: start + i }}>
-            {ch}
-          </span>
-        ),
-      )}
-    </>
-  );
-}
 
 /**
  * Заголовок «стоп и заливка»: текст заливается кобальтом слева направо
