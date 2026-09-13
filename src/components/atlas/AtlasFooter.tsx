@@ -60,7 +60,7 @@ export default function AtlasFooter({ variant = "full" }: { variant?: "full" | "
               VPS-ускоритель для телефона и компьютера. <span>Сайты, видео и приложения открываются сразу.</span>
             </p>
             <div className="a-actions">
-              <Link href="/auth" className="a-btn a-btn-invert">Попробовать {trial} бесплатно</Link>
+              <Link href="/auth" prefetch={false} className="a-btn a-btn-invert">Попробовать {trial} бесплатно</Link>
               <Link href="/pricing" className="a-btn a-btn-line">Тарифы</Link>
             </div>
           </div>

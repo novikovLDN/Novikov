@@ -147,7 +147,9 @@ export default function LaptopScrub({ className }: { className: string }) {
       }
     };
 
-    const io = new IntersectionObserver(([e]) => e.isIntersecting && load(), { rootMargin: "150% 0px" });
+    // 0,6 экрана до блока, а не полтора: 60 кадров (~700 КБ) иначе
+    // забирали канал у первого экрана на медленной сети (замер 13.09.2026).
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && load(), { rootMargin: "60% 0px" });
     io.observe(host);
     const ro = new ResizeObserver(size);
     ro.observe(host);

@@ -8,9 +8,9 @@ import { useEffect, useRef, type CSSProperties } from "react";
  *
  * СТОИМОСТЬ.
  *   · Видео не грузится, пока блок далеко от кадра. У первого экрана
- *     (`eager`) — ждёт свободного времени после первой отрисовки, до
- *     этого на месте плоская заглушка. Появляется плавно, когда может
- *     играть, — поэтому не становится элементом LCP.
+ *     (`eager`) — сразу после монтирования: оно и есть элемент LCP
+ *     (замер 13.09.2026), откладывать его нельзя. До готовности на месте
+ *     плоская заглушка, видео появляется плавно, когда может играть.
  *   · Играет только в кадре и во видимой вкладке.
  *   · reduced-motion, режим экономии трафика и ?static=1 — видео нет,
  *     остаётся неподвижный постер того же кадра.
@@ -20,7 +20,7 @@ type Props = {
   mp4: string;
   poster: string;
   className: string;
-  /** Грузить в первое свободное время, не дожидаясь подхода к кадру. */
+  /** Грузить сразу после монтирования (первый экран, элемент LCP). */
   eager?: boolean;
   /** Скорость воспроизведения: меньше 1 — спокойнее, без перерендера. */
   rate?: number;
@@ -76,22 +76,16 @@ export default function Reel({ webm, mp4, poster, className, eager = false, rate
     const onVis = () => (document.hidden ? v.pause() : play());
     document.addEventListener("visibilitychange", onVis);
 
-    const w = window as Window & {
-      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-    let idle = 0;
-    if (eager) idle = w.requestIdleCallback ? w.requestIdleCallback(load, { timeout: 1500 }) : window.setTimeout(load, 600);
+    // Первый экран — сразу после монтирования: замер 13.09.2026 показал,
+    // что это видео и есть элемент LCP, а ожидание свободного времени
+    // (до 1,5 с) давало ~0,9 с «задержки загрузки» из 1,66 с LCP.
+    if (eager) load();
 
     return () => {
       near.disconnect();
       seen.disconnect();
       document.removeEventListener("visibilitychange", onVis);
       v.removeEventListener("canplay", onReady);
-      if (eager) {
-        if (w.cancelIdleCallback) w.cancelIdleCallback(idle);
-        else window.clearTimeout(idle);
-      }
       v.pause();
     };
   }, [webm, mp4, eager, rate]);

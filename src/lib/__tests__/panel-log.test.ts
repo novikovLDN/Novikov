@@ -54,7 +54,9 @@ describe("panel-log — structured JSON lines with correlation id", () => {
     expect(line.outcome).toBe("ok");
     expect(line.fixed).toBe(3);
     expect(typeof line.elapsedMs).toBe("number");
-    expect((line.elapsedMs as number) >= 5).toBe(true);
+    // setTimeout(5) и Date.now() расходятся на миллисекунду: таймер может
+    // сработать раньше по часам — строгое «≥ 5» делало тест случайным.
+    expect((line.elapsedMs as number) >= 3).toBe(true);
   });
 
   it("failed endFlow escalates to console.error", () => {

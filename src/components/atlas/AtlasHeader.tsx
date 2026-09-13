@@ -61,7 +61,10 @@ export default function AtlasHeader({
             пробный период кобальтовой пилюлей (разбор продажника
             12.09.2026). На телефоне оно в меню, в шапке нет места. */}
         {cta?.href === "/auth" ? (
-          <Link href="/auth" className="a-head-try">{TRIAL} бесплатно</Link>
+          // prefetch={false}: ссылка всегда в кадре, и Next заранее тянул
+          // страницу входа вместе с three.js (~290 КБ gzip) на каждой
+          // странице сайта (замер 13.09.2026).
+          <Link href="/auth" prefetch={false} className="a-head-try">{TRIAL} бесплатно</Link>
         ) : null}
         {cta ? <Link href={cta.href} className="a-head-cta">{cta.label}</Link> : null}
 
@@ -84,7 +87,7 @@ export default function AtlasHeader({
             <div className="a-index-foot" style={{ ["--i" as string]: SITE_SHEETS.length }}>
               {/* Главное действие — только на витрине, где в шапке «Войти». */}
               {cta?.href === "/auth" ? (
-                <Link href="/auth" className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
+                <Link href="/auth" prefetch={false} className="a-btn a-btn-primary">Попробовать {TRIAL} бесплатно</Link>
               ) : null}
               <p className="a-index-legal">
                 {LEGAL_LINKS.map((l) => (
