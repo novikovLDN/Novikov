@@ -578,6 +578,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
     }
   };
 
+  // Код проверяет сервер ДО шага «новый пароль» и отдаёт одноразовый
+  // токен (владелец, 13.09.2026: интерфейс пускал дальше с любым кодом).
   const handleVerifyResetCode = async (e: React.FormEvent) => {
     e.preventDefault();
     const entered = resetCodeInput;
@@ -586,9 +588,28 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
       resetCodeRef.current?.focus();
       return;
     }
-    setResetCode(entered);
     setResetError("");
-    setStep("reset-password");
+    setResetLoading(true);
+    try {
+      const res = await fetch("/api/auth/reset-password/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail.trim().toLowerCase(), code: entered }),
+      });
+      const data = await res.json().catch(() => null);
+      if (data?.success && data.data?.resetToken) {
+        setResetCode(data.data.resetToken);
+        setStep("reset-password");
+      } else {
+        setResetError(data?.error || "Неверный код");
+        resetCodeRef.current?.focus();
+        resetCodeRef.current?.select();
+      }
+    } catch {
+      setResetError("Нет связи с сервером. Попробуйте ещё раз.");
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -615,7 +636,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: resetEmail.trim().toLowerCase(),
-          code: resetCode,
+          // В resetCode после проверки лежит одноразовый токен, не код.
+          resetToken: resetCode,
           password: resetPassword1,
         }),
       });
@@ -999,8 +1021,8 @@ export default function AuthPage({ initialStep, initialEmail, referralCode }: Au
                       />
                       {resetError && <FieldError id="au-rcode-err" text={resetError} />}
 
-                      <button type="submit" className="a-btn a-btn-primary au-submit">
-                        Подтвердить <Icon name="arrow-right" size={16} className="au-arrow" />
+                      <button type="submit" disabled={resetLoading} className="a-btn a-btn-primary au-submit">
+                        {resetLoading ? <Busy>Проверяем…</Busy> : <>Подтвердить <Icon name="arrow-right" size={16} className="au-arrow" /></>}
                       </button>
                     </form>
 
