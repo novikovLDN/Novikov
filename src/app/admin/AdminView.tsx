@@ -14,12 +14,11 @@ import {
   getJson,
   isErr,
   num,
-  type AuditLogItem,
   type NotificationItem,
   type Overview,
   type Probe,
   type Tone,
-  type UserInfo,
+  type UsersPage,
   type UsersStats,
 } from "./admin-shared";
 import "@/app/work-atlas.css";
@@ -30,17 +29,16 @@ import "./admin-atlas.css";
  * доска, белые панели на сером поле, одна тёмная плита на раздел,
  * пилюли разделов сверху, на телефоне — вкладки внизу.
  *
- * Четыре раздела вместо прежних четырёх вкладок «про всё сразу»:
- *   Состояние     — жива ли панель, ноды, база, очередь (по умолчанию)
- *   Бизнес        — выручка, тарифы, воронка, аудитория, события
- *   Пользователи  — поиск, фильтры, карточка: выдать / забрать,
- *                   устройства, IP-адреса, история
+ *   Состояние     — панель, ноды, база, очередь, синхронизатор, бот
+ *   Бизнес        — выручка, ряды по дням, тарифы, воронка, аудитория
+ *   Пользователи  — поиск и фильтры на сервере, карточка: выдать / сменить
+ *                   тариф / забрать, устройства, IP, история, журнал
  *   Сервис        — сверки, оплаты, бот, диагностика, рассылка, журнал
  *
- * Загрузка — пять независимых запросов; у каждого своя ошибка, и сбой
- * одного не прячет остальные. Сводка обновляется раз в минуту и стоит
- * на паузе, пока вкладка браузера скрыта. Раздел — в адресе (#users),
- * перезагрузка возвращает туда же.
+ * Загрузка: сводка (кэш сервера 30 с; «Обновить» — ?fresh=1), счётчик
+ * пользователей (?limit=1 — заодно проверка прав), уведомления. Список
+ * пользователей, журнал и ряды по дням грузят свои разделы сами;
+ * reloadKey после действия заставляет их перечитать данные.
  *
  * Права проверяют API (verifyAdmin → 403): первый ответ 403 — экран
  * «Нет доступа», интерфейс админки чужому не показывается.
@@ -79,33 +77,32 @@ function AdminScreen() {
   const [auto, setAuto] = useState(true);
   const lastOv = useRef(0);
 
-  const [users, setUsers] = useState<UserInfo[]>([]);
-  const [, setStats] = useState<UsersStats | null>(null);
-  const [usersError, setUsersError] = useState<string | null>(null);
-  const [usersLoading, setUsersLoading] = useState(true);
-  const [logs, setLogs] = useState<AuditLogItem[]>([]);
-  const [logsError, setLogsError] = useState<string | null>(null);
+  const [stats, setStats] = useState<UsersStats | null>(null);
   const [notifs, setNotifs] = useState<NotificationItem[]>([]);
   const [notifError, setNotifError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ health: null, business: null, users: null, service: null });
 
   /* ── Загрузка ─────────────────────────────────────────────────── */
-  const loadOverview = useCallback(async () => {
+  const loadOverview = useCallback(async (fresh = false) => {
     lastOv.current = Date.now();
-    const r = await getJson<Overview>("/api/admin/overview");
+    const r = await getJson<Overview>(`/api/admin/overview${fresh ? "?fresh=1" : ""}`);
     if (r.ok) {
       setOv(r.data);
       setOvError(null);
       setReady(true);
-      const p = r.data.panel;
-      const d = r.data.db;
-      setHistory((h) => [
-        ...h.slice(-(HISTORY - 1)),
-        { t: Date.now(), panel: !isErr(p) && p.reachable ? p.latencyMs : null, db: !isErr(d) ? d.latencyMs : null },
-      ]);
+      // Замеры вкладки — запасной спарклайн, пока сервер не накопил healthHistory.
+      if (!r.data.cached) {
+        const p = r.data.panel;
+        const d = r.data.db;
+        setHistory((h) => [
+          ...h.slice(-(HISTORY - 1)),
+          { t: Date.now(), panel: !isErr(p) && p.reachable ? p.latencyMs : null, db: !isErr(d) ? d.latencyMs : null },
+        ]);
+      }
     } else if (r.status === 403 || r.status === 401) {
       setDenied(r.error || "Доступ запрещён");
     } else {
@@ -114,28 +111,14 @@ function AdminScreen() {
     }
   }, []);
 
-  const loadUsers = useCallback(async () => {
-    const r = await getJson<{ users: UserInfo[]; stats: UsersStats }>("/api/admin/users");
-    setUsersLoading(false);
+  const loadMeta = useCallback(async () => {
+    const r = await getJson<UsersPage>("/api/admin/users?limit=1");
     if (r.ok) {
-      setUsers(r.data.users);
       setStats(r.data.stats);
-      setUsersError(null);
       setReady(true);
     } else if (r.status === 403 || r.status === 401) {
       setDenied(r.error || "Доступ запрещён");
-    } else {
-      setUsersError(r.error);
-      setReady(true);
-    }
-  }, []);
-
-  const loadLogs = useCallback(async () => {
-    const r = await getJson<AuditLogItem[]>("/api/admin/logs");
-    if (r.ok) {
-      setLogs(r.data);
-      setLogsError(null);
-    } else if (r.status !== 403) setLogsError(r.error);
+    } else setReady(true);
   }, []);
 
   const loadNotifs = useCallback(async () => {
@@ -148,25 +131,24 @@ function AdminScreen() {
 
   const refreshAll = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadOverview(), loadUsers(), loadLogs(), loadNotifs()]);
+    setReloadKey((k) => k + 1);
+    await Promise.all([loadOverview(true), loadMeta(), loadNotifs()]);
     setRefreshing(false);
-  }, [loadOverview, loadUsers, loadLogs, loadNotifs]);
+  }, [loadOverview, loadMeta, loadNotifs]);
 
   const refreshOverview = useCallback(async () => {
     setRefreshing(true);
-    await loadOverview();
+    await loadOverview(true);
     setRefreshing(false);
   }, [loadOverview]);
 
-  // После действия в карточке — свежий список, журнал и сводка.
+  // После действия в карточке — свежий список, журнал, ряды и сводка.
   const onChanged = useCallback(() => {
-    loadUsers();
-    loadLogs();
-    loadOverview();
-  }, [loadUsers, loadLogs, loadOverview]);
+    setReloadKey((k) => k + 1);
+    loadOverview(true);
+  }, [loadOverview]);
 
   useEffect(() => {
-    // Раздел из адреса и сохранённое автообновление.
     const h = window.location.hash.replace("#", "");
     if (isTab(h)) setTab(h);
     try {
@@ -174,23 +156,23 @@ function AdminScreen() {
     } catch {
       /* хранилище недоступно — по умолчанию включено */
     }
-    refreshAll();
-    // Ссылка на раздел (#users) внутри страницы и «назад/вперёд».
+    // Первая загрузка без ?fresh: кэш сервера — это нормально.
+    Promise.all([loadOverview(false), loadMeta(), loadNotifs()]);
     const onHash = () => {
       const t = window.location.hash.replace("#", "");
       if (isTab(t)) setTab(t);
     };
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
-  }, [refreshAll]);
+  }, [loadOverview, loadMeta, loadNotifs]);
 
-  // Автообновление сводки: раз в минуту, на паузе в фоне; при возврате
-  // во вкладку — сразу, если данные устарели.
+  // Автообновление: раз в минуту (кэш сервера 30 с — свежие данные),
+  // на паузе в фоне; при возврате во вкладку — сразу, если устарели.
   useEffect(() => {
     if (!auto || denied) return;
     const tick = () => {
       if (document.hidden) return;
-      if (Date.now() - lastOv.current >= INTERVAL - 500) refreshOverview();
+      if (Date.now() - lastOv.current >= INTERVAL - 500) loadOverview(false);
     };
     const t = window.setInterval(tick, 5000);
     const onVis = () => !document.hidden && tick();
@@ -199,7 +181,7 @@ function AdminScreen() {
       window.clearInterval(t);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [auto, denied, refreshOverview]);
+  }, [auto, denied, loadOverview]);
 
   const setAutoSaved = (v: boolean) => {
     setAuto(v);
@@ -225,7 +207,7 @@ function AdminScreen() {
   const selectTab = (t: Tab, scroll = false) => {
     setTab(t);
     try {
-      history_replace(t);
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${t}`);
     } catch {
       /* адрес не обязателен */
     }
@@ -287,6 +269,7 @@ function AdminScreen() {
   }
 
   const tone: Tone = ov ? overallTone(ov) : ovError ? "off" : "idle";
+  const dataAt = ov ? ov.cachedAt || ov.generatedAt : null;
 
   return (
     <main id="main" className="a-main ak adm">
@@ -302,12 +285,12 @@ function AdminScreen() {
               <Dot tone={tone} />
               <span className="adm-top-copy">
                 {STATE_SHORT[tone]}
-                {ov && <span className="adm-top-time a-num"> · {formatClock(ov.generatedAt)}</span>}
+                {dataAt && <span className="adm-top-time a-num"> · данные на {formatClock(dataAt)}</span>}
               </span>
             </p>
             <button type="button" className="a-btn ak-btn-soft" onClick={refreshAll} disabled={refreshing} aria-label={refreshing ? "Обновляем данные" : "Обновить всё"}>
               {refreshing ? <Spin /> : <Icon name="refresh" size={16} />}
-              <span className="ak-lbl">{refreshing ? "Обновляем…" : "Обновить всё"}</span>
+              <span className="ak-lbl">{refreshing ? "Обновляем…" : "Обновить"}</span>
             </button>
           </div>
         </section>
@@ -334,7 +317,7 @@ function AdminScreen() {
                 >
                   {t.key === "health" && <Dot tone={tone} />}
                   {t.label}
-                  {t.key === "users" && users.length > 0 && <span className="adm-pill-n a-num">{num(users.length)}</span>}
+                  {t.key === "users" && stats && stats.total > 0 && <span className="adm-pill-n a-num">{num(stats.total)}</span>}
                 </button>
               ))}
             </div>
@@ -358,31 +341,12 @@ function AdminScreen() {
                 onOpenUser={openUser}
               />
             )}
-            {tab === "business" && <BusinessSection ov={ov} ovError={ovError} />}
+            {tab === "business" && <BusinessSection ov={ov} ovError={ovError} reloadKey={reloadKey} />}
             {tab === "users" && (
-              <UsersSection
-                users={users}
-                usersError={usersError}
-                loading={usersLoading}
-                logs={logs}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-                onChanged={onChanged}
-              />
+              <UsersSection selectedId={selectedId} onSelect={setSelectedId} reloadKey={reloadKey} onChanged={onChanged} onMeta={setStats} />
             )}
             {tab === "service" && (
-              <ServiceSection
-                users={users}
-                logs={logs}
-                logsError={logsError}
-                notifications={notifs}
-                notifError={notifError}
-                onReload={() => {
-                  loadNotifs();
-                  loadLogs();
-                }}
-                onOpenUser={openUser}
-              />
+              <ServiceSection notifications={notifs} notifError={notifError} onReload={loadNotifs} onOpenUser={openUser} reloadKey={reloadKey} />
             )}
           </div>
         </div>
@@ -398,7 +362,7 @@ function AdminScreen() {
             type="button"
             className="ak-tab adm-tab"
             aria-current={tab === t.key ? "true" : undefined}
-            aria-label={t.key === "users" ? `${t.label}: ${users.length}` : t.label}
+            aria-label={t.key === "users" && stats ? `${t.label}: ${stats.total}` : t.label}
             onClick={() => selectTab(t.key, true)}
           >
             <span className="adm-tab-ico">
@@ -411,9 +375,4 @@ function AdminScreen() {
       </nav>
     </main>
   );
-}
-
-/** Раздел в адресе без записи в историю: «Назад» уводит со страницы, а не по вкладкам. */
-function history_replace(t: Tab) {
-  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${t}`);
 }

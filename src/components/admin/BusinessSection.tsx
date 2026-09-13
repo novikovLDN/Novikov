@@ -15,6 +15,7 @@ import {
   type OverviewRevenue,
 } from "@/app/admin/admin-shared";
 import { Bars, BlockError, Meter, Skel, Stack, Tile } from "./Viz";
+import SeriesCard from "./SeriesCard";
 
 /**
  * «Бизнес» — деньги, воронка и аудитория из GET /api/admin/overview
@@ -32,7 +33,7 @@ const at = (i: number) => ({ "--i": i }) as CSSProperties;
 
 const periodLabel = (p: number) => PERIOD_LABEL[p as Period]?.short ?? `${p} мес`;
 
-export default function BusinessSection({ ov, ovError }: { ov: Overview | null; ovError: string | null }) {
+export default function BusinessSection({ ov, ovError, reloadKey = 0 }: { ov: Overview | null; ovError: string | null; reloadKey?: number }) {
   const revenue = ov ? ov.revenue : null;
   const funnel = ov ? ov.funnel : null;
   const ledger = ov ? ov.ledger30d : null;
@@ -46,6 +47,7 @@ export default function BusinessSection({ ov, ovError }: { ov: Overview | null; 
       )}
       <RevenuePlate r={revenue} />
       <PaceCard r={revenue} />
+      <SeriesCard i={3} reloadKey={reloadKey} />
       <PlansCard r={revenue} />
       <FunnelCard f={funnel} r={revenue} />
       <AudienceCard f={funnel} />

@@ -3,7 +3,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import Icon from "@/components/pixel/Icon";
 import { useAdminConfirm, useAdminToast, Spin } from "@/app/admin/AdminConfirm";
-import { formatDate, getJson, num, postJson, type AuditLogItem, type NotificationItem, type UserInfo } from "@/app/admin/admin-shared";
+import { formatDate, getJson, num, postJson, type NotificationItem } from "@/app/admin/admin-shared";
 import PanelSyncCard from "./PanelSyncCard";
 import BroadcastCard from "./BroadcastCard";
 import JournalCard from "./JournalCard";
@@ -21,16 +21,14 @@ import { Tile } from "./Viz";
  */
 
 interface Props {
-  users: UserInfo[];
-  logs: AuditLogItem[];
-  logsError: string | null;
   notifications: NotificationItem[];
   notifError: string | null;
   onReload: () => void;
   onOpenUser: (id: string) => void;
+  reloadKey: number;
 }
 
-export default function ServiceSection({ users, logs, logsError, notifications, notifError, onReload, onOpenUser }: Props) {
+export default function ServiceSection({ notifications, notifError, onReload, onOpenUser, reloadKey }: Props) {
   return (
     <div className="adm-grid adm-service">
       <PanelSyncCard i={1} onOpenUser={onOpenUser} />
@@ -38,8 +36,8 @@ export default function ServiceSection({ users, logs, logsError, notifications, 
       <BotSyncCard i={3} />
       <GhostCard i={4} onOpenUser={onOpenUser} />
       <DiagnoseCard i={5} />
-      <BroadcastCard i={6} notifications={notifications} error={notifError} users={users} onChanged={onReload} />
-      <JournalCard i={7} logs={logs} error={logsError} onOpenUser={onOpenUser} />
+      <BroadcastCard i={6} notifications={notifications} error={notifError} onChanged={onReload} />
+      <JournalCard i={7} reloadKey={reloadKey} onOpenUser={onOpenUser} />
     </div>
   );
 }

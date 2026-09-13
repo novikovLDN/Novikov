@@ -26,6 +26,7 @@ import {
   type PanelNodeInfo,
   type Probe,
   type Tone,
+  type HealthPoint,
 } from "@/app/admin/admin-shared";
 import { BlockError, Dot, Skel, Spark, Stack, Status, Tile } from "./Viz";
 
@@ -77,9 +78,32 @@ export function syncTone(s: Overview["sync"] | undefined, now = Date.now()): Ton
   return errors > 0 || (pending > 0 && stale) ? "warn" : "ok";
 }
 
+const PENDING_STALE_MS = 5 * 60 * 1000;
+
+/**
+ * Синхронизатор: не запущен в этом процессе — сбой (очередь никто не
+ * разбирает); очередь не проходила дольше 5 минут или была ошибка за
+ * последний час — предупреждение. Старый бэкенд без поля — «нет данных».
+ */
+export function workerTone(w: Overview["worker"], now = Date.now()): Tone {
+  if (w === undefined) return "idle";
+  if (isErr(w)) return "warn";
+  if (!w.thisInstance.running) return "off";
+  if (!w.lastPendingAt || now - Date.parse(w.lastPendingAt) > PENDING_STALE_MS) return "warn";
+  if (w.lastError && now - Date.parse(w.lastError.at) < 3600e3) return "warn";
+  return "ok";
+}
+
+/** Рубильник бота выключен — осознанное, но заметное состояние. */
+export function botTone(b: Overview["bot"]): Tone {
+  if (b === undefined) return "idle";
+  if (isErr(b)) return "warn";
+  return b.enabled ? "ok" : "warn";
+}
+
 export function overallTone(ov: Overview | null): Tone {
   if (!ov) return "idle";
-  return worst(panelTone(ov.panel), nodesTone(ov.panel), dbTone(ov.db), syncTone(ov.sync));
+  return worst(panelTone(ov.panel), nodesTone(ov.panel), dbTone(ov.db), syncTone(ov.sync), workerTone(ov.worker), botTone(ov.bot));
 }
 
 const VERDICT: Record<Tone, string> = {
@@ -127,7 +151,12 @@ export default function HealthSection({ ov, ovError, history, auto, onAuto, refr
     nodes: nodesTone(ov?.panel),
     db: dbTone(ov?.db),
     sync: syncTone(ov?.sync),
+    worker: ov ? workerTone(ov.worker) : ("idle" as Tone),
+    bot: ov ? botTone(ov.bot) : ("idle" as Tone),
   };
+  const worker = ov && ov.worker && !isErr(ov.worker) ? ov.worker : null;
+  const bot = ov && ov.bot && !isErr(ov.bot) ? ov.bot : null;
+  const hh: HealthPoint[] = ov && Array.isArray(ov.healthHistory) ? ov.healthHistory : [];
   const overall = ov ? overallTone(ov) : ovError ? "off" : "idle";
   const panel = ov && !isErr(ov.panel) ? ov.panel : null;
   const db = ov && !isErr(ov.db) ? ov.db : null;
@@ -155,6 +184,18 @@ export default function HealthSection({ ov, ovError, history, auto, onAuto, refr
       tone: tones.sync,
       value: sync ? `${num((sync.byState.pending || 0) + (sync.byState.error || 0))} в очереди` : ov ? "ошибка" : "—",
     },
+    {
+      id: "adm-h-worker",
+      name: "Синхронизатор",
+      tone: tones.worker,
+      value: !ov ? "—" : ov.worker === undefined ? "нет данных" : worker ? (worker.thisInstance.running ? "работает" : "не запущен") : "ошибка",
+    },
+    {
+      id: "adm-h-worker",
+      name: "Бот",
+      tone: tones.bot,
+      value: !ov ? "—" : bot ? (bot.enabled ? "меняет подписки" : "выключен") : "нет данных",
+    },
   ];
 
   return (
@@ -170,7 +211,7 @@ export default function HealthSection({ ov, ovError, history, auto, onAuto, refr
 
         <ul className="adm-signals">
           {signals.map((s, k) => (
-            <li key={s.id} style={{ "--k": k } as CSSProperties}>
+            <li key={s.name} style={{ "--k": k } as CSSProperties}>
               <a href={`#${s.id}`} className="adm-signal">
                 <Dot tone={s.tone} />
                 <span className="adm-signal-name">{s.name}</span>
@@ -199,7 +240,13 @@ export default function HealthSection({ ov, ovError, history, auto, onAuto, refr
         <div className="adm-auto">
           <button type="button" role="switch" aria-checked={auto} className="ak-switch" onClick={() => onAuto(!auto)} aria-label="Автообновление раз в минуту" />
           <span className="adm-auto-copy">
-            {ov ? <>Обновлено <span className="a-num">{formatClock(ov.generatedAt)}</span> по Москве</> : "Ждём первую сводку"}
+            {ov ? (
+              <>
+                Данные на <span className="a-num">{formatClock(ov.cachedAt || ov.generatedAt)}</span> МСК{ov.cached ? " · из кэша" : ""}
+              </>
+            ) : (
+              "Ждём первую сводку"
+            )}
             <small>{auto ? `автообновление раз в ${Math.round(intervalMs / 1000)} с, на паузе в фоне` : "автообновление выключено"}</small>
           </span>
           {auto && ov && !refreshing && (
@@ -214,10 +261,11 @@ export default function HealthSection({ ov, ovError, history, auto, onAuto, refr
         </div>
       </section>
 
-      <PanelCard panel={ov ? ov.panel : null} tone={tones.panel} history={history} />
-      <DbCard db={ov ? ov.db : null} tone={tones.db} history={history} />
+      <PanelCard panel={ov ? ov.panel : null} tone={tones.panel} history={history} hh={hh} />
+      <DbCard db={ov ? ov.db : null} tone={tones.db} history={history} hh={hh} />
       <NodesCard panel={ov ? ov.panel : null} tone={tones.nodes} />
       <SyncCard sync={ov ? ov.sync : null} tone={tones.sync} onOpenUser={onOpenUser} />
+      <WorkerCard loaded={!!ov} worker={ov?.worker} bot={ov?.bot} tone={tones.worker} botT={tones.bot} />
       <TrafficCard panel={ov ? ov.panel : null} />
       <SiteUsersCard panel={ov ? ov.panel : null} />
     </div>
@@ -226,7 +274,40 @@ export default function HealthSection({ ov, ovError, history, auto, onAuto, refr
 
 /* ─── Панель ─────────────────────────────────────────────────────── */
 
-function PanelCard({ panel, tone, history }: { panel: Overview["panel"] | null; tone: Tone; history: Probe[] }) {
+/**
+ * Спарклайн задержки: история сервера за 24 ч (health_samples, пишет
+ * воркер), а пока её нет — замеры этой вкладки. Интервалы, когда панель
+ * не отвечала, — красные полосы под линией.
+ */
+function HistorySpark({ hh, history, which }: { hh: HealthPoint[]; history: Probe[]; which: "panel" | "db" }) {
+  const server = hh.length >= 2;
+  const values = server ? hh.map((p) => (which === "panel" ? p.panelMs : p.dbMs)) : history.map((h) => h[which]);
+  const marks = server && which === "panel" ? hh.map((p) => p.panelOkRatio < 1) : undefined;
+  const samples = hh.reduce((s, p) => s + p.samples, 0);
+  const okShare = samples > 0 ? hh.reduce((s, p) => s + p.panelOkRatio * p.samples, 0) / samples : null;
+  const outages = marks ? marks.filter(Boolean).length : 0;
+  const what = which === "panel" ? "Задержка ответа панели" : "Задержка базы";
+  return (
+    <>
+      <Spark values={values} marks={marks} label={`${what} ${server ? "за 24 часа" : "по замерам этой вкладки"}`} />
+      {server ? (
+        <p className="adm-spark-cap a-num">
+          24 часа · {num(samples)} замеров
+          {which === "panel" && okShare !== null && (
+            <>
+              {" · "}доступность <b data-tone={okShare < 0.99 ? "warn" : undefined}>{(Math.floor(okShare * 1000) / 10).toLocaleString("ru-RU")} %</b>
+            </>
+          )}
+          {outages > 0 && <> · сбои в {outages} из {hh.length} интервалов</>}
+        </p>
+      ) : (
+        values.filter((v) => v !== null).length >= 2 && <p className="adm-spark-cap">Замеры этой вкладки: история сервера ещё не накопилась.</p>
+      )}
+    </>
+  );
+}
+
+function PanelCard({ panel, tone, history, hh }: { panel: Overview["panel"] | null; tone: Tone; history: Probe[]; hh: HealthPoint[] }) {
   const p = panel && !isErr(panel) ? panel : null;
   const stats = p && p.stats.ok ? p.stats.data : null;
   const memTotal = pickNum(stats, "memory.total");
@@ -253,7 +334,7 @@ function PanelCard({ panel, tone, history }: { panel: Overview["panel"] | null; 
             {p!.reachable ? <><span className="a-num">{num(p!.latencyMs)}</span><small>мс ответ</small></> : "Не отвечает"}
           </p>
           {healthErr && <BlockError title="Проверка здоровья не прошла" text={healthErr} />}
-          <Spark values={history.map((h) => h.panel)} label="Задержка ответа панели по последним замерам" />
+          <HistorySpark hh={hh} history={history} which="panel" />
           {stats ? (
             <ul className="adm-tiles">
               <Tile label="Пользователей в панели" value={num(pickNum(stats, "users.totalUsers"))} note={statusCounts.ACTIVE != null ? `активных ${num(statusCounts.ACTIVE)}` : undefined} />
@@ -278,7 +359,7 @@ function PanelCard({ panel, tone, history }: { panel: Overview["panel"] | null; 
 
 /* ─── База ───────────────────────────────────────────────────────── */
 
-function DbCard({ db, tone, history }: { db: Overview["db"] | null; tone: Tone; history: Probe[] }) {
+function DbCard({ db, tone, history, hh }: { db: Overview["db"] | null; tone: Tone; history: Probe[]; hh: HealthPoint[] }) {
   const d: OverviewDb | null = db && !isErr(db) ? db : null;
   return (
     <section id="adm-h-db" className="ak-card adm-h-db" data-sheet="24" style={at(3)} aria-labelledby="adm-hd-h">
@@ -296,7 +377,7 @@ function DbCard({ db, tone, history }: { db: Overview["db"] | null; tone: Tone; 
       ) : (
         <>
           <p className="ak-value adm-live-v"><span className="a-num">{num(d.latencyMs)}</span><small>мс на запрос</small></p>
-          <Spark values={history.map((h) => h.db)} label="Задержка базы по последним замерам" />
+          <HistorySpark hh={hh} history={history} which="db" />
           <ul className="adm-tiles">
             <Tile label="Соединений" value={num(d.pool.total)} />
             <Tile label="Свободно" value={num(d.pool.idle)} />
@@ -435,6 +516,84 @@ function SyncCard({ sync, tone, onOpenUser }: { sync: Overview["sync"] | null; t
                 ))}
               </ul>
             </details>
+          )}
+        </>
+      )}
+    </section>
+  );
+}
+
+/* ─── Синхронизатор (воркер) и бот ───────────────────────────────── */
+
+const RESULT_LABELS: Record<string, string> = { scanned: "проверено", ok: "успешно", needed_fix: "к правке", fixed: "исправлено", failed: "ошибок" };
+
+function resultLine(r: Record<string, unknown> | null): string | null {
+  if (!r) return null;
+  const parts = Object.entries(RESULT_LABELS)
+    .filter(([k]) => typeof r[k] === "number")
+    .map(([k, label]) => `${label} ${num(r[k] as number)}`);
+  if (typeof r.durationMs === "number") parts.push(`${(r.durationMs / 1000).toLocaleString("ru-RU", { maximumFractionDigits: 1 })} с`);
+  return parts.length ? parts.join(" · ") : null;
+}
+
+const WHERE_LABEL: Record<string, string> = { pending: "Очередь", reconcile: "Плановая сверка", health: "Замер здоровья" };
+
+function WorkerCard({ loaded, worker, bot, tone, botT }: { loaded: boolean; worker: Overview["worker"]; bot: Overview["bot"]; tone: Tone; botT: Tone }) {
+  const w = worker && !isErr(worker) ? worker : null;
+  const b = bot && !isErr(bot) ? bot : null;
+  const now = Date.now();
+  const recentErr = w?.lastError && now - Date.parse(w.lastError.at) < 24 * 3600e3 ? w.lastError : null;
+  const pendingStale = !!w && (!w.lastPendingAt || now - Date.parse(w.lastPendingAt) > PENDING_STALE_MS);
+  const rows = w
+    ? [
+        { k: "Очередь", at: w.lastPendingAt, sub: resultLine(w.lastPendingResult), warn: pendingStale, hint: "раз в минуту" },
+        { k: "Плановая сверка", at: w.lastReconcileAt, sub: resultLine(w.lastReconcileResult), warn: false, hint: "раз в час" },
+        { k: "Замер здоровья", at: w.lastHealthSampleAt, sub: null, warn: false, hint: "раз в минуту" },
+      ]
+    : [];
+  return (
+    <section id="adm-h-worker" className="ak-card adm-h-worker" data-sheet="24" style={at(6)} aria-labelledby="adm-hw-h">
+      <div className="ak-card-head">
+        <h2 id="adm-hw-h" className="ak-eyebrow">Синхронизатор</h2>
+        <Status tone={tone}>{!loaded ? "Проверяем" : !w ? "Нет данных" : w.thisInstance.running ? (tone === "ok" ? "Работает" : "Работает с замечаниями") : "Не запущен"}</Status>
+      </div>
+      {!loaded ? (
+        <Skel />
+      ) : worker === undefined ? (
+        <BlockError title="Сервер не отдаёт состояние синхронизатора" />
+      ) : !w ? (
+        <BlockError title="Состояние синхронизатора не посчиталось" text={isErr(worker) ? worker.error : undefined} />
+      ) : (
+        <>
+          <p className="ak-value adm-live-v adm-wk-v">
+            {w.thisInstance.running ? (
+              <>
+                Работает{w.thisInstance.startedAt && <small className="a-num">с {formatShort(w.thisInstance.startedAt)}</small>}
+              </>
+            ) : (
+              "Остановлен"
+            )}
+          </p>
+          {!w.thisInstance.running && (
+            <BlockError title="На этом сервере очередь не разбирается" text={w.thisInstance.reason || undefined} />
+          )}
+          <ul className="adm-wk">
+            {rows.map((r) => (
+              <li key={r.k}>
+                <span className="adm-wk-k">{r.k}<small>{r.hint}</small></span>
+                <b className="a-num" data-tone={r.warn ? "warn" : undefined}>{r.at ? ago(r.at) : "не было"}</b>
+                {r.sub && <small className="adm-wk-sub a-num">{r.sub}</small>}
+              </li>
+            ))}
+            <li>
+              <span className="adm-wk-k">Бот<small>рубильник — в «Сервисе»</small></span>
+              <b data-tone={botT === "warn" ? "warn" : undefined}>{b ? (b.enabled ? "меняет подписки" : "выключен") : bot === undefined ? "нет данных" : "ошибка"}</b>
+            </li>
+          </ul>
+          {recentErr && (
+            <p className="adm-note adm-break" data-tone="warn">
+              <b>{WHERE_LABEL[recentErr.where] || recentErr.where}:</b> {recentErr.message} <span className="a-num">· {ago(recentErr.at)}</span>
+            </p>
           )}
         </>
       )}

@@ -31,7 +31,7 @@
 @media (min-width: 720px) {
   .adm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .adm-verdict, .adm-h-nodes, .adm-h-sync,
-  .adm-rev, .adm-plans,
+  .adm-rev, .adm-plans, .adm-series,
   .adm-s-sync, .adm-s-cast, .adm-s-log { grid-column: 1 / -1; }
 }
 @media (min-width: 1100px) {
@@ -40,7 +40,8 @@
   .adm-verdict, .adm-h-panel, .adm-h-db { grid-column: span 4; }
   .adm-h-nodes { grid-column: span 8; }
   .adm-h-sync { grid-column: span 4; }
-  .adm-h-traffic, .adm-h-site { grid-column: span 6; }
+  .adm-h-worker, .adm-h-traffic, .adm-h-site { grid-column: span 4; }
+  .adm-series { grid-column: 1 / -1; }
   /* Бизнес. */
   .adm-rev { grid-column: span 5; }
   .adm-pace { grid-column: span 7; }
@@ -842,6 +843,9 @@
 .adm-toast[data-tone="warn"] > i { background: var(--adm-lume-warn); }
 .adm-toast[data-tone="off"] > i { background: var(--adm-lume-off); }
 .adm-toast > span { flex: 1; min-width: 0; padding-block: 0.45rem; overflow-wrap: anywhere; }
+/* Текст сообщения — всегда белый на тёмной плашке: на снимке карточки
+   пользователя он выходил кобальтовым (≈2:1, нечитаемо). */
+.adm-toasts .adm-toast > span { color: #FFFFFF; }
 .adm-toast-x { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border: 0; border-radius: 14px; background: transparent; color: rgba(255, 255, 255, 0.72); cursor: pointer; }
 .adm-toast-x:focus-visible { outline-color: #FFFFFF; }
 @media (max-width: 719px) {
@@ -850,6 +854,104 @@
 
 /* Кольцо загрузки в кнопке. */
 .adm-spin { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; flex: none; }
+
+/* ─── Второй проход (f164a67): история, синхронизатор, ряды ────── */
+
+/* Вердикт: шесть сигналов — в две колонки, кадр не растёт в высоту. */
+@media (min-width: 560px) { .adm-signals { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.adm-signal { padding: 0 0.75rem; gap: 0.55rem; }
+.adm-signal-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Спарклайн: сбои панели — полосой под линией, подпись под графиком. */
+.adm-spark-mark { fill: var(--ak-rock); opacity: 0.16; }
+.adm-spark-cap { margin: 0.45rem 0 0; font-size: 0.6875rem; line-height: 1.45; color: var(--a-ink-3); }
+.adm-spark-cap b { font-weight: 500; color: var(--a-cobalt); }
+.adm-spark-cap b[data-tone="warn"] { color: var(--ak-warn); }
+
+/* Синхронизатор. */
+.adm-wk-v { font-size: clamp(1.4rem, 2.2vw, 1.8rem); }
+.adm-wk { list-style: none; margin: 0.75rem 0 0; padding: 0; display: grid; }
+.adm-wk li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.1rem 0.75rem; align-items: baseline; padding-block: 0.6rem; }
+.adm-wk li + li { border-top: 1px solid var(--a-g100); }
+.adm-wk-k { font-size: 0.8125rem; color: var(--a-ink-2); }
+.adm-wk-k small { display: block; font-size: 0.6875rem; color: var(--a-ink-3); }
+.adm-wk b { font-family: var(--a-wide); font-weight: 500; font-size: 0.8125rem; color: var(--a-ink); text-align: right; }
+.adm-wk b[data-tone="warn"] { color: var(--ak-warn); }
+.adm-wk-sub { grid-column: 1 / -1; font-size: 0.6875rem; color: var(--a-ink-3); }
+
+/* Ряды по дням. */
+.adm-series .ak-card-head { align-items: center; }
+.adm-series .adm-seg-btn { min-width: 5.5rem; }
+.adm-series-tot { margin-top: 0; }
+.adm-ch-read { margin: 1rem 0 0.5rem; min-height: 1.4em; font-size: 0.8125rem; color: var(--a-ink-2); }
+.adm-ch-read b { font-family: var(--a-wide); font-weight: 500; color: var(--a-ink); }
+.adm .adm-ch-read span[data-tone="off"] { color: var(--ak-rock); }
+.adm-ch { position: relative; border-radius: 12px; outline-offset: 3px; touch-action: pan-y; }
+.adm-ch:focus-visible { outline: 2px solid var(--a-cobalt); }
+.adm-ch svg { display: block; width: 100%; overflow: visible; }
+.adm-ch-rev svg { height: 180px; }
+.adm-ch-flow svg, .adm-ch-keep svg { height: 120px; }
+.adm-ch-max { position: absolute; top: -2px; left: 0; z-index: 1; font-size: 0.6875rem; color: var(--a-ink-3); background: var(--a-paper); padding-right: 0.3rem; }
+.adm-ch-axis { stroke: var(--a-g300); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.adm-ch-bar { fill: var(--a-cobalt); }
+.adm-ch-neg { fill: var(--ak-rock); }
+.adm-ch-warn { fill: var(--adm-warn-fill); }
+.adm-ch-sel { fill: var(--a-shoal); }
+.adm-ch-hit { fill: transparent; cursor: crosshair; }
+.adm-ch-cursor { stroke: var(--a-g300); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.adm-ln { fill: none; stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+.adm-ln-reg { stroke: var(--a-ink); }
+.adm-ln-tri { stroke: var(--a-g400); stroke-dasharray: 4 3; }
+.adm-ln-conv { stroke: var(--a-cobalt); stroke-width: 2.5; }
+.adm-ch-x { display: flex; justify-content: space-between; margin-top: 0.35rem; font-size: 0.6875rem; color: var(--a-ink-3); }
+.adm-ch-pair { display: grid; gap: 1.25rem; margin-top: 1.25rem; }
+@media (min-width: 900px) { .adm-ch-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; } }
+.adm-ch-block { min-width: 0; }
+.adm-ch-t { margin: 0; font-family: var(--a-wide); font-weight: 500; font-size: 0.875rem; color: var(--a-ink); }
+.adm-ch-sub { margin: 0.2rem 0 0.6rem; min-height: 1.4em; font-size: 0.75rem; color: var(--a-ink-3); }
+.adm-split-cap [data-tone="off"] i { background: var(--ak-rock); }
+.adm-split-cap [data-tone="warn"] i { background: var(--adm-warn-fill); }
+.adm-split-cap [data-tone="mute"] i { background: var(--a-g400); }
+.adm-notes { margin: 0.25rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; font-size: 0.75rem; line-height: 1.5; color: var(--a-ink-2); }
+.adm-notes b { font-weight: 500; color: var(--a-ink); }
+
+/* Список пользователей: колонка «Оплата», ошибка синхронизации. */
+.adm-c-pay { order: 3; display: inline-flex; align-items: center; gap: 0.25rem; }
+.adm-c-plan { display: inline-flex; gap: 0.25rem; }
+.adm-c-err { order: 4; flex: 1 1 100%; font-size: 0.6875rem; color: var(--ak-rock); }
+.adm-chip[data-tone="off"]:not([aria-pressed="true"]) { border-color: var(--ak-rock-bg); color: var(--ak-rock); }
+.adm-chip[data-tone="off"]:not([aria-pressed="true"]) .adm-chip-n { background: var(--ak-rock-bg); color: var(--ak-rock); }
+.adm-chip .adm-dot { width: 8px; height: 8px; }
+@container (min-width: 760px) {
+  .adm-rows-head, .adm-row { grid-template-columns: 5.5rem minmax(0, 2fr) 6.5rem 8rem 6rem 2.25rem minmax(0, 1.2fr); }
+  .adm-c-err { display: none; }
+  .adm-c-pay { display: block; white-space: nowrap; }
+}
+
+/* Карточка: свой срок, отвязка устройств, лента истории. */
+.adm-days { max-width: 14rem; }
+.adm-days .adm-input { -moz-appearance: textfield; appearance: textfield; }
+.adm-dev-x { flex: none; color: var(--a-ink-3); background: var(--a-paper); }
+.adm-btn-warn { color: var(--ak-rock); }
+.adm-hist-sum { font-size: 0.75rem; }
+.adm-hist-seg { margin-top: 0.75rem; }
+.adm-tl { list-style: none; margin: 0.75rem 0 0; padding: 0 0 0 1rem; display: grid; gap: 4px; position: relative; }
+.adm-tl::before { content: ""; position: absolute; left: 4px; top: 0.9rem; bottom: 0.9rem; width: 1.5px; background: var(--a-g200); }
+.adm-tl-i { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.15rem 0.75rem; padding: 0.6rem 0.75rem; border-radius: 12px; background: var(--a-paper); }
+.adm-tl-dot { position: absolute; left: calc(-1rem + 1px); top: 1rem; width: 8px; height: 8px; border-radius: 50%; background: var(--a-g300); box-shadow: 0 0 0 3px var(--a-g50); }
+.adm-tl-i[data-type="pay"] .adm-tl-dot { background: var(--a-cobalt); }
+.adm-tl-head { display: contents; }
+.adm-tl-head b { min-width: 0; font-family: var(--a-wide); font-weight: 500; font-size: 0.8125rem; color: var(--a-ink); }
+.adm-tl-amt { font-family: var(--a-wide); font-size: 0.8125rem; color: var(--a-ink); text-align: right; }
+.adm-tl-meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; font-size: 0.6875rem; color: var(--a-ink-3); }
+.adm-tl-meta .adm-tag { min-height: 20px; font-size: 0.6875rem; }
+.adm-tl-lines { grid-column: 1 / -1; font-size: 0.75rem; color: var(--a-ink-2); }
+.adm-hist li[data-level="error"] { box-shadow: inset 3px 0 0 var(--ak-rock); }
+.adm-hist li[data-level="warn"] { box-shadow: inset 3px 0 0 var(--adm-warn-fill); }
+
+/* Журнал: уровень точкой у события. */
+.adm-l-act { display: inline-flex; align-items: center; gap: 0.45rem; }
+.adm-rows > li[data-level="error"] { background: #FDF5F5; }
 
 /* ═══ ДВИЖЕНИЕ ═══════════════════════════════════════════════════════
    Появление панелей даёт work-atlas.css (.ak-card, data-seen от
@@ -956,9 +1058,23 @@
 @keyframes adm-count { from { stroke-dashoffset: 50.27; } to { stroke-dashoffset: 0; } }
 @keyframes adm-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 
+/* Ряды по дням: столбики растут от оси по очереди, линии прорисовываются;
+   выбранный день подсвечен колонкой (мгновенно — это отклик на руку). */
+.adm-ch-bar, .adm-ch-neg, .adm-ch-warn { transform-box: fill-box; transform-origin: bottom; transition: transform var(--d-2) var(--m-settle); transition-delay: calc(200ms + min(var(--k, 0), 60) * 12ms); }
+.adm-ch-neg, .adm-ch-warn { transform-origin: top; }
+.a-js .ak-card:not([data-seen]) :is(.adm-ch-bar, .adm-ch-neg, .adm-ch-warn) { transform: scaleY(0); }
+.adm-ch svg polyline { clip-path: inset(0 0 0 0); transition: clip-path var(--d-3) var(--m-settle) 300ms; }
+.a-js .ak-card:not([data-seen]) .adm-ch svg polyline { clip-path: inset(0 100% 0 0); }
+@media (hover: hover) { .adm-ch:hover .adm-ch-bar { opacity: 0.85; } .adm-dev-x:not(:disabled):hover { color: var(--ak-rock); border-color: var(--ak-rock); } }
+/* Холостое: у синхронизатора точка статуса (ak-status) пульсирует; у лент — нет. */
+.adm-tl-i { transition: background-color var(--d-1) var(--m-turn); }
+@media (hover: hover) { .adm-tl-i:hover { background: var(--a-shoal); } }
+
 /* Упрощение: конечный кадр. */
 @media (prefers-reduced-motion: reduce) {
   .adm *, .adm *::before, .adm *::after { animation: none !important; transition: none !important; }
+  .a-js .adm .ak-card :is(.adm-ch-bar, .adm-ch-neg, .adm-ch-warn) { transform: none; }
+  .a-js .adm .ak-card .adm-ch svg polyline { clip-path: none; }
   .a-js .adm .adm-signals li, .a-js .adm :is(.adm-node, .adm-bw li, .adm-dev) { opacity: 1; transform: none; }
   .a-js .adm .ak-card .adm-bar-track i, .a-js .adm .ak-card .adm-meter i { transform: scaleX(var(--p, 0)); }
   .a-js .adm .ak-card .adm-stack { transform: none; }

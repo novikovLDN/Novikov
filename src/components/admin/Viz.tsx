@@ -29,11 +29,23 @@ export function Status({ tone, children }: { tone: Tone; children: ReactNode }) 
  * Спарклайн по истории замеров этой вкладки. Меньше двух точек —
  * линия не рисуется, вместо неё подпись, что история копится.
  */
-export function Spark({ values, label, height = 56 }: { values: Array<number | null>; label: string; height?: number }) {
+export function Spark({
+  values,
+  label,
+  height = 56,
+  marks,
+}: {
+  values: Array<number | null>;
+  label: string;
+  height?: number;
+  /** true — в этом интервале был сбой: полоса красным под линией. */
+  marks?: boolean[];
+}) {
   const pts = values.map((v, i) => ({ v, i })).filter((p): p is { v: number; i: number } => p.v !== null);
   if (pts.length < 2) {
     return <p className="adm-spark-empty">История замеров копится с каждым обновлением.</p>;
   }
+  const band = 100 / Math.max(values.length, 1);
   const max = Math.max(...pts.map((p) => p.v)) * 1.15 || 1;
   const n = Math.max(values.length - 1, 1);
   const xy = pts.map((p) => [(p.i / n) * 100, 100 - (p.v / max) * 100] as const);
@@ -43,6 +55,9 @@ export function Spark({ values, label, height = 56 }: { values: Array<number | n
   return (
     <div className="adm-spark" style={{ height }}>
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={label}>
+        {marks?.map((m, k) =>
+          m ? <rect key={k} className="adm-spark-mark" x={Math.max(0, (k / n) * 100 - band / 2)} y={0} width={band} height={100} /> : null,
+        )}
         <polygon className="adm-spark-area" points={area} />
         <polyline className="adm-spark-line" points={line} />
       </svg>

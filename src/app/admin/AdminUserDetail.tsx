@@ -1,37 +1,47 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import Icon, { type IconName } from "@/components/pixel/Icon";
-import { DEVICE_LIMIT } from "@/lib/plans";
+import { DEVICE_LIMIT, PERIOD_LABEL, type Period } from "@/lib/plans";
 import { useAdminConfirm, useAdminToast, Spin } from "./AdminConfirm";
 import {
   ACTION_LABELS,
+  ACTOR_LABELS,
+  LEDGER_LABELS,
+  PAYMENT_STATUS,
   PLAN_LABELS,
+  SYNC_ONE,
   ago,
+  deleteJson,
+  formatDate,
   formatDateTime,
   formatShort,
   getJson,
   leftWords,
+  money,
   num,
   planTone,
   postJson,
   type AuditLogItem,
+  type UserHistory,
   type UserInfo,
 } from "./admin-shared";
 
 /**
  * Карточка пользователя. Всё, ради чего админ её открывает:
  *
- *   подписка          сколько осталось (тёмная плита), выдать дни и тариф,
- *                     забрать подписку — POST /api/admin/users/manage
- *                     grant-subscription | revoke-subscription
- *   устройства        HWID из панели — GET /api/admin/users/:id/devices
- *                     (только чтение: удаления в API нет)
- *   IP-адреса         POST /api/admin/users/:id/ips → jobId, затем
- *                     GET …/ips?jobId= раз в 1,5 с до готовности
- *   ссылка и панель   новая ссылка (regen-key), ресинк (…/resync)
- *   история           события журнала по этому пользователю
+ *   подписка          сколько осталось (тёмная плита)
+ *   выдать            пресет или «свой срок, дней» (1–400) — manage
+ *                     grant-subscription { duration | days }
+ *   сменить тариф     без продления — manage set-plan { plan }
+ *   устройства        HWID из панели — GET …/devices; «Отвязать» одно
+ *                     и «Отвязать все» — DELETE …/devices { hwid | all }
+ *   IP-адреса         POST …/ips → jobId, затем GET …/ips?jobId= раз в 1,5 с
+ *   ссылка и панель   состояние синхронизации, новая ссылка, ресинк
+ *   история           оплаты и события подписки — GET …/history
+ *   журнал            действия по пользователю — GET /api/admin/logs?userId=
  *   сообщение         send-notification
+ *   забрать           revoke-subscription
  *
  * Необратимое спрашивает подтверждение; итог — тостом.
  */
@@ -47,6 +57,7 @@ const DURATIONS = [
   { key: "180d", label: "180 дн", min: 259200 },
   { key: "365d", label: "365 дн", min: 525600 },
 ];
+const MAX_DAYS = 400;
 
 const SYNC_ACTION: Record<string, string> = {
   created: "Создан в панели",
@@ -58,6 +69,12 @@ const SYNC_ACTION: Record<string, string> = {
   noop: "Без изменений",
   failed: "Ошибка",
 };
+
+const PLAN_OPTIONS = [
+  { key: "trial", label: "Пробный" },
+  { key: "basic", label: "Basic" },
+  { key: "plus", label: "Plus" },
+] as const;
 
 interface HwidDevice {
   hwid: string;
@@ -73,8 +90,9 @@ interface DevicesData {
   panelUserId: number | null;
   total: number;
   devices: HwidDevice[];
-  limit: number | null;
+  limit?: number | null;
   siteLimit?: number;
+  removed?: "one" | "all";
 }
 interface IpJob {
   isCompleted: boolean;
@@ -97,20 +115,79 @@ function platformIcon(d: HwidDevice): IconName {
   if (/windows|win32|win64/.test(s)) return "windows";
   return "devices";
 }
+const deviceName = (d: HwidDevice) => d.deviceModel || d.platform || "Устройство";
+const periodLabel = (p: number) => PERIOD_LABEL[p as Period]?.short ?? `${p} мес`;
+
+/* ─── Лента истории: оплаты и события подписки в одном ряду ────────── */
+
+interface TimelineItem {
+  key: string;
+  at: string;
+  type: "pay" | "event";
+  title: string;
+  tag?: { label: string; tone?: "warn" | "off" | "mute" | "ink" };
+  amount?: string;
+  lines: string[];
+}
+
+function buildTimeline(h: UserHistory): TimelineItem[] {
+  const items: TimelineItem[] = [];
+  for (const p of h.payments) {
+    const st = PAYMENT_STATUS[p.status] || { label: p.status, tone: "mute" as const };
+    const lines: string[] = [];
+    if (p.appliedAt) lines.push(`зачислено ${formatShort(p.appliedAt)}`);
+    if (p.refundedAt) lines.push(`возврат ${formatShort(p.refundedAt)}`);
+    if (!p.paidAt && p.status !== "confirmed") lines.push(`создан ${formatShort(p.createdAt)}`);
+    if (p.transactionId) lines.push(`касса ${p.transactionId.slice(0, 13)}${p.transactionId.length > 13 ? "…" : ""}`);
+    items.push({
+      key: `p-${p.id}`,
+      at: p.paidAt || p.createdAt,
+      type: "pay",
+      title: `Оплата ${PLAN_LABELS[p.plan] || p.plan} · ${periodLabel(p.period)}`,
+      tag: st,
+      amount: p.currency === "RUB" ? money(p.amount) : `${num(p.amount)} ${p.currency}`,
+      lines,
+    });
+  }
+  for (const e of h.events) {
+    const lines: string[] = [];
+    if (e.kind === "admin_set_plan" && e.meta && typeof e.meta.from === "string" && typeof e.meta.to === "string") {
+      lines.push(`${PLAN_LABELS[e.meta.from] || e.meta.from} → ${PLAN_LABELS[e.meta.to] || e.meta.to}, срок не менялся`);
+    } else {
+      if (e.oldEnd && e.newEnd && e.oldEnd !== e.newEnd) lines.push(`${formatDate(e.oldEnd)} → ${formatDate(e.newEnd)}`);
+      else if (e.newEnd) lines.push(`до ${formatDate(e.newEnd)}`);
+      if (e.plan && e.kind !== "refund") lines.push(PLAN_LABELS[e.plan] || e.plan);
+    }
+    if (e.actor) lines.push(ACTOR_LABELS[e.actor] || e.actor);
+    const neg = e.kind === "admin_revoke" || e.kind === "refund" || e.kind === "bot_overwrite";
+    items.push({
+      key: `e-${e.id}`,
+      at: e.createdAt,
+      type: "event",
+      title: LEDGER_LABELS[e.kind] || e.kind,
+      tag: e.days ? { label: `${e.days > 0 ? "+" : "−"}${num(Math.abs(e.days))} дн`, tone: e.days < 0 || neg ? "off" : undefined } : neg ? { label: "срок", tone: "off" } : undefined,
+      lines,
+    });
+  }
+  return items.sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+}
 
 interface Props {
   user: UserInfo;
-  logs: AuditLogItem[];
   onClose: () => void;
   onChanged: () => void;
 }
 
-export default function AdminUserDetail({ user, logs, onClose, onChanged }: Props) {
+export default function AdminUserDetail({ user, onClose, onChanged }: Props) {
   const confirm = useAdminConfirm();
   const toast = useAdminToast();
-  const [busy, setBusy] = useState<null | "grant" | "revoke" | "regen" | "resync" | "notify">(null);
+  const [busy, setBusy] = useState<null | "grant" | "plan" | "revoke" | "regen" | "resync" | "notify">(null);
   const [grantPlan, setGrantPlan] = useState<"basic" | "plus">(user.subscriptionPlan === "plus" ? "plus" : "basic");
   const [grantDur, setGrantDur] = useState("30d");
+  const [customDays, setCustomDays] = useState("");
+  const [newPlan, setNewPlan] = useState<"trial" | "basic" | "plus">(
+    user.subscriptionPlan === "plus" || user.subscriptionPlan === "basic" ? (user.subscriptionPlan as "basic" | "plus") : "trial",
+  );
   const [err, setErr] = useState<string | null>(null);
   const [resync, setResync] = useState<ResyncResult | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
@@ -128,6 +205,7 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
   const [dev, setDev] = useState<DevicesData | null>(null);
   const [devErr, setDevErr] = useState<string | null>(null);
   const [devLoading, setDevLoading] = useState(false);
+  const [devBusy, setDevBusy] = useState<string | null>(null);
   const loadDevices = useCallback(async () => {
     setDevLoading(true);
     setDevErr(null);
@@ -140,13 +218,77 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
     loadDevices();
   }, [loadDevices]);
 
+  const unlink = async (d: HwidDevice | "all") => {
+    const all = d === "all";
+    const ok = await confirm(
+      all
+        ? {
+            title: `Отвязать все устройства (${dev?.total ?? 0})?`,
+            text: `${user.email}\n\nМеста в лимите освободятся. Устройства подключатся снова при следующем входе, если лимит позволит.`,
+            confirmLabel: "Отвязать все",
+          }
+        : {
+            title: `Отвязать «${deviceName(d)}»?`,
+            text: `${user.email}\n\nМесто в лимите освободится. Устройство подключится снова при следующем входе, если лимит позволит.`,
+            confirmLabel: "Отвязать",
+          },
+    );
+    if (!ok) return;
+    setDevBusy(all ? "all" : d.hwid);
+    const r = await deleteJson<DevicesData>(`/api/admin/users/${user.id}/devices`, all ? { all: true } : { hwid: d.hwid });
+    setDevBusy(null);
+    if (!r.ok) {
+      toast(r.error, "off");
+      if (r.status === 404) loadDevices();
+      return;
+    }
+    setDev((prev) => ({ ...r.data, limit: prev?.limit, siteLimit: prev?.siteLimit }));
+    toast(r.data.removed === "all" ? "Все устройства отвязаны" : `«${all ? "" : deviceName(d)}» отвязано`);
+    loadLogs();
+  };
+
+  /* ── История и журнал ───────────────────────────────────────── */
+  const [hist, setHist] = useState<UserHistory | null>(null);
+  const [histErr, setHistErr] = useState<string | null>(null);
+  const [histFilter, setHistFilter] = useState<"all" | "pay" | "event">("all");
+  const [histAll, setHistAll] = useState(false);
+  const loadHistory = useCallback(async () => {
+    const r = await getJson<UserHistory>(`/api/admin/users/${user.id}/history`);
+    if (r.ok) {
+      setHist(r.data);
+      setHistErr(null);
+    } else setHistErr(r.error);
+  }, [user.id]);
+
+  const [logs, setLogs] = useState<AuditLogItem[] | null>(null);
+  const [logsErr, setLogsErr] = useState<string | null>(null);
+  const loadLogs = useCallback(async () => {
+    const r = await getJson<AuditLogItem[]>(`/api/admin/logs?userId=${encodeURIComponent(user.id)}&limit=30`);
+    if (r.ok) {
+      setLogs(r.data);
+      setLogsErr(null);
+    } else setLogsErr(r.error);
+  }, [user.id]);
+
+  useEffect(() => {
+    loadHistory();
+    loadLogs();
+  }, [loadHistory, loadLogs]);
+
+  const timeline = useMemo(() => (hist ? buildTimeline(hist) : []), [hist]);
+  const shown = timeline.filter((x) => histFilter === "all" || x.type === histFilter);
+  const paid = hist ? hist.payments.filter((p) => p.status === "confirmed" || p.status === "refunded") : [];
+  const paidSum = paid.reduce((s, p) => s + p.amount, 0);
+  const refunded = hist ? hist.payments.filter((p) => p.refundedAt) : [];
+  const refundedSum = refunded.reduce((s, p) => s + p.amount, 0);
+
   /* ── IP-адреса: задача панели ───────────────────────────────── */
-  const [ip, setIp] = useState<{ state: "idle" | "run" | "done" | "fail"; job?: IpJob; error?: string; tries?: number }>({ state: "idle" });
+  const [ip, setIp] = useState<{ state: "idle" | "run" | "done" | "fail"; job?: IpJob; error?: string }>({ state: "idle" });
   const ipRun = useRef(0);
   useEffect(() => () => void (ipRun.current += 1), []);
   const checkIps = async () => {
     const run = ++ipRun.current;
-    setIp({ state: "run", tries: 0 });
+    setIp({ state: "run" });
     const start = await postJson<{ jobId: string }>(`/api/admin/users/${user.id}/ips`);
     if (run !== ipRun.current) return;
     if (!start.ok) {
@@ -170,37 +312,75 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
         setIp({ state: "done", job: r.data });
         return;
       }
-      setIp({ state: "run", tries: k });
     }
     setIp({ state: "fail", error: "Панель считает слишком долго — повторите через минуту" });
   };
 
   /* ── Действия ───────────────────────────────────────────────── */
   const manage = (body: Record<string, unknown>) => postJson<Record<string, unknown>>("/api/admin/users/manage", { userId: user.id, ...body });
+  const afterAction = () => {
+    onChanged();
+    loadHistory();
+    loadLogs();
+  };
+
+  const daysNum = customDays.trim() === "" ? null : Number(customDays);
+  const daysValid = daysNum !== null && Number.isInteger(daysNum) && daysNum >= 1 && daysNum <= MAX_DAYS;
+  const daysBad = customDays.trim() !== "" && !daysValid;
+  const preset = DURATIONS.find((x) => x.key === grantDur)!;
+  const grantMin = daysValid ? daysNum! * 1440 : preset.min;
+  const grantLabel = daysValid ? `${daysNum} дн` : preset.label;
+  const endMs = new Date(user.subscriptionEnd).getTime();
 
   const grant = async () => {
-    const d = DURATIONS.find((x) => x.key === grantDur)!;
-    const base = Math.max(Date.now(), new Date(user.subscriptionEnd).getTime());
+    if (daysBad) return;
+    const base = Math.max(Date.now(), endMs);
     const planName = grantPlan === "plus" ? "Plus" : "Basic";
     const ok = await confirm({
-      title: `Выдать ${planName} на ${d.label}?`,
-      text: `${user.email}\n\nПодписка продлится до ${formatDateTime(base + d.min * 60000)} (МСК). Пользователь получит уведомление.`,
+      title: `Выдать ${planName} на ${grantLabel}?`,
+      text: `${user.email}\n\nПодписка продлится до ${formatDateTime(base + grantMin * 60000)} (МСК). Пользователь получит уведомление.`,
       confirmLabel: "Выдать",
       tone: "primary",
     });
     if (!ok) return;
     setBusy("grant");
     setErr(null);
-    const r = await manage({ action: "grant-subscription", plan: grantPlan, duration: grantDur });
+    const r = await manage(daysValid ? { action: "grant-subscription", plan: grantPlan, days: daysNum } : { action: "grant-subscription", plan: grantPlan, duration: grantDur });
     setBusy(null);
     if (!r.ok) {
       setErr(r.error);
       toast(`Не выдали: ${r.error}`, "off");
       return;
     }
-    if (r.data?.panelSynced === false) toast(`${planName} выдан, но панель не обновилась — повторим автоматически. ${r.data.panelError ?? ""}`, "warn");
-    else toast(`${planName} на ${d.label} выдан`);
-    onChanged();
+    const until = typeof r.data?.newEnd === "string" ? ` — до ${formatDateTime(r.data.newEnd)}` : "";
+    if (r.data?.panelSynced === false) toast(`${planName} выдан${until}, но панель не обновилась — повторим автоматически. ${r.data.panelError ?? ""}`, "warn");
+    else toast(`${planName} на ${grantLabel} выдан${until}`);
+    setCustomDays("");
+    afterAction();
+  };
+
+  const setPlan = async () => {
+    const name = PLAN_OPTIONS.find((p) => p.key === newPlan)!.label;
+    const ok = await confirm({
+      title: `Сменить тариф на ${name}?`,
+      text: `${user.email}\n\nСрок не изменится: ${user.isActive ? `до ${formatDateTime(user.subscriptionEnd)} (МСК)` : "подписка уже истекла"}. Пользователь получит уведомление.`,
+      confirmLabel: `Сменить на ${name}`,
+      tone: "primary",
+    });
+    if (!ok) return;
+    setBusy("plan");
+    setErr(null);
+    const r = await manage({ action: "set-plan", plan: newPlan });
+    setBusy(null);
+    if (!r.ok) {
+      setErr(r.error);
+      toast(`Не сменили: ${r.error}`, "off");
+      return;
+    }
+    if (r.data?.changed === false) toast(`Тариф уже ${name}`, "warn");
+    else if (r.data?.panelSynced === false) toast(`Тариф ${name}, но панель не обновилась — повторим автоматически. ${r.data.panelError ?? ""}`, "warn");
+    else toast(`Тариф сменён на ${name}, срок прежний`);
+    afterAction();
   };
 
   const revoke = async () => {
@@ -221,7 +401,7 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
     }
     if (r.data?.panelSynced === false) toast(`Подписка закончена, но панель не отключила доступ — повторим автоматически. ${r.data.panelError ?? ""}`, "warn");
     else toast("Подписка забрана, доступ отключён");
-    onChanged();
+    afterAction();
   };
 
   const regen = async () => {
@@ -241,7 +421,7 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
       return;
     }
     toast("Новая ссылка выпущена");
-    onChanged();
+    afterAction();
   };
 
   const runResync = async () => {
@@ -284,14 +464,14 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
 
   /* ── Вид ────────────────────────────────────────────────────── */
   const planKey = user.isActive ? user.subscriptionPlan : "expired";
-  const endMs = new Date(user.subscriptionEnd).getTime();
   const dLeft = Math.max(0, Math.ceil((endMs - now) / 864e5));
   const filled = user.isActive ? Math.min(30, Math.max(1, dLeft)) : 0;
   const soon = user.isActive && endMs - now < 3 * 864e5;
   const limit = dev?.limit ?? dev?.siteLimit ?? DEVICE_LIMIT;
   const ipNodes = ip.job?.result?.nodes ?? [];
   const uniqIps = new Set(ipNodes.flatMap((n) => n.ips.map((x) => x.ip)));
-  const dur = DURATIONS.find((x) => x.key === grantDur)!;
+  const syncState = user.panelSyncState ? SYNC_ONE[user.panelSyncState] || { label: user.panelSyncState } : null;
+  const hasPanel = user.panelUserId != null ? user.panelUserId !== null : !!user.remnawaveUserUuid;
 
   return (
     <section className="ak-card adm-detail adm-still" data-sheet="24" style={{ "--i": 0 } as CSSProperties} aria-labelledby="adm-u-h">
@@ -305,12 +485,20 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
             {user.telegramLinked && <span className="adm-tag" data-tone="mute"><Icon name="send" size={12} />Telegram</span>}
             {user.accountsOnIp > 1 && <span className="adm-tag" data-tone={user.accountsOnIp > 2 ? "off" : "warn"}>{user.accountsOnIp} акк. на IP</span>}
             {!user.subscriptionUrl && <span className="adm-tag" data-tone="warn">нет ссылки</span>}
+            {user.panelSyncState === "error" && <span className="adm-tag" data-tone="off">ошибка синхронизации</span>}
           </p>
         </div>
         <button type="button" onClick={onClose} className="ak-icon" aria-label="Закрыть карточку пользователя">
           <Icon name="close" size={18} />
         </button>
       </div>
+
+      {user.panelSyncState === "error" && (
+        <div className="adm-note adm-block-err adm-break" data-tone="off" role="status">
+          <b>Панель не принимает изменения по этому пользователю</b>
+          <span>{user.panelSyncError || "Текста ошибки нет."} Попробуйте «Синхронизировать» в блоке «Ссылка и панель».</span>
+        </div>
+      )}
 
       {/* Подписка — тёмная плита */}
       <div className="ak-dark adm-u-sub">
@@ -329,11 +517,11 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
         </div>
         <p className="ak-days-cap a-num">
           <span>{user.isActive ? "до" : "закончилась"} {formatDateTime(user.subscriptionEnd)} МСК</span>
-          <span>с {formatDateTime(user.createdAt).slice(0, 10)}</span>
+          <span>с {formatDate(user.createdAt)}</span>
         </p>
         <ul className="adm-u-facts">
-          <li><span>Рефералы</span><b className="a-num">{user.referrals}</b></li>
-          <li><span>Оплатили</span><b className="a-num">{user.paidReferrals}</b></li>
+          <li><span>Последняя оплата</span><b className="a-num">{user.lastPaymentAt ? formatDate(user.lastPaymentAt) : "не было"}</b></li>
+          <li><span>Рефералы · оплатили</span><b className="a-num">{user.referrals} · {user.paidReferrals}</b></li>
           <li><span>Устройства</span><b className="a-num">{dev ? `${dev.total} / ${limit}` : "…"}</b></li>
         </ul>
       </div>
@@ -354,17 +542,65 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
         </div>
         <div className="adm-chips" role="group" aria-label="Срок">
           {DURATIONS.map((o) => (
-            <button key={o.key} type="button" className="adm-chip" aria-pressed={grantDur === o.key} onClick={() => setGrantDur(o.key)}>
+            <button
+              key={o.key}
+              type="button"
+              className="adm-chip"
+              aria-pressed={!daysValid && grantDur === o.key}
+              onClick={() => {
+                setGrantDur(o.key);
+                setCustomDays("");
+              }}
+            >
               {o.label}
             </button>
           ))}
         </div>
-        <p className="ak-fine a-num">
-          Продлится от {user.isActive ? "текущей даты окончания" : "сегодня"} до {formatDateTime(Math.max(now, endMs) + dur.min * 60000)}.
+        <label className="adm-f adm-days">
+          <span className="adm-f-label">Свой срок, дней</span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={MAX_DAYS}
+            step={1}
+            placeholder={`1–${MAX_DAYS}`}
+            value={customDays}
+            onChange={(e) => setCustomDays(e.target.value)}
+            className="adm-input"
+            aria-invalid={daysBad || undefined}
+            aria-describedby="adm-days-hint"
+          />
+        </label>
+        <p id="adm-days-hint" className={daysBad ? "ak-err" : "ak-fine a-num"}>
+          {daysBad
+            ? `Целое число от 1 до ${MAX_DAYS}.`
+            : `Продлится от ${user.isActive ? "текущей даты окончания" : "сегодня"} до ${formatDateTime(Math.max(now, endMs) + grantMin * 60000)}.`}
         </p>
         <div className="adm-sub-actions">
-          <button type="button" onClick={grant} disabled={busy !== null} className="a-btn a-btn-primary">
-            {busy === "grant" ? <><Spin />Выдаём…</> : <>Выдать {grantPlan === "plus" ? "Plus" : "Basic"} на {dur.label}</>}
+          <button type="button" onClick={grant} disabled={busy !== null || daysBad} className="a-btn a-btn-primary">
+            {busy === "grant" ? <><Spin />Выдаём…</> : <>Выдать {grantPlan === "plus" ? "Plus" : "Basic"} на {grantLabel}</>}
+          </button>
+        </div>
+      </div>
+
+      {/* Сменить тариф без продления */}
+      <div className="adm-block">
+        <div className="adm-block-head">
+          <h3 className="adm-block-title"><Icon name="refresh" size={16} />Сменить тариф без продления</h3>
+        </div>
+        <div className="adm-seg adm-seg-plan" role="group" aria-label="Новый тариф">
+          {PLAN_OPTIONS.map((p) => (
+            <button key={p.key} type="button" className="adm-seg-btn" aria-pressed={newPlan === p.key} onClick={() => setNewPlan(p.key)}>
+              {p.label}
+              {user.subscriptionPlan === p.key && <span className="b-sr"> (текущий)</span>}
+            </button>
+          ))}
+        </div>
+        <p className="ak-fine">Срок остаётся прежним; меняются тариф в панели и скорость.</p>
+        <div className="adm-sub-actions">
+          <button type="button" onClick={setPlan} disabled={busy !== null || newPlan === user.subscriptionPlan} className="a-btn ak-btn-soft">
+            {busy === "plan" ? <><Spin />Меняем…</> : newPlan === user.subscriptionPlan ? "Это текущий тариф" : <>Сменить на {PLAN_OPTIONS.find((p) => p.key === newPlan)!.label}</>}
           </button>
         </div>
       </div>
@@ -387,25 +623,44 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
         ) : dev.panelUserId === null ? (
           <p className="adm-note" data-tone="warn">У пользователя ещё нет записи в панели — устройств нет.</p>
         ) : dev.devices.length === 0 ? (
-          <p className="ak-fine">Ни одно устройство ещё не подключалось.</p>
+          <p className="ak-fine">Ни одного устройства не подключено.</p>
         ) : (
-          <ul className="adm-devs">
-            {dev.devices.map((d, k) => (
-              <li key={d.hwid} className="adm-dev" style={{ "--k": k } as CSSProperties}>
-                <span className="adm-dev-ico" aria-hidden><Icon name={platformIcon(d)} size={18} /></span>
-                <span className="adm-dev-copy">
-                  <b>{d.deviceModel || d.platform || "Устройство"}</b>
-                  <span className="a-num">
-                    {[d.platform, d.osVersion].filter(Boolean).join(" ") || "платформа неизвестна"}
-                    {d.requestIp && <> · {d.requestIp}</>}
+          <>
+            <ul className="adm-devs">
+              {dev.devices.map((d, k) => (
+                <li key={d.hwid} className="adm-dev" style={{ "--k": k } as CSSProperties}>
+                  <span className="adm-dev-ico" aria-hidden><Icon name={platformIcon(d)} size={18} /></span>
+                  <span className="adm-dev-copy">
+                    <b>{deviceName(d)}</b>
+                    <span className="a-num">
+                      {[d.platform, d.osVersion].filter(Boolean).join(" ") || "платформа неизвестна"}
+                      {d.requestIp && <> · {d.requestIp}</>}
+                      {" · "}
+                      {ago(d.updatedAt || d.createdAt)}
+                    </span>
                   </span>
-                </span>
-                <span className="adm-dev-time a-num" title={d.updatedAt ? formatDateTime(d.updatedAt) : undefined}>{ago(d.updatedAt || d.createdAt)}</span>
-              </li>
-            ))}
-          </ul>
+                  <button
+                    type="button"
+                    className="ak-icon adm-dev-x"
+                    onClick={() => unlink(d)}
+                    disabled={devBusy !== null}
+                    aria-label={`Отвязать ${deviceName(d)}`}
+                  >
+                    {devBusy === d.hwid ? <Spin /> : <Icon name="close" size={16} />}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {dev.devices.length > 1 && (
+              <div className="adm-sub-actions">
+                <button type="button" className="a-btn ak-btn-soft adm-btn-warn" onClick={() => unlink("all")} disabled={devBusy !== null}>
+                  {devBusy === "all" ? <><Spin />Отвязываем…</> : <>Отвязать все ({dev.devices.length})</>}
+                </button>
+              </div>
+            )}
+          </>
         )}
-        <p className="ak-fine">Отвязать устройство можно в панели Remnawave: из админки — только просмотр.</p>
+        <p className="ak-fine">Отвязка освобождает место в лимите; устройство подключится снова при следующем входе, если лимит позволит.</p>
       </div>
 
       {/* IP-адреса */}
@@ -426,7 +681,7 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
         )}
         {ip.state === "fail" && <p className="adm-note" data-tone="off">{ip.error}</p>}
         {ip.state === "done" &&
-          (ipNodes.length === 0 || uniqIps.size === 0 ? (
+          (uniqIps.size === 0 ? (
             <p className="ak-fine">Панель не видит подключений.</p>
           ) : (
             <ul className="adm-ipnodes">
@@ -450,11 +705,11 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
           ))}
         {uniqIps.size > 5 && <p className="adm-note" data-tone="warn">Много адресов — возможно, ключом пользуются не только на своих устройствах.</p>}
         <div className="adm-sub-actions">
-          <button type="button" onClick={checkIps} disabled={ip.state === "run" || !user.remnawaveUserUuid} className="a-btn ak-btn-soft">
+          <button type="button" onClick={checkIps} disabled={ip.state === "run" || !hasPanel} className="a-btn ak-btn-soft">
             {ip.state === "run" ? <><Spin />Панель считает…</> : <><Icon name="globe" size={16} />{ip.state === "done" ? "Проверить снова" : "Проверить IP"}</>}
           </button>
         </div>
-        {!user.remnawaveUserUuid && <p className="ak-fine">Нет записи в панели — адреса взять неоткуда.</p>}
+        {!hasPanel && <p className="ak-fine">Нет записи в панели — адреса взять неоткуда.</p>}
       </div>
 
       {/* Ссылка и панель */}
@@ -463,6 +718,10 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
           <h3 className="adm-block-title"><Icon name="lock" size={16} />Ссылка и панель</h3>
         </div>
         <dl className="adm-dl">
+          <div>
+            <dt>Синхронизация</dt>
+            <dd data-tone={syncState?.tone}>{syncState ? syncState.label : "—"}</dd>
+          </div>
           <div>
             <dt>Public ID</dt>
             <dd className="adm-strong a-num">{user.publicId || "—"}</dd>
@@ -485,8 +744,8 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
             </dd>
           </div>
           <div>
-            <dt>ID в панели</dt>
-            <dd className="adm-break a-num">{user.remnawaveUserUuid || "—"}</dd>
+            <dt>Номер в панели</dt>
+            <dd className="adm-break a-num">{user.panelUserId ?? user.remnawaveUserUuid ?? "—"}</dd>
           </div>
         </dl>
         {user.subscriptionUrl ? (
@@ -557,21 +816,81 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
         )}
       </div>
 
-      {/* История */}
+      {/* История: оплаты и события подписки */}
       <div className="adm-block">
         <div className="adm-block-head">
           <h3 className="adm-block-title"><Icon name="clock" size={16} />История</h3>
-          <span className="adm-muted a-num">{num(logs.length)}</span>
+          {hist && (
+            <span className="adm-muted a-num adm-hist-sum">
+              оплат {num(paid.length)} на {money(paidSum)}
+              {refunded.length > 0 && <> · возвратов {num(refunded.length)} на {money(refundedSum)}</>}
+            </span>
+          )}
         </div>
-        {logs.length === 0 ? (
-          <p className="ak-fine">В последних 200 событиях журнала этого пользователя нет.</p>
+        {histErr ? (
+          <p className="adm-note" data-tone="off">{histErr}</p>
+        ) : !hist ? (
+          <p className="ak-fine">Загружаем историю…</p>
+        ) : timeline.length === 0 ? (
+          <p className="ak-fine">Ни оплат, ни событий подписки пока нет.</p>
+        ) : (
+          <>
+            <div className="adm-seg adm-hist-seg" role="group" aria-label="Что показать">
+              {([
+                ["all", `Всё · ${timeline.length}`],
+                ["pay", `Оплаты · ${hist.payments.length}`],
+                ["event", `Срок · ${hist.events.length}`],
+              ] as const).map(([k, label]) => (
+                <button key={k} type="button" className="adm-seg-btn" aria-pressed={histFilter === k} onClick={() => setHistFilter(k)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+            <ol className="adm-tl">
+              {(histAll ? shown : shown.slice(0, 12)).map((x) => (
+                <li key={x.key} className="adm-tl-i" data-type={x.type}>
+                  <span className="adm-tl-dot" aria-hidden />
+                  <span className="adm-tl-head">
+                    <b>{x.title}</b>
+                    {x.amount && <span className="adm-tl-amt a-num">{x.amount}</span>}
+                  </span>
+                  <span className="adm-tl-meta a-num">
+                    {formatShort(x.at)}
+                    {x.tag && <span className="adm-tag" data-tone={x.tag.tone}>{x.tag.label}</span>}
+                  </span>
+                  {x.lines.length > 0 && <span className="adm-tl-lines adm-break">{x.lines.join(" · ")}</span>}
+                </li>
+              ))}
+            </ol>
+            {shown.length > 12 && (
+              <button type="button" className="adm-link" onClick={() => setHistAll((v) => !v)}>
+                {histAll ? "Свернуть" : `Показать все (${shown.length})`}
+                <Icon name="arrow-right" size={16} />
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Журнал действий по пользователю */}
+      <details className="adm-block adm-fold">
+        <summary className="adm-block-title">
+          <Icon name="shield" size={16} />
+          Журнал действий{logs && <span className="adm-muted a-num"> · {logs.length}</span>}
+        </summary>
+        {logsErr ? (
+          <p className="adm-note" data-tone="off">{logsErr}</p>
+        ) : !logs ? (
+          <p className="ak-fine">Загружаем…</p>
+        ) : logs.length === 0 ? (
+          <p className="ak-fine">Записей по пользователю нет.</p>
         ) : (
           <ol className="adm-hist">
-            {logs.slice(0, 12).map((l) => {
+            {logs.map((l) => {
               const m = ACTION_LABELS[l.action] || { label: l.action, tone: "mute" as const };
               return (
-                <li key={l.id}>
-                  <span className="adm-tag" data-tone={m.tone}>{m.label}</span>
+                <li key={l.id} data-level={l.level}>
+                  <span className="adm-tag" data-tone={l.level === "error" ? "off" : m.tone}>{m.label}</span>
                   <span className="adm-hist-d adm-break">{l.details || ""}</span>
                   <span className="adm-hist-t a-num">{formatShort(l.createdAt)}</span>
                 </li>
@@ -579,8 +898,7 @@ export default function AdminUserDetail({ user, logs, onClose, onChanged }: Prop
             })}
           </ol>
         )}
-        <p className="ak-fine">Из журнала событий (последние 200 по сайту). Платежей по пользователю API пока не отдаёт.</p>
-      </div>
+      </details>
 
       {/* Сообщение */}
       <details className="adm-block adm-fold">

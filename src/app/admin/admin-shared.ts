@@ -29,6 +29,83 @@ export interface UserInfo {
   remnawaveUserUuid: string | null;
   subscriptionUrl: string | null;
   happCryptoLink: string | null;
+  /** Новые поля (f164a67): у старого бэкенда их нет — поэтому необязательные. */
+  panelUserId?: number | null;
+  panelSyncState?: string | null;
+  panelSyncError?: string | null;
+  lastPaymentAt?: string | null;
+}
+
+export type UserFilter = "all" | "active" | "paid" | "trial" | "expiring" | "expired" | "shared_ip" | "no_link" | "sync_error";
+export type UserSort = "new" | "old" | "soon" | "long" | "email" | "last_payment";
+
+/** GET /api/admin/users?q=&filter=&sort=&limit=&cursor= — одна страница. */
+export interface UsersPage {
+  users: UserInfo[];
+  stats: UsersStats;
+  counts: Record<UserFilter, number>;
+  total?: number;
+  nextCursor?: string | null;
+}
+
+/* ─── История пользователя: GET /api/admin/users/{id}/history ────── */
+
+export interface HistoryPayment {
+  id: string;
+  status: string;
+  amount: number;
+  currency: string;
+  plan: string;
+  period: number;
+  transactionId: string | null;
+  createdAt: string;
+  paidAt: string | null;
+  appliedAt: string | null;
+  refundedAt: string | null;
+  refundId: string | null;
+}
+
+export interface HistoryEvent {
+  id: string;
+  kind: string;
+  days: number | null;
+  oldEnd: string | null;
+  newEnd: string | null;
+  plan: string | null;
+  actor: string | null;
+  sourceId: string;
+  meta: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface UserHistory {
+  payments: HistoryPayment[];
+  events: HistoryEvent[];
+}
+
+/* ─── Ряды по дням: GET /api/admin/overview/series?days=30|90 ────── */
+
+export interface SeriesPoint {
+  day: string;
+  revenue: number;
+  refunds: number;
+  refundsCount: number;
+  payments: number;
+  registrations: number;
+  trials: number;
+  conversions: number;
+  renewals: number;
+  expirations: number;
+}
+
+export interface DailySeries {
+  days: number;
+  timezone: string;
+  from: string;
+  to: string;
+  points: SeriesPoint[];
+  totals: Omit<SeriesPoint, "day">;
+  notes: string[];
 }
 
 export interface UsersStats {
@@ -43,10 +120,14 @@ export interface AuditLogItem {
   userId: string | null;
   userEmail: string | null;
   action: string;
+  /** info | warn | error — выводится сервером из действия (audit-level.ts). */
+  level?: LogLevel;
   details: string | null;
   ip: string | null;
   createdAt: string;
 }
+
+export type LogLevel = "info" | "warn" | "error";
 
 export interface NotificationItem {
   id: string;
@@ -135,6 +216,36 @@ export interface Overview {
   revenue: OverviewRevenue | BlockErr;
   funnel: OverviewFunnel | BlockErr;
   ledger30d: Record<string, number> | BlockErr;
+  /** 24 ч, ≤ 96 точек; пишет воркер раз в минуту. */
+  healthHistory?: HealthPoint[] | BlockErr;
+  worker?: WorkerStatus | BlockErr;
+  bot?: { enabled: boolean } | BlockErr;
+  /** Сводка из кэша сервера (30 с); ?fresh=1 пересобирает. */
+  cached?: boolean;
+  cachedAt?: string;
+}
+
+export interface HealthPoint {
+  ts: string;
+  samples: number;
+  panelMs: number | null;
+  /** Доля замеров в интервале, когда панель ответила (0…1). */
+  panelOkRatio: number;
+  dbMs: number | null;
+  nodesOnline: number | null;
+  nodesTotal: number | null;
+  queuePending: number;
+  queueError: number;
+}
+
+export interface WorkerStatus {
+  thisInstance: { running: boolean; startedAt: string | null; reason: string | null };
+  lastPendingAt: string | null;
+  lastPendingResult: Record<string, unknown> | null;
+  lastReconcileAt: string | null;
+  lastReconcileResult: Record<string, unknown> | null;
+  lastHealthSampleAt: string | null;
+  lastError: { where: string; message: string; at: string } | null;
 }
 
 /** Блок сводки упал целиком (Promise.allSettled → { error }). */
@@ -194,6 +305,9 @@ export const ACTION_LABELS: Record<string, { label: string; tone?: "warn" | "off
   "admin.grant": { label: "Выдача подписки" },
   "admin.revoke": { label: "Отзыв подписки", tone: "off" },
   "admin.regen": { label: "Новая ссылка", tone: "warn" },
+  "admin.set_plan": { label: "Смена тарифа", tone: "warn" },
+  "admin.device_delete": { label: "Устройство отвязано", tone: "warn" },
+  "admin.devices_delete_all": { label: "Все устройства отвязаны", tone: "warn" },
   "telegram.link": { label: "Telegram привязан", tone: "mute" },
   "telegram.unlink": { label: "Telegram отвязан", tone: "mute" },
   "sync.overwrite": { label: "Перезапись ботом", tone: "warn" },
@@ -206,6 +320,7 @@ export const LEDGER_LABELS: Record<string, string> = {
   payment: "Оплата",
   admin_grant: "Выдано вручную",
   admin_revoke: "Отозвано вручную",
+  admin_set_plan: "Смена тарифа",
   telegram_bonus: "Бонус за Telegram",
   bot_extend: "Продление ботом",
   bot_overwrite: "Перезапись ботом",
@@ -218,6 +333,32 @@ export const SYNC_STATE_LABELS: Record<string, string> = {
   pending: "Ждут отправки",
   error: "С ошибкой",
 };
+
+/** Состояние одного пользователя в очереди синхронизации. */
+export const SYNC_ONE: Record<string, { label: string; tone?: "warn" | "off" }> = {
+  ok: { label: "сверено" },
+  pending: { label: "ждёт отправки", tone: "warn" },
+  error: { label: "ошибка", tone: "off" },
+};
+
+export const PAYMENT_STATUS: Record<string, { label: string; tone?: "warn" | "off" | "mute" | "ink" }> = {
+  confirmed: { label: "оплачен", tone: "ink" },
+  pending: { label: "ждёт оплаты", tone: "warn" },
+  canceled: { label: "отменён", tone: "mute" },
+  expired: { label: "не оплачен", tone: "mute" },
+  refunded: { label: "возврат", tone: "off" },
+};
+
+export const ACTOR_LABELS: Record<string, string> = {
+  admin: "админ",
+  bot: "бот",
+  system: "система",
+  user: "пользователь",
+  webhook: "касса",
+  worker: "синхронизатор",
+};
+
+export const LEVEL_LABELS: Record<LogLevel, string> = { info: "Обычные", warn: "Внимание", error: "Ошибки" };
 
 /* ─── Форматирование ─────────────────────────────────────────────── */
 
@@ -316,7 +457,7 @@ export const pickStr = (obj: unknown, path: string): string | null => {
 export async function getJson<T = unknown>(
   url: string,
   init?: RequestInit,
-): Promise<{ ok: true; data: T } | { ok: false; error: string; status: number }> {
+): Promise<{ ok: true; data: T; raw: Record<string, unknown> } | { ok: false; error: string; status: number }> {
   try {
     const res = await fetch(url, init);
     const raw = await res.text();
@@ -326,12 +467,26 @@ export async function getJson<T = unknown>(
     } catch {
       json = null;
     }
-    if (json?.success) return { ok: true, data: json.data as T };
+    // raw — весь ответ: у журнала nextCursor лежит рядом с data.
+    if (json?.success) return { ok: true, data: json.data as T, raw: json as Record<string, unknown> };
     return { ok: false, status: res.status, error: json?.error || `Сервер ответил ${res.status}` };
   } catch {
     return { ok: false, status: 0, error: "Нет связи с сервером" };
   }
 }
+
+export const deleteJson = <T = unknown>(url: string, body?: unknown) =>
+  getJson<T>(url, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+
+/** «2026-09-12» (московский день из рядов) → «12.09». */
+export const dayShort = (day: string) => `${day.slice(8, 10)}.${day.slice(5, 7)}`;
+/** «2026-09-12» → «пт, 12 сент.». */
+export const dayLong = (day: string) =>
+  new Date(`${day}T12:00:00+03:00`).toLocaleDateString("ru-RU", { timeZone: TZ, weekday: "short", day: "numeric", month: "short" });
 
 export const postJson = <T = unknown>(url: string, body?: unknown) =>
   getJson<T>(url, {

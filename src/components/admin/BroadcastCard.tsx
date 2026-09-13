@@ -18,13 +18,14 @@ export default function BroadcastCard({
   i = 0,
   notifications,
   error,
-  users,
+  users = [],
   onChanged,
 }: {
   i?: number;
   notifications: NotificationItem[];
   error: string | null;
-  users: UserInfo[];
+  /** Для подписи адресата личных уведомлений; список теперь постраничный — может быть пустым. */
+  users?: UserInfo[];
   onChanged: () => void;
 }) {
   const confirm = useAdminConfirm();
