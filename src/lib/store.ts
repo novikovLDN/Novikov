@@ -14,6 +14,7 @@ import { applySubscriptionEvent, DAY, Queryable, withTransaction } from "./subsc
 import { checkTrialEligibility, recordTrialUsage, TrialBlockReason } from "./trial";
 import { generateTelegramLinkToken } from "./tokens";
 import { auditLevelFor } from "./audit-level";
+import { revokeAllSessions } from "./session-store";
 
 // Hard ceiling for direct subscription_end writes through updateUser.
 // Ledger events are not subject to it (stacked paid renewals may go
@@ -247,13 +248,17 @@ export async function getOrCreateUser(
   });
 }
 
+// Чтения пользователя на пути входа ждут миграций: на пустой базе первый
+// запрос кода приходил раньше CREATE TABLE users (e2e 13.09.2026).
 export async function getUserByEmail(email: string): Promise<UserRecord | null> {
+  await waitForDb();
   const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
   if (result.rows.length === 0) return null;
   return rowToUser(result.rows[0]);
 }
 
 export async function getUserById(id: string): Promise<UserRecord | null> {
+  await waitForDb();
   const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
   if (result.rows.length === 0) return null;
   return rowToUser(result.rows[0]);
@@ -332,6 +337,7 @@ export async function getUserByTelegramLinkToken(token: string): Promise<UserRec
 }
 
 export async function getUserByTelegramId(telegramId: string): Promise<UserRecord | null> {
+  await waitForDb();
   const result = await pool.query("SELECT * FROM users WHERE telegram_id = $1 ORDER BY created_at ASC LIMIT 1", [telegramId]);
   if (result.rows.length === 0) return null;
   return rowToUser(result.rows[0]);
@@ -803,9 +809,18 @@ export async function setUserPassword(userId: string, password: string): Promise
   return result.rows.length > 0;
 }
 
+// A real bcrypt hash of a random string, computed once: accounts without a
+// password (or unknown emails) still pay one bcrypt comparison, so the
+// response time does not tell whether an email is registered.
+let dummyHash: Promise<string> | null = null;
+const getDummyHash = () => (dummyHash ??= bcrypt.hash(uuidv4(), BCRYPT_ROUNDS));
+
 export async function verifyUserPassword(email: string, password: string): Promise<UserRecord | null> {
   const user = await getUserByEmail(email);
-  if (!user || !user.passwordHash) return null;
+  if (!user || !user.passwordHash) {
+    await bcrypt.compare(password, await getDummyHash());
+    return null;
+  }
   const match = await bcrypt.compare(password, user.passwordHash);
   return match ? user : null;
 }
@@ -816,10 +831,16 @@ export async function resetUserPassword(email: string, password: string): Promis
     "UPDATE users SET password_hash = $1 WHERE email = $2 RETURNING id",
     [hash, email]
   );
-  return result.rows.length > 0;
+  if (result.rows.length === 0) return false;
+  // A reset means "someone else may be in my account": sign out everywhere.
+  await revokeAllSessions(String(result.rows[0].id)).catch((err) =>
+    console.error("[PASSWORD] reset: could not revoke sessions:", err instanceof Error ? err.message : err)
+  );
+  return true;
 }
 
 export async function userHasPassword(email: string): Promise<boolean> {
+  await waitForDb();
   const result = await pool.query(
     "SELECT password_hash FROM users WHERE email = $1",
     [email]

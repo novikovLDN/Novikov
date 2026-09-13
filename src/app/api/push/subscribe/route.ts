@@ -1,36 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById } from "@/lib/store";
-import { savePushSubscription, removePushSubscription } from "@/lib/push";
+import { pool } from "@/lib/db";
+import { getSessionUser } from "@/lib/session";
+import { savePushSubscription } from "@/lib/push";
+
+const MAX_FIELD = 2048;
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get("session")?.value;
-    if (!sessionId) {
+    const auth = await getSessionUser(request);
+    if (!auth) {
       return NextResponse.json({ success: false, error: "Не авторизован" }, { status: 401 });
     }
 
-    const user = await getUserById(sessionId);
-    if (!user) {
-      return NextResponse.json({ success: false, error: "Пользователь не найден" }, { status: 404 });
-    }
-
     const { subscription } = await request.json();
-    if (!subscription?.endpoint || !subscription?.keys?.p256dh || !subscription?.keys?.auth) {
+    const endpoint = subscription?.endpoint;
+    const p256dh = subscription?.keys?.p256dh;
+    const authKey = subscription?.keys?.auth;
+    if (
+      typeof endpoint !== "string" || typeof p256dh !== "string" || typeof authKey !== "string" ||
+      !endpoint.startsWith("https://") || endpoint.length > MAX_FIELD || p256dh.length > MAX_FIELD || authKey.length > MAX_FIELD
+    ) {
       return NextResponse.json({ success: false, error: "Invalid subscription" }, { status: 400 });
     }
 
-    await savePushSubscription(user.id, subscription);
+    await savePushSubscription(auth.user.id, { endpoint, keys: { p256dh, auth: authKey } });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ success: false, error: "Ошибка сервера" }, { status: 500 });
   }
 }
 
+/** Unsubscribe: only the signed-in owner can remove their own endpoint. */
 export async function DELETE(request: NextRequest) {
   try {
+    const auth = await getSessionUser(request);
+    if (!auth) {
+      return NextResponse.json({ success: false, error: "Не авторизован" }, { status: 401 });
+    }
     const { endpoint } = await request.json();
-    if (endpoint) {
-      await removePushSubscription(endpoint);
+    if (typeof endpoint === "string" && endpoint) {
+      await pool.query("DELETE FROM push_subscriptions WHERE endpoint = $1 AND user_id = $2", [endpoint, auth.user.id]);
     }
     return NextResponse.json({ success: true });
   } catch {

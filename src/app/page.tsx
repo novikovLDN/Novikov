@@ -1,5 +1,5 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/session";
 // Главная — «Атлас-издание» (ребрендинг 2027,
 // docs/rebrand-2027/SCREEN_SCORE.md). Прежняя главная «Гратикул»
 // осталась в components/graticule/Home.tsx: её шапка и футер ещё
@@ -12,17 +12,17 @@ interface PageProps {
 
 export default async function IndexRoute({ searchParams }: PageProps) {
   const params = await searchParams;
-  const cookieStore = await cookies();
 
-  // Вошедший человек на витрине не задерживается.
-  const session = cookieStore.get("session")?.value;
-  if (session) {
+  // Вошедший человек на витрине не задерживается. Проверяется живая
+  // сессия, а не наличие куки: устаревшая кука не должна гонять
+  // человека между главной и входом.
+  if (await getSessionUser()) {
     redirect("/dashboard");
   }
 
   // Середина входа по коду живёт на своей странице.
   if (params.step === "code") {
-    const url = `/auth?step=code${params.ref ? `&ref=${params.ref}` : ""}`;
+    const url = `/auth?step=code${params.ref ? `&ref=${encodeURIComponent(params.ref)}` : ""}`;
     redirect(url);
   }
 

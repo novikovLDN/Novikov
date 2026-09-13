@@ -1,25 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, getPaymentById } from "@/lib/store";
+import { getPaymentById } from "@/lib/store";
 import { reconcilePaymentWithYooKassa } from "@/lib/payments";
+import { getSessionUser } from "@/lib/session";
 
 /**
  * Called from the /subscribe page after the YooKassa return-redirect
  * (polled every few seconds). For pending AND locally-expired payments
  * it asks YooKassa; a success goes through the same atomic
  * confirmPayment as the webhook, so polling and the webhook can never
- * extend twice.
+ * extend twice. Only the owner of the payment gets an answer.
  */
 export async function GET(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get("session")?.value;
-    if (!sessionId) {
+    const auth = await getSessionUser(request);
+    if (!auth) {
       return NextResponse.json({ success: false, error: "Не авторизован" }, { status: 401 });
     }
-
-    const user = await getUserById(sessionId);
-    if (!user) {
-      return NextResponse.json({ success: false, error: "Пользователь не найден" }, { status: 404 });
-    }
+    const user = auth.user;
 
     const paymentId = request.nextUrl.searchParams.get("id");
     if (!paymentId) {

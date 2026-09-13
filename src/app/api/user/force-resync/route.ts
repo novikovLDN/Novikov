@@ -3,6 +3,7 @@ import { getUserById, rowToPayment } from "@/lib/store";
 import { syncUserToPanel } from "@/lib/subscription-sync";
 import { reconcilePaymentWithYooKassa } from "@/lib/payments";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getSessionUser } from "@/lib/session";
 import { pool } from "@/lib/db";
 
 /**
@@ -25,15 +26,11 @@ interface ReconciledPayment {
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get("session")?.value;
-    if (!sessionId) {
+    const auth = await getSessionUser(request);
+    if (!auth) {
       return NextResponse.json({ success: false, error: "Не авторизован" }, { status: 401 });
     }
-
-    const before = await getUserById(sessionId);
-    if (!before) {
-      return NextResponse.json({ success: false, error: "Пользователь не найден" }, { status: 404 });
-    }
+    const before = auth.user;
 
     const limit = checkRateLimit(`force-resync:${before.id}`, 3, 60_000);
     if (!limit.allowed) {

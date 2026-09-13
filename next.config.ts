@@ -36,6 +36,8 @@ const allowedOrigins = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: "standalone",
+  // No "X-Powered-By: Next.js" — do not advertise the stack and version.
+  poweredByHeader: false,
   experimental: {
     serverActions: { allowedOrigins },
   },
@@ -45,6 +47,16 @@ const nextConfig: NextConfig = {
         source: "/favicon.ico",
         destination: "/icon",
       },
+    ];
+  },
+  async headers() {
+    // Files in public/ are not content-hashed, so a week + SWR rather than
+    // a year + immutable. _next/static is left to Next (already immutable).
+    // Security headers (CSP, HSTS, …) stay in src/middleware.ts.
+    const assetCache = { key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" };
+    return [
+      { source: "/media/:path*", headers: [assetCache] },
+      { source: "/fonts/:path*", headers: [assetCache] },
     ];
   },
 };

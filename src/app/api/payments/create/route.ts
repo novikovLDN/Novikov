@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
-import { getUserById, createPaymentRecord, setPaymentTransaction, transitionPaymentStatus } from "@/lib/store";
+import { createPaymentRecord, setPaymentTransaction, transitionPaymentStatus } from "@/lib/store";
 import { createPayment } from "@/lib/yookassa";
 import { PLANS, isPeriod, isPlanId } from "@/lib/plans";
+import { getSessionUser } from "@/lib/session";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const PAYMENT_LIFETIME_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -21,19 +23,21 @@ function siteBaseUrl(request: NextRequest): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get("session")?.value;
-    if (!sessionId) {
+    const auth = await getSessionUser(request);
+    if (!auth) {
       return NextResponse.json(
         { success: false, error: "Не авторизован" },
         { status: 401 }
       );
     }
+    const user = auth.user;
 
-    const user = await getUserById(sessionId);
-    if (!user) {
+    // Each call opens a real YooKassa payment: cap it per account.
+    const limit = checkRateLimit(`payment-create:${user.id}`, 10, 10 * 60_000);
+    if (!limit.allowed) {
       return NextResponse.json(
-        { success: false, error: "Пользователь не найден" },
-        { status: 404 }
+        { success: false, error: `Слишком много попыток оплаты. Повторите через ${limit.retryAfterSeconds} сек.` },
+        { status: 429 }
       );
     }
 

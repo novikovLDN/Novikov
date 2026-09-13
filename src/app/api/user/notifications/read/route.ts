@@ -1,13 +1,13 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { getSessionUser } from "@/lib/session";
 
-export async function POST() {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("session")?.value;
-  if (!userId) {
+export async function POST(request: NextRequest) {
+  const auth = await getSessionUser(request);
+  if (!auth) {
     return NextResponse.json({ success: false, error: "Не авторизован" }, { status: 401 });
   }
+  const userId = auth.user.id;
 
   // Mark all unread notifications as read for this user
   await pool.query(

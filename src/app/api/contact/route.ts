@@ -1,19 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import { pool } from "@/lib/db";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { clientIpKey } from "@/lib/client-ip";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "";
 
+const MAX_LEN = { name: 200, email: 254, interest: 64, message: 5000 };
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { name, email, interest, message } = body;
+    // Public form that writes to the DB and notifies the admin: cap per IP.
+    const limit = checkRateLimit(`contact:${clientIpKey(request.headers)}`, 5, 10 * 60_000);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { success: false, error: `Слишком много заявок. Повторите через ${limit.retryAfterSeconds} сек.` },
+        { status: 429 }
+      );
+    }
 
-    if (!name || !email || !interest) {
+    const body = await request.json();
+    const { name, email, interest, message } = body ?? {};
+
+    if (
+      typeof name !== "string" || typeof email !== "string" || typeof interest !== "string" ||
+      !name.trim() || !email.trim() || !interest.trim()
+    ) {
       return NextResponse.json(
         { success: false, error: "Name, email and interest are required" },
         { status: 400 }
       );
+    }
+    if (message != null && typeof message !== "string") {
+      return NextResponse.json({ success: false, error: "Invalid message" }, { status: 400 });
+    }
+    if (
+      name.length > MAX_LEN.name || email.length > MAX_LEN.email || interest.length > MAX_LEN.interest ||
+      (typeof message === "string" && message.length > MAX_LEN.message)
+    ) {
+      return NextResponse.json({ success: false, error: "Field too long" }, { status: 400 });
     }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

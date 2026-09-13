@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import AtlasShell from "@/components/atlas/AtlasShell";
 import DevicesView from "./DevicesView";
 import { DEVICE_LIMIT } from "@/lib/plans";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
 import { plural } from "@/lib/ru-words";
+import { getSessionUser } from "@/lib/session";
 
 /**
  * /devices — серверная обёртка.
@@ -27,8 +27,7 @@ export const metadata: Metadata = {
 };
 
 export default async function DevicesRoute() {
-  const cookieStore = await cookies();
-  const hasSession = Boolean(cookieStore.get("session")?.value);
+  const hasSession = Boolean(await getSessionUser());
   return (
     <AtlasShell sheetNo="12" sheetTitle="Устройства">
       <DevicesView hasSession={hasSession} />

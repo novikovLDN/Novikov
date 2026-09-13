@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { expirePendingPayments } from "@/lib/store";
 import { runPendingPass } from "@/lib/sync-worker";
+import { deleteExpiredSessions } from "@/lib/session-store";
+import { deleteOldTelegramNonces } from "@/lib/telegram-login";
 
 /**
  * External cron hook. Expired subscriptions need no cleanup any more —
  * the panel expires users itself. This marks stale pending payments as
- * expired and runs one pending panel-sync pass (same lock as the worker).
+ * expired, runs one pending panel-sync pass (same lock as the worker)
+ * and drops long-dead sessions and Telegram sign-in nonces.
  *
  * Refuses to run without CRON_SECRET: an unset secret used to leave the
  * endpoint open to anyone.
@@ -32,7 +35,12 @@ export async function POST(request: NextRequest) {
   try {
     const expiredPayments = await expirePendingPayments();
     const sync = await runPendingPass();
-    return NextResponse.json({ success: true, data: { expiredPayments, sync } });
+    const deletedSessions = await deleteExpiredSessions().catch((err) => {
+      console.error("[CRON] session cleanup failed:", err instanceof Error ? err.message : err);
+      return 0;
+    });
+    const deletedNonces = await deleteOldTelegramNonces().catch(() => 0);
+    return NextResponse.json({ success: true, data: { expiredPayments, sync, deletedSessions, deletedNonces } });
   } catch (err) {
     console.error("[CRON] cleanup failed:", err);
     return NextResponse.json({ success: false, error: "Cleanup failed" }, { status: 500 });

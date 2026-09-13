@@ -1,19 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserByTelegramId } from "@/lib/store";
+import { confirmTelegramLogin } from "@/lib/telegram-login";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
 
 /**
- * GET /api/bot/auth-login?telegram_id=XXX
+ * POST /api/bot/auth-login  { telegramId, nonce }
  *
- * Bot calls this to check if a Telegram user has a linked site account.
- * Returns a one-time auth token that the site can use to log in the user.
+ * The bot confirms a "sign in with Telegram" request.
  *
- * Flow:
- * 1. User clicks "Войти через Telegram" on site → opens bot with deep link
- * 2. Bot sends /start tglogin_{nonce}
- * 3. Bot calls this endpoint with telegram_id
- * 4. If user exists → returns authToken (stored in DB)
- * 5. Site polls /api/auth/telegram-check?nonce=XXX → gets session
+ * Flow (see src/lib/telegram-login.ts):
+ * 1. The site calls POST /api/auth/telegram-start → nonce bound to the
+ *    browser, shows a 4-digit confirm code, opens the bot with
+ *    /start tglogin_{nonce}.
+ * 2. The bot calls this endpoint with the person's telegramId + nonce.
+ *    It can only confirm a nonce the SITE created, once, within 5 minutes
+ *    (it can no longer create or rebind one).
+ * 3. The response carries `confirmCode` and the requesting browser's
+ *    `request.ip` / `request.userAgent`: the bot should show them and let
+ *    the person cancel if the code differs from the one on the screen.
+ * 4. The site polls /api/auth/telegram-check → session for that browser only.
+ *
+ * Errors: 404 NOT_LINKED (no site account for this Telegram id),
+ *         404 NONCE_INVALID (unknown, expired or already used nonce).
  */
 export async function POST(request: NextRequest) {
   if (!verifyBotApiKey(request)) return unauthorizedResponse();
@@ -35,32 +43,28 @@ export async function POST(request: NextRequest) {
       }, { status: 404 });
     }
 
-    // Store nonce → userId mapping for the site to verify
-    const { pool } = await import("@/lib/db");
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-    // Upsert: create or update telegram_auth_nonces table entry
-    await pool.query(
-      `CREATE TABLE IF NOT EXISTS telegram_auth_nonces (
-        nonce TEXT PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        telegram_id TEXT NOT NULL,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        expires_at TIMESTAMPTZ NOT NULL,
-        used BOOLEAN NOT NULL DEFAULT FALSE
-      )`
-    );
-
-    await pool.query(
-      `INSERT INTO telegram_auth_nonces (nonce, user_id, telegram_id, expires_at)
-       VALUES ($1, $2, $3, $4)
-       ON CONFLICT (nonce) DO UPDATE SET user_id = $2, telegram_id = $3, expires_at = $4, used = FALSE`,
-      [nonce, user.id, String(telegramId), expiresAt]
-    );
+    const confirmed = await confirmTelegramLogin(String(nonce), user.id, String(telegramId));
+    if (!confirmed) {
+      return NextResponse.json({
+        success: false,
+        error: "Login request not found, expired or already used. Start the login on the site again.",
+        code: "NONCE_INVALID",
+      }, { status: 404 });
+    }
 
     return NextResponse.json({
       success: true,
-      data: { userId: user.id, email: user.email },
+      data: {
+        userId: user.id,
+        email: user.email,
+        confirmCode: confirmed.confirmCode,
+        request: {
+          ip: confirmed.requestIp,
+          userAgent: confirmed.requestUserAgent,
+          createdAt: confirmed.createdAt,
+          expiresAt: confirmed.expiresAt,
+        },
+      },
     });
   } catch (err) {
     console.error("[BOT] auth-login error:", err);

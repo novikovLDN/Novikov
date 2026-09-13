@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserById, getLoyaltyInfo } from "@/lib/store";
+import { getLoyaltyInfo } from "@/lib/store";
 import { pool } from "@/lib/db";
+import { clearSessionCookie, getSessionUser, refreshSessionCookie, SESSION_COOKIE } from "@/lib/session";
+import { isAdminEmail } from "@/app/api/admin/middleware";
 
 /**
  * The user's subscription for the dashboard — READ-ONLY.
@@ -11,23 +13,20 @@ import { pool } from "@/lib/db";
  * produced duplicate panel users with new URLs). Creation and repair
  * are the sync worker's job; the most this handler does is flag a live
  * subscription without a link as pending for the worker.
+ *
+ * The dashboard loads this on every visit, so it is also where the
+ * sliding session cookie is re-issued.
  */
 export async function GET(request: NextRequest) {
   try {
-    const sessionId = request.cookies.get("session")?.value;
-    if (!sessionId) {
-      return NextResponse.json({ success: false, error: "Не авторизован" }, { status: 401 });
-    }
-
-    const user = await getUserById(sessionId);
-    if (!user) {
-      const response = NextResponse.json(
-        { success: false, error: "Пользователь не найден" },
-        { status: 404 }
-      );
-      response.cookies.delete("session");
+    const auth = await getSessionUser(request);
+    if (!auth) {
+      const response = NextResponse.json({ success: false, error: "Не авторизован" }, { status: 401 });
+      // A dead cookie (revoked, expired, or an old raw-id cookie) is dropped.
+      if (request.cookies.get(SESSION_COOKIE)) clearSessionCookie(response);
       return response;
     }
+    const user = auth.user;
 
     const now = new Date();
     const end = new Date(user.subscriptionEnd);
@@ -55,7 +54,7 @@ export async function GET(request: NextRequest) {
     const provisioningError =
       !isExpired && !user.subscriptionUrl ? (panelSyncState === "error" ? "panel_sync_error" : "panel_sync_pending") : null;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         email: user.email,
@@ -77,7 +76,7 @@ export async function GET(request: NextRequest) {
         balance: user.balance / 100,
         cashbackPercent: getLoyaltyInfo(user.paidReferrals).percent,
         loyaltyTier: getLoyaltyInfo(user.paidReferrals).tier,
-        isAdmin: !!(process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL),
+        isAdmin: isAdminEmail(user.email),
         subscriptionUrl,
         // The panel (3.x) has no crypto-link endpoint; the dashboard falls back to happ://add/.
         happCryptoLink: null,
@@ -87,6 +86,8 @@ export async function GET(request: NextRequest) {
         panelSyncState,
       },
     });
+    refreshSessionCookie(response, auth);
+    return response;
   } catch (err) {
     console.error("[USER/SUBSCRIPTION] error:", err);
     return NextResponse.json(

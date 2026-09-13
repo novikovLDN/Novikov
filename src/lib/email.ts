@@ -16,6 +16,13 @@ export async function sendVerificationEmail(
   code: string
 ): Promise<boolean> {
   if (!process.env.RESEND_API_KEY) {
+    // A sign-in code is a credential: it goes to the log only in
+    // development. In production a missing key is an outage, not a
+    // reason to leak codes into the logs.
+    if (process.env.NODE_ENV === "production") {
+      console.error("[EMAIL] RESEND_API_KEY is not set — verification email NOT sent");
+      return false;
+    }
     console.log(`[DEV] Verification code for ${email}: ${code}`);
     return true;
   }
@@ -161,19 +168,22 @@ export async function sendRefundAdminAlertEmail(params: {
   appliedAt: Date | null;
 }): Promise<boolean> {
   const appliedLabel = params.appliedAt ? params.appliedAt.toISOString() : "—";
+  // Stored values (the email may come unvalidated from the bot) are
+  // escaped: the admin's mail client must not render injected markup.
+  const esc = (v: string) => v.replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
   return sendTransactional(
     params.adminEmail,
     "[Atlas Secure] Refund получен — требуется решение",
     wrapHtml(
       "Refund получен",
       `<table cellpadding="6" style="font-size:13px"><tbody>
-<tr><td><b>Order ID</b></td><td>${params.orderId}</td></tr>
-<tr><td><b>User</b></td><td>${params.userEmail}</td></tr>
-<tr><td><b>Remnawave UUID</b></td><td>${params.remnawaveUuid || "—"}</td></tr>
+<tr><td><b>Order ID</b></td><td>${esc(params.orderId)}</td></tr>
+<tr><td><b>User</b></td><td>${esc(params.userEmail)}</td></tr>
+<tr><td><b>Remnawave UUID</b></td><td>${esc(params.remnawaveUuid || "—")}</td></tr>
 <tr><td><b>Amount</b></td><td>${params.amountRub.toFixed(2)} ₽</td></tr>
-<tr><td><b>Plan</b></td><td>${params.plan}</td></tr>
+<tr><td><b>Plan</b></td><td>${esc(params.plan)}</td></tr>
 <tr><td><b>Applied to Remnawave at</b></td><td>${appliedLabel}</td></tr>
-<tr><td><b>YooKassa Payment ID</b></td><td>${params.yookassaPaymentId}</td></tr>
+<tr><td><b>YooKassa Payment ID</b></td><td>${esc(params.yookassaPaymentId)}</td></tr>
 </tbody></table>
 <p style="margin-top:16px;color:#444">Подписка <b>не отозвана автоматически</b>. Решите вручную через панель Remnawave: оставить, сократить expireAt пропорционально или удалить пользователя.</p>`
     )

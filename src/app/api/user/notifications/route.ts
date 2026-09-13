@@ -1,13 +1,13 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
+import { getSessionUser } from "@/lib/session";
 
-export async function GET() {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get("session")?.value;
-  if (!userId) {
+export async function GET(request: NextRequest) {
+  const auth = await getSessionUser(request);
+  if (!auth) {
     return NextResponse.json({ success: false, error: "Не авторизован" }, { status: 401 });
   }
+  const userId = auth.user.id;
 
   const result = await pool.query(
     `SELECT n.id, n.title, n.message, n.created_at,

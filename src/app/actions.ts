@@ -3,8 +3,10 @@
 import { generateCode, sendVerificationEmail } from "@/lib/email";
 import { saveCode, userHasPassword } from "@/lib/store";
 import { isDisposableEmail } from "@/lib/disposable-emails";
-import { rateLimitByEmail, rateLimitByIp } from "@/lib/rate-limit";
+import { checkRateLimit, rateLimitByEmail, rateLimitByIp, rateLimitEmailDaily } from "@/lib/rate-limit";
 import { completeEmailSignIn, DISPOSABLE_EMAIL_ERROR } from "@/lib/auth-flow";
+import { clientIpFrom } from "@/lib/client-ip";
+import { setSessionCookieInStore, startSession } from "@/lib/session";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -16,8 +18,7 @@ export interface SendCodeState {
 }
 
 async function clientIp(): Promise<string | null> {
-  const hdrs = await headers();
-  return hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || hdrs.get("x-real-ip") || null;
+  return clientIpFrom(await headers());
 }
 
 export async function sendCodeAction(
@@ -31,7 +32,8 @@ export async function sendCodeAction(
   }
 
   try {
-    // Same limits as /api/auth/send-code: 5 per minute per IP, 3 codes per 5 minutes per email.
+    // Same limits as /api/auth/send-code: 5 per minute per IP, 3 codes per
+    // 5 minutes and 15 per day per email.
     const ipLimit = rateLimitByIp((await clientIp()) || "unknown");
     if (!ipLimit.allowed) {
       return { success: false, error: `Слишком много запросов. Повторите через ${ipLimit.retryAfterSeconds} сек.` };
@@ -49,6 +51,10 @@ export async function sendCodeAction(
     const emailLimit = rateLimitByEmail(email);
     if (!emailLimit.allowed) {
       return { success: false, error: `Код уже отправлен. Повторите через ${emailLimit.retryAfterSeconds} сек.` };
+    }
+    const dailyLimit = rateLimitEmailDaily(email);
+    if (!dailyLimit.allowed) {
+      return { success: false, error: "Слишком много кодов за сутки. Попробуйте завтра или напишите в поддержку." };
     }
 
     const code = generateCode();
@@ -104,9 +110,16 @@ export async function verifyCodeAction(
   let isNewUser = false;
 
   try {
+    const ip = await clientIp();
+    // Code guesses per IP across all mailboxes (each code also burns after 5 misses).
+    const verifyLimit = checkRateLimit(`verify:${ip || "unknown"}`, 30, 10 * 60_000);
+    if (!verifyLimit.allowed) {
+      return { success: false, error: `Слишком много попыток. Повторите через ${verifyLimit.retryAfterSeconds} сек.` };
+    }
+
     // One shared path with /api/auth/verify-code: code check, user +
     // trial (anti-abuse inside), audit, panel sync request.
-    const result = await completeEmailSignIn({ email, code, referralCode: refCode, fingerprint, ip: await clientIp() });
+    const result = await completeEmailSignIn({ email, code, referralCode: refCode, fingerprint, ip });
     if (!result.ok) {
       return { success: false, error: result.error };
     }
@@ -114,15 +127,11 @@ export async function verifyCodeAction(
     needsPassword = !user.passwordHash;
     isNewUser = user.isNew;
 
-    const cookieStore = await cookies();
-    cookieStore.set("session", user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 3 * 60 * 60, // 3 hours
-      path: "/",
-    });
+    const hdrs = await headers();
+    const { token } = await startSession(user.id, { ip, userAgent: hdrs.get("user-agent") });
+    await setSessionCookieInStore(token);
     // Clean up pending_email cookie
+    const cookieStore = await cookies();
     cookieStore.delete("pending_email");
   } catch (err) {
     console.error("[AUTH] verifyCodeAction failed:", err);

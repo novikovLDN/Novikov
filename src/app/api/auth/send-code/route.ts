@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateCode, sendVerificationEmail } from "@/lib/email";
 import { saveCode } from "@/lib/store";
 import { isDisposableEmail } from "@/lib/disposable-emails";
-import { rateLimitByIp, rateLimitByEmail } from "@/lib/rate-limit";
+import { rateLimitByIp, rateLimitByEmail, rateLimitEmailDaily } from "@/lib/rate-limit";
+import { clientIpKey } from "@/lib/client-ip";
 
 export async function POST(request: NextRequest) {
   try {
     // Rate limit by IP: 5 requests per minute
-    const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-      || request.headers.get("x-real-ip") || "unknown";
-    const ipLimit = rateLimitByIp(clientIp);
+    const ipLimit = rateLimitByIp(clientIpKey(request.headers));
     if (!ipLimit.allowed) {
       return NextResponse.json(
         { success: false, error: `Слишком много запросов. Повторите через ${ipLimit.retryAfterSeconds} сек.` },
@@ -19,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const { email } = await request.json();
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email || typeof email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
         { success: false, error: "Введите корректный email" },
         { status: 400 }
@@ -33,19 +32,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rate limit by email: 3 codes per 5 minutes
-    const emailLimit = rateLimitByEmail(email.toLowerCase());
+    const normalized = email.trim().toLowerCase();
+
+    // Rate limit by email: 3 codes per 5 minutes, 15 per day
+    const emailLimit = rateLimitByEmail(normalized);
     if (!emailLimit.allowed) {
       return NextResponse.json(
         { success: false, error: `Код уже отправлен. Повторите через ${emailLimit.retryAfterSeconds} сек.` },
         { status: 429 }
       );
     }
+    const dailyLimit = rateLimitEmailDaily(normalized);
+    if (!dailyLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Слишком много кодов за сутки. Попробуйте завтра или напишите в поддержку." },
+        { status: 429 }
+      );
+    }
 
     const code = generateCode();
-    saveCode(email.toLowerCase(), code);
+    saveCode(normalized, code);
 
-    const sent = await sendVerificationEmail(email.toLowerCase(), code);
+    const sent = await sendVerificationEmail(normalized, code);
     if (!sent) {
       return NextResponse.json(
         { success: false, error: "Не удалось отправить код. Попробуйте позже." },

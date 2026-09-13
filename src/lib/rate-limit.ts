@@ -64,3 +64,20 @@ export function rateLimitByEmail(email: string, maxRequests = 3, windowMs = 300_
 export function rateLimitLogin(ip: string, maxRequests = 10, windowMs = 900_000) {
   return checkRateLimit(`login:${ip}`, maxRequests, windowMs);
 }
+
+/**
+ * Codes per email per day. The 3-per-5-minutes window alone still allowed
+ * ~4 300 code guesses a day against one mailbox (5 attempts × 864 codes);
+ * with this cap it is 5 × 15 = 75.
+ */
+export function rateLimitEmailDaily(email: string, maxRequests = 15, windowMs = 24 * 60 * 60_000) {
+  return checkRateLimit(`email-day:${email}`, maxRequests, windowMs);
+}
+
+/**
+ * Password attempts per ACCOUNT, independent of the IP (which a client can
+ * vary). 10 per 15 minutes, then a pause — sign-in by email code still works.
+ */
+export function rateLimitLoginEmail(email: string, maxRequests = 10, windowMs = 900_000) {
+  return checkRateLimit(`login-email:${email}`, maxRequests, windowMs);
+}

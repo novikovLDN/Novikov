@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getUserByTelegramId, getOrCreateUser, updateUser, getUserById } from "@/lib/store";
+import { getUserByTelegramId, getOrCreateUser, updateUser, getUserById, getUserByEmail } from "@/lib/store";
 import { syncUserToPanel } from "@/lib/subscription-sync";
 import { verifyBotApiKey, unauthorizedResponse } from "../auth";
 import { botSyncDisabledResponse } from "../sync-guard";
@@ -46,7 +46,27 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const userEmail = email?.trim().toLowerCase() || `telegram_${telegramId}@tg.atlassecure.uk`;
+    const userEmail = (typeof email === "string" ? email.trim().toLowerCase() : "") || `telegram_${telegramId}@tg.atlassecure.uk`;
+
+    // An email the bot passes is not verified by anyone. Linking a Telegram
+    // id to an EXISTING account by its email would hand that account (and,
+    // through the Telegram sign-in, a session) to whoever typed the email.
+    // Existing accounts are linked only by their link token (/api/bot/link).
+    if (typeof email === "string" && email.trim()) {
+      const taken = await getUserByEmail(userEmail);
+      if (taken && taken.telegramId !== String(telegramId)) {
+        console.warn(`[BOT/REGISTER] refused: email already belongs to a site account (TG:${telegramId})`);
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Email already belongs to a site account. Link it with the token from the dashboard (/api/bot/link).",
+            code: "EMAIL_TAKEN",
+          },
+          { status: 409 }
+        );
+      }
+    }
+
     const created = await getOrCreateUser(userEmail, referralCode || undefined, "telegram-bot");
 
     await updateUser(created.id, { telegramId: String(telegramId), telegramLinked: true });

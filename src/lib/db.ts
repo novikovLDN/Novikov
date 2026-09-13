@@ -288,6 +288,41 @@ export async function initDb(): Promise<void> {
        value JSONB,
        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
      )`,
+    // ── Security (13.09.2026): server-side sessions ──
+    // The cookie holds a random token; only its SHA-256 is stored here.
+    `CREATE TABLE IF NOT EXISTS sessions (
+       id TEXT PRIMARY KEY,
+       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+       token_hash TEXT NOT NULL UNIQUE,
+       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+       last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+       expires_at TIMESTAMPTZ NOT NULL,
+       ip TEXT,
+       user_agent TEXT,
+       revoked_at TIMESTAMPTZ
+     )`,
+    "CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id) WHERE revoked_at IS NULL",
+    "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)",
+    // ── Security (13.09.2026): Telegram sign-in nonces ──
+    // Used to be created lazily by /api/bot/auth-login. Now the SITE
+    // creates the nonce (bound to the browser by browser_hash); the bot
+    // can only confirm an existing pending one.
+    `CREATE TABLE IF NOT EXISTS telegram_auth_nonces (
+       nonce TEXT PRIMARY KEY,
+       user_id TEXT,
+       telegram_id TEXT,
+       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+       expires_at TIMESTAMPTZ NOT NULL,
+       used BOOLEAN NOT NULL DEFAULT FALSE
+     )`,
+    "ALTER TABLE telegram_auth_nonces ALTER COLUMN user_id DROP NOT NULL",
+    "ALTER TABLE telegram_auth_nonces ALTER COLUMN telegram_id DROP NOT NULL",
+    "ALTER TABLE telegram_auth_nonces ADD COLUMN IF NOT EXISTS browser_hash TEXT",
+    "ALTER TABLE telegram_auth_nonces ADD COLUMN IF NOT EXISTS confirm_code TEXT",
+    "ALTER TABLE telegram_auth_nonces ADD COLUMN IF NOT EXISTS request_ip TEXT",
+    "ALTER TABLE telegram_auth_nonces ADD COLUMN IF NOT EXISTS request_ua TEXT",
+    "ALTER TABLE telegram_auth_nonces ADD COLUMN IF NOT EXISTS confirmed_at TIMESTAMPTZ",
+    "CREATE INDEX IF NOT EXISTS idx_tg_nonces_expires ON telegram_auth_nonces(expires_at)",
   ];
 
   const failed: string[] = [];

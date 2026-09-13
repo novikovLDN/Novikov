@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyAdmin } from "../middleware";
 import { isBotSyncEnabled, setBool, SETTINGS } from "@/lib/settings";
 import { createAuditLog } from "@/lib/store";
-import { cookies } from "next/headers";
 
 /** GET /api/admin/bot-sync — current value of the bot-sync kill switch. */
 export async function GET() {
@@ -24,8 +23,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Нужно поле enabled: true или false" }, { status: 400 });
   }
 
-  const cookieStore = await cookies();
-  const adminId = cookieStore.get("session")?.value || "admin";
+  const adminId = auth.userId || "admin";
 
   await setBool(SETTINGS.BOT_SYNC_ENABLED, body.enabled, adminId);
   await createAuditLog(

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { completeEmailSignIn } from "@/lib/auth-flow";
+import { clientIpFrom } from "@/lib/client-ip";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { setSessionCookie, startSession } from "@/lib/session";
 
 /**
  * JSON variant of the email sign-in. Delegates to the same shared
@@ -8,13 +11,22 @@ import { completeEmailSignIn } from "@/lib/auth-flow";
  */
 export async function POST(request: NextRequest) {
   try {
+    const ip = clientIpFrom(request.headers);
+    // Code guesses per IP across all mailboxes (each code also burns after 5 misses).
+    const limit = checkRateLimit(`verify:${ip || "unknown"}`, 30, 10 * 60_000);
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { success: false, error: `Слишком много попыток. Повторите через ${limit.retryAfterSeconds} сек.` },
+        { status: 429 }
+      );
+    }
+
     const { email, code, referralCode, fingerprint } = await request.json();
 
     if (!email || !code) {
       return NextResponse.json({ success: false, error: "Email и код обязательны" }, { status: 400 });
     }
 
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || null;
     const result = await completeEmailSignIn({
       email: String(email),
       code: String(code),
@@ -27,6 +39,7 @@ export async function POST(request: NextRequest) {
     }
     const user = result.user;
 
+    const { token } = await startSession(user.id, { ip, userAgent: request.headers.get("user-agent") });
     const response = NextResponse.json({
       success: true,
       data: {
@@ -41,15 +54,7 @@ export async function POST(request: NextRequest) {
         trialGranted: user.trialGranted,
       },
     });
-
-    response.cookies.set("session", user.id, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 3 * 60 * 60, // 3 hours
-      path: "/",
-    });
-
+    setSessionCookie(response, token);
     return response;
   } catch (err) {
     console.error("[AUTH] verify-code failed:", err);

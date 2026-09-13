@@ -1,67 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import { pool } from "@/lib/db";
+import { claimTelegramLogin, TG_LOGIN_COOKIE, TG_LOGIN_COOKIE_PATH } from "@/lib/telegram-login";
+import { setSessionCookie, startSession } from "@/lib/session";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { clientIpFrom } from "@/lib/client-ip";
+import { createAuditLog } from "@/lib/store";
 
 /**
  * GET /api/auth/telegram-check?nonce=XXX
  *
- * Site polls this endpoint after showing the Telegram login QR/link.
- * Once the bot confirms the user (via /api/bot/auth-login), this returns
- * the session cookie and redirects to dashboard.
+ * The site polls this after POST /api/auth/telegram-start. The session is
+ * issued only to the browser that started the login (tg_login cookie)
+ * and only once the bot has confirmed it (see src/lib/telegram-login.ts).
+ * A nonce without the matching cookie always reads "pending": a stranger
+ * polling someone else's nonce learns nothing and gets nothing.
  */
 export async function GET(request: NextRequest) {
+  const ip = clientIpFrom(request.headers);
+  const limit = checkRateLimit(`tg-check:${ip || "unknown"}`, 90, 60_000);
+  if (!limit.allowed) {
+    return NextResponse.json({ success: false, error: "Слишком часто" }, { status: 429 });
+  }
+
   try {
     const nonce = request.nextUrl.searchParams.get("nonce");
     if (!nonce) {
       return NextResponse.json({ success: false, error: "nonce required" }, { status: 400 });
     }
 
-    // Check if nonce exists and is valid
-    try {
-      const result = await pool.query(
-        `SELECT user_id, expires_at, used FROM telegram_auth_nonces WHERE nonce = $1`,
-        [nonce]
-      );
-
-      if (result.rows.length === 0) {
-        return NextResponse.json({ success: false, status: "pending" });
-      }
-
-      const row = result.rows[0];
-
-      if (row.used) {
-        return NextResponse.json({ success: false, status: "used" });
-      }
-
-      if (new Date(row.expires_at) < new Date()) {
-        return NextResponse.json({ success: false, status: "expired" });
-      }
-
-      // Mark as used
-      await pool.query(
-        `UPDATE telegram_auth_nonces SET used = TRUE WHERE nonce = $1`,
-        [nonce]
-      );
-
-      // Set session cookie
-      const response = NextResponse.json({
-        success: true,
-        data: { userId: row.user_id },
-      });
-
-      response.cookies.set("session", row.user_id, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 3 * 60 * 60,
-        path: "/",
-      });
-
-      return response;
-    } catch {
-      // Table might not exist yet — that's fine, means no auth attempts
-      return NextResponse.json({ success: false, status: "pending" });
+    const secret = request.cookies.get(TG_LOGIN_COOKIE)?.value ?? "";
+    const claim = await claimTelegramLogin(nonce, secret);
+    if (claim.status !== "ok") {
+      return NextResponse.json({ success: false, status: claim.status === "invalid" ? "pending" : claim.status });
     }
-  } catch {
+
+    const { token } = await startSession(claim.userId, { ip, userAgent: request.headers.get("user-agent") });
+    await createAuditLog("user.login", "telegram", claim.userId, undefined, ip || undefined);
+
+    const response = NextResponse.json({ success: true, data: { userId: claim.userId } });
+    setSessionCookie(response, token);
+    response.cookies.set(TG_LOGIN_COOKIE, "", { path: TG_LOGIN_COOKIE_PATH, maxAge: 0, httpOnly: true });
+    return response;
+  } catch (err) {
+    console.error("[AUTH/TELEGRAM-CHECK] error:", err instanceof Error ? err.message : err);
     return NextResponse.json({ success: false, error: "Ошибка сервера" }, { status: 500 });
   }
 }
