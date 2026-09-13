@@ -1,3 +1,6 @@
+// Поля бланка — первым импортом: в каскаде они должны стоять до
+// atlas.css и business-atlas.css, как раньше в корневом layout.
+import "@/app/px-forms.css";
 import Chars from "@/components/atlas/Chars";
 import Link from "next/link";
 import AtlasShell from "@/components/atlas/AtlasShell";

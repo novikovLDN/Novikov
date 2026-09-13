@@ -1,16 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { brand, displayFace } from "./fonts";
+import { atlasWide } from "./atlas-fonts";
+import { brand } from "./fonts";
 import { PLANS, DEVICE_LIMIT, formatRub } from "@/lib/plans";
 import { COUNTRY_COUNT } from "@/lib/locations";
 import { TRIAL_DAYS } from "@/lib/brand-facts";
+// Общий слой: Tailwind, сброс и служебные элементы layout. Корпус
+// «Атлас-издания» подключают AtlasShell (atlas.css) и сами страницы.
 import "./globals.css";
-import "./brand.css";
-// Слой токенов светлой системы «Гратикул» (фаза 5, шаг 1). Вводится
-// рядом с действующими системами и включается постранично классом
-// `.g`: пока класса нет ни на одной странице, файл не меняет ничего.
-// Обоснование значений — docs/03_DESIGN_SYSTEM.md, порядок перевода —
-// docs/04_ARCHITECTURE.md §4.
-import "./graticule.css";
 // Нижние карточки и диалоги (cookie, установка, быстрый вход) — одно
 // оформление на весь сайт, без мостов старых слоёв.
 import "./overlays.css";
@@ -19,7 +15,6 @@ import PwaManager from "@/components/PwaManager";
 import IosInstallBanner from "@/components/IosInstallBanner";
 import { I18nProvider } from "@/lib/i18n";
 import SiteJsonLd from "@/components/pixel/SiteJsonLd";
-import { Cursor } from "@/components/brand/Cursor";
 import PageTransition from "@/components/brand/PageTransition";
 import BackToTop from "@/components/brand/BackToTop";
 
@@ -111,17 +106,14 @@ export const viewport: Viewport = {
 };
 
 /**
- * Предзагрузки MTS Wide в <head> больше нет — как и самого <head>.
+ * Шрифты (13.09.2026). MTS Wide — одна гарнитура всего сайта, два
+ * предзагруженных файла (atlas-fonts.ts). Переменная стоит на <html>,
+ * а не на `.a`: нижние карточки живут здесь, вне страницы, и раньше
+ * качали тот же Medium второй раз через сырой @font-face.
  *
- * После ребрендинга 2027 первый экран набран Oswald, а внутри
- * `.px-page`, `.dashboard-v2` и `.auth-shell` brand.css подменяет
- * `--font-mts-wide` на `--display`: фирменной гарнитурой не набрана
- * ни одна страница. Два файла по 30 КБ при этом выкачивались на
- * каждом открытии экрана и соревновались за канал с теми шрифтами,
- * которыми страница действительно набрана (проверено: в
- * `document.fonts` MTS Wide не значится ни на одной странице).
- * `@font-face` остался на месте — если разметка где-то ещё попросит
- * MTS Wide, шрифт приедет по требованию.
+ * Sofia Sans (fonts.ts) — без предзагрузки, только для «К содержимому»
+ * и подписи «наверх»; файл приезжает, когда элемент показан. Sofia Sans
+ * Condensed убрана: ей не набрано ни одного видимого знака.
  */
 export default function RootLayout({
   children,
@@ -129,7 +121,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" className={`${brand.variable} ${displayFace.variable}`} suppressHydrationWarning>
+    <html lang="ru" className={`${atlasWide.variable} ${brand.variable}`} suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
         <script dangerouslySetInnerHTML={{ __html: ATLAS_BOOT }} />
         {/* Структурированные данные всего сайта: организация, её
@@ -142,15 +134,11 @@ export default function RootLayout({
             {children}
           </div>
           <CookieConsent />
-          {/* Курсор бренда — точка, которая стирает границу. Прежние
-              CustomCursor и SpotlightLayer убраны: первый давал на
-              обновлённых страницах второй курсор поверх нового, второй
-              подсвечивал карточки .px-spot, которых в новой системе
-              нет. Оба грузились на каждой странице сайта. */}
-          {/* Зерно поверх всего сайта: у плоских заливок появляется
-              материал. Слой не перехватывает указатель. */}
-          <div className="b-grain" aria-hidden />
-          <Cursor />
+          {/* Курсор бренда и зерно (`.b-cursor`, `.b-grain`) убраны
+              13.09.2026: оба включались только при `.b-root` на
+              странице, а чернильной оболочки нет ни на одной — курсор
+              вешал слушатель и рисовал пустой div, зерно было
+              display: none. */}
           {/* Возврат к первому экрану: страница высокая, а закреплённые
               сцены забирают по несколько экранов прокрутки каждая. */}
           <BackToTop />

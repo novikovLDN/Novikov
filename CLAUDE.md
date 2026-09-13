@@ -84,6 +84,17 @@ In-memory Maps for development. **Replace with a database for production.**
 
 ### Design System — РЕДАКЦИОННЫЙ КОРПУС
 
+> **Устарело (13.09.2026).** Корпуса graticule / pixel / brand удалены
+> вместе с `graticule.css`, `graticule-home.css`, `brand.css` и
+> компонентами `src/components/{graticule,brand,pixel}` (остались
+> `pixel/BrandMark`, `pixel/Icon`, `pixel/SiteJsonLd`, `brand/BackToTop`,
+> `brand/PageTransition`, `brand/scroll-top`). Весь сайт — «Атлас-издание»:
+> токены в `:root` файла `src/app/atlas.css`, гарнитура — MTS Wide из
+> `src/app/atlas-fonts.ts` (переменная на `<html>`), общий слой —
+> `globals.css` (сброс, Tailwind, `.b-sr`, `.b-skip`, `.b-top`), поля
+> форм — `px-forms.css` (только /business и /contact). Текст ниже —
+> история решений, а не действующие правила.
+
 Единственный источник значений — блок токенов `:root` в
 `src/app/graticule.css`. Разбор восемнадцати сайтов креативных студий,
 которым обоснованы приёмы: `research/03_AGENCY_TEARDOWN.md`.

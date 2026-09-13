@@ -1,5 +1,8 @@
 "use client";
 
+// Поля бланка — первым импортом: в каскаде они должны стоять до
+// atlas.css и contact-atlas.css, как раньше в корневом layout.
+import "@/app/px-forms.css";
 import Chars from "@/components/atlas/Chars";
 import Link from "next/link";
 import { useRef, useState } from "react";

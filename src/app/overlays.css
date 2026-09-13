@@ -25,7 +25,10 @@
   --ov-cobalt: #1432B8;
   --ov-cobalt-deep: #0C2A8F;
   --ov-rock: #C4001F;
-  --ov-font: "MTS Wide", Arial, sans-serif;
+  /* MTS Wide из next/font (atlas-fonts.ts): переменная стоит на <html>,
+     поэтому доступна и карточкам вне `.a`. Прежний сырой @font-face
+     "MTS Wide" качал тот же файл второй раз. */
+  --ov-font: var(--font-atlas-wide), Arial, sans-serif;
 
   font-family: var(--ov-font);
   font-weight: 500;

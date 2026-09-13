@@ -38,29 +38,3 @@ export default function LandLight() {
     </svg>
   );
 }
-
-/** Подпись к свету: что именно освещает карту сейчас. */
-export function SunNote() {
-  const [text, setText] = useState("Свет — полуденный.");
-
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      const sun = sunPosition(now, DEFAULT_LAT, lonFromTimezone(now));
-      const time = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-      setText(
-        sun.elevation > 0
-          ? `Свет — как у вас сейчас, ${time}.`
-          : `У вас сейчас ночь, ${time}, — свет на карте погашен.`,
-      );
-    };
-    const t = window.setTimeout(tick, 0);
-    const iv = window.setInterval(tick, 60_000);
-    return () => {
-      window.clearTimeout(t);
-      window.clearInterval(iv);
-    };
-  }, []);
-
-  return <span>{text}</span>;
-}

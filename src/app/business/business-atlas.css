@@ -188,7 +188,7 @@
   --px-accent-dim: var(--a-shoal);
   --px-accent-line: var(--a-cobalt);
   --px-accent-text: var(--a-cobalt);
-  --px-bad: var(--g-rock);
+  --px-bad: #C4001F; /* бывший --g-rock: слой graticule.css удалён */
   --px-text: var(--a-ink);
   --px-text-2: var(--a-ink-2);
   --px-text-3: var(--a-ink-3);

@@ -1,4 +1,3 @@
-import { atlasWide } from "@/app/atlas-fonts";
 import AtlasHeader from "./AtlasHeader";
 import AtlasFooter from "./AtlasFooter";
 import MotionController from "./MotionController";
@@ -20,6 +19,9 @@ import "@/app/atlas.css";
  * перерисовывается при переходе между страницами на клиенте, и React 19
  * на каждом переходе ругался «Encountered a script tag». Layout
  * рендерится на сервере один раз и при переходах не перерисовывается.
+ *
+ * Переменная гарнитуры (`atlasWide.variable`) стоит на <html> в layout:
+ * ей набраны и нижние карточки вне `.a`.
  */
 
 export default function AtlasShell({
@@ -40,7 +42,7 @@ export default function AtlasShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`a ${atlasWide.variable}`}>
+    <div className="a">
       <a href="#main" className="b-skip">К содержимому</a>
       <AtlasHeader sheetNo={sheetNo} sheetTitle={sheetTitle} cta={headCta} />
       {unfold ? <Unfold /> : null}

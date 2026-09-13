@@ -105,23 +105,12 @@ body:has(.a) {
   --ink-2:      var(--a-g50);
   --ink-3:      var(--a-g200);
   --on-ink:     var(--a-ink);
-  --on-ink-2:   var(--a-ink-2);
-  --on-ink-3:   var(--a-ink-3);
-  --paper:      var(--a-paper);
-  --on-paper:   var(--a-ink);
-  --on-paper-2: var(--a-ink-2);
-  --on-paper-3: var(--a-ink-3);
-  --bg:         var(--a-paper);
-  --fg:         var(--a-ink);
-  --fg-2:       var(--a-ink-2);
-  --fg-3:       var(--a-ink-3);
-  --line:       var(--a-g200);
   --acid:       var(--a-cobalt);
-  --acid-deep:  var(--a-cobalt-deep);
 }
 
 .a em { font-style: normal; font-weight: 500; }
-.a-fit-2, .a-beat-neg, .a-caption, .a-servers, .a-city summary::after { font-style: normal; }
+.a-fit-2,
+.a-city summary::after { font-style: normal; }
 .a-wide {
   font-family: var(--a-wide);
   font-weight: 500;
@@ -753,17 +742,6 @@ body:has(.a) {
   line-height: 1.55;
   color: var(--a-ink);
 }
-.a-frag {
-  display: inline-block;
-  width: 4.6em;
-  height: 1.4em;
-  vertical-align: -0.36em;
-  margin-inline: 0.15em;
-  overflow: hidden;
-}
-.a-frag-land { fill: none; stroke: var(--a-g400); stroke-width: 1; }
-.a-frag-dot { fill: var(--a-cobalt); }
-.a-frag-bands { transform-box: fill-box; transform-origin: center; }
 /* Переключатель в строке лида: «включаете Atlas» — жестом. Базовое
    состояние — включён (кобальтовая дорожка, ручка справа); щелчок при
    загрузке — раздел 6.6. Размеры в em: растёт вместе с кеглем лида. */
@@ -796,60 +774,14 @@ body:has(.a) {
 }
 .a-fine { margin: 0.9rem 0 0; font-size: 0.875rem; color: var(--a-ink-3); }
 
-.a-caption {
-  margin: 0 0 1.25rem;
-  max-width: 40ch;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: var(--a-ink-2);
-}
-.a-caption .a-reading { font-style: normal; }
-.a-near { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--a-g200); }
-.a-near li {
-  display: grid;
-  grid-template-columns: 7.5rem minmax(0, 1fr) 4.5rem;
-  align-items: center;
-  gap: 1rem;
-  min-height: 44px;
-  border-bottom: 1px solid var(--a-g100);
-}
-.a-near em { font-size: 1.1rem; }
-.a-near li > span:last-child { text-align: right; color: var(--a-ink-2); }
-.a-near-bar { height: 3px; background: var(--a-g100); }
-.a-near-bar i { display: block; height: 100%; width: var(--w); background: var(--a-cobalt); }
-
 /* Кадр обязан помещаться в экран целиком (CLAUDE.md). Замер 10.09.2026
    на восьми окнах: без правил ниже низ первого экрана уходил на
    902/812 (телефон), 819/768 и 838/800 (невысокие ноутбуки).
    Убирается то, что дублируется ниже: ближайшие серверы есть на листе
    04, подпись-наблюдение — в финале и указателе. */
-@media (max-width: 899px) {
-  .a-near { display: none; }
-}
-@media (max-width: 899px) and (max-height: 700px) {
-  .a-caption { display: none; }
-}
 @media (min-width: 900px) and (max-height: 860px) {
   .a-display { --fit-w: min(100cqw, 100svh); }
-  .a-near li:nth-child(n + 4) { display: none; }
 }
-
-/* Живое показание: точка перед числом — живое или ещё нет. */
-.a-reading { white-space: nowrap; }
-.a-reading::before {
-  content: "";
-  display: inline-block;
-  width: 0.42em;
-  height: 0.42em;
-  margin-right: 0.35em;
-  vertical-align: 0.1em;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.3;
-}
-.a-reading[data-live="true"]::before { background: var(--a-cobalt); opacity: 1; }
-.a-plate .a-reading[data-live="true"]::before { background: var(--a-shoal-lume); }
-.a-ago { color: var(--a-ink-3); font-family: var(--a-sans); font-size: 0.8125rem; }
 
 /* ─── Плиты (разделы 02 и 06) ─────────────────────────────────────── */
 /* clip, а не hidden: hidden делает плиту контейнером прокрутки, и
@@ -992,76 +924,7 @@ body:has(.a) {
 .a-scale i[data-level="3"] { border-color: rgba(20, 50, 184, 0.34); }
 .a-scale i[data-level="4"] { border-color: rgba(20, 50, 184, 0.24); }
 .a-scale i[data-level="5"] { border-color: rgba(20, 50, 184, 0.16); }
-
-/* Таблицы: данные карты и указатель */
-.a-table-wrap { overflow-x: auto; margin-top: 2.5rem; background: var(--a-g50); }
-.a-table { width: 100%; border-collapse: collapse; font-size: 0.975rem; }
-.a-table th {
-  text-align: left;
-  padding: 0.75rem 0.75rem;
-  border-bottom: 1px solid var(--a-g200);
-  font-family: var(--a-wide);
-  font-weight: 500;
-  font-size: 0.75rem;
-  letter-spacing: 0.02em;
-  color: var(--a-ink-3);
-  white-space: nowrap;
-}
-.a-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--a-g100); vertical-align: baseline; }
-.a-table .a-td-num { text-align: right; white-space: nowrap; }
-.a-table .a-num { font-size: 1.15em; }
 .a-index-table tr[data-kind="measured"] td { color: var(--a-cobalt); }
-@media (max-width: 720px) {
-  .a-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  .a-table, .a-table tbody, .a-table tr, .a-table td { display: block; }
-  .a-table tr { padding: 0.75rem; border-bottom: 1px solid var(--a-g200); }
-  .a-table td { border: 0; padding: 0.1rem 0; }
-  .a-table .a-td-num { text-align: left; }
-}
-
-/* ─── Лист 05 · Легенда ──────────────────────────────────────────── */
-.a-legend-group { margin-top: 2.5rem; border-top: 1px solid var(--a-g200); padding-top: 1rem; }
-.a-legend-head { margin: 0 0 0.5rem; color: var(--a-ink-3); }
-/* Строка тарифа: имя, знак канала (толщина ∝ скорости), скорость,
-   цена крупно; под ценой — одна фраза о тарифе. */
-.a-legend-row {
-  display: grid;
-  grid-template-columns: 7rem minmax(6rem, 1fr) 9rem minmax(12rem, 16rem);
-  grid-template-areas: "name sym val price" "tag tag tag price";
-  align-items: center;
-  gap: 0.35rem 1.75rem;
-  padding: 1.4rem 0.75rem;
-  border-bottom: 1px solid var(--a-g100);
-  color: inherit;
-  text-decoration: none;
-}
-.a-legend-row .a-legend-name { grid-area: name; font-weight: 700; font-size: 1.5rem; letter-spacing: -0.02em; }
-.a-legend-row .a-sym { grid-area: sym; }
-.a-legend-row .a-legend-val { grid-area: val; }
-.a-legend-row .a-legend-price { grid-area: price; text-align: right; }
-.a-legend-price b { font-size: 1.6rem; font-weight: 700; color: var(--a-ink); letter-spacing: -0.02em; }
-.a-legend-price small { display: block; font-size: 0.8125rem; color: var(--a-ink-3); }
-.a-legend-tag { grid-area: tag; color: var(--a-ink-2); font-size: 0.9375rem; }
-.a-servers-line { margin: 2rem 0 0; color: var(--a-ink-2); }
-/* Ссылка в строке — всё равно 44 px высоты: стандарт проекта строже
-   исключения WCAG для строчных ссылок. */
-.a-servers-line a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--a-cobalt);
-  text-underline-offset: 3px;
-}
-@media (max-width: 820px) {
-  .a-legend-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: "name price" "sym sym" "val val" "tag tag";
-  }
-}
-@media (hover: hover) {
-  .a-legend-row:hover .a-legend-price b, .a-legend-row:hover .a-legend-price small,
-  .a-legend-row:hover .a-legend-tag { color: #FFFFFF; }
-}
 .a-sym { position: relative; height: var(--w); background: var(--a-g100); overflow: hidden; }
 .a-sym-flow {
   position: absolute;
@@ -1071,78 +934,8 @@ body:has(.a) {
   right: -30px;
   background: repeating-linear-gradient(90deg, var(--a-cobalt) 0 18px, transparent 18px 30px);
 }
-.a-legend-name em { font-size: 1.9rem; font-weight: 300; }
-.a-legend-val { font-size: 1.1rem; }
-.a-legend-val b { font-size: 1.5em; font-weight: 300; }
-.a-legend-price { color: var(--a-ink-2); font-size: 0.975rem; }
 .a-legend-note { margin: 1rem 0 0; color: var(--a-ink-2); }
-@media (max-width: 820px) {
-  .a-legend-row { grid-template-columns: 6rem minmax(0, 1fr); }
-  .a-legend-price { grid-column: 1 / -1; }
-}
-.a-servers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.1em 0.55em;
-  padding: 0.75rem;
-  color: inherit;
-  text-decoration: none;
-  font-family: var(--a-serif);
-  font-weight: 300;
-  font-variation-settings: "opsz" 72;
-  font-size: clamp(2.2rem, 6.2vw, 5.6rem);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
-}
 .a-legend .a-actions { margin-top: 2.5rem; }
-
-/* ─── Лист 06 · Три шага ─────────────────────────────────────────── */
-.a-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2.5rem; }
-@media (min-width: 900px) { .a-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; } }
-/* Лесенка вместо трёх равных колонок с кружками (шаблон «как это
-   работает», ревью): каждый следующий шаг ниже, номер — крупная
-   цифра кобальтом. */
-.a-step { position: relative; }
-@media (min-width: 900px) {
-  .a-step:nth-child(2) { margin-top: 4.5rem; }
-  .a-step:nth-child(3) { margin-top: 9rem; }
-}
-.a-step-n {
-  display: block;
-  margin-bottom: 0.75rem;
-  font-family: var(--a-wide);
-  font-weight: 700;
-  font-size: clamp(4rem, 9vw, 8rem);
-  line-height: 0.85;
-  letter-spacing: -0.05em;
-  color: var(--a-cobalt);
-}
-.a-step-link {
-  position: absolute;
-  top: 1.3rem;
-  left: 3.1rem;
-  right: -1.5rem;
-  height: 1px;
-  overflow: hidden;
-}
-.a-step-link i {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -12px;
-  right: 0;
-  background: repeating-linear-gradient(90deg, var(--a-g400) 0 6px, transparent 6px 12px);
-}
-@media (max-width: 899px) { .a-step-link { display: none; } }
-.a-step h3 {
-  margin: 0 0 0.5rem;
-  font-family: var(--a-wide);
-  font-weight: 500;
-  font-size: 1.3rem;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-}
-.a-step p { margin: 0; color: var(--a-ink-2); max-width: 32ch; }
 .a-on {
   display: inline-flex;
   align-items: center;
@@ -1163,23 +956,6 @@ body:has(.a) {
   line-height: 0.95;
   letter-spacing: -0.04em;
   max-width: 14ch;
-}
-.a-here { margin: 2.5rem 0 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; color: #FFFFFF; }
-.a-here .a-wide { color: var(--a-shoal-lume); }
-.a-here-dot {
-  position: relative;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #FFFFFF;
-}
-.a-here-dot::after {
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border: 1px solid #FFFFFF;
-  border-radius: 50%;
-  opacity: 0;
 }
 
 /* ─── Погружение: раскладка слоёв редакции 4 (движение — раздел 6.6) ─ */
@@ -1345,13 +1121,6 @@ body:has(.a) {
 .a-chart-fig { overflow: clip; }
 .a-packet { fill: var(--a-cobalt); }
 
-/* 05 — диагональ через цифры шагов (только там, где шаги лесенкой). */
-.a-steps-wrap { position: relative; }
-.a-steps-line { position: absolute; top: 0; left: 0; width: 100%; height: 320px; pointer-events: none; display: none; }
-@media (min-width: 900px) { .a-steps-line { display: block; } }
-.a-steps-line path { fill: none; stroke: var(--a-cobalt); stroke-opacity: 0.3; stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 0; }
-.a-step { z-index: 1; }
-
 /* 06 — кольцо у главной кнопки финала. */
 .a-btn-invert { position: relative; }
 .a-btn-invert::after {
@@ -1408,20 +1177,19 @@ body:has(.a) {
 .a-unfold i { position: absolute; background: var(--a-g400); }
 .a-fold-v { left: 50%; top: 0; bottom: 0; width: 1px; transform: scaleY(0); }
 .a-fold-h { top: 50%; left: 0; right: 0; height: 1px; transform: scaleX(0); }
-.a-fold-note { position: absolute; right: var(--a-gutter); bottom: 1rem; color: var(--a-ink-3); opacity: 0; }
 .a-unfold[data-play] .a-fold-v { animation: a-unfold-v 600ms var(--m-pen) 80ms forwards, a-fade 240ms var(--m-settle) 680ms forwards; }
 .a-unfold[data-play] .a-fold-h { animation: a-unfold-h 600ms var(--m-pen) 80ms forwards, a-fade 240ms var(--m-settle) 680ms forwards; }
-.a-unfold[data-play] .a-fold-note { animation: a-note 920ms var(--m-pen) forwards; }
 @keyframes a-unfold-v { to { transform: scaleY(1); } }
 @keyframes a-unfold-h { to { transform: scaleX(1); } }
 @keyframes a-fade { to { opacity: 0; } }
-@keyframes a-note { 0%, 90% { opacity: 1; } 100% { opacity: 0; } }
 
 /* ─── 6.3 Холостой слой ─────────────────────────────────────────────
    Живое по решению владельца, но у каждого блока — слой со смыслом:
    прилив мелей, поток по знаку со скоростью тарифа, вода под плитой,
    живое показание. Вне кадра слой стоит на паузе. */
-.a-band, .a-frag-level, .a-hf-level, .a-void-ring {
+.a-band,
+.a-hf-level,
+.a-void-ring {
   animation: a-tide 8s var(--m-tide) infinite alternate;
   animation-delay: calc(var(--l, 1) * -1.6s);
 }
@@ -1434,15 +1202,10 @@ body:has(.a) {
 .a-sym-flow { animation: a-flow var(--flow, 2.4s) linear infinite; }
 @keyframes a-flow { to { transform: translateX(-30px); } }
 
-.a-step-link i { animation: a-flow-step 6s linear infinite; }
-@keyframes a-flow-step { to { transform: translateX(12px); } }
-
-.a-reading[data-live="true"]::before,
 .a-on::before { animation: a-blink 1.6s var(--m-tide) infinite alternate; }
 @keyframes a-blink { to { opacity: 0.25; } }
 
-.a-city[data-closest] summary::before,
-.a-here-dot::after { animation: a-ring 3s var(--m-settle) infinite; }
+.a-city[data-closest] summary::before { animation: a-ring 3s var(--m-settle) infinite; }
 @keyframes a-ring {
   0% { transform: scale(0.4); opacity: 1; }
   100% { transform: scale(1.8); opacity: 0; }
@@ -1453,15 +1216,15 @@ body:has(.a) {
 .a-js .a-sheet:not([data-inview]) .a-idle::before,
 .a-js .a-sheet:not([data-inview]) .a-idle::after,
 .a-js .a-sheet:not([data-inview]) .a-idle i,
-.a-js .a-sheet:not([data-inview]) .a-city summary::before,
-.a-js .a-sheet:not([data-inview]) .a-here-dot::after {
+.a-js .a-sheet:not([data-inview]) .a-city summary::before {
   animation-play-state: paused;
 }
 
 /* ─── 6.4 Отклик на руку ────────────────────────────────────────────
    Наведение переворачивает материал в кобальтовую плиту, а не
    подкрашивает его. Подчёркивание прочерчивается пером. */
-.a-btn, .a-head-cta, .a-legend-row, .a-servers, .a-table tbody tr td, .a-step-n {
+.a-btn,
+.a-head-cta {
   transition: background-color var(--d-1) var(--m-turn), color var(--d-1) var(--m-turn),
               border-color var(--d-1) var(--m-turn);
 }
@@ -1473,18 +1236,8 @@ body:has(.a) {
   .a-btn-line:hover { color: var(--a-shoal-lume); }
   .a-nav a:hover { color: var(--a-ink); background-size: 100% 1px; }
   .a-foot-index a:hover { background-size: 100% 1px; }
-  .a-legend-row:hover, .a-servers:hover { background: var(--a-cobalt); color: #FFFFFF; }
-  .a-legend-row:hover .a-legend-price { color: #FFFFFF; }
-  .a-legend-row:hover .a-sym { background: rgba(255, 255, 255, 0.2); }
-  .a-legend-row:hover .a-sym-flow { background-image: repeating-linear-gradient(90deg, #FFFFFF 0 18px, transparent 18px 30px); }
-  .a-table tbody tr:hover td { background: var(--a-cobalt); color: #FFFFFF; }
-  .a-step:hover .a-step-n { color: var(--a-ink); }
   .a-city summary:hover::after { opacity: 1; }
   .a-city summary:hover span { background: var(--a-cobalt); }
-  /* «Вязкость = время ответа»: ступени фрагмента откликаются на руку с
-     задержкой, равной отклику сайта у читателя (--a-rtt, Reading). */
-  .a-frag-bands { transition: transform var(--d-2) var(--m-settle) var(--a-rtt, 120ms); }
-  .a-lead:hover .a-frag-bands { transform: scale(1.14); }
 }
 
 /* ─── 6.6 Погружение (редакция 4, 11.09.2026) ───────────────────────
@@ -1592,18 +1345,6 @@ body:has(.a) {
     animation-range: entry 5% cover 42%;
   }
 
-  /* 05 — цифры шагов с разной глубиной, диагональ прочерчивается. */
-  .a-step-n {
-    animation: a-rise linear both;
-    animation-timeline: view();
-    animation-range: entry 0% cover 45%;
-  }
-  .a-steps-line path {
-    animation: a-draw linear both;
-    animation-timeline: view();
-    animation-range: entry 20% cover 55%;
-  }
-
   /* 06 — слова финала проявляются на входе. */
   .a-final .a-word {
     animation: a-word linear both;
@@ -1642,8 +1383,6 @@ body:has(.a) {
 }
 @media (hover: hover) {
   .a-btn-primary:hover { background-size: 100% 100%; }
-  /* Под рукой поток по знаку тарифа ускоряется втрое. */
-  .a-legend-row:hover .a-sym-flow { animation-duration: calc(var(--flow, 2.4s) / 3); }
 }
 
 @keyframes a-curtain { from { clip-path: inset(0 3.5% 0 3.5%); } }
@@ -1655,8 +1394,6 @@ body:has(.a) {
 @keyframes a-word { from { opacity: 0.18; transform: translateY(0.22em); } }
 @keyframes a-zoom { from { transform: scale(1.85); } }
 /* Короткий ход: при 30–102 px цифры наезжали на заголовки шагов. */
-@keyframes a-rise { from { transform: translateY(calc(14px + var(--d, 0) * 12px)); opacity: 0; } }
-@keyframes a-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 
 /* 6.7 (слой 3D-картинок за текстом) снят 11.09.2026: владелец попросил
    живые объекты вместо неподвижных картинок — home-v5.css. */
